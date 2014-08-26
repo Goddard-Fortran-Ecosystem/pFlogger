@@ -1,0 +1,1 @@
+ADD_TEST_SUITE(Test_Logger_mod_suite)

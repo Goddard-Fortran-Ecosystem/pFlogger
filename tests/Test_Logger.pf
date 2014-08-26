@@ -1,0 +1,34 @@
+module Test_Logger_mod
+   use Logger_mod
+   use pfunit_mod
+   implicit none
+
+   public :: Test_Logger
+
+@TestCase
+   type, extends(TestCase) :: Test_Logger
+      type (Logger) :: log
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_Logger
+
+contains
+
+   subroutine setUp(this)
+      class (Test_Logger), intent(inout) :: this
+      this%log = newLogger()
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_Logger), intent(inout) :: this
+   end subroutine tearDown
+
+! Placeholder: to be edited
+@Test
+   subroutine test_foo(this)
+      class (Test_Logger), intent(inout) :: this   
+   end subroutine test_foo
+
+end module Test_Logger_mod
+
