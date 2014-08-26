@@ -1,157 +1,56 @@
-module NumberKinds
+module PrivateLogger_mod
    implicit none
-  
-   integer, parameter                                   :: KREAL = kind(0.d0)
-   integer, parameter                                   :: KINT  = kind(1)
-
-   character(len=*), parameter                          :: date = __DATE__
-
-end module
-
-module LoggerModule
-   use NumberKinds
-   !use OutputWriterModule
-   implicit none
-   
    private
-   public Logger, New, Delete, Assignment(=), LogMessage
-   public DEBUG_LOGGING_LEVEL, TRACE_LOGGING_LEVEL, WARNING_LOGGING_LEVEL, ERROR_LOGGING_LEVEL
-   save
-  
+
+   public Logger
+   public newLogger
+   public LoggerManager
+   public newLoggerManager
+
    type Logger
-      private
-      integer(KINT)                                     :: level 
-   end type
-   
-   ! Overloaded procedure interfaces
-   interface New               
-      module procedure NewPrivate, NewCopyPrivate
-   end interface
-      
-   interface Delete               
-      module procedure DeletePrivate
-   end interface
-   
-   interface Assignment(=)
-      module procedure AssignPrivate
-   end interface
-   
-   !interface OutputProperties  
-   !   module procedure OutputPropertiesPrivate
-   !end interface
+      integer :: level
+   end type Logger
 
-   interface LogMessage        
-      module procedure LogMessageReal, LogMessageInteger, LogMessageIntegerArray
-      module procedure LogMessageRealArray, LogMessageTextOnly 
-   end interface
+   type LoggerManager
+      type(Logger), allocatable :: Loggers(:)
+   end type LoggerManager
 
-   ! Definitions
-   integer(KINT), parameter                             :: DEBUG_LOGGING_LEVEL   = 1
-   integer(KINT), parameter                             :: TRACE_LOGGING_LEVEL   = 2
-   integer(KINT), parameter                             :: WARNING_LOGGING_LEVEL = 3 
-   integer(KINT), parameter                             :: ERROR_LOGGING_LEVEL   = 4
+   interface newLogger
+      module procedure Logger_
+   end interface newLogger
 
 contains
 
-   ! ------------------------
-   ! Standard ADT Methods. Construction, Destruction, Copying, and Assignment.
-   ! ------------------------
-   subroutine NewPrivate(self,level)
-      type (Logger), intent(out)                        :: self
-      integer(KINT), intent(in)                         :: level
-      self%level = level
-   end subroutine
+   type(Logger) function Logger_()
+      Logger_%level = 0
+   end function Logger_ 
 
-   subroutine NewCopyPrivate(self, other)
-      type (Logger), intent(out)                        :: self
-      type (Logger), intent(in)                         :: other
-      self%level = other%level
-   end subroutine
-  
-   subroutine DeletePrivate(self)
-      type (Logger), intent(inout)                      :: self
-   end subroutine
-  
-   subroutine AssignPrivate(self, other)
-      type (Logger), intent(inout)                      :: self
-      type (Logger), intent(in)                         :: other
-      self%level = other%level
-   end subroutine
-  
-   ! ------------------------
-   ! Accessors.
-   ! ------------------------
-   subroutine SetLevel(self, level)
-      type (Logger), intent(inout)                      :: self
-      integer(KINT), intent(in)                         :: level
-      self%level = level
-   end subroutine
+   function newLoggerManager() result(list)
+      type (LoggerManager) :: list
+      allocate(list%loggers(0))
+   end function newLoggerManager
 
-   function GetLevel(self)
-      type (Logger), intent(in)                         :: self
-      integer(KINT)                                     :: GetLevel
-      GetLevel = self%level
-   end function
+end module PrivateLogger_mod
 
-   ! ------------------------
-   ! Other methods.
-   ! ------------------------
-   subroutine LogMessageTextOnly(self, level, text)
-      type (Logger)                                     :: self
-      integer(KINT)                                     :: level
-      character(len=*)                                  :: text
-      if ( level >= self%level ) print *, 'Log: ', text
-   end subroutine
+module Logger_mod
+   use PrivateLogger_mod
+   implicit none
+   private
 
-   subroutine LogMessageReal(self, level, key, val)
-      type (Logger)                                     :: self
-      integer(KINT)                                     :: level
-      character(len=*)                                  :: key
-      real(KREAL)                                       :: val
-      if ( level >= self%level ) print *, 'Log: ' // trim(key), val
-   end subroutine
+   public Logger
+   public newLogger
+   public LoggerManager
+   public newLoggerManager
+   public :: initializeGlobalLoggerManager
 
-   subroutine LogMessageInteger(self, level, key, val)
-      type (Logger)                                     :: self
-      integer(KINT)                                     :: level
-      character(len=*)                                  :: key
-      integer(KINT)                                     :: val
-      if ( level >= self%level )  print *, 'Log: ' // trim(key), val
-   end subroutine
+   type (LoggerManager) :: globalLoggerManager ! private
 
-   subroutine LogMessageIntegerArray(self, level, key, vals)
-      type (Logger)                                     :: self
-      integer(KINT)                                     :: level
-      character(len=*)                                  :: key
-      integer(KINT)                                     :: vals(:)
-      if ( level >= self%level ) then
-         print *, 'Log: ' // trim(key)
-         print *, vals
-      endif
-   end subroutine
+contains
 
-   subroutine LogMessageRealArray(self, level, key, vals)
-      type (Logger)                                     :: self
-      integer(KINT)                                     :: level
-      character(len=*)                                  :: key
-      real(KREAL)                                       :: vals(:)
-      if ( level >= self%level ) then
-         print *, 'Log: ' // trim(key)
-         print *, vals
-      endif
-   end subroutine
-  
-   ! ------------------------
-   ! Output properties.
-   ! ------------------------
-   !subroutine OutputPropertiesPrivate(self, writer)
-   !   type (Logger), intent(in)                         :: self
-   !   type (OutputWriter), intent(inout)                :: writer
-   ! 
-   !   call Write(writer, 'Logging Level', self%level)
-   !
-   !end subroutine
-  
-end module
+   subroutine initializeGlobalLoggerManager()
+      globalLoggerManager = newLoggerManager()
+   end subroutine initializeGlobalLoggerManager
+
+end module Logger_mod
 
 
