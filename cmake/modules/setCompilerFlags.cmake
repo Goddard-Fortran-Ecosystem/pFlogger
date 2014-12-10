@@ -16,6 +16,12 @@ if(EXISTS $ENV{PFUNIT})
    set(PFUNIT $ENV{PFUNIT})
 endif()
 
+set (CPPFLAGS 
+  "-cpp ${CPPFLAGS}"
+  )
+
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
 # Intel compiler flags
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 
