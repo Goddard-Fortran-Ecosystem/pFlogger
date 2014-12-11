@@ -4,8 +4,8 @@ get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
 list(APPEND SRCS StringUtilities.F90)
-list(APPEND SRCS AbstractLogger.F90)
-list(APPEND SRCS BasicLogger.F90)
+list(APPEND SRCS AbstractHandler.F90)
+list(APPEND SRCS FileHandler.F90)
 list(APPEND SRCS Logger.F90)
 
 

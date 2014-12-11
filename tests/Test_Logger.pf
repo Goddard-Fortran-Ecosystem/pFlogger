@@ -1,5 +1,5 @@
 module Test_Logger_mod
-   use Logger_mod
+   use ASTG_Logger_mod
    use pfunit_mod
    implicit none
 
@@ -7,7 +7,7 @@ module Test_Logger_mod
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
-      type (Logger) :: log
+      type (Logger) :: logfile
    contains
       procedure :: setUp     ! overides generic
       procedure :: tearDown  ! overrides generic
@@ -17,18 +17,39 @@ contains
 
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      this%log = newLogger()
+      this%logfile = newLogger('logfile')
    end subroutine setUp
 
    subroutine tearDown(this)
-      class (Test_Logger), intent(inout) :: this
+     class (Test_Logger), intent(inout) :: this
+     integer :: unit
+
+     unit = this%logfile%handler%getUnit()
+
+     ! delete file
+     close(unit, status='delete')
+
+     call this%logfile%handler%close()     
    end subroutine tearDown
 
-! Placeholder: to be edited
-@Test
-   subroutine test_foo(this)
-      class (Test_Logger), intent(inout) :: this   
-   end subroutine test_foo
+ @Test
+   subroutine test_logInteger(this)
+      class (Test_Logger), intent(inout) :: this
 
+      integer :: unit
+      integer :: iExpected, iFound
+
+      iExpected = 1
+
+      call this%logfile%log(iExpected)
+      call this%logfile%handler%close()
+
+      open(newunit=unit, file='logfile', status='old')
+      read(unit, '(i2)') iFound
+
+      @assertEqual(iExpected, iFound)
+
+    end subroutine test_logInteger
+    
 end module Test_Logger_mod
 
