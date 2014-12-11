@@ -1,0 +1,56 @@
+module Test_FileHandler_mod
+   use ASTG_FileHandler_mod
+   use pfunit_mod
+   implicit none
+
+   public :: Test_FileHandler
+
+@TestCase
+   type, extends(TestCase) :: Test_FileHandler
+      type (FileHandler) :: fh
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_FileHandler
+
+contains
+
+   subroutine setUp(this)
+      class (Test_FileHandler), intent(inout) :: this
+      this%fh = newFileHandler('logFile')
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      integer :: unit
+
+      unit = this%fh%getUnit()
+      ! delete file
+      close(unit, status='delete')
+
+      call this%fh%close()
+
+   end subroutine tearDown
+
+@Test
+   subroutine test_logInteger(this)
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      integer :: iExpected, iFound
+
+      iExpected = 1
+
+      call this%fh%log(iExpected)
+      call this%fh%close()
+
+      open(newunit=unit, file='logfile', status='old')
+      read(unit, '(i2)') iFound
+
+      @assertEqual(iExpected, iFound)
+      
+   end subroutine test_logInteger
+
+end module Test_FileHandler_mod
+
