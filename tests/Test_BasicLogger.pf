@@ -35,9 +35,21 @@ contains
    subroutine test_logInteger(this)
       class (Test_BasicLogger), intent(inout) :: this   
 
-      call this%logger%log(1)
+      integer :: unit
+      integer :: iExpected, iFound
+
+      iExpected = 1
+
+      call this%logger%log(iExpected)
+      call this%logger%close()
+
+      open(newunit=unit, file='logfile', status='old')
+      read(unit, '(i)') iFound
+
+      @assertEqual(iExpected, iFound)
       
    end subroutine test_logInteger
+
    
 end module Test_BasicLogger_mod
 
