@@ -1,1 +1,3 @@
+ADD_TEST_SUITE(Test_StringUtilities_mod_suite)
 ADD_TEST_SUITE(Test_Logger_mod_suite)
+ADD_TEST_SUITE(Test_BasicLogger_mod_suite)

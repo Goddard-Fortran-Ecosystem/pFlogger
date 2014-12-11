@@ -3,5 +3,10 @@
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
-add_library(${THIS} Logger.F90)
-target_link_libraries(${THIS})
+list(APPEND SRCS StringUtilities.F90)
+list(APPEND SRCS AbstractLogger.F90)
+list(APPEND SRCS BasicLogger.F90)
+list(APPEND SRCS Logger.F90)
+
+
+add_library(${THIS} STATIC ${SRCS})

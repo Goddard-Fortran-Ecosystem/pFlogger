@@ -1,0 +1,43 @@
+module Test_BasicLogger_mod
+   use ASTG_BasicLogger_mod
+   use pfunit_mod
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_BasicLogger
+      type (BasicLogger) :: logger
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_BasicLogger
+
+contains
+
+   subroutine setUp(this)
+      class (Test_BasicLogger), intent(inout) :: this
+      this%logger = BasicLogger('logFile')
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_BasicLogger), intent(inout) :: this
+
+      integer :: unit
+
+      call this%logger%close()
+
+      ! delete file
+      open(newunit=unit, file='logfile', status='old')
+      close(unit, status='delete')
+
+   end subroutine tearDown
+
+@Test
+   subroutine test_logInteger(this)
+      class (Test_BasicLogger), intent(inout) :: this   
+
+      call this%logger%log(1)
+      
+   end subroutine test_logInteger
+   
+end module Test_BasicLogger_mod
+

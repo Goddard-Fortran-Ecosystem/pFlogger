@@ -17,11 +17,9 @@ foreach(file ${pfSources})
 endforeach()
 
 set(TEST_SRCS 
+   Test_StringUtilities.F90
    Test_Logger.F90
-)
-
-set(SRCS
-   ${TEST_SRCS}
+   Test_BasicLogger.F90
 )
 
 set_source_files_properties(
@@ -37,9 +35,9 @@ include_directories(
 
 # Targets:
 
-add_library(${THIS}
-   STATIC ${SRCS}
+add_library(${THIS} STATIC ${TEST_SRCS}
 )
+
 target_link_libraries(${THIS}
    logger
    pfunit
