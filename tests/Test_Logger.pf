@@ -24,32 +24,31 @@ contains
      class (Test_Logger), intent(inout) :: this
      integer :: unit
 
-     unit = this%logfile%handler%getUnit()
-
+     open(newunit=unit, file='logfile')
      ! delete file
      close(unit, status='delete')
 
-     call this%logfile%handler%close()     
    end subroutine tearDown
 
  @Test
-   subroutine test_logInteger(this)
+   subroutine test_log(this)
       class (Test_Logger), intent(inout) :: this
 
       integer :: unit
-      integer :: iExpected, iFound
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
 
-      iExpected = 1
+      message = 'hello'
 
-      call this%logfile%log(iExpected)
+      call this%logfile%log(message)
       call this%logfile%handler%close()
 
       open(newunit=unit, file='logfile', status='old')
-      read(unit, '(i2)') iFound
+      read(unit, '(a)') foundMessage
 
-      @assertEqual(iExpected, iFound)
-
-    end subroutine test_logInteger
+      @assertEqual(message, foundMessage)
+      
+   end subroutine test_log
     
 end module Test_Logger_mod
 
