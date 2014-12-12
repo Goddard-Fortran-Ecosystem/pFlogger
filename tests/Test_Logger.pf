@@ -45,6 +45,7 @@ contains
 
       open(newunit=unit, file='logfile', status='old')
       read(unit, '(a)') foundMessage
+      close(unit)
 
       @assertEqual(message, foundMessage)
       

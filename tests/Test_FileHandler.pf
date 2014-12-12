@@ -23,8 +23,6 @@ contains
 
       integer :: unit
 
-      call this%fh%close()
-
       ! delete file
       open(newunit=unit, file='logfile', status='old')
       close(unit, status='delete')
@@ -46,6 +44,7 @@ contains
 
       open(newunit=unit, file='logfile', status='old')
       read(unit, '(a)') foundMessage
+      close(unit)
 
       @assertEqual(message, foundMessage)
 
