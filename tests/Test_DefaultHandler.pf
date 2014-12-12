@@ -35,10 +35,8 @@ contains
 
       type (DefaultHandler) :: handler
 
-      character(len=:), allocatable :: message
       character(len=32) :: foundMessage
 
-      message = 'hello'
       handler = DefaultHandler(testUnit=this%unit)
       call handler%setLevel(INFO)
       call handler%emit(INFO, 'hello')
@@ -46,7 +44,7 @@ contains
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
-      @assertEqual(message, foundMessage)
+      @assertEqual('INFO: hello', foundMessage)
 
    end subroutine test_emitBasic
    
@@ -79,10 +77,8 @@ contains
 
       type (DefaultHandler) :: handler
 
-      character(len=:), allocatable :: message
       character(len=32) :: foundMessage
 
-      message = 'hello'
       handler = DefaultHandler(testUnit=this%unit)
       call handler%setLevel(INFO)
       call handler%emit(CRITICAL, 'hello')
@@ -90,7 +86,7 @@ contains
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
-      @assertEqual(message, foundMessage)
+      @assertEqual('CRITICAL: hello', foundMessage)
 
    end subroutine test_emitAboveThreshold
    

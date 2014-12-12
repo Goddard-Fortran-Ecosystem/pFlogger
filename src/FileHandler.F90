@@ -48,8 +48,9 @@ module ASTG_FileHandler_mod
    end function newFileHandler
 
     
-   subroutine emitMessage(this, message)
+   subroutine emitMessage(this, levelString, message)
       class (FileHandler), intent(in) :: this
+      character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 
       write(this%unit,'(a)') message

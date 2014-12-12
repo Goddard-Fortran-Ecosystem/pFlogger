@@ -23,9 +23,10 @@ module ASTG_AbstractHandler_mod
 
    abstract interface
 
-      subroutine emitMessage(this, message)
+      subroutine emitMessage(this, levelString, message)
          import AbstractHandler
          class (AbstractHandler), intent(in) :: this
+         character(len=*), intent(in) :: levelString
          character(len=*), intent(in) :: message
       end subroutine emitMessage
 
@@ -47,18 +48,37 @@ module ASTG_AbstractHandler_mod
    end enum
 
    
- contains
+contains
 
-    subroutine emit(this, level, message)
-       class(AbstractHandler), intent(in) :: this
-       integer, intent(in) :: level
-       character(len=*), intent(in) :: message
+   subroutine emit(this, level, message)
+      class(AbstractHandler), intent(in) :: this
+      integer, intent(in) :: level
+      character(len=*), intent(in) :: message
+      
+      if (level >= this%getLevel()) then
+        call this%emitMessage(levelToString(level), message)
+      end if
+      
+   end subroutine emit
+   
+   function levelToString(level) result(string)
+      character(len=:), allocatable :: string
+      integer, intent(in) :: level
 
-       if (level >= this%getLevel()) then
-          call this%emitMessage(message)
-       end if
-
-    end subroutine emit
+      select case (level)
+      case (DEBUG)
+        string = 'DEBUG'
+      case (INFO)
+        string = 'INFO'
+      case (WARNING)
+        string = 'WARNING'
+      case (ERROR)
+        string = 'ERROR'
+      case (CRITICAL)
+        string = 'CRITICAL'
+      end select
+      
+   end function levelToString
 
     
    subroutine setLevel(this, level)

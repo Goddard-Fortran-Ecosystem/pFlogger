@@ -41,11 +41,12 @@ contains
    end function newDefaultHandler
 
    
-   subroutine emitMessage(this, message)
+   subroutine emitMessage(this, levelString, message)
       class (DefaultHandler), intent(in) :: this
+      character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 
-      write(this%unit,'(a)') message
+      write(this%unit,'(a)') levelString // ': ' // message
       
    end subroutine emitMessage
 
