@@ -11,21 +11,28 @@ module ASTG_Logger_mod
 
    type :: Logger
       type (AbstractHandlerPolyWrapVector) :: handlers
-
    contains
       procedure :: log
       procedure :: addHandler
+      procedure :: removeHandler
       procedure :: getHandlers
    end type Logger
 
-
    interface newLogger
+      module procedure newDefaultLogger
       module procedure newFileLogger
    end interface newLogger
 
-
 contains
 
+   function newDefaultLogger() result(log)
+      use ASTG_DefaultHandler_mod
+      type (Logger) :: log
+
+      log%handlers = AbstractHandlerPolyWrapVector()
+      call log%addHandler(DefaultHandler())
+
+   end function newDefaultLogger
 
    function newFileLogger(name) result(log)
       use ASTG_FileHandler_mod
@@ -41,14 +48,24 @@ contains
    subroutine addHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
+      
       call this%handlers%push_back(AbstractHandlerPolyWrap(handler))
+      
    end subroutine addHandler
+
+   subroutine removeHandler(this, handler)
+      class (Logger), intent(inout) :: this
+      class (AbstractHandler), intent(inout) :: handler
+      
+      call this%handlers%pop_back()
+      
+   end subroutine removeHandler
 
 
    subroutine log(this, message)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
-
+      
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
       type (AbstractHandlerPolyWrap), pointer :: handlerWrap
       class (AbstractHandler), pointer :: handler
@@ -69,6 +86,7 @@ contains
       type (AbstractHandlerPolyWrapVector), pointer :: handlers
       
       handlers => this%handlers
+      
    end function getHandlers
 
 end module ASTG_Logger_mod

@@ -14,23 +14,33 @@ module ASTG_DefaultHandler_mod
       procedure :: close ! noop
    end type DefaultHandler
 
-
    interface DefaultHandler
       module procedure :: newDefaultHandler
    end interface DefaultHandler
 
-
+   
 contains
 
-   function newDefaultHandler(testUnit) result(handler)
+   
+   function newDefaultHandler(testUnit, level) result(handler)
       use iso_fortran_env, only: output_unit
       type (DefaultHandler) :: handler
       integer, optional, intent(in) :: testUnit
+      integer, optional, intent(in) :: level
+     
+      integer :: level_
 
       if (present(testUnit)) handler%unit = testUnit
-
+      if (present (level)) then
+        level_ = level
+      else
+        level_ = INFO_LOGGING_LEVEL
+      end if
+      call handler%setLevel(level_)
+      
    end function newDefaultHandler
 
+   
    subroutine emit(this, message)
       class (DefaultHandler), intent(in) :: this
       character(len=*), intent(in) :: message
@@ -39,7 +49,7 @@ contains
 
    end subroutine emit
 
-
+   
    subroutine close(this)
       class (DefaultHandler), intent(inout) :: this
    end subroutine close

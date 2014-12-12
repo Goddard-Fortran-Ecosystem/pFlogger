@@ -1,6 +1,5 @@
-
 module FTL_AbstracthandlerPolyWrap_mod
-      use ASTG_AbstractHandler_mod, only: Abstracthandler   
+   use ASTG_AbstractHandler_mod, only: Abstracthandler   
    implicit none
    private
 
@@ -23,7 +22,9 @@ contains
    function new_copy(item) result(container)
       type (AbstracthandlerPolyWrap) :: container
       class(AbstractHandler), intent(in) :: item
+      
       allocate(container%item, source=item)
+      
    end function new_copy
 
    
