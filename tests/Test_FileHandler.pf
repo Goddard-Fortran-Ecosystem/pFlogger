@@ -17,7 +17,7 @@ contains
 
    subroutine setUp(this)
       class (Test_FileHandler), intent(inout) :: this
-      this%fh = newFileHandler('logFile')
+      this%fh = FileHandler('logFile')
    end subroutine setUp
 
    subroutine tearDown(this)
@@ -34,23 +34,24 @@ contains
    end subroutine tearDown
 
 @Test
-   subroutine test_logInteger(this)
+   subroutine test_emit(this)
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      integer :: iExpected, iFound
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
 
-      iExpected = 1
+      message = 'hello'
 
-      call this%fh%log(iExpected)
+      call this%fh%emit(message)
       call this%fh%close()
 
       open(newunit=unit, file='logfile', status='old')
-      read(unit, '(i2)') iFound
+      read(unit, '(a)') foundMessage
 
-      @assertEqual(iExpected, iFound)
+      @assertEqual(message, foundMessage)
       
-   end subroutine test_logInteger
+   end subroutine test_emit
 
 end module Test_FileHandler_mod
 
