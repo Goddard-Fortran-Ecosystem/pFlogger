@@ -1,0 +1,50 @@
+module Test_DefaultHandler_mod
+   use pFUnit_mod
+   use ASTG_DefaultHandler_mod
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_DefaultHandler
+      integer :: unit
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_DefaultHandler
+
+contains
+
+   subroutine setUp(this)
+      class (Test_DefaultHandler), intent(inout) :: this
+
+      open(newunit=this%unit, file='testDefaultHandler.txt', form='formatted', status='new')
+
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_DefaultHandler), intent(inout) :: this
+
+      close(this%unit, status='delete')
+
+   end subroutine tearDown
+
+@test
+   subroutine test_emit(this)
+      class (Test_DefaultHandler), intent(inout) :: this
+
+      type (DefaultHandler) :: handler
+
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+
+      message = 'hello'
+      handler = DefaultHandler(testUnit=this%unit)
+      call handler%emit('hello')
+
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      
+      @assertEqual(message, foundMessage)
+
+   end subroutine test_emit
+
+end module Test_DefaultHandler_mod

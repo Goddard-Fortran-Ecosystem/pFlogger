@@ -18,8 +18,9 @@ endforeach()
 
 set(TEST_SRCS 
    Test_StringUtilities.F90
-   Test_Logger.F90
+   Test_DefaultHandler.F90
    Test_FileHandler.F90
+   Test_Logger.F90
 )
 
 set_source_files_properties(

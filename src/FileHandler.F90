@@ -42,7 +42,7 @@ module ASTG_FileHandler_mod
     
     
     subroutine emit(this, message)
-       class (FileHandler), intent(inout) :: this
+       class (FileHandler), intent(in) :: this
        character(len=*), intent(in) :: message
 
        write(this%unit,'(a)') message

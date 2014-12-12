@@ -18,7 +18,7 @@ module ASTG_AbstractHandler_mod
 
      subroutine emit(this, message)
         import AbstractHandler
-        class(AbstractHandler), intent(inout) :: this
+        class(AbstractHandler), intent(in) :: this
         character(len=*), intent(in) :: message
      end subroutine emit
 

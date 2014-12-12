@@ -3,8 +3,6 @@ module Test_FileHandler_mod
    use pfunit_mod
    implicit none
 
-   public :: Test_FileHandler
-
 @TestCase
    type, extends(TestCase) :: Test_FileHandler
       type (FileHandler) :: fh
@@ -42,7 +40,6 @@ contains
       character(len=32) :: foundMessage
 
       message = 'hello'
-
       call this%fh%emit(message)
       call this%fh%close()
 
@@ -50,7 +47,7 @@ contains
       read(unit, '(a)') foundMessage
 
       @assertEqual(message, foundMessage)
-      
+
    end subroutine test_emit
 
 end module Test_FileHandler_mod
