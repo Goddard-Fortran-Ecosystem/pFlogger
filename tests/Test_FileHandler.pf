@@ -5,7 +5,7 @@ module Test_FileHandler_mod
 
 @TestCase
    type, extends(TestCase) :: Test_FileHandler
-      type (FileHandler) :: fh
+      type (FileHandler) :: handler
    contains
       procedure :: setUp   
       procedure :: tearDown 
@@ -15,13 +15,15 @@ contains
 
    subroutine setUp(this)
       class (Test_FileHandler), intent(inout) :: this
-      this%fh = FileHandler('logFile')
+      this%handler = FileHandler('logFile')
    end subroutine setUp
 
    subroutine tearDown(this)
       class (Test_FileHandler), intent(inout) :: this
 
       integer :: unit
+
+      call this%handler%close()
 
       ! delete file
       open(newunit=unit, file='logfile', status='old')
@@ -39,12 +41,11 @@ contains
       character(len=32) :: foundMessage
 
       message = 'hello'
-      call this%fh%emit(message)
-      call this%fh%close()
+      call this%handler%emit(message)
 
-      open(newunit=unit, file='logfile', status='old')
+      unit = this%handler%getUnit()
+      rewind(unit)
       read(unit, '(a)') foundMessage
-      close(unit)
 
       @assertEqual(message, foundMessage)
 
