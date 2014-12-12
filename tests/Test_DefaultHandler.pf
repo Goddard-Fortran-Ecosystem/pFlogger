@@ -72,5 +72,27 @@ contains
       @assertEqual(IOSTAT_END, iostatus)
 
    end subroutine test_emitBelowThreshold
- 
+
+@Test
+   subroutine test_emitAboveThreshold(this)
+      class (Test_DefaultHandler), intent(inout) :: this
+
+      type (DefaultHandler) :: handler
+
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+
+      message = 'hello'
+      handler = DefaultHandler(testUnit=this%unit)
+      call handler%setLevel(INFO)
+      call handler%emit(CRITICAL, 'hello')
+
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      
+      @assertEqual(message, foundMessage)
+
+   end subroutine test_emitAboveThreshold
+   
+   
 end module Test_DefaultHandler_mod
