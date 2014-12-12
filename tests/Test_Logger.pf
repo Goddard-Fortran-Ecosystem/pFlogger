@@ -7,7 +7,7 @@ module Test_Logger_mod
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
-      type (Logger) :: logfile
+      type (Logger) :: aLogger
    contains
       procedure :: setUp     ! overides generic
       procedure :: tearDown  ! overrides generic
@@ -17,7 +17,7 @@ contains
 
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      this%logfile = newLogger('logfile')
+      this%aLogger = newLogger('logfile')
    end subroutine setUp
 
    subroutine tearDown(this)
@@ -32,16 +32,34 @@ contains
 
  @Test
    subroutine test_log(this)
+      use ASTG_AbstractHandler_mod
+      use FTL_AbstracthandlerPolyWrap_mod
+      use FTL_AbstracthandlerPolyWrapVector_mod
       class (Test_Logger), intent(inout) :: this
 
       integer :: unit
       character(len=:), allocatable :: message
       character(len=32) :: foundMessage
 
-      message = 'hello'
+      type (AbstractHandlerPolyWrapVectorIterator) :: iter
 
-      call this%logfile%log(message)
-      call this%logfile%handler%close()
+      type (AbstractHandlerPolyWrapVector), pointer :: handlers
+      type (AbstractHandlerPolyWrap), pointer :: handlerWrap
+      class (AbstractHandler), pointer :: handler
+
+      message = 'hello'
+      call this%aLogger%log(message)
+
+      handlers => this%aLogger%getHandlers()
+
+
+      iter = handlers%begin()
+      do while (iter /= handlers%end())
+         handlerWrap => iter%get()
+         handler => handlerWrap%get()
+         call handler%close()
+         call iter%next()
+      end do
 
       open(newunit=unit, file='logfile', status='old')
       read(unit, '(a)') foundMessage

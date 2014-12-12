@@ -7,6 +7,8 @@ list(APPEND SRCS StringUtilities.F90)
 list(APPEND SRCS AbstractHandler.F90)
 list(APPEND SRCS DefaultHandler.F90)
 list(APPEND SRCS FileHandler.F90)
+list(APPEND SRCS AbstractHandlerPolyWrap.F90)
+list(APPEND SRCS AbstractHandlerPolyWrapVector.F90)
 list(APPEND SRCS Logger.F90)
 
 
