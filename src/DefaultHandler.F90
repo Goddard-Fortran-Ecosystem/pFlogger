@@ -34,15 +34,16 @@ contains
       if (present (level)) then
         level_ = level
       else
-        level_ = INFO_LOGGING_LEVEL
+        level_ = INFO
       end if
       call handler%setLevel(level_)
       
    end function newDefaultHandler
 
    
-   subroutine emit(this, message)
+   subroutine emit(this, level, message)
       class (DefaultHandler), intent(in) :: this
+      integer, intent(in) :: level
       character(len=*), intent(in) :: message
 
       write(this%unit,'(a)') message

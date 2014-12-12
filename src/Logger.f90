@@ -7,9 +7,10 @@ module ASTG_Logger_mod
    private
 
    public :: Logger
-   public :: newLogger
 
    type :: Logger
+      private
+      integer :: level
       type (AbstractHandlerPolyWrapVector) :: handlers
    contains
       procedure :: log
@@ -18,33 +19,25 @@ module ASTG_Logger_mod
       procedure :: getHandlers
    end type Logger
 
-   interface newLogger
-      module procedure newDefaultLogger
-      module procedure newFileLogger
-   end interface newLogger
+   interface Logger
+      module procedure newLogger
+   end interface Logger
 
 contains
 
-   function newDefaultLogger() result(log)
+   
+   function newLogger() result(alog)
       use ASTG_DefaultHandler_mod
-      type (Logger) :: log
+      type (Logger) :: alog
 
-      log%handlers = AbstractHandlerPolyWrapVector()
-      call log%addHandler(DefaultHandler())
+! TODO: Need to NOTSET when inheritance is working
+      alog%level = INFO
+      alog%handlers = AbstractHandlerPolyWrapVector()
+      call alog%addHandler(DefaultHandler())
+      
+   end function newLogger
 
-   end function newDefaultLogger
-
-   function newFileLogger(name) result(log)
-      use ASTG_FileHandler_mod
-      character(len=*), intent(in) :: name
-      type (Logger) :: log
-
-      log%handlers = AbstractHandlerPolyWrapVector()
-      call log%addHandler(FileHandler(fileName=name))
-
-   end function newFileLogger
-
-
+   
    subroutine addHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
@@ -53,17 +46,19 @@ contains
       
    end subroutine addHandler
 
+
    subroutine removeHandler(this, handler)
       class (Logger), intent(inout) :: this
-      class (AbstractHandler), intent(inout) :: handler
-      
+      class (AbstractHandler), intent(in) :: handler
+
       call this%handlers%pop_back()
       
    end subroutine removeHandler
 
 
-   subroutine log(this, message)
+   subroutine log(this, level, message)
       class (Logger), intent(inout) :: this
+      integer, intent(in) :: level
       character(len=*), intent(in) :: message
       
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
@@ -74,7 +69,7 @@ contains
       do while (iter /= this%handlers%end())
          handlerWrap => iter%get()
          handler => handlerWrap%get()
-         call handler%emit(message)
+         call handler%emit(level, message)
          call iter%next()
       end do
 

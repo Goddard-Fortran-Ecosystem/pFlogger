@@ -39,7 +39,8 @@ contains
 
       message = 'hello'
       handler = DefaultHandler(testUnit=this%unit)
-      call handler%emit('hello')
+      call handler%setLevel(INFO)
+      call handler%emit(INFO, 'hello')
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
@@ -48,15 +49,5 @@ contains
 
    end subroutine test_emit
    
-@Test
-   subroutine test_getLevel(this)
-      class (Test_DefaultHandler), intent(inout) :: this
-
-      type (DefaultHandler) :: handler
-
-      handler = DefaultHandler(level=UNSET_LOGGING_LEVEL)      
-      @assertEqual(0, handler%getLevel())
-
-   end subroutine test_getLevel
 
 end module Test_DefaultHandler_mod

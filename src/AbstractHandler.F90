@@ -3,12 +3,12 @@ module ASTG_AbstractHandler_mod
    private
 
    public :: AbstractHandler
-   public :: UNSET_LOGGING_LEVEL
-   public :: DEBUG_LOGGING_LEVEL
-   public :: INFO_LOGGING_LEVEL
-   public :: WARNING_LOGGING_LEVEL
-   public :: ERROR_LOGGING_LEVEL
-   public :: CRITICAL_LOGGING_LEVEL
+   public :: NOTSET
+   public :: DEBUG
+   public :: INFO
+   public :: WARNING
+   public :: ERROR
+   public :: CRITICAL
    
    type, abstract :: AbstractHandler
       private
@@ -22,9 +22,10 @@ module ASTG_AbstractHandler_mod
 
    abstract interface
 
-      subroutine emit(this, message)
+      subroutine emit(this, level, message)
          import AbstractHandler
          class(AbstractHandler), intent(in) :: this
+         integer, intent(in) :: level
          character(len=*), intent(in) :: message
       end subroutine emit
 
@@ -38,12 +39,12 @@ module ASTG_AbstractHandler_mod
 
    enum, bind(c)
       enumerator :: &
-           & UNSET_LOGGING_LEVEL    = 0, &
-           & DEBUG_LOGGING_LEVEL    = 1, &
-           & INFO_LOGGING_LEVEL     = 2, &
-           & WARNING_LOGGING_LEVEL  = 3, &
-           & ERROR_LOGGING_LEVEL    = 4, &
-           & CRITICAL_LOGGING_LEVEL = 5
+           & NOTSET   =  0, &
+           & DEBUG    = 10, &
+           & INFO     = 20, &
+           & WARNING  = 30, &
+           & ERROR    = 40, &
+           & CRITICAL = 50
    end enum
 
    

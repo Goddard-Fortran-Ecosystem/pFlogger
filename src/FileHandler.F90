@@ -34,23 +34,23 @@ module ASTG_FileHandler_mod
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
       integer, intent(in), optional :: level
-      
       integer :: level_
       
       if (present (level)) then
         level_ = level
       else
-        level_ = INFO_LOGGING_LEVEL
+        level_ = INFO
       end if
       call handler%setFileName(fileName)
       call handler%open()
       call handler%setLevel(level_)
       
-   end function NewFileHandler
+   end function newFileHandler
 
     
-   subroutine emit(this, message)
+   subroutine emit(this, level, message)
       class (FileHandler), intent(in) :: this
+      integer, intent(in) :: level
       character(len=*), intent(in) :: message
 
       write(this%unit,'(a)') message

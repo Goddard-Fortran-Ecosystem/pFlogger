@@ -42,7 +42,7 @@ contains
       character(len=32) :: foundMessage
 
       message = 'hello'
-      call this%handler%emit(message)
+      call this%handler%emit(INFO, message)
 
       unit = this%handler%getUnit()
       rewind(unit)
@@ -52,15 +52,6 @@ contains
 
    end subroutine test_emit
    
- @test
-   subroutine test_setLevel(this)
-      class (Test_FileHandler), intent(inout) :: this
-
-      call this%handler%setLevel(DEBUG_LOGGING_LEVEL)      
-      @assertEqual(1, this%handler%getLevel())
-
-   end subroutine test_setLevel
-
 
 end module Test_FileHandler_mod
 
