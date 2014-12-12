@@ -1,15 +1,9 @@
 module ASTG_AbstractHandler_mod
+   use ASTG_SeverityLevels_mod
    implicit none
    private
 
    public :: AbstractHandler
-   public :: NOTSET
-   public :: DEBUG
-   public :: INFO
-   public :: WARNING
-   public :: ERROR
-   public :: CRITICAL
-   
    type, abstract :: AbstractHandler
       private
       integer :: level
@@ -37,16 +31,6 @@ module ASTG_AbstractHandler_mod
 
    end interface
 
-   enum, bind(c)
-      enumerator :: &
-           & NOTSET   =  0, &
-           & DEBUG    = 10, &
-           & INFO     = 20, &
-           & WARNING  = 30, &
-           & ERROR    = 40, &
-           & CRITICAL = 50
-   end enum
-
    
 contains
 
@@ -61,26 +45,6 @@ contains
       
    end subroutine emit
    
-   function levelToString(level) result(string)
-      character(len=:), allocatable :: string
-      integer, intent(in) :: level
-
-      select case (level)
-      case (DEBUG)
-        string = 'DEBUG'
-      case (INFO)
-        string = 'INFO'
-      case (WARNING)
-        string = 'WARNING'
-      case (ERROR)
-        string = 'ERROR'
-      case (CRITICAL)
-        string = 'CRITICAL'
-      end select
-      
-   end function levelToString
-
-    
    subroutine setLevel(this, level)
       class (AbstractHandler), intent(inout) :: this
       integer, intent(in) :: level

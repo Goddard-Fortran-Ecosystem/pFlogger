@@ -1,5 +1,7 @@
 module Test_Logger_mod
    use ASTG_Logger_mod
+   use MockHandler_mod
+   use ASTG_SeverityLevels_mod
    use pfunit_mod
    implicit none
 
@@ -7,7 +9,7 @@ module Test_Logger_mod
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
-      type (Logger) :: fileLogger
+      type (Logger) :: aLogger
    contains
       procedure :: setUp     ! overides generic
       procedure :: tearDown  ! overrides generic
@@ -19,19 +21,45 @@ contains
    
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      this%fileLogger = Logger()
+      type (MockHandler) :: handler
+
+      call handler%setLevel(info)
+      this%aLogger = Logger()
+      call this%aLogger%addHandler(handler)
+      
    end subroutine setUp
 
    
    subroutine tearDown(this)
       class (Test_Logger), intent(inout) :: this
-      integer :: unit
-
-      open(newunit=unit, file='logfile')
-     ! delete file
-      close(unit, status='delete')
-
+      if (allocated(buffer)) deallocate(buffer)
    end subroutine tearDown
+
+@test
+   subroutine test_logBasic(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%aLogger%setLevel(INFO)
+      call this%aLogger%log(INFO, 'hello')
+
+      ! buffer is in MockHandler_mod
+      @assertEqual('INFO: hello', buffer)
+
+   end subroutine test_logBasic
+
+@test
+   subroutine test_logBelowThreshold(this)
+      class (Test_Logger), intent(inout) :: this
+      type (MockHandler) :: handler
+
+      call handler%setLevel(info)
+      
+      call this%aLogger%addHandler(handler)
+      call this%aLogger%log(DEBUG, 'hello')
+
+      @assertFalse(allocated(buffer))
+
+   end subroutine test_logBelowThreshold
 
    
 !!$ @Test

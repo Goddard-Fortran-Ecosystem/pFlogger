@@ -1,5 +1,6 @@
 module Test_DefaultHandler_mod
    use pFUnit_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_DefaultHandler_mod
    use ASTG_AbstractHandler_mod
    implicit none

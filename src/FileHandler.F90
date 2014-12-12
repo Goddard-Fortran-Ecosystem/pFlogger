@@ -1,4 +1,5 @@
 module ASTG_FileHandler_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_AbstractHandler_mod
    use ASTG_StringUtilities_mod
    implicit none

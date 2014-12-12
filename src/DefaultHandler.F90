@@ -1,5 +1,6 @@
 module ASTG_DefaultHandler_mod
    use iso_fortran_env, only: output_unit
+   use ASTG_SeverityLevels_mod
    use ASTG_AbstractHandler_mod
    implicit none
    private

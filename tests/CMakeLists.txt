@@ -16,12 +16,18 @@ foreach(file ${pfSources})
    )
 endforeach()
 
+set (SRCS
+   MockHandler.F90
+)
+
 set(TEST_SRCS 
    Test_StringUtilities.F90
    Test_DefaultHandler.F90
    Test_FileHandler.F90
    Test_Logger.F90
 )
+
+set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 
 set_source_files_properties(
     ${TEST_SRCS}
@@ -30,13 +36,14 @@ set_source_files_properties(
 )
 
 include_directories(
+   ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
    ${PFUNIT}/include
 )
 
 # Targets:
 
-add_library(${THIS} STATIC ${TEST_SRCS}
+add_library(${THIS} STATIC ${ALL_SRCS}
 )
 
 target_link_libraries(${THIS}
