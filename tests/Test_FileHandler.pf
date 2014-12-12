@@ -23,11 +23,12 @@ contains
 
       integer :: unit
 
-      unit = this%fh%getUnit()
+      call this%fh%close()
+
       ! delete file
+      open(newunit=unit, file='logfile', status='old')
       close(unit, status='delete')
 
-      call this%fh%close()
 
    end subroutine tearDown
 
