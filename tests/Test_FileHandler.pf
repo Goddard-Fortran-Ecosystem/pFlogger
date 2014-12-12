@@ -1,5 +1,6 @@
 module Test_FileHandler_mod
    use ASTG_FileHandler_mod
+   use ASTG_AbstractHandler_mod
    use pfunit_mod
    implicit none
 
@@ -50,6 +51,16 @@ contains
       @assertEqual(message, foundMessage)
 
    end subroutine test_emit
+   
+ @test
+   subroutine test_setLevel(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      call this%handler%setLevel(DEBUG_LOGGING_LEVEL)      
+      @assertEqual(1, this%handler%getLevel())
+
+   end subroutine test_setLevel
+
 
 end module Test_FileHandler_mod
 

@@ -1,6 +1,7 @@
 module Test_DefaultHandler_mod
    use pFUnit_mod
    use ASTG_DefaultHandler_mod
+   use ASTG_AbstractHandler_mod
    implicit none
 
 @TestCase
@@ -27,7 +28,7 @@ contains
 
    end subroutine tearDown
 
-@test
+@Test
    subroutine test_emit(this)
       class (Test_DefaultHandler), intent(inout) :: this
 
@@ -46,5 +47,16 @@ contains
       @assertEqual(message, foundMessage)
 
    end subroutine test_emit
+   
+@Test
+   subroutine test_getLevel(this)
+      class (Test_DefaultHandler), intent(inout) :: this
+
+      type (DefaultHandler) :: handler
+
+      handler = DefaultHandler(level=UNSET_LOGGING_LEVEL)      
+      @assertEqual(0, handler%getLevel())
+
+   end subroutine test_getLevel
 
 end module Test_DefaultHandler_mod
