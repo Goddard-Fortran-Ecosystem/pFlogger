@@ -17,7 +17,8 @@ contains
    subroutine setUp(this)
       class (Test_DefaultHandler), intent(inout) :: this
 
-      open(newunit=this%unit, file='testDefaultHandler.txt', form='formatted', status='new')
+      open(newunit=this%unit, file='testDefaultHandler.txt', form='formatted', &
+           status='new')
 
    end subroutine setUp
 
@@ -29,7 +30,7 @@ contains
    end subroutine tearDown
 
 @Test
-   subroutine test_emit(this)
+   subroutine test_emitBasic(this)
       class (Test_DefaultHandler), intent(inout) :: this
 
       type (DefaultHandler) :: handler
@@ -47,7 +48,29 @@ contains
       
       @assertEqual(message, foundMessage)
 
-   end subroutine test_emit
+   end subroutine test_emitBasic
    
+@Test
+   subroutine test_emitBelowThreshold(this)
+      use iso_fortran_env, only: IOSTAT_END
+      class (Test_DefaultHandler), intent(inout) :: this
 
+      type (DefaultHandler) :: handler
+
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      
+      message = 'hello'
+      handler = DefaultHandler(testUnit=this%unit)
+      call handler%setLevel(INFO)
+      call handler%emit(DEBUG, 'hello')
+
+      rewind(this%unit)
+      read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
+      
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_emitBelowThreshold
+ 
 end module Test_DefaultHandler_mod

@@ -14,7 +14,8 @@ module ASTG_AbstractHandler_mod
       private
       integer :: level
    contains
-      procedure(emit), deferred :: emit
+      procedure(emitMessage), deferred :: emitMessage
+      procedure :: emit
       procedure(close), deferred :: close
       procedure :: setLevel
       procedure :: getLevel
@@ -22,13 +23,11 @@ module ASTG_AbstractHandler_mod
 
    abstract interface
 
-      subroutine emit(this, level, message)
+      subroutine emitMessage(this, message)
          import AbstractHandler
-         class(AbstractHandler), intent(in) :: this
-         integer, intent(in) :: level
+         class (AbstractHandler), intent(in) :: this
          character(len=*), intent(in) :: message
-      end subroutine emit
-
+      end subroutine emitMessage
 
       subroutine close(this)
          import AbstractHandler
@@ -49,6 +48,17 @@ module ASTG_AbstractHandler_mod
 
    
  contains
+
+    subroutine emit(this, level, message)
+       class(AbstractHandler), intent(in) :: this
+       integer, intent(in) :: level
+       character(len=*), intent(in) :: message
+
+       if (level >= this%getLevel()) then
+          call this%emitMessage(message)
+       end if
+
+    end subroutine emit
 
     
    subroutine setLevel(this, level)

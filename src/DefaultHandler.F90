@@ -10,7 +10,7 @@ module ASTG_DefaultHandler_mod
       private
       integer :: unit = output_unit ! stdout
    contains
-      procedure :: emit
+      procedure :: emitMessage
       procedure :: close ! noop
    end type DefaultHandler
 
@@ -41,14 +41,13 @@ contains
    end function newDefaultHandler
 
    
-   subroutine emit(this, level, message)
+   subroutine emitMessage(this, message)
       class (DefaultHandler), intent(in) :: this
-      integer, intent(in) :: level
       character(len=*), intent(in) :: message
 
       write(this%unit,'(a)') message
-
-   end subroutine emit
+      
+   end subroutine emitMessage
 
    
    subroutine close(this)

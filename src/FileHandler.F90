@@ -19,7 +19,7 @@ module ASTG_FileHandler_mod
       procedure :: close
       procedure :: setFileName
       procedure :: getFileName
-      procedure :: emit
+      procedure :: emitMessage
    end type FileHandler
 
    interface FileHandler
@@ -48,14 +48,13 @@ module ASTG_FileHandler_mod
    end function newFileHandler
 
     
-   subroutine emit(this, level, message)
+   subroutine emitMessage(this, message)
       class (FileHandler), intent(in) :: this
-      integer, intent(in) :: level
       character(len=*), intent(in) :: message
 
       write(this%unit,'(a)') message
        
-   end subroutine emit
+   end subroutine emitMessage
 
     
    logical function isOpen(this)
