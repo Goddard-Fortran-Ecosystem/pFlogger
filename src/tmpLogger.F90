@@ -1,4 +1,5 @@
 module ASTG_Logger_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_AbstractHandler_mod
    use FTL_AbstracthandlerPolyWrap_mod
    use FTL_AbstracthandlerPolyWrapVector_mod
@@ -17,6 +18,7 @@ module ASTG_Logger_mod
       procedure :: addHandler
       procedure :: removeHandler
       procedure :: getHandlers
+      procedure :: setLevel
    end type Logger
 
    interface Logger
@@ -83,6 +85,13 @@ contains
       handlers => this%handlers
       
    end function getHandlers
+
+
+   subroutine setLevel(this, level)
+      class (Logger), intent(inout) :: this
+      integer, intent(in) :: level
+      this%level = level
+   end subroutine setLevel
 
 end module ASTG_Logger_mod
 
