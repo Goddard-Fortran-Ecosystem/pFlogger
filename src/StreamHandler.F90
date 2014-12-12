@@ -1,49 +1,51 @@
-module ASTG_DefaultHandler_mod
+module ASTG_StreamHandler_mod
    use iso_fortran_env, only: output_unit
    use ASTG_SeverityLevels_mod
    use ASTG_AbstractHandler_mod
    implicit none
    private
 
-   public :: DefaultHandler
+   public :: StreamHandler
 
-   type, extends(AbstractHandler) :: DefaultHandler
+   type, extends(AbstractHandler) :: StreamHandler
       private
       integer :: unit = output_unit ! stdout
    contains
       procedure :: emitMessage
       procedure :: close ! noop
-   end type DefaultHandler
+   end type StreamHandler
 
-   interface DefaultHandler
-      module procedure :: newDefaultHandler
-   end interface DefaultHandler
+   interface StreamHandler
+      module procedure :: newStreamHandler
+   end interface StreamHandler
 
    
 contains
 
    
-   function newDefaultHandler(testUnit, level) result(handler)
+   function newStreamHandler(unit, level) result(handler)
       use iso_fortran_env, only: output_unit
-      type (DefaultHandler) :: handler
-      integer, optional, intent(in) :: testUnit
+      type (StreamHandler) :: handler
+      integer, optional, intent(in) :: unit
       integer, optional, intent(in) :: level
      
       integer :: level_
 
-      if (present(testUnit)) handler%unit = testUnit
+      if (present(unit)) handler%unit = unit
+
       if (present (level)) then
         level_ = level
       else
         level_ = INFO
       end if
+
       call handler%setLevel(level_)
       
-   end function newDefaultHandler
+   end function newStreamHandler
 
    
    subroutine emitMessage(this, levelString, message)
-      class (DefaultHandler), intent(in) :: this
+      class (StreamHandler), intent(in) :: this
       character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 
@@ -53,7 +55,7 @@ contains
 
    
    subroutine close(this)
-      class (DefaultHandler), intent(inout) :: this
+      class (StreamHandler), intent(inout) :: this
    end subroutine close
 
-end module ASTG_DefaultHandler_mod
+end module ASTG_StreamHandler_mod
