@@ -5,6 +5,8 @@ module Test_StreamHandler_mod
    use ASTG_AbstractHandler_mod
    implicit none
 
+   public :: Test_StreamHandler
+   
 @TestCase
    type, extends(TestCase) :: Test_StreamHandler
       integer :: unit
@@ -33,9 +35,7 @@ contains
 @Test
    subroutine test_emitBasic(this)
       class (Test_StreamHandler), intent(inout) :: this
-
       type (StreamHandler) :: handler
-
       character(len=32) :: foundMessage
 
       handler = StreamHandler(unit=this%unit)
@@ -55,7 +55,6 @@ contains
       class (Test_StreamHandler), intent(inout) :: this
 
       type (StreamHandler) :: handler
-
       character(len=:), allocatable :: message
       character(len=32) :: foundMessage
       integer :: iostatus
@@ -77,7 +76,6 @@ contains
       class (Test_StreamHandler), intent(inout) :: this
 
       type (StreamHandler) :: handler
-
       character(len=32) :: foundMessage
 
       handler = StreamHandler(unit=this%unit)

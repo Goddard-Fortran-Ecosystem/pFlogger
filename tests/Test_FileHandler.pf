@@ -49,7 +49,7 @@ contains
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual(message, foundMessage)
+      @assertEqual('INFO: '//message, foundMessage)
 
    end subroutine test_emit
    

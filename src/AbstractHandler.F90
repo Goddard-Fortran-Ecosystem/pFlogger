@@ -1,5 +1,5 @@
 module ASTG_AbstractHandler_mod
-   use ASTG_SeverityLevels_mod
+   use ASTG_SeverityLevels_mod, only: levelToString
    implicit none
    private
 

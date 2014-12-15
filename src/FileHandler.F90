@@ -1,7 +1,6 @@
 module ASTG_FileHandler_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_AbstractHandler_mod
-   use ASTG_StringUtilities_mod
+   use ASTG_SeverityLevels_mod, only: INFO
+   use ASTG_AbstractHandler_mod, only: AbstractHandler
    implicit none
    private
 
@@ -54,7 +53,7 @@ module ASTG_FileHandler_mod
       character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 
-      write(this%unit,'(a)') message
+      write(this%unit,'(a)') levelString // ': ' // message
        
    end subroutine emitMessage
 

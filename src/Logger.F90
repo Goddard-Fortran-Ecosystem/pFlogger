@@ -1,6 +1,7 @@
 module ASTG_Logger_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_AbstractHandler_mod
+   use ASTG_SeverityLevels_mod, only: INFO
+   use ASTG_AbstractHandler_mod, only: AbstractHandler
+   use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
    use FTL_AbstracthandlerPolyWrapVector_mod
 
@@ -29,7 +30,6 @@ contains
 
    
    function newLogger() result(alog)
-      use ASTG_StreamHandler_mod
       type (Logger) :: alog
 
 ! TODO: Need to NOTSET when inheritance is working

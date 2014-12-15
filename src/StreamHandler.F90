@@ -1,7 +1,7 @@
 module ASTG_StreamHandler_mod
    use iso_fortran_env, only: output_unit
-   use ASTG_SeverityLevels_mod
-   use ASTG_AbstractHandler_mod
+   use ASTG_SeverityLevels_mod, only: INFO
+   use ASTG_AbstractHandler_mod, only: AbstractHandler
    implicit none
    private
 
