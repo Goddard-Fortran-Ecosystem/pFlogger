@@ -1,4 +1,8 @@
 module ASTG_Logger_mod
+   ! A logger instance represents a logging channel, i.e. a medium thorugh
+   ! which information (logging events) about an application is conveyed.
+   ! Associated with a logger instance is a set of handlers which dispatch
+   ! logging events to specific destinations, e.g. STDOUT or a FILE
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
@@ -29,11 +33,21 @@ module ASTG_Logger_mod
 contains
 
    
-   function newLogger() result(alog)
+   function newLogger(level) result(alog)
+      ! Initialize the logger with an optional level
       type (Logger) :: alog
+      integer, optional, intent(in) :: level
+
+      integer :: level_
+      
+      if (present (level)) then
+        level_ = level
+      else
+        level_ = INFO
+      end if
 
 ! TODO: Need to NOTSET when inheritance is working
-      alog%level = INFO
+      alog%level = level_
       alog%handlers = AbstractHandlerPolyWrapVector()
       call alog%addHandler(StreamHandler())
       
@@ -59,6 +73,7 @@ contains
 
 
    subroutine log(this, level, message)
+      ! Log message with the integer severity 'level'.
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
@@ -79,6 +94,7 @@ contains
 
 
    function getHandlers(this) result(handlers)
+      ! get handlers associated with this logger
       class (Logger), target, intent(in) :: this
       type (AbstractHandlerPolyWrapVector), pointer :: handlers
       
@@ -88,9 +104,12 @@ contains
 
 
    subroutine setLevel(this, level)
+      ! Set the logging level of this logger
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
+      
       this%level = level
+      
    end subroutine setLevel
 
 end module ASTG_Logger_mod
