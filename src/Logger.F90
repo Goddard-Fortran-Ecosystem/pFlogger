@@ -3,7 +3,11 @@ module ASTG_Logger_mod
    ! which information (logging events) about an application is conveyed.
    ! Associated with a logger instance is a set of handlers which dispatch
    ! logging events to specific destinations, e.g. STDOUT or a FILE
-   use ASTG_SeverityLevels_mod, only: INFO
+   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL=>DEBUG
+   use ASTG_SeverityLevels_mod, only: INFO_LEVEL=>INFO
+   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL=>WARNING
+   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL=>ERROR
+   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL=>CRITICAL
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
@@ -20,6 +24,7 @@ module ASTG_Logger_mod
       type (AbstractHandlerPolyWrapVector) :: handlers
    contains
       procedure :: log
+      procedure :: debug
       procedure :: addHandler
       procedure :: removeHandler
       procedure :: getHandlers
@@ -43,7 +48,7 @@ contains
       if (present (level)) then
         level_ = level
       else
-        level_ = INFO
+        level_ = INFO_LEVEL
       end if
 
 ! TODO: Need to NOTSET when inheritance is working
@@ -92,7 +97,74 @@ contains
 
    end subroutine log
 
+   subroutine log_(this, level, message)
+      type(Logger), intent(inout) :: this
+      integer, intent(in) :: level
+      character(len=*), intent(in) :: message
+      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      type (AbstractHandlerPolyWrap), pointer :: handlerWrap
+      class (AbstractHandler), pointer :: handler
 
+      iter = this%handlers%begin()
+      do while (iter /= this%handlers%end())
+         handlerWrap => iter%get()
+         handler => handlerWrap%get()
+         call handler%emit(level, message)
+         call iter%next()
+      end do
+
+   end subroutine log_
+
+   subroutine debug(this, message)
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+
+      call log_(this, DEBUG_LEVEL, message)
+
+   end subroutine debug
+
+   
+   subroutine info(this, message)
+      ! Log message with the integer severity 'INFO'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      
+      call log_(this, INFO_LEVEL, message)
+
+   end subroutine info
+
+
+   subroutine warning(this, message)
+      ! Log message with the integer severity 'WARNING'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      
+      call log_(this, WARNING_LEVEL, message)
+
+   end subroutine warning
+
+   
+   subroutine error(this, message)
+      ! Log message with the integer severity 'ERROR'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      
+      call log_(this, ERROR_LEVEL, message)
+
+   end subroutine error
+
+   
+   subroutine critical(this, message)
+      ! Log message with the integer severity 'CRITICAL'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      
+      call log_(this, CRITICAL_LEVEL, message)
+
+   end subroutine critical
+
+   
    function getHandlers(this) result(handlers)
       ! get handlers associated with this logger
       class (Logger), target, intent(in) :: this

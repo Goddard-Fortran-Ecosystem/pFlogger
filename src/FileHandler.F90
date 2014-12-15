@@ -18,6 +18,7 @@ module ASTG_FileHandler_mod
       procedure :: isOpen
       procedure :: open
       procedure :: close
+      procedure :: flushUnit
       procedure :: setFileName
       procedure :: getFileName
       procedure :: emitMessage
@@ -68,7 +69,15 @@ contains
 
    end function isOpen
 
-    
+
+   subroutine flushUnit(this)
+      class (FileHandler), intent(inout) :: this
+      
+      call flush(this%getUnit())
+      
+   end subroutine flushUnit
+
+   
    subroutine open(this)
       ! Open the disk file used by this handler
       class (FileHandler), intent(inout) :: this

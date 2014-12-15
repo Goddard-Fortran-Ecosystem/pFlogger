@@ -15,6 +15,7 @@ module ASTG_AbstractHandler_mod
       procedure(emitMessage), deferred :: emitMessage
       procedure :: emit
       procedure(close), deferred :: close
+      procedure(flushUnit), deferred :: flushUnit
       procedure :: setLevel
       procedure :: getLevel
    end type AbstractHandler
@@ -35,6 +36,12 @@ module ASTG_AbstractHandler_mod
          class(AbstractHandler), intent(inout) :: this
       end subroutine close
 
+      ! This version is intended to be implemented by subclasses
+      subroutine flushUnit(this)
+         import AbstractHandler
+         class(AbstractHandler), intent(inout) :: this
+      end subroutine flushUnit
+
    end interface
 
    
@@ -52,6 +59,7 @@ contains
       end if
       
    end subroutine emit
+
    
    subroutine setLevel(this, level)
       ! Set the logging level of this handler

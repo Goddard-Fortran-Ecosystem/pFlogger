@@ -15,6 +15,7 @@ module ASTG_StreamHandler_mod
    contains
       procedure :: emitMessage
       procedure :: close ! noop
+      procedure :: flushUnit
    end type StreamHandler
 
    interface StreamHandler
@@ -27,7 +28,6 @@ contains
    
    function newStreamHandler(unit, level) result(handler)
       ! Initialize the stream handler
-      use iso_fortran_env, only: output_unit
       type (StreamHandler) :: handler
       integer, optional, intent(in) :: unit
       integer, optional, intent(in) :: level
@@ -56,6 +56,14 @@ contains
       write(this%unit,'(a)') levelString // ': ' // message
       
    end subroutine emitMessage
+
+   
+   subroutine flushUnit(this)
+      class (StreamHandler), intent(inout) :: this
+      
+      call flush(this%unit)
+      
+   end subroutine flushUnit
 
    
    subroutine close(this)

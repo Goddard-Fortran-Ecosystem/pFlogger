@@ -12,6 +12,7 @@ module MockHandler_mod
    contains
       procedure :: emitMessage
       procedure :: close ! noop
+      procedure :: flushUnit
    end type MockHandler
 
 contains
@@ -25,7 +26,12 @@ contains
       
    end subroutine emitMessage
 
-   
+
+   subroutine flushUnit(this)
+      class (MockHandler), intent(inout) :: this
+   end subroutine flushUnit
+
+
    subroutine close(this)
       class (MockHandler), intent(inout) :: this
    end subroutine close
