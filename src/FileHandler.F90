@@ -18,7 +18,7 @@ module ASTG_FileHandler_mod
       procedure :: isOpen
       procedure :: open
       procedure :: close
-      procedure :: flushUnit
+      procedure :: flush => flushUnit
       procedure :: setFileName
       procedure :: getFileName
       procedure :: emitMessage

@@ -12,11 +12,13 @@ module MockHandler_mod
    contains
       procedure :: emitMessage
       procedure :: close ! noop
-      procedure :: flushUnit
+      procedure :: flush => flushUnit
    end type MockHandler
 
+   
 contains
 
+   
    subroutine emitMessage(this, levelString, message)
       class (MockHandler), intent(in) :: this
       character(len=*), intent(in) :: levelString

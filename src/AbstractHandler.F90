@@ -15,7 +15,7 @@ module ASTG_AbstractHandler_mod
       procedure(emitMessage), deferred :: emitMessage
       procedure :: emit
       procedure(close), deferred :: close
-      procedure(flushUnit), deferred :: flushUnit
+      procedure(flush), deferred :: flush
       procedure :: setLevel
       procedure :: getLevel
    end type AbstractHandler
@@ -37,10 +37,10 @@ module ASTG_AbstractHandler_mod
       end subroutine close
 
       ! This version is intended to be implemented by subclasses
-      subroutine flushUnit(this)
+      subroutine flush(this)
          import AbstractHandler
          class(AbstractHandler), intent(inout) :: this
-      end subroutine flushUnit
+      end subroutine flush
 
    end interface
 

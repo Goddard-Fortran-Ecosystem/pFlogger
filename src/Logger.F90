@@ -3,11 +3,11 @@ module ASTG_Logger_mod
    ! which information (logging events) about an application is conveyed.
    ! Associated with a logger instance is a set of handlers which dispatch
    ! logging events to specific destinations, e.g. STDOUT or a FILE
-   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL=>DEBUG
-   use ASTG_SeverityLevels_mod, only: INFO_LEVEL=>INFO
-   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL=>WARNING
-   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL=>ERROR
-   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL=>CRITICAL
+   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
+   use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
+   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
+   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
+   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => CRITICAL
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
@@ -25,6 +25,10 @@ module ASTG_Logger_mod
    contains
       procedure :: log
       procedure :: debug
+      procedure :: info
+      procedure :: warning
+      procedure :: error
+      procedure :: critical
       procedure :: addHandler
       procedure :: removeHandler
       procedure :: getHandlers
@@ -77,10 +81,10 @@ contains
    end subroutine removeHandler
 
 
-   subroutine log_(this, level, message)
-      ! Private logging routine that calls the appropriate handler and
-      ! emits the logging event
-      type(Logger), intent(inout) :: this
+   subroutine log(this, level, message)
+      ! Logging routine that calls the appropriate handler and emits
+      ! the logging event
+      class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
@@ -95,17 +99,6 @@ contains
          call iter%next()
       end do
 
-   end subroutine log_
-
-   
-   subroutine log(this, level, message)
-      ! Log message with the integer severity 'level'.
-      class (Logger), intent(inout) :: this
-      integer, intent(in) :: level
-      character(len=*), intent(in) :: message
-
-      call log_(this, level, message) 
-
    end subroutine log
 
    
@@ -114,7 +107,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
 
-      call log_(this, DEBUG_LEVEL, message)
+      call this%log(DEBUG_LEVEL, message)
 
    end subroutine debug
 
@@ -124,7 +117,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call log_(this, INFO_LEVEL, message)
+      call this%log(INFO_LEVEL, message)
 
    end subroutine info
 
@@ -134,7 +127,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call log_(this, WARNING_LEVEL, message)
+      call this%log(WARNING_LEVEL, message)
 
    end subroutine warning
 
@@ -144,7 +137,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call log_(this, ERROR_LEVEL, message)
+      call this%log(ERROR_LEVEL, message)
 
    end subroutine error
 
@@ -154,7 +147,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call log_(this, CRITICAL_LEVEL, message)
+      call this%log(CRITICAL_LEVEL, message)
 
    end subroutine critical
 

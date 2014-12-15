@@ -15,7 +15,7 @@ module ASTG_StreamHandler_mod
    contains
       procedure :: emitMessage
       procedure :: close ! noop
-      procedure :: flushUnit
+      procedure :: flush => flushUnit
    end type StreamHandler
 
    interface StreamHandler
