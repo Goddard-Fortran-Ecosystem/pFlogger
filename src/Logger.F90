@@ -77,27 +77,9 @@ contains
    end subroutine removeHandler
 
 
-   subroutine log(this, level, message)
-      ! Log message with the integer severity 'level'.
-      class (Logger), intent(inout) :: this
-      integer, intent(in) :: level
-      character(len=*), intent(in) :: message
-      
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
-      type (AbstractHandlerPolyWrap), pointer :: handlerWrap
-      class (AbstractHandler), pointer :: handler
-
-      iter = this%handlers%begin()
-      do while (iter /= this%handlers%end())
-         handlerWrap => iter%get()
-         handler => handlerWrap%get()
-         call handler%emit(level, message)
-         call iter%next()
-      end do
-
-   end subroutine log
-
    subroutine log_(this, level, message)
+      ! Private logging routine that calls the appropriate handler and
+      ! emits the logging event
       type(Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
@@ -115,6 +97,18 @@ contains
 
    end subroutine log_
 
+   
+   subroutine log(this, level, message)
+      ! Log message with the integer severity 'level'.
+      class (Logger), intent(inout) :: this
+      integer, intent(in) :: level
+      character(len=*), intent(in) :: message
+
+      call log_(this, level, message) 
+
+   end subroutine log
+
+   
    subroutine debug(this, message)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
