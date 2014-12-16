@@ -1,4 +1,8 @@
 module MockHandler_mod
+   ! Instances of this class inherit from the abstract handler. The idea of 
+   ! the mock is to be able to control the data that is written to an output
+   ! stream (STDOUT or a disk file) by collecting it in a buffer and then 
+   ! test for the contents of the buffer's correctnes.
    use ASTG_AbstractHandler_mod
    implicit none
    private

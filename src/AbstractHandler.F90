@@ -24,6 +24,7 @@ module ASTG_AbstractHandler_mod
 
       ! This version is intended to be implemented by subclasses
       subroutine emitMessage(this, levelString, message)
+         ! Log a speficied message     
          import AbstractHandler
          class (AbstractHandler), intent(in) :: this
          character(len=*), intent(in) :: levelString
@@ -38,6 +39,7 @@ module ASTG_AbstractHandler_mod
 
       ! This version is intended to be implemented by subclasses
       subroutine flush(this)
+         ! Flushes Fortran unit currently open for output.
          import AbstractHandler
          class(AbstractHandler), intent(inout) :: this
       end subroutine flush

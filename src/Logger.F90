@@ -8,6 +8,7 @@ module ASTG_Logger_mod
    use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
    use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => CRITICAL
+   use ASTG_SeverityLevels_mod, only: NOTSET_LEVEL => NOTSET
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
@@ -29,6 +30,7 @@ module ASTG_Logger_mod
       procedure :: warning
       procedure :: error
       procedure :: critical
+      procedure :: notset
       procedure :: addHandler
       procedure :: removeHandler
       procedure :: getHandlers
@@ -150,6 +152,16 @@ contains
       call this%log(CRITICAL_LEVEL, message)
 
    end subroutine critical
+
+   
+   subroutine notset(this, message)
+      ! Log message with the integer severity 'NOTSET'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      
+      call this%log(NOTSET_LEVEL, message)
+
+   end subroutine notset
 
    
    function getHandlers(this) result(handlers)

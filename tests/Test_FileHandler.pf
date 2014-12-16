@@ -15,11 +15,13 @@ module Test_FileHandler_mod
 
 contains
 
+   
    subroutine setUp(this)
       class (Test_FileHandler), intent(inout) :: this
       this%handler = FileHandler('logFile')
    end subroutine setUp
 
+   
    subroutine tearDown(this)
       class (Test_FileHandler), intent(inout) :: this
 
@@ -34,8 +36,9 @@ contains
 
    end subroutine tearDown
 
+   
 @Test
-   subroutine test_emit(this)
+   subroutine test_emitBasic(this)
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
@@ -51,8 +54,49 @@ contains
 
       @assertEqual('INFO: '//message, foundMessage)
 
-   end subroutine test_emit
+   end subroutine test_emitBasic
+
    
+@Test
+   subroutine test_emitBelowThreshold(this)
+      use iso_fortran_env, only: IOSTAT_END
+      class (Test_FileHandler), intent(inout) :: this
+
+      type (FileHandler) :: handler
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      
+      message = 'hello'
+      call handler%setLevel(DEBUG)
+      call this%handler%emit(DEBUG, message)
+
+      rewind(this%handler%getUnit())
+      read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
+
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_emitBelowThreshold
+
+   
+@Test
+   subroutine test_emitAboveThreshold(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      type (FileHandler) :: handler
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      
+      message = 'hello'
+      call handler%setLevel(ERROR)
+      call this%handler%emit(ERROR, message)
+
+      rewind(this%handler%getUnit())
+      read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
+      @assertEqual('ERROR: '//message, foundMessage)
+
+   end subroutine test_emitAboveThreshold
 
 end module Test_FileHandler_mod
 

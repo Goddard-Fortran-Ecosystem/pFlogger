@@ -33,7 +33,7 @@ contains
 
     
    function newFileHandler(fileName, level) result(handler)
-      ! Initializes the instance with a filename an optional level
+      ! Initializes the instance with a filename and an optional level
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
       integer, intent(in), optional :: level

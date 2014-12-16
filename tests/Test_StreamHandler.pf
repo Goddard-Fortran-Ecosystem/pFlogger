@@ -17,6 +17,7 @@ module Test_StreamHandler_mod
 
 contains
 
+   
    subroutine setUp(this)
       class (Test_StreamHandler), intent(inout) :: this
 
@@ -25,6 +26,7 @@ contains
 
    end subroutine setUp
 
+   
    subroutine tearDown(this)
       class (Test_StreamHandler), intent(inout) :: this
 
@@ -32,6 +34,7 @@ contains
 
    end subroutine tearDown
 
+   
 @Test
    subroutine test_emitBasic(this)
       class (Test_StreamHandler), intent(inout) :: this
@@ -48,6 +51,7 @@ contains
       @assertEqual('INFO: hello', foundMessage)
 
    end subroutine test_emitBasic
+
    
 @Test
    subroutine test_emitBelowThreshold(this)
@@ -71,6 +75,7 @@ contains
 
    end subroutine test_emitBelowThreshold
 
+   
 @Test
    subroutine test_emitAboveThreshold(this)
       class (Test_StreamHandler), intent(inout) :: this

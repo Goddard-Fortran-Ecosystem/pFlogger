@@ -28,6 +28,8 @@ contains
       integer, intent(in) :: level
 
       select case (level)
+      case (NOTSET)
+        string = 'NOTSET'
       case (DEBUG)
         string = 'DEBUG'
       case (INFO)

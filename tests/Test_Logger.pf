@@ -9,97 +9,148 @@ module Test_Logger_mod
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
-      type (Logger) :: aLogger
+      type (Logger)      :: basicLogger
+      type (Logger)      :: levelLogger
+      type (MockHandler) :: basicHandler
+      type (MockHandler) :: levelHandler
    contains
-      procedure :: setUp     ! overides generic
-      procedure :: tearDown  ! overrides generic
+      procedure :: setUp    
+      procedure :: tearDown 
    end type Test_Logger
 
    
 contains
 
-   
+
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
+      ! We use a Mock handler as a workaround to avoid writing data to
+      ! disk files. Rather data is 'written' to a public buffer.
 
-      call handler%setLevel(info)
-      this%aLogger = Logger()
-      call this%aLogger%addHandler(handler)
+      ! Create a basic logger (uses log())
+      this%basicLogger = Logger()
+      call this%basicHandler%setLevel(INFO)
+      call this%basicLogger%addHandler(this%basicHandler)
+
+      ! Create a 'level' logger (uses methods named after level names)
+      this%levelLogger = Logger()
+      call this%levelLogger%addHandler(this%levelHandler)
       
    end subroutine setUp
 
-   
+
    subroutine tearDown(this)
       class (Test_Logger), intent(inout) :: this
-      if (allocated(buffer)) deallocate(buffer)
-   end subroutine tearDown
 
-@test
+      ! Clean up mock handler's buffer 
+      if (allocated(buffer)) deallocate(buffer)
+      
+   end subroutine tearDown
+   
+
+@Test
    subroutine test_logBasic(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%aLogger%setLevel(INFO)
-      call this%aLogger%log(INFO, 'hello')
+      call this%basicLogger%log(INFO, 'test_logBasic')
 
       ! buffer is in MockHandler_mod
-      @assertEqual('INFO: hello', buffer)
+      @assertEqual('INFO: test_logBasic', buffer)
 
    end subroutine test_logBasic
 
-@test
+   
+@Test
    subroutine test_logBelowThreshold(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      call handler%setLevel(info)
-      
-      call this%aLogger%addHandler(handler)
-      call this%aLogger%log(DEBUG, 'hello')
-
+      ! Log a message at DEBUG level
+      call this%basicLogger%log(DEBUG, 'test_logBelowThreshold')
+      ! Message WILL NOT be logged because DEBUG<INFO
+      ! Thus buffer will be empty (unallocated)
       @assertFalse(allocated(buffer))
 
    end subroutine test_logBelowThreshold
 
    
-!!$ @Test
-!!$   subroutine test_logfile(this)
-!!$      use ASTG_AbstractHandler_mod
-!!$      use FTL_AbstracthandlerPolyWrap_mod
-!!$      use FTL_AbstracthandlerPolyWrapVector_mod
-!!$      class (Test_Logger), intent(inout) :: this
-!!$
-!!$      integer :: unit
-!!$      character(len=:), allocatable :: message
-!!$      character(len=32) :: foundMessage
-!!$
-!!$      type (AbstractHandlerPolyWrapVectorIterator) :: iter
-!!$
-!!$      type (AbstractHandlerPolyWrapVector), pointer :: handlers
-!!$      type (AbstractHandlerPolyWrap), pointer :: handlerWrap
-!!$      class (AbstractHandler), pointer :: handler
-!!$
-!!$      message = 'hello'
-!!$      call this%fileLogger%log(INFO, message)
-!!$
-!!$      handlers => this%fileLogger%getHandlers()
-!!$
-!!$      iter = handlers%begin()
-!!$      do while (iter /= handlers%end())
-!!$         handlerWrap => iter%get()
-!!$         handler => handlerWrap%get()
-!!$         call handler%close()
-!!$         call iter%next()
-!!$      end do
-!!$
-!!$      open(newunit=unit, file='logfile', status='old')
-!!$      read(unit, '(a)') foundMessage
-!!$      close(unit)
-!!$
-!!$      @assertEqual(message, foundMessage)
-!!$      
-!!$   end subroutine test_logfile
-!!$   
+@Test
+   subroutine test_logAboveThreshold(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Log a message at CRITICAL level
+      call this%basicLogger%log(CRITICAL, 'test_logAboveThreshold')
+      ! Message WILL be logged because CRITICAL>INFO
+      @assertEqual('CRITICAL: test_logAboveThreshold', buffer)
+
+   end subroutine test_logAboveThreshold
+
+   
+@Test
+   subroutine test_debug(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(DEBUG)
+      call this%levelLogger%debug('test_debug')
+      @assertEqual('DEBUG: test_debug', buffer)
+
+   end subroutine test_debug
+   
+@Test
+   subroutine test_info(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(INFO)
+      call this%levelLogger%info('test_info')
+      @assertEqual('INFO: test_info', buffer)
+
+   end subroutine test_info
+
+@Test
+   subroutine test_warning(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(WARNING)
+      call this%levelLogger%warning('test_warning')
+      @assertEqual('WARNING: test_warning', buffer)
+
+   end subroutine test_warning
+   
+@Test
+   subroutine test_error(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(ERROR)
+      call this%levelLogger%error('test_error')
+      @assertEqual('ERROR: test_error', buffer)
+
+   end subroutine test_error
     
+@Test
+   subroutine test_critical(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(CRITICAL)
+      call this%levelLogger%critical('test_critical')
+      @assertEqual('CRITICAL: test_critical', buffer)
+
+   end subroutine test_critical
+
+@Test
+   subroutine test_notset(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(NOTSET)
+      call this%levelLogger%notset('test_notset')
+      @assertEqual('NOTSET: test_notset', buffer)
+
+   end subroutine test_notset
+   
+
 end module Test_Logger_mod
 
