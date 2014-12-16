@@ -34,7 +34,7 @@ contains
 
       ! Create a 'level' logger (uses methods named after level names)
       this%levelLogger = Logger()
-      call this%levelLogger%addHandler(this%levelHandler)
+!      call this%levelLogger%addHandler(this%levelHandler)
       
    end subroutine setUp
 
@@ -91,10 +91,23 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(DEBUG)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%debug('test_debug')
       @assertEqual('DEBUG: test_debug', buffer)
 
    end subroutine test_debug
+   
+@Test
+   subroutine test_debugNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Set handler's severity level
+      call this%levelHandler%setLevel(INFO)
+      call this%levelLogger%addHandler(this%levelHandler)
+      call this%levelLogger%debug('test_debug')
+      @assertFalse(allocated(buffer))
+
+   end subroutine test_debugNoEmit
    
 @Test
    subroutine test_info(this)
@@ -102,6 +115,7 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(INFO)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%info('test_info')
       @assertEqual('INFO: test_info', buffer)
 
@@ -113,6 +127,7 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(WARNING)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%warning('test_warning')
       @assertEqual('WARNING: test_warning', buffer)
 
@@ -124,6 +139,7 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(ERROR)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%error('test_error')
       @assertEqual('ERROR: test_error', buffer)
 
@@ -135,6 +151,7 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(CRITICAL)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%critical('test_critical')
       @assertEqual('CRITICAL: test_critical', buffer)
 
@@ -146,6 +163,7 @@ contains
 
       ! Set handler's severity level
       call this%levelHandler%setLevel(NOTSET)
+      call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%notset('test_notset')
       @assertEqual('NOTSET: test_notset', buffer)
 
