@@ -66,6 +66,7 @@ contains
       class (FileHandler), intent(in) :: this
        
       isOpen = .false.
+      if (this%isOpen_) isOpen=.true.
 
    end function isOpen
 
