@@ -1,13 +1,14 @@
 module Test_RotatingFileHandler_mod
+   use iso_fortran_env
    use ASTG_SeverityLevels_mod
    use ASTG_RotatingFileHandler_mod
-   use ASTG_AbstractHandler_mod
    use pfunit_mod
    implicit none
 
 @TestCase
    type, extends(TestCase) :: Test_RotatingFileHandler
-      type (RotatingFileHandler) :: handler
+      type (RotatingFileHandler) :: rotHandler0
+      type (RotatingFileHandler) :: rotHandler
    contains
       procedure :: setUp   
       procedure :: tearDown 
@@ -18,7 +19,9 @@ contains
    
    subroutine setUp(this)
       class (Test_RotatingFileHandler), intent(inout) :: this
-      this%handler = RotatingFileHandler('logFile')
+      this%rotHandler0 = RotatingFileHandler('logFile0')
+      this%rotHandler  = RotatingFileHandler('logFile',  &
+           maxBytes=60_int64, backupCount=5)
    end subroutine setUp
 
    
@@ -27,10 +30,13 @@ contains
 
       integer :: unit
 
-      call this%handler%close()
+      call this%rotHandler0%close()
+      call this%rotHandler%close()
 
       ! delete file
       open(newunit=unit, file='logfile', status='old')
+      close(unit, status='delete')
+      open(newunit=unit, file='logfile0', status='old')
       close(unit, status='delete')
 
    end subroutine tearDown
@@ -46,15 +52,34 @@ contains
       character(len=32) :: foundMessage
 
       message = 'hello'
-      call this%handler%emit(INFO, message)
+      call this%rotHandler0%emit(INFO, message)
       
-      unit = this%handler%getUnit()
+      unit = this%rotHandler0%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
       @assertEqual('INFO: '//message, foundMessage)
 
    end subroutine test_emitBasic
+
+   
+@Test
+   subroutine test_shouldRollover(this)
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=:), allocatable :: message
+      integer :: i
+      
+      message = 'hello'
+      do i=1,6
+      ! rotHandler should rollOver after 6 records = 72 bytes
+         call this%rotHandler%emit(INFO, message)
+      end do
+      
+      @assertTrue(this%rotHandler%shouldRollover())
+
+   end subroutine test_shouldRollover
 
    
 end module Test_RotatingFileHandler_mod

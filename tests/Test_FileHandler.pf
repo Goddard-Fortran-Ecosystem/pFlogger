@@ -1,7 +1,7 @@
 module Test_FileHandler_mod
    use ASTG_SeverityLevels_mod
    use ASTG_FileHandler_mod
-   use ASTG_AbstractHandler_mod
+!   use ASTG_AbstractHandler_mod
    use pfunit_mod
    implicit none
 

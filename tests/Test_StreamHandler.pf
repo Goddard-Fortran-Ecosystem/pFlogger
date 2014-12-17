@@ -2,7 +2,6 @@ module Test_StreamHandler_mod
    use pFUnit_mod
    use ASTG_SeverityLevels_mod
    use ASTG_StreamHandler_mod
-   use ASTG_AbstractHandler_mod
    implicit none
 
    public :: Test_StreamHandler

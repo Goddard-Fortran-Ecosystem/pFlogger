@@ -15,7 +15,6 @@ module ASTG_RotatingFileHandler_mod
       private
       integer :: maxBytes
       integer :: backupCount
-      integer :: numRecords
    contains
       procedure :: doRollover
       procedure :: shouldRollover
@@ -26,21 +25,21 @@ module ASTG_RotatingFileHandler_mod
       module procedure newRotatingFileHandler
    end interface
 
-   integer, parameter :: TEST_MAX_NUM_RECORDS = 10
    integer, parameter :: MAX_NUM_RECORDS = 1000000 ! what is a good number?
    integer, save :: backupCounter =0
    
 contains
 
     
-   function newRotatingFileHandler(fileName, level, maxBytes, backupCount) result(handler)
+   function newRotatingFileHandler(fileName, maxBytes, backupCount, level) &
+        result(handler)
       use iso_fortran_env
       ! Initializes the instance
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      integer, intent(in), optional :: level
       integer(int64), intent(in), optional :: maxBytes
       integer, intent(in), optional :: backupCount
+      integer, intent(in), optional :: level
       
       integer :: level_
       integer :: maxBytes_
@@ -67,7 +66,7 @@ contains
       call handler%setLevel(level_)
       handler%maxBytes = maxBytes_
       handler%backupCount = backupCount_
-      handler%numRecords = 0
+      backupCounter = backupCount_
       
    end function newRotatingFileHandler
 
@@ -86,7 +85,7 @@ contains
     
    end subroutine emitMessage
 
-        
+
    function shouldRollover(this) result(rollOver)
       ! Determine if rollover should occur.
       class (RotatingFileHandler), intent(in) :: this
@@ -101,7 +100,7 @@ contains
         
    end function shouldRollover
 
-
+   
    subroutine doRollover(this)
       ! Rollover occurs whenever the current log file is nearly maxBytes
       class (RotatingFileHandler), intent(inout) :: this
@@ -118,20 +117,4 @@ contains
    end subroutine doRollover
 
 
-   subroutine doRolloverNR(this)
-      ! Rollover occurs whenever the current log file exceeds number of records
-      class (RotatingFileHandler), intent(inout) :: this
-      character(len=:), allocatable :: suffix
-      
-      if ((this%numRecords) > TEST_MAX_NUM_RECORDS) then
-         write(suffix,'(a)') this%backupCount
-         call execute_command_line('mv '//this%getFileName()// &
-              ' '//this%getFileName()//'.'//suffix)
-         this%numRecords = this%numRecords - 1
-         call execute_command_line('touch '//this%getFileName())
-       end if
-      
-   end subroutine doRolloverNR
-
-   
 end module ASTG_RotatingFileHandler_mod

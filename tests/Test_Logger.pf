@@ -34,7 +34,6 @@ contains
 
       ! Create a 'level' logger (uses methods named after level names)
       this%levelLogger = Logger()
-!      call this%levelLogger%addHandler(this%levelHandler)
       
    end subroutine setUp
 
@@ -89,7 +88,7 @@ contains
    subroutine test_debug(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(DEBUG)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%debug('test_debug')
@@ -101,9 +100,10 @@ contains
    subroutine test_debugNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(INFO)
       call this%levelLogger%addHandler(this%levelHandler)
+      ! Here debug() will not emit message because DEBUG<INFO
       call this%levelLogger%debug('test_debug')
       @assertFalse(allocated(buffer))
 
@@ -113,7 +113,7 @@ contains
    subroutine test_info(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(INFO)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%info('test_info')
@@ -125,7 +125,7 @@ contains
    subroutine test_warning(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(WARNING)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%warning('test_warning')
@@ -137,7 +137,7 @@ contains
    subroutine test_error(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(ERROR)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%error('test_error')
@@ -149,7 +149,7 @@ contains
    subroutine test_critical(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(CRITICAL)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%critical('test_critical')
@@ -161,7 +161,7 @@ contains
    subroutine test_notset(this)
       class (Test_Logger), intent(inout) :: this
 
-      ! Set handler's severity level
+      ! Set handler's severity level and add handler to levelLogger
       call this%levelHandler%setLevel(NOTSET)
       call this%levelLogger%addHandler(this%levelHandler)
       call this%levelLogger%notset('test_notset')
