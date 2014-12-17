@@ -49,7 +49,7 @@ contains
    
    subroutine emitMessage(this, levelString, message)
       ! Write a string to a stream. Level is specified in levelString
-      class (StreamHandler), intent(in) :: this
+      class (StreamHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 

@@ -26,7 +26,7 @@ module ASTG_AbstractHandler_mod
       subroutine emitMessage(this, levelString, message)
          ! Log a speficied message     
          import AbstractHandler
-         class (AbstractHandler), intent(in) :: this
+         class (AbstractHandler), intent(inout) :: this
          character(len=*), intent(in) :: levelString
          character(len=*), intent(in) :: message
       end subroutine emitMessage
@@ -52,7 +52,7 @@ contains
    
    subroutine emit(this, level, message)
       ! Log a specified message with severity 'level'
-      class(AbstractHandler), intent(in) :: this
+      class(AbstractHandler), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       

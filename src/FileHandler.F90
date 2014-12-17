@@ -53,7 +53,7 @@ contains
     
    subroutine emitMessage(this, levelString, message)
       ! Write a string to a file. Level is specified in levelString
-      class (FileHandler), intent(in) :: this
+      class (FileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 

@@ -24,7 +24,7 @@ contains
 
    
    subroutine emitMessage(this, levelString, message)
-      class (MockHandler), intent(in) :: this
+      class (MockHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       character(len=*), intent(in) :: message
 
