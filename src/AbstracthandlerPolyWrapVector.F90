@@ -1,3 +1,4 @@
+
 module FTL_AbstracthandlerPolyWrapVector_mod
       use FTL_AbstracthandlerPolyWrap_mod, only: AbstracthandlerPolyWrap
          use ASTG_AbstractHandler_mod, only: Abstracthandler
@@ -13,7 +14,7 @@ module FTL_AbstracthandlerPolyWrapVector_mod
 
 
    integer, parameter :: UNINITIALIZED = -1
-   type AbstracthandlerPolyWrapVector
+   type :: AbstracthandlerPolyWrapVector
       private
       
       type(AbstracthandlerPolyWrap), allocatable :: elements(:)
@@ -32,20 +33,23 @@ module FTL_AbstracthandlerPolyWrapVector_mod
       procedure :: at
       procedure :: front
       procedure :: back
-      procedure :: altAt
-      procedure :: altFront
-      procedure :: altBack
+      procedure :: at_alt
+      procedure :: front_alt
+      procedure :: back_alt
 
 
 
       procedure :: data
 
-      procedure :: push_back
+      procedure :: push_back_T
+      generic :: push_back => push_back_T
       procedure :: pop_back
-      procedure :: Tinsert
-      generic :: insert => Tinsert
-      procedure :: altTinsert
-      generic :: insert => altTInsert
+      procedure :: insert_T
+      generic :: insert => insert_T
+      procedure :: push_back_alt
+      generic :: push_back => push_back_alt
+      procedure :: insert_alt
+      generic :: insert => insert_alt
 
 
       procedure :: reserve
@@ -64,6 +68,8 @@ module FTL_AbstracthandlerPolyWrapVector_mod
       integer :: index = UNINITIALIZED
    contains
       procedure :: get
+      procedure :: get_alt
+
       procedure :: next
       procedure :: previous
       procedure :: atDefault
@@ -86,6 +92,7 @@ module FTL_AbstracthandlerPolyWrapVector_mod
       
       procedure :: add
       generic :: operator(+) => add
+
    end type AbstracthandlerPolyWrapVectorIterator
 
    type AbstracthandlerPolyWrapVectorReverseIterator
@@ -93,6 +100,8 @@ module FTL_AbstracthandlerPolyWrapVector_mod
       integer :: index = UNINITIALIZED
    contains
       procedure :: get => getRIter
+      procedure :: get_alt => getRIter_alt
+
       procedure :: next => rNext
       procedure :: previous => rPrevious
       procedure :: rAtDefault
@@ -246,7 +255,7 @@ contains
 !---------------------------------------------------
 ! Return _reference_ to the ith element of Vector.
 !---------------------------------------------------
-   function altAt(this, i) result(ptr)
+   function at_alt(this, i) result(ptr)
       class (AbstracthandlerPolyWrapVector), target, intent(in) :: this
       integer, intent(in) :: i
       class(AbstractHandler), pointer :: ptr
@@ -256,13 +265,13 @@ contains
       pTmp => this%at(i)
       ptr => pTmp%get()
 
-   end function altAt
+   end function at_alt
 
 
 !---------------------------------------------------
 ! Return reference to 1st element of vector.
 !---------------------------------------------------
-   function altFront(this) result(ptr)
+   function front_alt(this) result(ptr)
       class (AbstracthandlerPolyWrapVector), target, intent(in) :: this
       class(AbstractHandler), pointer :: ptr
 
@@ -271,13 +280,13 @@ contains
       pTmp => this%front()
       ptr => pTmp%get()
 
-   end function altFront
+   end function front_alt
 
 
 !---------------------------------------------------
 ! Return reference to last element of vector
 !---------------------------------------------------
-   function altBack(this) result(ptr)
+   function back_alt(this) result(ptr)
       class (AbstracthandlerPolyWrapVector), target, intent(in) :: this
       class(AbstractHandler), pointer :: ptr
 
@@ -286,7 +295,7 @@ contains
       pTmp => this%back()
       ptr => pTmp%get()
 
-   end function altBack
+   end function back_alt
 
 
 
@@ -387,7 +396,7 @@ contains
 !---------------------------------------------------
 !  Extend vector by one element and set it to <value>.
 !---------------------------------------------------
-   subroutine push_back(this, value)
+   subroutine push_back_T(this, value)
       class (AbstracthandlerPolyWrapVector), intent(inout) :: this
       type(AbstracthandlerPolyWrap), intent(in) :: value
 
@@ -399,7 +408,7 @@ contains
       this%numElements = n
       this%elements(n) = value
 
-   end subroutine push_back
+   end subroutine push_back_T
 
 
 !---------------------------------------------------
@@ -423,7 +432,7 @@ contains
 !---------------------------------------------------
 !  Insert <value> at position i.  Extends vector by one element.
 !---------------------------------------------------
-   subroutine Tinsert(this, i, value)
+   subroutine insert_T(this, i, value)
       class (AbstracthandlerPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: i
       type(AbstracthandlerPolyWrap), intent(in) :: value
@@ -441,20 +450,32 @@ contains
 
       this%numElements = n + 1
 
-   end subroutine Tinsert
+   end subroutine insert_T
 
+!---------------------------------------------------
+!  Extend vector by one element and set it to <value>.
+!---------------------------------------------------
+   subroutine push_back_alt(this, value)
+      class (AbstracthandlerPolyWrapVector), intent(inout) :: this
+      class(AbstractHandler) :: value
+
+      integer :: n
+
+      call this%push_back(AbstracthandlerPolyWrap(value))
+
+   end subroutine push_back_alt
 
 !---------------------------------------------------
 !  Insert <value> at position i.  Extends vector by one element.
 !---------------------------------------------------
-   subroutine altTInsert(this, i, value)
+   subroutine insert_alt(this, i, value)
       class (AbstracthandlerPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: i
       class(AbstractHandler), intent(in) :: value
 
       call this%insert(i, AbstracthandlerPolyWrap(value))
 
-   end subroutine altTInsert
+   end subroutine insert_alt
 
    
 !---------------------------------------------------
@@ -548,6 +569,15 @@ contains
 
       end function get
       
+      function get_alt(this) result(ptr)
+         class(AbstractHandler), pointer :: ptr
+         class (AbstracthandlerPolyWrapVectorIterator), intent(in) :: this
+
+         ptr => this%elements(this%index)%get()
+
+      end function get_alt
+
+
 
       subroutine next(this)
          class (AbstracthandlerPolyWrapVectorIterator), intent(inout) :: this
@@ -642,6 +672,16 @@ contains
          ptr => this%elements(this%index)
 
       end function getRIter
+
+      ! Dereference iterator
+      function getRIter_alt(this) result(ptr)
+         class (AbstracthandlerPolyWrapVectorReverseIterator), intent(in) :: this
+         class(AbstractHandler), pointer :: ptr
+
+         ptr => this%elements(this%index)%get()
+
+      end function getRIter_alt
+
 
 
       subroutine rNext(this)

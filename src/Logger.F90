@@ -90,13 +90,11 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
-      type (AbstractHandlerPolyWrap), pointer :: handlerWrap
       class (AbstractHandler), pointer :: handler
 
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
-         handlerWrap => iter%get()
-         handler => handlerWrap%get()
+         handler => iter%get_alt()
          call handler%emit(level, message)
          call iter%next()
       end do
