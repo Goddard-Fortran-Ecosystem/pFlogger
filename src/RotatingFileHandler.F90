@@ -30,6 +30,7 @@ contains
 
     
    function newRotatingFileHandler(fileName, level, maxBytes, backupCount) result(handler)
+      use iso_fortran_env
       ! Initializes the instance
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
