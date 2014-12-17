@@ -23,6 +23,7 @@ set (SRCS
 set(TEST_SRCS 
    Test_StringUtilities.F90
    Test_StreamHandler.F90
+   Test_RotatingFileHandler.F90
    Test_FileHandler.F90
    Test_Logger.F90
 )

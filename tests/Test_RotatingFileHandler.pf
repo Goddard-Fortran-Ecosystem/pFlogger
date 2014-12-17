@@ -1,0 +1,61 @@
+module Test_RotatingFileHandler_mod
+   use ASTG_SeverityLevels_mod
+   use ASTG_RotatingFileHandler_mod
+   use ASTG_AbstractHandler_mod
+   use pfunit_mod
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_RotatingFileHandler
+      type (RotatingFileHandler) :: handler
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_RotatingFileHandler
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_RotatingFileHandler), intent(inout) :: this
+      this%handler = RotatingFileHandler('logFile')
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_RotatingFileHandler), intent(inout) :: this
+
+      integer :: unit
+
+      call this%handler%close()
+
+      ! delete file
+      open(newunit=unit, file='logfile', status='old')
+      close(unit, status='delete')
+
+   end subroutine tearDown
+
+   
+@Test
+   subroutine test_emitBasic(this)
+      ! Make sure RotatingFileHandler defaults to FileHandler
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=:), allocatable :: message
+      character(len=32) :: foundMessage
+
+      message = 'hello'
+      call this%handler%emit(INFO, message)
+      
+      unit = this%handler%getUnit()
+      rewind(unit)
+      read(unit, '(a)') foundMessage
+
+      @assertEqual('INFO: '//message, foundMessage)
+
+   end subroutine test_emitBasic
+
+   
+end module Test_RotatingFileHandler_mod
+

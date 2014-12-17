@@ -81,7 +81,7 @@ contains
       if (this%shouldRollover()) then
          call this%doRollover()
       else
-         !write(this%unit,'(a)') levelString // ': ' // message
+         write(this%getUnit(), '(a)') levelString // ': ' // message
       end if
     
    end subroutine emitMessage
