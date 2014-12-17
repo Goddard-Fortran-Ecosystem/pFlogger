@@ -25,8 +25,7 @@ module ASTG_RotatingFileHandler_mod
       module procedure newRotatingFileHandler
    end interface
 
-   integer, parameter :: MAX_NUM_RECORDS = 1000000 ! what is a good number?
-   integer, save :: backupCounter =0
+   integer, save :: backupCounter
    
 contains
 
@@ -66,7 +65,7 @@ contains
       call handler%setLevel(level_)
       handler%maxBytes = maxBytes_
       handler%backupCount = backupCount_
-      backupCounter = backupCount_
+      backupCounter = 0
       
    end function newRotatingFileHandler
 
@@ -97,21 +96,30 @@ contains
       if (fileSize > this%maxBytes) then
          rollOver = .true.
       end if
-        
+      
    end function shouldRollover
 
    
    subroutine doRollover(this)
       ! Rollover occurs whenever the current log file is nearly maxBytes
       class (RotatingFileHandler), intent(inout) :: this
-      character(len=:), allocatable :: suffix
-      
-      if ((this%backupCount) > 0) then
-         write(suffix,'(a)') backupCounter+1
-         call execute_command_line('mv '//this%getFileName()// &
-              ' '//this%getFileName()//'.'//suffix)
-         this%backupCount = this%backupCount - 1
-         call execute_command_line('touch '//this%getFileName())
+      character(len=64) :: suffix
+      character(len=128) :: cmd
+      logical :: is
+
+      if (this%isOpen()) then
+         call this%close()
+      end if
+      if (backupCounter < this%backupCount) then
+         backupCounter = backupCounter + 1
+         write(suffix,'(i1.1)') backupCounter
+         ! sanity check
+         inquire(FILE=this%getFileName(), EXIST=is)
+         if (is) then ! rename file
+            cmd = 'mv '//this%getFileName()//' '//this%getFileName()//'.'//trim(suffix)
+            call execute_command_line(cmd)
+         end if
+         if (.not. this%isOpen()) call this%open()
        end if
       
    end subroutine doRollover

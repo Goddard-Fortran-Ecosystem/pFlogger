@@ -21,7 +21,7 @@ contains
       class (Test_RotatingFileHandler), intent(inout) :: this
       this%rotHandler0 = RotatingFileHandler('logFile0')
       this%rotHandler  = RotatingFileHandler('logFile',  &
-           maxBytes=60_int64, backupCount=5)
+           maxBytes=30_int64, backupCount=2)
    end subroutine setUp
 
    
@@ -44,7 +44,8 @@ contains
    
 @Test
    subroutine test_emitBasic(this)
-      ! Make sure RotatingFileHandler defaults to FileHandler
+      ! Make sure RotatingFileHandler defaults to FileHandler when
+      ! maxBytes and backupCount are not specified
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
@@ -65,21 +66,49 @@ contains
    
 @Test
    subroutine test_shouldRollover(this)
+      ! The RFH should signal that it's time to rollover when 'maxBytes'
+      ! has been exceeded
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=:), allocatable :: message
+      
+      message = 'hello' ! 'INFO: hello' = 12 bytes
+      ! Since maxBytes=30, rotHandler should rollOver after 3 records = 36 bytes
+      call this%rotHandler%emit(INFO, message)
+      ! Not ready yet
+      @assertFalse(this%rotHandler%shouldRollover())
+      call this%rotHandler%emit(INFO, message)
+      call this%rotHandler%emit(INFO, message)
+      ! Ready
+      @assertTrue(this%rotHandler%shouldRollover())
+
+   end subroutine test_shouldRollover
+
+   
+@Test
+subroutine test_doRollover(this)
+      ! The RFH should roll over every time 'maxBytes' is exceeded and should
+      ! create a maximum of 'backupCount' files
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
       character(len=:), allocatable :: message
       integer :: i
+      logical :: created
+      integer :: fSize
       
-      message = 'hello'
-      do i=1,6
-      ! rotHandler should rollOver after 6 records = 72 bytes
+      message = 'hello' ! 'INFO: hello' = 12 bytes
+      do i=1,8 ! Force at least two files (backupCount=2) to be created
          call this%rotHandler%emit(INFO, message)
-      end do
-      
-      @assertTrue(this%rotHandler%shouldRollover())
+      end do      
 
-   end subroutine test_shouldRollover
+      inquire(FILE='logFile.1', SIZE=fSize)
+      @assertEqual(36, fSize)
+      inquire(FILE='logFile.2', SIZE=fSize)
+      @assertEqual(36, fSize)
+      
+   end subroutine test_doRollover
 
    
 end module Test_RotatingFileHandler_mod
