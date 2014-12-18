@@ -22,8 +22,10 @@ module ASTG_Logger_mod
    type :: Logger
       private
       integer :: level
+      character(len=:), allocatable :: name
       type (AbstractHandlerPolyWrapVector) :: handlers
    contains
+      procedure :: getName
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -44,25 +46,31 @@ module ASTG_Logger_mod
 contains
 
    
-   function newLogger(level) result(alog)
+   function newLogger(name, level) result(alog)
       ! Initialize the logger with an optional level
       type (Logger) :: alog
+      character(len=*), intent(in) :: name
       integer, optional, intent(in) :: level
 
       integer :: level_
-      
-      if (present (level)) then
-        level_ = level
-      else
-        level_ = INFO_LEVEL
-      end if
 
+      aLog%name = name
+      level_ = INFO_LEVEL
+      if (present (level)) level_ = level
 ! TODO: Need to NOTSET when inheritance is working
-      alog%level = level_
+      call aLog%setLevel(level_)
+
       alog%handlers = AbstractHandlerPolyWrapVector()
       call alog%addHandler(StreamHandler())
       
    end function newLogger
+
+
+   function getName(this) result(name)
+      character(len=:), allocatable :: name
+      class (Logger), intent(in) :: this
+      name = this%name
+   end function getName
 
    
    subroutine addHandler(this, handler)
@@ -177,6 +185,7 @@ contains
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       
+
       this%level = level
       
    end subroutine setLevel
