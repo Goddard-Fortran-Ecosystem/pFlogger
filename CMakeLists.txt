@@ -16,6 +16,8 @@ include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 
+option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
+
 # Default is to build in SERIAL(MPI=NO)
 set (MPI "NO"
    CACHE STRING "Use MPI=YES for parallel builds"

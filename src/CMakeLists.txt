@@ -13,6 +13,7 @@ list(APPEND SRCS AbstractHandlerPolyWrap.F90)
 list(APPEND SRCS AbstractHandlerPolyWrapVector.F90)
 list(APPEND SRCS Logger.F90)
 list(APPEND SRCS Logging.F90)
+list(APPEND SRCS LogRecord.F90)
 
 
 add_library(${THIS} STATIC ${SRCS})
