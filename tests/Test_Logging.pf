@@ -4,20 +4,54 @@ module Test_Logging_mod
    use ASTG_Logger_mod
    implicit none
 
+
 contains
 
+   @test
    subroutine test_getLogger()
       type (PrivateLogging) :: logging
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
+      character(len=:), allocatable :: name
 
       logging = PrivateLogging()
       loggerA => logging%getLogger('A')
       loggerB => logging%getLogger('B')
 
+      name = loggerA%getName()
       @assertEqual('A', loggerA%getName())
-      @assertEqual('B', loggerA%getName())
+      @assertEqual('B', loggerB%getName())
       
    end subroutine test_getLogger
+
+   @test
+   subroutine test_getParentPrefix()
+      type (PrivateLogging) :: logging
+
+      @assertEqual('A', logging%getParentPrefix('A.B'))
+      @assertEqual('A.B', logging%getParentPrefix('A.B.C'))
+
+   end subroutine test_getParentPrefix
+
+   @test
+   subroutine test_parentage()
+      type (PrivateLogging) :: logging
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+      class (Logger), pointer :: parentOfB
+
+      logging = PrivateLogging()
+      loggerA => logging%getLogger('A')
+      loggerB => logging%getLogger('A.B')
+      parentOfB => loggerB%getParent()
+      
+      @assertAssociatedWith(loggerA, parentOfB)
+      print*,associated(loggerA, parentOfB)
+      @assertEqual('A', parenTOfB%getName())
+
+   end subroutine test_parentage
+
+   
+
 
 end module Test_Logging_mod

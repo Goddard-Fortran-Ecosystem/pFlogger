@@ -21,7 +21,6 @@ set (SRCS
 )
 
 set(TEST_SRCS 
-   Test_StringUtilities.F90
    Test_StreamHandler.F90
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90
@@ -40,6 +39,7 @@ set_source_files_properties(
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
+   ${CMAKE_BINARY_DIR}/src/FTL
    ${PFUNIT}/include
 )
 

@@ -8,7 +8,7 @@ program app
    type (StreamHandler) :: sh
    
    print *,'Create logger'
-   log = Logger()
+   log = Logger('myLogger')
    call sh%setLevel(WARNING)
    call log%addHandler(sh)
 

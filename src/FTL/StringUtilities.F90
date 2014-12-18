@@ -1,4 +1,4 @@
-module ASTG_StringUtilities_mod
+module FTL_StringUtilities_mod
    implicit none
    private
 
@@ -146,4 +146,4 @@ contains
    end function toString_string
 
 
-end module ASTG_StringUtilities_mod
+end module FTL_StringUtilities_mod
