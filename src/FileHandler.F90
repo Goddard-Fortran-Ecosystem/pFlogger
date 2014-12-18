@@ -2,6 +2,8 @@ module ASTG_FileHandler_mod
    ! A handler class which writes logging events to disk files
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
+   use ASTG_LogRecord_mod
+   
    implicit none
    private
 
@@ -51,13 +53,13 @@ contains
    end function newFileHandler
 
     
-   subroutine emitMessage(this, levelString, message)
+   subroutine emitMessage(this, levelString, record)
       ! Write a string to a file. Level is specified in levelString
       class (FileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
-      character(len=*), intent(in) :: message
+      type(LogRecord) :: record
 
-      write(this%unit,'(a)') levelString // ': ' // message
+      write(this%unit,'(a)') levelString // ': ' // record%getMessage()
        
    end subroutine emitMessage
 

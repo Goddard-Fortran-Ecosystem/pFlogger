@@ -2,6 +2,7 @@ module Test_RotatingFileHandler_mod
    use iso_fortran_env
    use ASTG_SeverityLevels_mod
    use ASTG_RotatingFileHandler_mod
+   use ASTG_LogRecord_mod
    use pfunit_mod
    implicit none
 
@@ -49,17 +50,17 @@ contains
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      message = 'hello'
-      call this%rotHandler0%emit(INFO, message)
+      record = LogRecord('hello')
+      call this%rotHandler0%emit(INFO, record)
       
       unit = this%rotHandler0%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual('INFO: '//message, foundMessage)
+      @assertEqual('INFO: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitBasic
 
@@ -71,15 +72,15 @@ contains
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       
-      message = 'hello' ! 'INFO: hello' = 12 bytes
+      record = LogRecord('hello') ! 'INFO: hello' = 12 bytes
       ! Since maxBytes=30, rotHandler should rollOver after 3 records = 36 bytes
-      call this%rotHandler1%emit(INFO, message)
+      call this%rotHandler1%emit(INFO, record)
       ! Not ready yet
       @assertFalse(this%rotHandler1%shouldRollover())
-      call this%rotHandler1%emit(INFO, message)
-      call this%rotHandler1%emit(INFO, message)
+      call this%rotHandler1%emit(INFO, record)
+      call this%rotHandler1%emit(INFO, record)
       ! Ready
       @assertTrue(this%rotHandler1%shouldRollover())
 
@@ -93,14 +94,14 @@ subroutine test_doRollover(this)
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       integer :: i
       logical :: created
       integer :: fSize
       
-      message = 'hello' ! 'INFO: hello' = 12 bytes
+      record = LogRecord('hello') ! 'INFO: hello' = 12 bytes
       do i=1,8 ! Force at least two files (backupCount=2) to be created
-         call this%rotHandler1%emit(INFO, message)
+         call this%rotHandler1%emit(INFO, record)
       end do      
 
       inquire(FILE='logFile1.1', SIZE=fSize)

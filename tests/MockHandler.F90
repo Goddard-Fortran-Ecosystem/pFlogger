@@ -4,6 +4,7 @@ module MockHandler_mod
    ! stream (STDOUT or a disk file) by collecting it in a buffer and then 
    ! test for the contents of the buffer's correctnes.
    use ASTG_AbstractHandler_mod
+   use ASTG_LogRecord_mod
    implicit none
    private
    
@@ -23,12 +24,12 @@ module MockHandler_mod
 contains
 
    
-   subroutine emitMessage(this, levelString, message)
+   subroutine emitMessage(this, levelString, record)
       class (MockHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
-      character(len=*), intent(in) :: message
+      type (LogRecord) :: record
 
-      buffer = levelString // ': ' // message
+      buffer = levelString // ': ' // record%getMessage()
       
    end subroutine emitMessage
 

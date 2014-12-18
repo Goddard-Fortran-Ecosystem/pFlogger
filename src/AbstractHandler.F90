@@ -3,6 +3,8 @@ module ASTG_AbstractHandler_mod
    ! handler interfaces. Instances of this class define how logging events 
    ! are dispatched to specific destinations. 
    use ASTG_SeverityLevels_mod, only: levelToString
+   use ASTG_LogRecord_mod
+   
    implicit none
    private
 
@@ -23,12 +25,13 @@ module ASTG_AbstractHandler_mod
    abstract interface
 
       ! This version is intended to be implemented by subclasses
-      subroutine emitMessage(this, levelString, message)
+      subroutine emitMessage(this, levelString, record)
          ! Log a speficied message     
          import AbstractHandler
+         import LogRecord
          class (AbstractHandler), intent(inout) :: this
          character(len=*), intent(in) :: levelString
-         character(len=*), intent(in) :: message
+         type (LogRecord) :: record
       end subroutine emitMessage
 
       ! This version is intended to be implemented by subclasses
@@ -50,14 +53,14 @@ module ASTG_AbstractHandler_mod
 contains
 
    
-   subroutine emit(this, level, message)
+   subroutine emit(this, level, record)
       ! Log a specified message with severity 'level'
       class(AbstractHandler), intent(inout) :: this
       integer, intent(in) :: level
-      character(len=*), intent(in) :: message
+      type (LogRecord) :: record
       
       if (level >= this%getLevel()) then
-        call this%emitMessage(levelToString(level), message)
+        call this%emitMessage(levelToString(level), record)
       end if
       
    end subroutine emit

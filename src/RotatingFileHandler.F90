@@ -7,6 +7,8 @@ module ASTG_RotatingFileHandler_mod
    use iso_fortran_env
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod, only: FileHandler
+   use ASTG_LogRecord_mod
+   
    implicit none
    private
 
@@ -113,16 +115,16 @@ contains
    end function convertNumBytes_
       
    
-   subroutine emitMessage(this, levelString, message)
+   subroutine emitMessage(this, levelString, record)
       ! Write a string to a file. Level is specified in levelString
       class (RotatingFileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
-      character(len=*), intent(in) :: message
+      type (LogRecord) :: record
 
       if (this%shouldRollover()) then
          call this%doRollover()
       else
-         write(this%getUnit(), '(a)') levelString // ': ' // message
+         write(this%getUnit(), '(a)') levelString // ': ' // record%getMessage()
       end if
     
    end subroutine emitMessage

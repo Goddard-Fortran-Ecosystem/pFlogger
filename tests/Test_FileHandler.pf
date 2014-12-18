@@ -1,6 +1,7 @@
 module Test_FileHandler_mod
    use ASTG_SeverityLevels_mod
    use ASTG_FileHandler_mod
+   use ASTG_LogRecord_mod
    use pfunit_mod
    implicit none
 
@@ -41,17 +42,17 @@ contains
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      message = 'hello'
-      call this%handler%emit(INFO, message)
+      record = LogRecord('hello')
+      call this%handler%emit(INFO, record)
 
       unit = this%handler%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual('INFO: '//message, foundMessage)
+      @assertEqual('INFO: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitBasic
 
@@ -62,13 +63,13 @@ contains
       class (Test_FileHandler), intent(inout) :: this
 
       type (FileHandler) :: handler
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      message = 'hello'
+      record = LogRecord('hello')
       call handler%setLevel(DEBUG)
-      call this%handler%emit(DEBUG, message)
+      call this%handler%emit(DEBUG, record)
 
       rewind(this%handler%getUnit())
       read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
@@ -83,17 +84,17 @@ contains
       class (Test_FileHandler), intent(inout) :: this
 
       type (FileHandler) :: handler
-      character(len=:), allocatable :: message
+      type (LogRecord) :: record
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      message = 'hello'
+      record = LogRecord('hello')
       call handler%setLevel(ERROR)
-      call this%handler%emit(ERROR, message)
+      call this%handler%emit(ERROR, record)
 
       rewind(this%handler%getUnit())
       read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
-      @assertEqual('ERROR: '//message, foundMessage)
+      @assertEqual('ERROR: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitAboveThreshold
 
