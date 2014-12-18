@@ -21,7 +21,7 @@ contains
       class (Test_RotatingFileHandler), intent(inout) :: this
       this%rotHandler0 = RotatingFileHandler('logFile0')
       this%rotHandler  = RotatingFileHandler('logFile',  &
-           maxBytes=30_int64, backupCount=2)
+           numBytes='30', backupCount=2)
    end subroutine setUp
 
    
