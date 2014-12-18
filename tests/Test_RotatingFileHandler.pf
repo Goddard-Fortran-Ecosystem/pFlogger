@@ -8,7 +8,7 @@ module Test_RotatingFileHandler_mod
 @TestCase
    type, extends(TestCase) :: Test_RotatingFileHandler
       type (RotatingFileHandler) :: rotHandler0
-      type (RotatingFileHandler) :: rotHandler
+      type (RotatingFileHandler) :: rotHandler1
    contains
       procedure :: setUp   
       procedure :: tearDown 
@@ -20,8 +20,8 @@ contains
    subroutine setUp(this)
       class (Test_RotatingFileHandler), intent(inout) :: this
       this%rotHandler0 = RotatingFileHandler('logFile0')
-      this%rotHandler  = RotatingFileHandler('logFile',  &
-           numBytes='30', backupCount=2)
+      this%rotHandler1  = RotatingFileHandler('logFile1',  &
+           maxBytes='30', backupCount=2)
    end subroutine setUp
 
    
@@ -31,10 +31,10 @@ contains
       integer :: unit
 
       call this%rotHandler0%close()
-      call this%rotHandler%close()
+      call this%rotHandler1%close()
 
-      ! delete file
-      open(newunit=unit, file='logfile', status='old')
+      ! delete files
+      open(newunit=unit, file='logfile1', status='old')
       close(unit, status='delete')
       open(newunit=unit, file='logfile0', status='old')
       close(unit, status='delete')
@@ -75,13 +75,13 @@ contains
       
       message = 'hello' ! 'INFO: hello' = 12 bytes
       ! Since maxBytes=30, rotHandler should rollOver after 3 records = 36 bytes
-      call this%rotHandler%emit(INFO, message)
+      call this%rotHandler1%emit(INFO, message)
       ! Not ready yet
-      @assertFalse(this%rotHandler%shouldRollover())
-      call this%rotHandler%emit(INFO, message)
-      call this%rotHandler%emit(INFO, message)
+      @assertFalse(this%rotHandler1%shouldRollover())
+      call this%rotHandler1%emit(INFO, message)
+      call this%rotHandler1%emit(INFO, message)
       ! Ready
-      @assertTrue(this%rotHandler%shouldRollover())
+      @assertTrue(this%rotHandler1%shouldRollover())
 
    end subroutine test_shouldRollover
 
@@ -100,16 +100,16 @@ subroutine test_doRollover(this)
       
       message = 'hello' ! 'INFO: hello' = 12 bytes
       do i=1,8 ! Force at least two files (backupCount=2) to be created
-         call this%rotHandler%emit(INFO, message)
+         call this%rotHandler1%emit(INFO, message)
       end do      
 
-      inquire(FILE='logFile.1', SIZE=fSize)
+      inquire(FILE='logFile1.1', SIZE=fSize)
       @assertEqual(36, fSize)
-      inquire(FILE='logFile.2', SIZE=fSize)
+      inquire(FILE='logFile1.2', SIZE=fSize)
       @assertEqual(36, fSize)
       
    end subroutine test_doRollover
 
-   
+      
 end module Test_RotatingFileHandler_mod
 

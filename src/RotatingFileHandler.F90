@@ -14,7 +14,7 @@ module ASTG_RotatingFileHandler_mod
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
-      integer(int64) :: maxBytes
+      integer(int64) :: numBytes
       integer :: backupCount
    contains
       procedure :: doRollover
@@ -32,12 +32,12 @@ module ASTG_RotatingFileHandler_mod
 contains
 
     
-   function newRotatingFileHandler(fileName, numBytes, backupCount, level) &
+   function newRotatingFileHandler(fileName, maxBytes, backupCount, level) &
         result(handler)
       ! Initializes the instance
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      character(len=*), intent(in), optional :: numBytes
+      character(len=*), intent(in), optional :: maxBytes
       integer, intent(in), optional :: backupCount
       integer, intent(in), optional :: level
       
@@ -50,8 +50,8 @@ contains
       else
          level_ = INFO
       end if
-      if (present(numBytes)) then
-         maxBytes_ = convertNumBytes_(numBytes)
+      if (present(maxBytes)) then
+         maxBytes_ = convertNumBytes_(maxBytes)
       else
          maxBytes_ = 0
       end if
@@ -64,39 +64,39 @@ contains
       call handler%setFileName(fileName)
       call handler%open()
       call handler%setLevel(level_)
-      handler%maxBytes = maxBytes_
+      handler%numBytes = maxBytes_
       handler%backupCount = backupCount_
       fileCount = 0
       
    end function newRotatingFileHandler
 
    
-   function convertNumBytes_(numBytes) result(nBytes)
-      character(len=*), intent(in) :: numBytes
+   function convertNumBytes_(maxBytes) result(nBytes)
+      character(len=*), intent(in) :: maxBytes
       integer(int64) :: nBytes
       
       character(len=16) :: fmt
       integer :: pos, n, nl
 
-      pos = scan(numBytes,'kmg')      
+      pos = scan(maxBytes,'kmg')      
       if (pos > 0) then
-        nl = len(numBytes(1:pos-1))        
+        nl = len(maxBytes(1:pos-1))        
         fmt = setFmt_(nl)
-        select case(numBytes(pos:pos+1))
+        select case(maxBytes(pos:pos+1))
         case ('kb')
-          read(numBytes(1:pos-1), fmt) n
-          nBytes = n * 1E3
+          read(maxBytes(1:pos-1), fmt) n
+          nBytes = n * 2E10
         case ('mb')
-          read(numBytes(1:pos-1), fmt) n
-          nBytes = n * 1E6
+          read(maxBytes(1:pos-1), fmt) n
+          nBytes = n * 2E20
         case ('gb')
-          read(numBytes(1:pos-1), fmt) n
-          nBytes = n * 1E9
+          read(maxBytes(1:pos-1), fmt) n
+          nBytes = n * 2E30
         end select
       else
-        nl = len(numBytes)
+        nl = len(maxBytes)
         fmt = setFmt_(nl)
-        read(numBytes, fmt) n
+        read(maxBytes, fmt) n
         nBytes = n
       end if
 
@@ -136,7 +136,7 @@ contains
       
       rollOver = .false.
       inquire(this%getUnit(), SIZE=fileSize)
-      if (fileSize > this%maxBytes) then
+      if (fileSize > this%numBytes) then
          rollOver = .true.
       end if
       
