@@ -28,12 +28,12 @@ contains
       ! disk files. Rather data is 'written' to a public buffer.
 
       ! Create a basic logger (uses log())
-      this%basicLogger = Logger()
+      this%basicLogger = Logger('A')
       call this%basicHandler%setLevel(INFO)
       call this%basicLogger%addHandler(this%basicHandler)
 
       ! Create a 'level' logger (uses methods named after level names)
-      this%levelLogger = Logger()
+      this%levelLogger = Logger('A')
       
    end subroutine setUp
 

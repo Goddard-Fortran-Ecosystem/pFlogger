@@ -8,3 +8,6 @@ ADD_TEST_SUITE(Test_RotatingFileHandler_mod_suite)
 
 ! Logger
 ADD_TEST_SUITE(Test_Logger_mod_suite)
+
+! Logging
+ADD_TEST_SUITE(Test_Logging_mod_suite)

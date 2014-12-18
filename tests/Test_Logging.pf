@@ -1,0 +1,23 @@
+module Test_Logging_mod
+   use pfunit_mod
+   use ASTG_PrivateLogging_mod 
+   use ASTG_Logger_mod
+   implicit none
+
+contains
+
+   subroutine test_getLogger()
+      type (PrivateLogging) :: logging
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+
+      logging = PrivateLogging()
+      loggerA => logging%getLogger('A')
+      loggerB => logging%getLogger('B')
+
+      @assertEqual('A', loggerA%getName())
+      @assertEqual('B', loggerA%getName())
+      
+   end subroutine test_getLogger
+
+end module Test_Logging_mod
