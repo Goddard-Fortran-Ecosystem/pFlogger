@@ -6,12 +6,7 @@
 ! message and ignores it if the message level is less severe than its own
 ! level (default is INFO).
 module ASTG_Logger_mod
-   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
-   use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
-   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
-   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
-   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => CRITICAL
-   use ASTG_SeverityLevels_mod, only: NOTSET_LEVEL => NOTSET
+   use ASTG_Filterer_mod, only: Filterer
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
@@ -23,7 +18,7 @@ module ASTG_Logger_mod
 
    public :: Logger
 
-   type :: Logger
+   type, extends(Filterer) :: Logger
       private
       integer :: level
       character(len=:), allocatable :: name
@@ -55,6 +50,7 @@ contains
    
    ! Initialize the logger with an optional level
    function newLogger(name, level) result(alog)
+      use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
       type (Logger) :: alog
       character(len=*), intent(in) :: name
       integer, optional, intent(in) :: level
@@ -127,6 +123,7 @@ contains
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
    subroutine debug(this, message)
+      use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -137,6 +134,7 @@ contains
 
    
    subroutine info(this, message)
+      use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -146,6 +144,7 @@ contains
 
 
    subroutine warning(this, message)
+      use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -155,6 +154,7 @@ contains
 
    
    subroutine error(this, message)
+      use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -164,6 +164,7 @@ contains
 
    
    subroutine critical(this, message)
+      use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       

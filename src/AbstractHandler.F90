@@ -11,6 +11,7 @@
 ! Handler. Finally the Handler receives the message as formatted text back
 ! from the Formatter and emits it to your destination.
 module ASTG_AbstractHandler_mod
+   use ASTG_Filterer_mod
    use ASTG_SeverityLevels_mod, only: levelToString
    use ASTG_LogRecord_mod
    
@@ -19,7 +20,7 @@ module ASTG_AbstractHandler_mod
 
    public :: AbstractHandler
    
-   type, abstract :: AbstractHandler
+   type, extends(Filterer), abstract :: AbstractHandler
       private
       integer :: level
    contains
