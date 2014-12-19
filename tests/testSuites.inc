@@ -1,5 +1,3 @@
-! Utilities
-ADD_TEST_SUITE(Test_StringUtilities_mod_suite)
 
 ! Handlers
 ADD_TEST_SUITE(Test_StreamHandler_mod_suite)

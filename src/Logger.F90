@@ -24,9 +24,13 @@ module ASTG_Logger_mod
       private
       integer :: level
       character(len=:), allocatable :: name
+      class (Logger), pointer :: parent => null()
       type (AbstractHandlerPolyWrapVector) :: handlers
    contains
+
       procedure :: getName
+      procedure :: setParent
+      procedure :: getParent
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -56,6 +60,7 @@ contains
       integer :: level_
 
       aLog%name = name
+
       level_ = INFO_LEVEL
       if (present (level)) level_ = level
 ! TODO: Need to NOTSET when inheritance is working
@@ -193,6 +198,25 @@ contains
       this%level = level
       
    end subroutine setLevel
+
+
+   subroutine setParent(this, parent)
+      class (Logger), intent(inout) :: this
+      class (Logger), target, intent(in) :: parent
+
+      this%parent => parent
+
+   end subroutine setParent
+
+
+   function getParent(this) result(parent)
+      class (Logger), pointer :: parent
+      class (Logger), intent(in) :: this
+
+      parent => this%parent
+
+   end function getParent
+
 
 end module ASTG_Logger_mod
 

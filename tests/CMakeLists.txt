@@ -21,13 +21,12 @@ set (SRCS
 )
 
 set(TEST_SRCS 
-   Test_StringUtilities.F90
    Test_StreamHandler.F90
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90
    Test_Logger.F90
    Test_LogRecord.F90
-   Test_Logging.F90
+   Test_LoggerManager.F90
 )
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
@@ -41,6 +40,7 @@ set_source_files_properties(
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
+   ${CMAKE_BINARY_DIR}/src/FTL
    ${PFUNIT}/include
 )
 

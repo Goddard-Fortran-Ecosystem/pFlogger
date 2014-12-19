@@ -1,0 +1,55 @@
+module Test_Logging_mod
+   use pfunit_mod
+   use ASTG_LoggerManager_mod 
+   use ASTG_Logger_mod
+   implicit none
+
+
+contains
+
+   @test
+   subroutine test_getLogger()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+      character(len=:), allocatable :: name
+
+      manager = LoggerManager()
+      loggerA => manager%getLogger('A')
+      loggerB => manager%getLogger('B')
+
+      name = loggerA%getName()
+      @assertEqual('A', loggerA%getName())
+      @assertEqual('B', loggerB%getName())
+      
+   end subroutine test_getLogger
+
+   @test
+   subroutine test_getParentPrefix()
+      type (LoggerManager) :: manager
+
+      @assertEqual('A', manager%getParentPrefix('A.B'))
+      @assertEqual('A.B', manager%getParentPrefix('A.B.C'))
+
+   end subroutine test_getParentPrefix
+
+   @test
+   subroutine test_parentage()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+      class (Logger), pointer :: parentOfB
+
+      manager = LoggerManager()
+      loggerA => manager%getLogger('A')
+      loggerB => manager%getLogger('A.B')
+      parentOfB => loggerB%getParent()
+      
+      @assertAssociatedWith(loggerA, parentOfB)
+      print*,associated(loggerA, parentOfB)
+      @assertEqual('A', parenTOfB%getName())
+
+   end subroutine test_parentage
+
+
+end module Test_Logging_mod
