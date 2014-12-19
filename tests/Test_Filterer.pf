@@ -35,7 +35,7 @@ contains
 
 
    @test
-   subroutine test_filter()
+   subroutine test_filterMatch()
       type (Filterer) :: f
       type (LogRecord) :: record
 
@@ -44,7 +44,41 @@ contains
       record = LogRecord('A','message')
       @assertTrue(f%filter(record))
 
-   end subroutine test_filter
+   end subroutine test_filterMatch
+
+   @test
+   subroutine test_filterCombo()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+      call f%addFilter(Filter('B'))
+
+      record = LogRecord('A','message')
+      @assertFalse(f%filter(record))
+
+      record = LogRecord('B','message')
+      @assertFalse(f%filter(record))
+
+   end subroutine test_filterCombo
+
+   @test
+   subroutine test_filterComboB()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+      call f%addFilter(Filter('AB'))
+
+      record = LogRecord('AB','message')
+      @assertTrue(f%filter(record))
+
+      record = LogRecord('B','message')
+      @assertFalse(f%filter(record))
+
+   end subroutine test_filterComboB
 
 
 end module Test_Filterer_mod
