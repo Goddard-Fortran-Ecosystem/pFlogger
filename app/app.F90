@@ -7,11 +7,18 @@ program app
    type (Logger) :: log
    type (StreamHandler) :: sh
    
-   print *,'Create logger'
    log = Logger('myLogger')
-   call sh%setLevel(WARNING)
+   
+   ! Will show all messages of severity >= DEBUG
+   call sh%setLevel(DEBUG)
    call log%addHandler(sh)
-
-   call log%warning('Hello world')
-      
+   
+   call log%warning('Starting app...')
+   !
+   !  do something
+   call log%error('There is a problem.')
+   !
+   !  do something
+   call log%info('Ending app.')
+   
 end program app

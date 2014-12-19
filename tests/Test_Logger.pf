@@ -172,21 +172,6 @@ contains
 
    end subroutine test_critical
 
-@Test
-   subroutine test_notset(this)
-      class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
-
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(NOTSET)
-      call this%levelLogger%addHandler(handler)
-
-      call this%levelLogger%notset('test_notset')
-      @assertEqual('NOTSET: test_notset', this%levelBuffer%buffer)
-
-   end subroutine test_notset
-   
 
 end module Test_Logger_mod
 
