@@ -1,39 +1,39 @@
-module ASTG_PrivateLogging_mod
+module ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
    implicit none
    private
 
-   public :: PrivateLogging
+   public :: LoggerManager
 
-   type :: PrivateLogging
+   type :: LoggerManager
       private
       type (CaseInsensitiveStringLoggerUnorderedMap) :: loggers
    contains
       procedure :: getLogger
       procedure, nopass :: getParentPrefix
-   end type PrivateLogging
+   end type LoggerManager
 
 
-   interface PrivateLogging
-      module procedure :: newPrivateLogging
-   end interface PrivateLogging
+   interface LoggerManager
+      module procedure :: newLoggerManager
+   end interface LoggerManager
 
 
 contains
 
 
-   function newPrivateLogging() result(logging)
-      type (PrivateLogging) :: logging
+   function newLoggerManager() result(manager)
+      type (LoggerManager) :: manager
 
-      logging%loggers = CaseInsensitiveStringLoggerUnorderedMap()
+      manager%loggers = CaseInsensitiveStringLoggerUnorderedMap()
 
-   end function newPrivateLogging
+   end function newLoggerManager
 
    function getLogger(this, name) result(lgr)
       use FTL_CaseInsensitiveString_mod
       class (Logger), pointer :: lgr
-      class (PrivateLogging), target, intent(inout) :: this
+      class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
       type (CaseInsensitiveStringLoggerUnorderedMapIterator) :: iter
       character(len=:), allocatable :: parentName
@@ -63,4 +63,4 @@ contains
 
    end function getParentPrefix
 
-end module ASTG_PrivateLogging_mod
+end module ASTG_LoggerManager_mod
