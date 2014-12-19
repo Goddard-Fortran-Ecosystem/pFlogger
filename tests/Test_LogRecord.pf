@@ -1,0 +1,33 @@
+module Test_LogRecord_mod
+   use pFUnit_mod
+   use ASTG_LogRecord_mod
+   use iso_fortran_env
+   
+   implicit none
+
+   public :: Test_LogRecord
+   
+@TestCase
+   type, extends(TestCase) :: Test_LogRecord
+      type (LogRecord) :: record
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_LogRecord
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_LogRecord), intent(inout) :: this
+      
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_LogRecord), intent(inout) :: this
+
+   end subroutine tearDown
+
+
+end module Test_LogRecord_mod

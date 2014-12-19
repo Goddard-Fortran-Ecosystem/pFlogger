@@ -1,6 +1,7 @@
 module ASTG_LogRecord_mod
-   ! A LogRecord instance represents an event being and  instances are created
+   ! A LogRecord instance represents an event being logged. Its instances are created
    ! every time something is logged.
+   use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
    private
 
@@ -22,9 +23,10 @@ contains
 
    
    function newLogRecord(message) result(rec)
+      ! Create a log record. 
       character(len=*), intent(in) :: message
       type (LogRecord) :: rec
-
+      
       rec%message = message
       
    end function newLogRecord

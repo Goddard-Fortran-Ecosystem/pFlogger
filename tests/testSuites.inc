@@ -11,3 +11,6 @@ ADD_TEST_SUITE(Test_Logger_mod_suite)
 
 ! Logging
 ADD_TEST_SUITE(Test_Logging_mod_suite)
+
+! Log record
+ADD_TEST_SUITE(Test_LogRecord_mod_suite)

@@ -1,7 +1,8 @@
 module ASTG_AbstractHandler_mod
    ! Abstract class for handlers. This is a placeholder to define specific
    ! handler interfaces. Instances of this class define how logging events 
-   ! are dispatched to specific destinations. 
+   ! are dispatched to specific destinations. Handlers are passed LogRecord
+   ! objects which contain all the information we want to logging.
    use ASTG_SeverityLevels_mod, only: levelToString
    use ASTG_LogRecord_mod
    

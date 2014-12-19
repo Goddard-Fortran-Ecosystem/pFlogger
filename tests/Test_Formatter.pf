@@ -1,0 +1,121 @@
+module Test_Formatter_mod
+   use pFUnit_mod
+   use ASTG_Formatter_mod
+   use iso_fortran_env
+   
+   implicit none
+
+   public :: Test_Formatter
+   
+@TestCase
+   type, extends(TestCase) :: Test_Formatter
+      integer(int32) :: i32
+      real(real32) :: r32 
+      real(real64) :: r64
+      logical :: logicVal
+      complex(real32) :: cmp32
+      type (Formatter) :: fmt
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_Formatter
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%i32 = 1
+      this%r64 = 64.d0
+      this%r32 = 32.0
+      this%logicVal = .true.
+      this%cmp32 = (0,1)
+      
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_Formatter), intent(inout) :: this
+
+   end subroutine tearDown
+
+
+@Test
+   subroutine test_string(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello')
+      @assertEqual('Hello', this%fmt%getMessage())
+      
+   end subroutine test_string
+
+
+@Test
+   subroutine test_int32(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello ', this%i32)
+      @assertEqual('Hello 1', this%fmt%getMessage())
+      
+   end subroutine test_int32
+   
+@Test
+   subroutine test_r32(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello', this%r32)
+      @assertEqual('Hello 32.000000000000', this%fmt%getMessage())
+      
+   end subroutine test_r32
+   
+
+@Test
+   subroutine test_r64(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello', this%r64)
+      @assertEqual('Hello 64.000000000000', this%fmt%getMessage())
+      
+   end subroutine test_r64
+   
+@Test
+   subroutine test_logical(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello ', this%logicVal)
+      @assertEqual('Hello T', this%fmt%getMessage())
+      
+   end subroutine test_logical
+   
+@Test
+   subroutine test_cmp32(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello', this%cmp32)
+      @assertEqual('Hello 0.0000000000000     1.0000000000000', this%fmt%getMessage())
+      
+   end subroutine test_cmp32
+
+   
+@Test
+   subroutine test_int32_and_r32(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello ', opt1=this%i32, opt2=this%r32)
+      @assertEqual('Hello 1 32.000000000000', this%fmt%getMessage())
+      
+   end subroutine test_int32_and_r32
+   
+
+@Test
+   subroutine test_int32_and_r64(this)
+      class (Test_Formatter), intent(inout) :: this
+      
+      this%fmt = Formatter('Hello ', opt1=this%i32, opt2=this%r64)
+      @assertEqual('Hello 1 64.000000000000', this%fmt%getMessage())
+      
+   end subroutine test_int32_and_r64
+   
+
+end module Test_Formatter_mod
