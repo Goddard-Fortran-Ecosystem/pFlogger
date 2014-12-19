@@ -43,7 +43,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(INFO, LogRecord('hello'))
+      call handler%emit(INFO, LogRecord('name', 'hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
@@ -64,7 +64,7 @@ contains
       
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(DEBUG, LogRecord('hello'))
+      call handler%emit(DEBUG, LogRecord('name', 'hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
@@ -83,7 +83,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(CRITICAL, LogRecord('hello'))
+      call handler%emit(critical, LogRecord('name', 'hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage

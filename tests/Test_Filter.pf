@@ -1,0 +1,49 @@
+module Test_Filter_mod
+   use pFUnit_mod
+   use ASTG_Filter_mod
+   use ASTG_LogRecord_mod
+
+contains
+
+   @test
+   subroutine test_defaultFilterNameMismatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      f = Filter('A')
+      record = LogRecord('B', 'some message')
+
+      @assertFalse(f%filter(record))
+      
+   end subroutine test_defaultFilterNameMismatch
+
+
+   @test
+   subroutine test_defaultFilterNameMatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      f = Filter('A')
+      record = LogRecord('A', 'some message')
+
+      @assertTrue(f%filter(record))
+      
+   end subroutine test_defaultFilterNameMatch
+
+
+   @test
+   subroutine test_defaultFilterPartialMatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      f = Filter('A')
+      record = LogRecord('AB', 'some message')
+      @assertTrue(f%filter(record))
+
+      f = Filter('AB')
+      record = LogRecord('A', 'some message')
+      @assertFalse(f%filter(record))
+      
+   end subroutine test_defaultFilterPartialMatch
+
+end module Test_Filter_mod

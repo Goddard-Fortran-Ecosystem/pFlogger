@@ -107,7 +107,7 @@ contains
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
 
-      record = LogRecord(message)
+      record = LogRecord(this%name, message)
       
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())

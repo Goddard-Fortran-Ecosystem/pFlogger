@@ -5,6 +5,9 @@ add_subdirectory(FTL)
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
+list(APPEND SRCS Filter.F90)
+list(APPEND SRCS LogRecord.F90)
+
 list(APPEND SRCS AbstractHandlerPolyWrap.F90)
 list(APPEND SRCS AbstractHandlerPolyWrapVector.F90)
 
@@ -20,7 +23,6 @@ list(APPEND SRCS RotatingFileHandler.F90)
 list(APPEND SRCS FileHandler.F90)
 list(APPEND SRCS Logger.F90)
 list(APPEND SRCS LoggerManager.F90)
-list(APPEND SRCS LogRecord.F90)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/FTL)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/FTL)

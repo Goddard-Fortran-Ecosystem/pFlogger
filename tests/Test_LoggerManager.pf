@@ -1,4 +1,4 @@
-module Test_Logging_mod
+module Test_LoggerManager_mod
    use pfunit_mod
    use ASTG_LoggerManager_mod 
    use ASTG_Logger_mod
@@ -86,4 +86,4 @@ contains
    end subroutine test_passMessageToParent
 
 
-end module Test_Logging_mod
+end module Test_LoggerManager_mod

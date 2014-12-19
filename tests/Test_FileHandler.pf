@@ -45,7 +45,7 @@ contains
       type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      record = LogRecord('hello')
+      record = LogRecord('name','hello')
       call this%handler%emit(INFO, record)
 
       unit = this%handler%getUnit()
@@ -67,7 +67,7 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('hello')
+      record = LogRecord('name','hello')
       call handler%setLevel(DEBUG)
       call this%handler%emit(DEBUG, record)
 
@@ -88,7 +88,7 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('hello')
+      record = LogRecord('name','hello')
       call handler%setLevel(ERROR)
       call this%handler%emit(ERROR, record)
 

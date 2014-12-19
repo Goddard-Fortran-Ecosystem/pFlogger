@@ -9,9 +9,11 @@ module ASTG_LogRecord_mod
 
    type :: LogRecord
       private
+      character(len=:), allocatable :: name
       character(len=:), allocatable :: message
    contains
       procedure :: getMessage
+      procedure :: getName
    end type LogRecord
 
    interface LogRecord
@@ -22,18 +24,20 @@ module ASTG_LogRecord_mod
 contains
 
    
-   function newLogRecord(message) result(rec)
-      ! Create a log record. 
+   ! Create a log record. 
+   function newLogRecord(name, message) result(rec)
+      character(len=*), intent(in) :: name
       character(len=*), intent(in) :: message
       type (LogRecord) :: rec
       
+      rec%name = name
       rec%message = message
       
    end function newLogRecord
 
    
+   ! return the message for this LogRecord.
    function getMessage(this) result(message)
-      ! return the message for this LogRecord.
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       
@@ -41,4 +45,14 @@ contains
       
    end function getMessage
    
+   ! return the message for this LogRecord.
+   function getName(this) result(name)
+      class (LogRecord), intent(in) :: this
+      character(len=:), allocatable :: name
+      
+      name = this%name
+      
+   end function getName
+   
+
 end module ASTG_LogRecord_mod
