@@ -37,21 +37,21 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 
 
    set(F90FLAGS 
-      "${CPPFLAGS} ${FFLAGS_RELEASE} -g -O2 -free -assume realloc_lhs"
+      "${CPPFLAGS} ${FFLAGS_RELEASE} -g -O2 -free -assume realloc_lhs -stand f08"
    )
 
    if (COMPILE_WITH_DEBUG MATCHES YES)
       set(FFLAGS 
-         "${FFLAGS} -g -O0 -traceback -assume realloc_lhs"
+         "${FFLAGS} -g -O0 -traceback -assume realloc_lhs -stand f08"
       )
       set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -traceback -assume realloc_lhs"
+         "${F90FLAGS} -g -O0 -traceback -assume realloc_lhs -stand f08"
       )
    endif()
 
    if (WITH_PFUNIT MATCHES YES)
       set(F90FLAGS 
-         "-g -O0 -traceback -assume realloc_lhs"
+         "-g -O0 -traceback -assume realloc_lhs -stand f08"
       )
    endif()
 
