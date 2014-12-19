@@ -30,6 +30,7 @@ contains
 
       @assertEqual('A', manager%getParentPrefix('A.B'))
       @assertEqual('A.B', manager%getParentPrefix('A.B.C'))
+      @assertEqual('A.B.C', manager%getParentPrefix('A.B.C.other'))
 
    end subroutine test_getParentPrefix
 
@@ -46,10 +47,43 @@ contains
       parentOfB => loggerB%getParent()
       
       @assertAssociatedWith(loggerA, parentOfB)
-      print*,associated(loggerA, parentOfB)
       @assertEqual('A', parenTOfB%getName())
 
    end subroutine test_parentage
+
+
+   @test
+   subroutine test_noParent()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: parentOfA
+
+      manager = LoggerManager()
+      loggerA => manager%getLogger('A')
+
+      @assertNotAssociated(loggerA%getParent())
+
+   end subroutine test_noParent
+
+
+   @test
+   subroutine test_passMessageToParent()
+      use MockHandler_mod
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+
+      type (MockHandler) :: handlerA
+      type (MockHandler) :: handlerB
+
+      manager = LoggerManager()
+      loggerA => manager%getLogger('A')
+      loggerB => manager%getLogger('A.B')
+
+      call loggerA%addHandler(handlerA)
+      call loggerB%addHandler(handlerB)
+
+   end subroutine test_passMessageToParent
 
 
 end module Test_Logging_mod

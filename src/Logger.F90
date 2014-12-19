@@ -67,7 +67,7 @@ contains
       call aLog%setLevel(level_)
 
       alog%handlers = AbstractHandlerPolyWrapVector()
-      call alog%addHandler(StreamHandler())
+!!$      call alog%addHandler(StreamHandler())
       
    end function newLogger
 

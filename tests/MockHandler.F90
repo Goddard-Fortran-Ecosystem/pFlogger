@@ -9,19 +9,34 @@ module MockHandler_mod
    private
    
    public :: MockHandler
-   public :: buffer
+   public :: MockBuffer
 
-   character(len=:), allocatable :: buffer
+   type MockBuffer
+      character(len=:), allocatable :: buffer
+   end type MockBuffer
 
    type, extends (AbstractHandler) :: MockHandler
+      type (MockBuffer), pointer :: buffer
    contains
       procedure :: emitMessage
       procedure :: close ! noop
       procedure :: flush => flushUnit
    end type MockHandler
 
+   interface MockHandler
+      module procedure newMockHandler
+   end interface MockHandler
+
    
 contains
+
+   function newMockHandler(buffer) result(handler)
+      type (MockHandler) :: handler
+      type (MockBuffer), target :: buffer
+
+      handler%buffer => buffer
+
+   end function newMockHandler
 
    
    subroutine emitMessage(this, levelString, record)
@@ -29,7 +44,7 @@ contains
       character(len=*), intent(in) :: levelString
       type (LogRecord) :: record
 
-      buffer = levelString // ': ' // record%getMessage()
+      this%buffer%buffer = levelString // ': ' // record%getMessage()
       
    end subroutine emitMessage
 

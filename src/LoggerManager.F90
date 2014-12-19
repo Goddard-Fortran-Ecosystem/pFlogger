@@ -47,7 +47,9 @@ contains
       parentName = this%getParentPrefix(name)
 
       lgr => this%loggers%at(name)
-      call lgr%setParent(this%loggers%at(parentName))
+      if (parentName /= '') then ! should exist !
+         call lgr%setParent(this%loggers%at(parentName))
+      end if
 
    end function getLogger
 
