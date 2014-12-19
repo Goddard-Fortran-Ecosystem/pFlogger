@@ -40,9 +40,22 @@ contains
 
    logical function filter_(this, record)
       class (Filterer), intent(in) :: this
-      class (LogRecord), intent(in) :: record
-      
-      filter_ = .true.
+      class (LogRecord), intent(inout) :: record
+
+      type (FilterPolyWrapVectorIterator) :: iter
+      class (Filter), pointer :: fPtr
+
+      filter_ = .true. ! unless
+
+      iter = this%filters%begin()
+      do while (iter /= this%filters%end())
+         fPtr => iter%get_alt()
+         if (.not. fPtr%filter(record)) then
+            filter_ = .false.
+            exit
+         end if
+         call iter%next()
+      end do
 
    end function filter_
 

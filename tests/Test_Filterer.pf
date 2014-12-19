@@ -9,15 +9,42 @@ module Test_Filterer_mod
 contains
 
    @test
+   subroutine test_filterNoFilters()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      record = LogRecord('A','message')
+      @assertTrue(f%filter(record))
+
+   end subroutine test_filterNoFilters
+   
+
+   @test
+   subroutine test_filterMismatch()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+      record = LogRecord('B','message')
+     
+      @assertFalse(f%filter(record))
+
+   end subroutine test_filterMismatch
+
+
+   @test
    subroutine test_filter()
       type (Filterer) :: f
       type (LogRecord) :: record
 
       f = Filterer()
       call f%addFilter(Filter('A'))
-     
-      @assertTrue(f%filter(LogRecord('A','message')))
+      record = LogRecord('A','message')
+      @assertTrue(f%filter(record))
 
    end subroutine test_filter
+
 
 end module Test_Filterer_mod
