@@ -1,5 +1,5 @@
+! A handler class which writes logging events to disk files
 module ASTG_FileHandler_mod
-   ! A handler class which writes logging events to disk files
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_LogRecord_mod
@@ -34,8 +34,8 @@ module ASTG_FileHandler_mod
 contains
 
     
+   ! Initializes the instance with a filename and an optional level
    function newFileHandler(fileName, level) result(handler)
-      ! Initializes the instance with a filename and an optional level
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
       integer, intent(in), optional :: level
@@ -53,9 +53,9 @@ contains
    end function newFileHandler
 
     
+   ! Write a string to a file. Level is specified in levelString
    subroutine emitMessage(this, levelString, record)
-      ! Write a string to a file. Level is specified in levelString
-      class (FileHandler), intent(inout) :: this
+         class (FileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       type(LogRecord) :: record
 
@@ -81,8 +81,8 @@ contains
    end subroutine flushUnit
 
    
+   ! Open the disk file used by this handler
    subroutine open(this)
-      ! Open the disk file used by this handler
       class (FileHandler), intent(inout) :: this
       integer :: unit
       
@@ -104,8 +104,8 @@ contains
    end subroutine close
 
 
+   ! Set the fortran unit number for this handler
    subroutine setUnit(this, unit)
-      ! Set the fortran unit number for this handler
       class (FileHandler), intent(inout) :: this
       integer, intent(in) :: unit
 
@@ -114,8 +114,8 @@ contains
    end subroutine setUnit
 
 
+   ! Get the fortran unit number for this handler
    integer function getUnit(this) result(unit)
-      ! Get the fortran unit number for this handler
       class (FileHandler), intent(in) :: this
 
       unit = this%unit

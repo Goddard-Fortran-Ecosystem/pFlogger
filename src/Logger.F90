@@ -1,11 +1,11 @@
+! A logger instance represents a logging channel, i.e. a medium thorugh
+! which information (logging events) about an application is conveyed.
+! Associated with a logger instance is a set of handlers which dispatch
+! logging events to specific destinations, e.g. STDOUT or a FILE
+! A logger has associated with it a severity level. A looger looks at a
+! message and ignores it if the message level is less severe than its own
+! level (default is INFO).
 module ASTG_Logger_mod
-   ! A logger instance represents a logging channel, i.e. a medium thorugh
-   ! which information (logging events) about an application is conveyed.
-   ! Associated with a logger instance is a set of handlers which dispatch
-   ! logging events to specific destinations, e.g. STDOUT or a FILE
-   ! A logger has associated with it a severity level. A looger looks at a
-   ! message and ignores it if the message level is less severe than its own
-   ! level (default is INFO).
    use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
    use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
    use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
@@ -53,8 +53,8 @@ module ASTG_Logger_mod
 contains
 
    
+   ! Initialize the logger with an optional level
    function newLogger(name, level) result(alog)
-      ! Initialize the logger with an optional level
       type (Logger) :: alog
       character(len=*), intent(in) :: name
       integer, optional, intent(in) :: level
@@ -99,10 +99,10 @@ contains
    end subroutine removeHandler
 
 
+   ! Logging routine that calls the appropriate handler and emits
+   ! the logging event.
+   ! The log method needs two parameters - a message and the severity level
    subroutine log(this, level, message)
-      ! Logging routine that calls the appropriate handler and emits
-      ! the logging event.
-      ! The log method needs two parameters - a message and the severity level
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
@@ -137,7 +137,6 @@ contains
 
    
    subroutine info(this, message)
-      ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -147,7 +146,6 @@ contains
 
 
    subroutine warning(this, message)
-      ! Log message with the integer severity 'WARNING'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -157,7 +155,6 @@ contains
 
    
    subroutine error(this, message)
-      ! Log message with the integer severity 'ERROR'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -167,7 +164,6 @@ contains
 
    
    subroutine critical(this, message)
-      ! Log message with the integer severity 'CRITICAL'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
@@ -176,8 +172,8 @@ contains
    end subroutine critical
 
    
+   ! get handlers associated with this logger
    function getHandlers(this) result(handlers)
-      ! get handlers associated with this logger
       class (Logger), target, intent(in) :: this
       type (AbstractHandlerPolyWrapVector), pointer :: handlers
       
@@ -186,8 +182,8 @@ contains
    end function getHandlers
 
 
+   ! Set the logging level of this logger
    subroutine setLevel(this, level)
-      ! Set the logging level of this logger
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       

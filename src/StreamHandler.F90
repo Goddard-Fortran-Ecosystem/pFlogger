@@ -1,6 +1,6 @@
+! A handler class which writes logging events to a stream, e.g. STDOUT
+! Note that this class does not close the stream.
 module ASTG_StreamHandler_mod
-   ! A handler class which writes logging events to a stream, e.g. STDOUT
-   ! Note that this class does not close the stream.
    use iso_fortran_env, only: output_unit
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
@@ -28,8 +28,8 @@ module ASTG_StreamHandler_mod
 contains
 
    
+   ! Initialize the stream handler
    function newStreamHandler(unit, level) result(handler)
-      ! Initialize the stream handler
       type (StreamHandler) :: handler
       integer, optional, intent(in) :: unit
       integer, optional, intent(in) :: level
@@ -49,8 +49,8 @@ contains
    end function newStreamHandler
 
    
+   ! Write a string to a stream. Level is specified in levelString
    subroutine emitMessage(this, levelString, record)
-      ! Write a string to a stream. Level is specified in levelString
       class (StreamHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       type(LogRecord) :: record

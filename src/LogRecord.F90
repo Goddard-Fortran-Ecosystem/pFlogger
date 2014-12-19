@@ -1,6 +1,6 @@
+! A LogRecord instance represents an event being logged. Its instances are created
+! every time something is logged.
 module ASTG_LogRecord_mod
-   ! A LogRecord instance represents an event being logged. Its instances are created
-   ! every time something is logged.
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
    private
@@ -45,7 +45,7 @@ contains
       
    end function getMessage
    
-   ! return the message for this LogRecord.
+   ! return the name for this LogRecord.
    function getName(this) result(name)
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: name

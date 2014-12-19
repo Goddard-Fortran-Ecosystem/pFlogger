@@ -1,5 +1,5 @@
+! Formatter instances are used to convert a LogRecord to text.
 module ASTG_Formatter_mod
-   ! Formatter instances are used to convert a LogRecord to text.
    use ASTG_LogRecord_mod
    
    implicit none
@@ -22,10 +22,10 @@ module ASTG_Formatter_mod
 contains
 
    
+   ! Initialize a formatter with a string which makes use of
+   ! knowledge of the LogRecord attributes
+   ! Default value is "message", else use optional arguments
    function newFormatter(message, opt1, opt2) result(rec)
-      ! Initialize a formatter with a string which makes use of
-      ! knowledge of the LogRecord attributes
-      ! Default value is "message", else use optional arguments
       character(len=*), intent(in) :: message
       class(*), optional, intent(in) :: opt1
       class(*), optional, intent(in) :: opt2
@@ -45,8 +45,8 @@ contains
    end function newFormatter
 
    
+   ! This function operates on different input data types and returns a string
    function handle_(arg) result(str)
-      ! This function operates on different input data types and returns a string
       class (*), optional, intent(in) :: arg
       character(len=:), allocatable :: str
       character(len=80) :: buffer
@@ -86,8 +86,8 @@ contains
    end function handle_
 
    
+   ! return the message for this LogRecord.
    function getMessage(this) result(message)
-      ! return the message for this LogRecord.
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       

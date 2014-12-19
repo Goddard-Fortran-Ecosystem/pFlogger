@@ -1,9 +1,9 @@
+! Handler for logging to a set of files, which switches from one file
+! to the next when the current file reaches a certain size.
+! By default, the file grows indefinitely. You can specify particular
+! values of maxBytes and backupCount to allow the file to rollover at
+! a predetermined size.
 module ASTG_RotatingFileHandler_mod
-   ! Handler for logging to a set of files, which switches from one file
-   ! to the next when the current file reaches a certain size.
-   ! By default, the file grows indefinitely. You can specify particular
-   ! values of maxBytes and backupCount to allow the file to rollover at
-   ! a predetermined size.
    use iso_fortran_env
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod, only: FileHandler
@@ -36,7 +36,6 @@ contains
     
    function newRotatingFileHandler(fileName, maxBytes, backupCount, level) &
         result(handler)
-      ! Initializes the instance
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       character(len=*), intent(in), optional :: maxBytes
@@ -115,8 +114,8 @@ contains
    end function convertNumBytes_
       
    
+   ! Write a string to a file. Level is specified in levelString
    subroutine emitMessage(this, levelString, record)
-      ! Write a string to a file. Level is specified in levelString
       class (RotatingFileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       type (LogRecord) :: record
@@ -130,8 +129,8 @@ contains
    end subroutine emitMessage
 
 
+   ! Determine if rollover should occur.
    function shouldRollover(this) result(rollOver)
-      ! Determine if rollover should occur.
       class (RotatingFileHandler), intent(in) :: this
       logical :: rollOver 
       integer :: fileSize
@@ -145,8 +144,8 @@ contains
    end function shouldRollover
 
    
+   ! Rollover occurs whenever the current log file exceeds maxBytes
    subroutine doRollover(this)
-      ! Rollover occurs whenever the current log file exceeds maxBytes
       class (RotatingFileHandler), intent(inout) :: this
       
       character(len=64) :: suffix

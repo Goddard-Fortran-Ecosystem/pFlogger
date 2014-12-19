@@ -1,5 +1,5 @@
+! A handler class which writes logging events to disk files under MPI
 module ASTG_MpiFileHandler_mod
-   ! A handler class which writes logging events to disk files under MPI
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod
    use ASTG_LogRecord_mod
@@ -30,7 +30,6 @@ contains
 
     
    function newMpiFileHandler(fileName, level) result(handler)
-      ! Initializes the instance with a filename and an optional level
       type (MpiFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       integer, intent(in), optional :: level
@@ -48,8 +47,8 @@ contains
    end function newMpiFileHandler
 
     
+   ! Write a string to a file. Level is specified in levelString
    subroutine emitMessage(this, levelString, record)
-      ! Write a string to a file. Level is specified in levelString
       class (MpiFileHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
       type(LogRecord) :: record
