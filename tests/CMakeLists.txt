@@ -25,7 +25,7 @@ set(TEST_SRCS
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90
    Test_Logger.F90
-   Test_Logging.F90
+   Test_LoggerManager.F90
 )
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )

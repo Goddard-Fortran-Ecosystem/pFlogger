@@ -19,7 +19,7 @@ list(APPEND SRCS StreamHandler.F90)
 list(APPEND SRCS RotatingFileHandler.F90)
 list(APPEND SRCS FileHandler.F90)
 list(APPEND SRCS Logger.F90)
-list(APPEND SRCS Logging.F90)
+list(APPEND SRCS LoggerManager.F90)
 list(APPEND SRCS LogRecord.F90)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/FTL)
