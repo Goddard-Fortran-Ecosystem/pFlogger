@@ -1,4 +1,5 @@
 module ASTG_Filterer_mod
+   use ASTG_Object_mod
    use ASTG_Filter_mod
    use ASTG_LogRecord_mod
    use FTL_FilterPolyWrapVector_mod
@@ -7,7 +8,7 @@ module ASTG_Filterer_mod
 
    public :: Filterer
 
-   type Filterer
+   type, extends(Object) :: Filterer
       private
       type (FilterPolyWrapVector) :: filters
    contains

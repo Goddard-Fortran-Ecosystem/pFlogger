@@ -1,4 +1,5 @@
 module ASTG_LoggerManager_mod
+   use ASTG_Object_mod
    use ASTG_Logger_mod
    use FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
    implicit none
@@ -6,7 +7,7 @@ module ASTG_LoggerManager_mod
 
    public :: LoggerManager
 
-   type :: LoggerManager
+   type, extends(Object) :: LoggerManager
       private
       type (CaseInsensitiveStringLoggerUnorderedMap) :: loggers
    contains

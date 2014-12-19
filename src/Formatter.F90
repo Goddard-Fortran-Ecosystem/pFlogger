@@ -1,13 +1,13 @@
 ! Formatter instances are used to convert a LogRecord to text.
 module ASTG_Formatter_mod
+   use ASTG_Object_mod
    use ASTG_LogRecord_mod
-   
    implicit none
    private
 
    public :: Formatter
 
-   type :: Formatter
+   type, extends(Object) :: Formatter
       private
       type (LogRecord) :: record
    contains

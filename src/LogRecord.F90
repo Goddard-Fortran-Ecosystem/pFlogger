@@ -3,13 +3,14 @@
 ! the event being logged. The  main information passed in is in message and optional
 ! arguments which are combined to create the message field of the record.
 module ASTG_LogRecord_mod
+   use ASTG_Object_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
    private
 
    public :: LogRecord
 
-   type :: LogRecord
+   type, extends(Object) :: LogRecord
       private
       character(len=:), allocatable :: name
       character(len=:), allocatable :: message

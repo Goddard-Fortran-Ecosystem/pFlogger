@@ -1,11 +1,12 @@
 module ASTG_Filter_mod
+   use ASTG_Object_mod
    use ASTG_LogRecord_mod
    implicit none
    private
 
    public :: Filter
 
-   type Filter
+   type, extends(Object) :: Filter
       private
       character(len=:), allocatable :: name
    contains
