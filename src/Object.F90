@@ -18,6 +18,7 @@ contains
    function toString(this) result(string)
       class (Object), intent(in) :: this
       character(len=:), allocatable :: string
+      string = ''
    end function toString
 
 end module ASTG_Object_mod
