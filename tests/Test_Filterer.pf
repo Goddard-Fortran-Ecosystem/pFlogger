@@ -1,0 +1,23 @@
+module Test_Filterer_mod
+   use pFUnit_mod
+   use ASTG_Filterer_mod
+   use ASTG_Filter_mod
+   use ASTG_LogRecord_mod
+   implicit none
+
+
+contains
+
+   @test
+   subroutine test_filter()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+     
+      @assertTrue(f%filter(LogRecord('A','message')))
+
+   end subroutine test_filter
+
+end module Test_Filterer_mod

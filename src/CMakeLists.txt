@@ -7,9 +7,13 @@ set(THIS logger)
 
 list(APPEND SRCS Filter.F90)
 list(APPEND SRCS LogRecord.F90)
+list(APPEND SRCS Filterer.F90)
 
 list(APPEND SRCS AbstractHandlerPolyWrap.F90)
 list(APPEND SRCS AbstractHandlerPolyWrapVector.F90)
+
+list(APPEND SRCS FilterPolyWrap.F90)
+list(APPEND SRCS FilterPolyWrapVector.F90)
 
 list(APPEND SRCS CaseInsensitiveStringLoggerPair.F90)
 list(APPEND SRCS CaseInsensitiveStringLoggerPairVector.F90)
