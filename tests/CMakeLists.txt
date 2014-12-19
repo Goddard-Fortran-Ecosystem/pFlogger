@@ -22,6 +22,7 @@ set (SRCS
 
 set(TEST_SRCS 
    Test_Filter.F90
+   Test_Filterer.F90
    Test_StreamHandler.F90
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90

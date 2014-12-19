@@ -1,34 +1,34 @@
 
-module FTL_AbstracthandlerPolyWrap_mod
-      use ASTG_AbstractHandler_mod, only: Abstracthandler   
+module FTL_AbstractHandlerPolyWrap_mod
+      use ASTG_AbstractHandler_mod, only: AbstractHandler   
    implicit none
    private
 
-   public AbstracthandlerPolyWrap
+   public AbstractHandlerPolyWrap
 
-   type AbstracthandlerPolyWrap
+   type AbstractHandlerPolyWrap
       class(AbstractHandler), allocatable :: item
    contains
       procedure :: get
-   end type AbstracthandlerPolyWrap
+   end type AbstractHandlerPolyWrap
 
-   interface AbstracthandlerPolyWrap
+   interface AbstractHandlerPolyWrap
       module procedure new_copy
-   end interface AbstracthandlerPolyWrap
+   end interface AbstractHandlerPolyWrap
 
 
 contains
 
 
    function new_copy(item) result(container)
-      type (AbstracthandlerPolyWrap) :: container
+      type (AbstractHandlerPolyWrap) :: container
       class(AbstractHandler), intent(in) :: item
       allocate(container%item, source=item)
    end function new_copy
 
    
    function get(this) result(item)
-      class (AbstracthandlerPolyWrap), target, intent(in) :: this
+      class (AbstractHandlerPolyWrap), target, intent(in) :: this
       class(AbstractHandler), pointer :: item
 
       item => this%item
@@ -36,6 +36,6 @@ contains
    end function get
 
 
-end module FTL_AbstracthandlerPolyWrap_mod
+end module FTL_AbstractHandlerPolyWrap_mod
 
    

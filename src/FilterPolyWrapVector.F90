@@ -1,23 +1,23 @@
 
-module FTL_AbstractHandlerPolyWrapVector_mod
-      use FTL_AbstractHandlerPolyWrap_mod, only: AbstractHandlerPolyWrap
-         use ASTG_AbstractHandler_mod, only: AbstractHandler
+module FTL_FilterPolyWrapVector_mod
+      use FTL_FilterPolyWrap_mod, only: FilterPolyWrap
+         use ASTG_Filter_mod, only: Filter
    
    implicit none
    private
 
-   public :: AbstractHandlerPolyWrapVector
-   public :: AbstractHandlerPolyWrapVectorIterator
-   public :: AbstractHandlerPolyWrapVectorReverseIterator
+   public :: FilterPolyWrapVector
+   public :: FilterPolyWrapVectorIterator
+   public :: FilterPolyWrapVectorReverseIterator
    ! external functions
    public :: swap
 
 
    integer, parameter :: UNINITIALIZED = -1
-   type :: AbstractHandlerPolyWrapVector
+   type :: FilterPolyWrapVector
       private
       
-      type(AbstractHandlerPolyWrap), allocatable :: elements(:)
+      type(FilterPolyWrap), allocatable :: elements(:)
       integer :: numElements = 0
 
    contains
@@ -61,10 +61,10 @@ module FTL_AbstractHandlerPolyWrapVector_mod
       procedure :: rBegin
       procedure :: rEnd
 
-   end type AbstractHandlerPolyWrapVector
+   end type FilterPolyWrapVector
 
-   type AbstractHandlerPolyWrapVectorIterator
-      type(AbstractHandlerPolyWrap), pointer :: elements(:) => null()
+   type FilterPolyWrapVectorIterator
+      type(FilterPolyWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get
@@ -93,10 +93,10 @@ module FTL_AbstractHandlerPolyWrapVector_mod
       procedure :: add
       generic :: operator(+) => add
 
-   end type AbstractHandlerPolyWrapVectorIterator
+   end type FilterPolyWrapVectorIterator
 
-   type AbstractHandlerPolyWrapVectorReverseIterator
-      type(AbstractHandlerPolyWrap), pointer :: elements(:) => null()
+   type FilterPolyWrapVectorReverseIterator
+      type(FilterPolyWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get => getRIter
@@ -121,12 +121,12 @@ module FTL_AbstractHandlerPolyWrapVector_mod
       generic :: operator(<=) => rLessThanOrEqualIter
       generic :: operator(>) => rGreaterThanIter
       generic :: operator(>=) => rGreaterThanOrEqualIter
-   end type AbstractHandlerPolyWrapVectorReverseIterator
+   end type FilterPolyWrapVectorReverseIterator
 
 
-   interface AbstractHandlerPolyWrapVector
+   interface FilterPolyWrapVector
       module procedure constructor_empty
-   end interface AbstractHandlerPolyWrapVector
+   end interface FilterPolyWrapVector
 
 
    interface swap
@@ -140,7 +140,7 @@ contains
    ! Returns an empty array.   Note that reserve() may 
    ! preallocate some memory even for an empty Vector.
    function constructor_empty() result(v)
-      type (AbstractHandlerPolyWrapVector) :: v
+      type (FilterPolyWrapVector) :: v
 
       call v%reserve(0)
       v%numElements = 0
@@ -151,8 +151,8 @@ contains
 ! Create a Vector by copying from another
 !----------------------------------------------
    subroutine copyVector(this, other)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
-      type (AbstractHandlerPolyWrapVector), intent(in) :: other
+      class (FilterPolyWrapVector), intent(inout) :: this
+      type (FilterPolyWrapVector), intent(in) :: other
 
       integer :: i, n
 
@@ -171,8 +171,8 @@ contains
 ! Create a Vector from a standard Fortran array.
 !----------------------------------------------
    subroutine copyFromArray(this, array)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
-      type(AbstractHandlerPolyWrap), intent(in) :: array(:)
+      class (FilterPolyWrapVector), intent(inout) :: this
+      type(FilterPolyWrap), intent(in) :: array(:)
 
       integer :: i, n
 
@@ -192,7 +192,7 @@ contains
 ! Note that the internal array may be larger. (See reserve().)
 !----------------------------------------------
    integer function getSize(this) 
-      class (AbstractHandlerPolyWrapVector), intent(in) :: this
+      class (FilterPolyWrapVector), intent(in) :: this
       getSize = this%numElements
    end function getSize
 
@@ -202,7 +202,7 @@ contains
 ! Note this is different than the size of the Vector.
 !----------------------------------------------
    integer function capacity(this) 
-      class (AbstractHandlerPolyWrapVector), intent(in) :: this
+      class (FilterPolyWrapVector), intent(in) :: this
       capacity = size(this%elements)
    end function capacity
 
@@ -211,7 +211,7 @@ contains
 ! Return true if vector is currently size 0.
 !----------------------------------------------
    logical function empty(this)
-      class (AbstractHandlerPolyWrapVector), intent(in) :: this
+      class (FilterPolyWrapVector), intent(in) :: this
       empty = (this%numElements == 0)
    end function empty
 
@@ -219,9 +219,9 @@ contains
 ! Return _reference_ to the ith element of Vector.
 !---------------------------------------------------
    function at(this, i) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
+      class (FilterPolyWrapVector), target, intent(in) :: this
       integer, intent(in) :: i
-      type(AbstractHandlerPolyWrap), pointer :: ptr
+      type(FilterPolyWrap), pointer :: ptr
 
       ptr => this%elements(i)
 
@@ -231,8 +231,8 @@ contains
 ! Return reference to 1st element of vector.
 !---------------------------------------------------
    function front(this) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type(AbstractHandlerPolyWrap), pointer :: ptr
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type(FilterPolyWrap), pointer :: ptr
 
       ptr => this%elements(1)
 
@@ -243,8 +243,8 @@ contains
 ! Return reference to last element of vector
 !---------------------------------------------------
    function back(this) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type(AbstractHandlerPolyWrap), pointer :: ptr
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type(FilterPolyWrap), pointer :: ptr
 
       ptr => this%elements(this%numElements)
 
@@ -256,11 +256,11 @@ contains
 ! Return _reference_ to the ith element of Vector.
 !---------------------------------------------------
    function at_alt(this, i) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
+      class (FilterPolyWrapVector), target, intent(in) :: this
       integer, intent(in) :: i
-      class(AbstractHandler), pointer :: ptr
+      class(Filter), pointer :: ptr
 
-      type(AbstractHandlerPolyWrap), pointer :: pTmp
+      type(FilterPolyWrap), pointer :: pTmp
 
       pTmp => this%at(i)
       ptr => pTmp%get()
@@ -272,10 +272,10 @@ contains
 ! Return reference to 1st element of vector.
 !---------------------------------------------------
    function front_alt(this) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      class(AbstractHandler), pointer :: ptr
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      class(Filter), pointer :: ptr
 
-      type(AbstractHandlerPolyWrap), pointer :: pTmp
+      type(FilterPolyWrap), pointer :: pTmp
 
       pTmp => this%front()
       ptr => pTmp%get()
@@ -287,10 +287,10 @@ contains
 ! Return reference to last element of vector
 !---------------------------------------------------
    function back_alt(this) result(ptr)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      class(AbstractHandler), pointer :: ptr
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      class(Filter), pointer :: ptr
 
-      type(AbstractHandlerPolyWrap), pointer :: pTmp
+      type(FilterPolyWrap), pointer :: pTmp
 
       pTmp => this%back()
       ptr => pTmp%get()
@@ -303,8 +303,8 @@ contains
 ! Return a reference  to the active portion of the internal array.
 !-----------------------------------------------------------------
    function data(this) result(d)
-      class (AbstractHandlerPolyWrapVector), target :: this
-      type(AbstractHandlerPolyWrap), pointer :: d(:)
+      class (FilterPolyWrapVector), target :: this
+      type(FilterPolyWrap), pointer :: d(:)
 
       d => this%elements(1:this%numElements)
 
@@ -317,10 +317,10 @@ contains
 ! of active elements.
 !---------------------------------------------------
    subroutine reserve(this, n)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: n
 
-      type(AbstractHandlerPolyWrap), allocatable :: tmp(:)
+      type(FilterPolyWrap), allocatable :: tmp(:)
       integer :: i, nOld
 
       if (.not. allocated(this%elements)) then
@@ -347,9 +347,9 @@ contains
 ! size, elements are effectively lost.
 !---------------------------------------------------
    subroutine resize(this, n, value)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: n
-      type(AbstractHandlerPolyWrap), optional, intent(in) :: value
+      type(FilterPolyWrap), optional, intent(in) :: value
 
       integer :: i
       integer :: nOld
@@ -387,7 +387,7 @@ contains
 !  storage may not be released.
 !---------------------------------------------------
    subroutine clear(this)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
       call this%resize(0)
    end subroutine clear
 
@@ -397,8 +397,8 @@ contains
 !  Extend vector by one element and set it to <value>.
 !---------------------------------------------------
    subroutine push_back_T(this, value)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
-      type(AbstractHandlerPolyWrap), intent(in) :: value
+      class (FilterPolyWrapVector), intent(inout) :: this
+      type(FilterPolyWrap), intent(in) :: value
 
       integer :: n
 
@@ -415,7 +415,7 @@ contains
 ! Shrink vector by one element from the end.
 !---------------------------------------------------
    subroutine pop_back(this)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
 
       integer :: n
 
@@ -433,9 +433,9 @@ contains
 !  Insert <value> at position i.  Extends vector by one element.
 !---------------------------------------------------
    subroutine insert_T(this, i, value)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: i
-      type(AbstractHandlerPolyWrap), intent(in) :: value
+      type(FilterPolyWrap), intent(in) :: value
 
       integer :: j, n
 
@@ -456,12 +456,12 @@ contains
 !  Extend vector by one element and set it to <value>.
 !---------------------------------------------------
    subroutine push_back_alt(this, value)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
-      class(AbstractHandler) :: value
+      class (FilterPolyWrapVector), intent(inout) :: this
+      class(Filter) :: value
 
       integer :: n
 
-      call this%push_back(AbstractHandlerPolyWrap(value))
+      call this%push_back(FilterPolyWrap(value))
 
    end subroutine push_back_alt
 
@@ -469,11 +469,11 @@ contains
 !  Insert <value> at position i.  Extends vector by one element.
 !---------------------------------------------------
    subroutine insert_alt(this, i, value)
-      class (AbstractHandlerPolyWrapVector), intent(inout) :: this
+      class (FilterPolyWrapVector), intent(inout) :: this
       integer, intent(in) :: i
-      class(AbstractHandler), intent(in) :: value
+      class(Filter), intent(in) :: value
 
-      call this%insert(i, AbstractHandlerPolyWrap(value))
+      call this%insert(i, FilterPolyWrap(value))
 
    end subroutine insert_alt
 
@@ -482,10 +482,10 @@ contains
 ! Swap contents of two vectors.
 !---------------------------------------------------
    subroutine swapVector(this, a)
-      type (AbstractHandlerPolyWrapVector), intent(inout) :: this
-      type (AbstractHandlerPolyWrapVector), intent(inout) :: a
+      type (FilterPolyWrapVector), intent(inout) :: this
+      type (FilterPolyWrapVector), intent(inout) :: a
 
-      type(AbstractHandlerPolyWrap), allocatable :: tmp(:)
+      type(FilterPolyWrap), allocatable :: tmp(:)
       integer :: nTmp
 
       ! swap elements
@@ -506,8 +506,8 @@ contains
 !  element of vector.
 !------------------------------------------------------
    function begin(this) result(iter)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type (FilterPolyWrapVectorIterator) :: iter
       
       iter%elements => this%elements
       iter%index = 1
@@ -520,8 +520,8 @@ contains
 !  after last element of vector.
 !------------------------------------------------------
    function end(this) result(iter)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type (FilterPolyWrapVectorIterator) :: iter
       
       iter%elements => this%elements
       iter%index = this%size() + 1 ! past the end
@@ -534,8 +534,8 @@ contains
 !  element of vector.
 !------------------------------------------------------
    function rbegin(this) result(iter)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVectorReverseIterator) :: iter
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type (FilterPolyWrapVectorReverseIterator) :: iter
       
       iter%elements => this%elements
       iter%index = this%size()
@@ -548,8 +548,8 @@ contains
 !  before 1st element of vector.
 !------------------------------------------------------
    function rend(this) result(iter)
-      class (AbstractHandlerPolyWrapVector), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVectorReverseIterator) :: iter
+      class (FilterPolyWrapVector), target, intent(in) :: this
+      type (FilterPolyWrapVectorReverseIterator) :: iter
       
       iter%elements => this%elements
       iter%index = 0
@@ -562,16 +562,16 @@ contains
 ! Dereference iterator.
 !-----------------------------------------------------
       function get(this) result(ptr)
-         type(AbstractHandlerPolyWrap), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
 
       end function get
       
       function get_alt(this) result(ptr)
-         class(AbstractHandler), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
+         class(Filter), pointer :: ptr
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
 
          ptr => this%elements(this%index)%get()
 
@@ -580,20 +580,20 @@ contains
 
 
       subroutine next(this)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(inout) :: this
+         class (FilterPolyWrapVectorIterator), intent(inout) :: this
          this%index = this%index + 1
       end subroutine next
 
 
       subroutine previous(this)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(inout) :: this
+         class (FilterPolyWrapVectorIterator), intent(inout) :: this
          this%index = this%index - 1
       end subroutine previous
 
 
       logical function equalIters(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
 
          equalIters = (this%index == other%index)
          
@@ -601,8 +601,8 @@ contains
 
 
       logical function notEqualIters(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
 
          notEqualIters = .not. (this == other)
          
@@ -612,33 +612,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function lessThanIter(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
          lessThanIter = (this%index < other%index)
       end function lessThanIter
 
       logical function lessThanOrEqualIter(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
          lessThanOrEqualIter = (this%index <= other%index)
       end function lessThanOrEqualIter
 
       logical function greaterThanIter(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
          greaterThanIter = (this%index > other%index)
       end function greaterThanIter
 
       logical function greaterThanOrEqualIter(this, other)
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: other
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
+         class (FilterPolyWrapVectorIterator), intent(in) :: other
          greaterThanOrEqualIter = (this%index >= other%index)
       end function greaterThanOrEqualIter
 
 
       function atDefault(this) result(ptr)
-         type(AbstractHandlerPolyWrap), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -646,8 +646,8 @@ contains
 
 
       function atOffset(this, i) result(ptr)
-         type(AbstractHandlerPolyWrap), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index + i)
@@ -655,8 +655,8 @@ contains
       end function atOffset
 
       function add(this, n) result(newIter)
-         type (AbstractHandlerPolyWrapVectorIterator) :: newIter
-         class (AbstractHandlerPolyWrapVectorIterator), intent(in) :: this
+         type (FilterPolyWrapVectorIterator) :: newIter
+         class (FilterPolyWrapVectorIterator), intent(in) :: this
          integer, intent(in) :: n
 
          newIter%index = this%index + n
@@ -666,8 +666,8 @@ contains
 
       ! Dereference iterator
       function getRIter(this) result(ptr)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         type(AbstractHandlerPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
 
          ptr => this%elements(this%index)
 
@@ -675,8 +675,8 @@ contains
 
       ! Dereference iterator
       function getRIter_alt(this) result(ptr)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class(AbstractHandler), pointer :: ptr
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class(Filter), pointer :: ptr
 
          ptr => this%elements(this%index)%get()
 
@@ -685,20 +685,20 @@ contains
 
 
       subroutine rNext(this)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(inout) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(inout) :: this
          this%index = this%index - 1
       end subroutine rNext
 
 
       subroutine rPrevious(this)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(inout) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(inout) :: this
          this%index = this%index + 1
       end subroutine rPrevious
 
 
       logical function equalRIters(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
 
          equalRIters = &
               associated(this%elements, other%elements) .and. &
@@ -708,8 +708,8 @@ contains
 
 
       logical function notEqualRIters(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
 
          notEqualRIters = .not. (this == other)
          
@@ -721,33 +721,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function rLessThanIter(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
          rLessThanIter = (this%index > other%index)
       end function rLessThanIter
 
       logical function rLessThanOrEqualIter(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
          rLessThanOrEqualIter = (this%index >= other%index)
       end function rLessThanOrEqualIter
 
       logical function rGreaterThanIter(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
          rGreaterThanIter = (this%index < other%index)
       end function rGreaterThanIter
 
       logical function rGreaterThanOrEqualIter(this, other)
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: other
          rGreaterThanOrEqualIter = (this%index <= other%index)
       end function rGreaterThanOrEqualIter
 
 
       function rAtDefault(this) result(ptr)
-         type(AbstractHandlerPolyWrap), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -755,15 +755,15 @@ contains
 
 
       function rAtOffset(this, i) result(ptr)
-         type(AbstractHandlerPolyWrap), pointer :: ptr
-         class (AbstractHandlerPolyWrapVectorReverseIterator), intent(in) :: this
+         type(FilterPolyWrap), pointer :: ptr
+         class (FilterPolyWrapVectorReverseIterator), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index - i)
          
       end function rAtOffset
 
-end module FTL_AbstractHandlerPolyWrapVector_mod
+end module FTL_FilterPolyWrapVector_mod
 
 
 
