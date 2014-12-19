@@ -127,6 +127,23 @@ contains
 
    end subroutine test_info
 
+
+   @Test
+   subroutine test_infoNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+      type (MockHandler) :: handler
+
+      ! Set handler's severity level and add handler to levelLogger
+      handler = MockHandler(this%levelBuffer)
+      call handler%setLevel(WARNING)
+      call this%levelLogger%addHandler(handler)
+      call this%levelLogger%info('test_info')
+      @assertFalse(allocated(this%levelBuffer%buffer))
+
+   end subroutine test_infoNoEmit
+
+
+
 @Test
    subroutine test_warning(this)
       class (Test_Logger), intent(inout) :: this
@@ -142,6 +159,22 @@ contains
 
    end subroutine test_warning
    
+
+   @Test
+   subroutine test_warningNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+      type (MockHandler) :: handler
+
+      ! Set handler's severity level and add handler to levelLogger
+      handler = MockHandler(this%levelBuffer)
+      call handler%setLevel(ERROR)
+      call this%levelLogger%addHandler(handler)
+      call this%levelLogger%warning('test_warning')
+      @assertFalse(allocated(this%levelBuffer%buffer))
+
+   end subroutine test_warningNoEmit
+
+
 @Test
    subroutine test_error(this)
       class (Test_Logger), intent(inout) :: this
@@ -157,6 +190,22 @@ contains
 
    end subroutine test_error
     
+
+   @Test
+   subroutine test_errorNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+      type (MockHandler) :: handler
+
+      ! Set handler's severity level and add handler to levelLogger
+      handler = MockHandler(this%levelBuffer)
+      call handler%setLevel(CRITICAL)
+      call this%levelLogger%addHandler(handler)
+      call this%levelLogger%error('test_error')
+      @assertFalse(allocated(this%levelBuffer%buffer))
+
+   end subroutine test_errorNoEmit
+
+
 @Test
    subroutine test_critical(this)
       class (Test_Logger), intent(inout) :: this
@@ -172,6 +221,9 @@ contains
 
    end subroutine test_critical
 
+
+! Note there are no cases wher logger%critical(...) will not emit, so we cannot
+! test for an even higher severity.
 
 end module Test_Logger_mod
 
