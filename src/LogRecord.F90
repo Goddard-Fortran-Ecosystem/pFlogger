@@ -1,5 +1,7 @@
 ! A LogRecord instance represents an event being logged. Its instances are created
-! every time something is logged.
+! every time something is logged. They contain all the information pertinent to
+! the event being logged. The  main information passed in is in message and optional
+! arguments which are combined to create the message field of the record.
 module ASTG_LogRecord_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
