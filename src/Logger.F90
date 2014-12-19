@@ -3,6 +3,9 @@ module ASTG_Logger_mod
    ! which information (logging events) about an application is conveyed.
    ! Associated with a logger instance is a set of handlers which dispatch
    ! logging events to specific destinations, e.g. STDOUT or a FILE
+   ! A logger has associated with it a severity level. A looger looks at a
+   ! message and ignores it if the message level is less severe than its own
+   ! level (default is INFO).
    use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
    use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
    use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
@@ -37,7 +40,6 @@ module ASTG_Logger_mod
       procedure :: warning
       procedure :: error
       procedure :: critical
-      procedure :: notset
       procedure :: addHandler
       procedure :: removeHandler
       procedure :: getHandlers
@@ -99,7 +101,8 @@ contains
 
    subroutine log(this, level, message)
       ! Logging routine that calls the appropriate handler and emits
-      ! the logging event
+      ! the logging event.
+      ! The log method needs two parameters - a message and the severity level
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
@@ -107,6 +110,8 @@ contains
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
 
+      ! Create LogRecord object from the message string and pass the LogRecord
+      ! to its Handlers
       record = LogRecord(this%name, message)
       
       iter = this%handlers%begin()
@@ -118,7 +123,9 @@ contains
 
    end subroutine log
 
-   
+   ! Convenience methods follow - debug, info, warning, error, critical
+   ! These methods are identical to the log method except that you don’t have
+   ! to specify the level, because the level is implicit in the name.
    subroutine debug(this, message)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
@@ -167,16 +174,6 @@ contains
       call this%log(CRITICAL_LEVEL, message)
 
    end subroutine critical
-
-   
-   subroutine notset(this, message)
-      ! Log message with the integer severity 'NOTSET'.
-      class (Logger), intent(inout) :: this
-      character(len=*), intent(in) :: message
-      
-      call this%log(NOTSET_LEVEL, message)
-
-   end subroutine notset
 
    
    function getHandlers(this) result(handlers)

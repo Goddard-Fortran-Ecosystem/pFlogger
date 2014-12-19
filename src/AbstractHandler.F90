@@ -3,6 +3,14 @@ module ASTG_AbstractHandler_mod
    ! handler interfaces. Instances of this class define how logging events 
    ! are dispatched to specific destinations. Handlers are passed LogRecord
    ! objects which contain all the information we want to logging.
+   ! The Handler also has a level. Once the Handler receives the LogRecord
+   ! from the Logger, it will ignore any LogRecord that has a severity level
+   ! that is smaller than its own level. Otherwise it passes the LogRecord to
+   ! its Formatter.
+   ! Yes - each Handler has one Formatter. The Formatter formats the LogRecord
+   ! message to the desired format and sends the formatted text back to the
+   ! Handler. Finally the Handler receives the message as formatted text back
+   ! from the Formatter and emits it to your destination.
    use ASTG_SeverityLevels_mod, only: levelToString
    use ASTG_LogRecord_mod
    
