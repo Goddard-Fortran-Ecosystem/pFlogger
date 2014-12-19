@@ -2,6 +2,7 @@ module Test_StreamHandler_mod
    use pFUnit_mod
    use ASTG_SeverityLevels_mod
    use ASTG_StreamHandler_mod
+   use ASTG_LogRecord_mod
    implicit none
 
    public :: Test_StreamHandler
@@ -42,7 +43,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(INFO, 'hello')
+      call handler%emit(INFO, LogRecord('hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
@@ -58,14 +59,12 @@ contains
       class (Test_StreamHandler), intent(inout) :: this
 
       type (StreamHandler) :: handler
-      character(len=:), allocatable :: message
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      message = 'hello'
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(DEBUG, 'hello')
+      call handler%emit(DEBUG, LogRecord('hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
@@ -84,7 +83,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(CRITICAL, 'hello')
+      call handler%emit(CRITICAL, LogRecord('hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage

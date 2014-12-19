@@ -13,7 +13,8 @@ module ASTG_Logger_mod
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
    use FTL_AbstracthandlerPolyWrapVector_mod
-
+   use ASTG_LogRecord_mod
+   
    implicit none
    private
 
@@ -104,11 +105,14 @@ contains
       character(len=*), intent(in) :: message
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
       class (AbstractHandler), pointer :: handler
+      type (LogRecord) :: record
 
+      record = LogRecord(message)
+      
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
          handler => iter%get_alt()
-         call handler%emit(level, message)
+         call handler%emit(level, record)
          call iter%next()
       end do
 

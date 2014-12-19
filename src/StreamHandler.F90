@@ -4,6 +4,8 @@ module ASTG_StreamHandler_mod
    use iso_fortran_env, only: output_unit
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
+   use ASTG_LogRecord_mod
+   
    implicit none
    private
 
@@ -47,13 +49,13 @@ contains
    end function newStreamHandler
 
    
-   subroutine emitMessage(this, levelString, message)
+   subroutine emitMessage(this, levelString, record)
       ! Write a string to a stream. Level is specified in levelString
       class (StreamHandler), intent(inout) :: this
       character(len=*), intent(in) :: levelString
-      character(len=*), intent(in) :: message
+      type(LogRecord) :: record
 
-      write(this%unit,'(a)') levelString // ': ' // message
+      write(this%unit,'(a)') levelString // ': ' // record%getMessage()
       
    end subroutine emitMessage
 
