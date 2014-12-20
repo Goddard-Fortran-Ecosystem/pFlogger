@@ -47,9 +47,12 @@ module FTL_FilterPolyWrapVector_mod
       procedure :: insert_T
       generic :: insert => insert_T
       procedure :: push_back_alt
-      generic :: push_back => push_back_alt
       procedure :: insert_alt
+
+  
+      generic :: push_back => push_back_alt
       generic :: insert => insert_alt
+  
 
 
       procedure :: reserve
@@ -458,8 +461,6 @@ contains
    subroutine push_back_alt(this, value)
       class (FilterPolyWrapVector), intent(inout) :: this
       class(Filter) :: value
-
-      integer :: n
 
       call this%push_back(FilterPolyWrap(value))
 
