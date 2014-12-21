@@ -148,7 +148,8 @@ contains
 
       select type (b)
       class is (FileHandler)
-         equal = (a%unit == b%unit) .and. (a%fileName == b%fileName)
+         equal = (a%unit == b%unit) .and. (a%fileName == b%fileName) .and. &
+              & (a%getLevel() == b%getLevel())
       class default
          equal = .false.
       end select

@@ -99,8 +99,8 @@ contains
       type (StreamHandler) :: a
       type (StreamHandler) :: b
 
-      a = StreamHandler(unit=this%unit)
-      b = StreamHandler(unit=this%unit)
+      a = StreamHandler(unit=this%unit, level=INFO)
+      b = StreamHandler(unit=this%unit, level=INFO)
 
       @assertTrue(a == b)
       @assertFalse(a /= b)
@@ -109,20 +109,37 @@ contains
 
 
    @test
-   subroutine test_notEqual(this)
+   subroutine test_equalDifferentLevel(this)
       class (Test_StreamHandler), intent(inout) :: this
 
 
       type (StreamHandler) :: a
       type (StreamHandler) :: b
 
-      a = StreamHandler(unit=20)
-      b = StreamHandler(unit=30)
+      a = StreamHandler(unit=this%unit, level=INFO)
+      b = StreamHandler(unit=this%unit, level=DEBUG)
 
       @assertFalse(a == b)
       @assertTrue(a /= b)
 
-   end subroutine test_notEqual
+   end subroutine test_equalDifferentLevel
+
+
+   @test
+   subroutine test_equalDifferentUnit(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler()
+      b = StreamHandler(unit=this%unit)
+
+      @assertFalse(a == b)
+      @assertTrue(a /= b)
+
+   end subroutine test_equalDifferentUnit
 
 
 end module Test_StreamHandler_mod

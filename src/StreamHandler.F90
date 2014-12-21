@@ -1,7 +1,7 @@
 ! A handler class which writes logging events to a stream, e.g. STDOUT
 ! Note that this class does not close the stream.
 module ASTG_StreamHandler_mod
-   use iso_fortran_env, only: output_unit
+   use iso_fortran_env, only: OUTPUT_UNIT
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_LogRecord_mod
@@ -37,7 +37,11 @@ contains
      
       integer :: level_
 
-      if (present(unit)) handler%unit = unit
+      if (present(unit)) then
+         handler%unit = unit
+      else
+         handler%unit = OUTPUT_UNIT
+      end if
 
       if (present (level)) then
         level_ = level
@@ -80,7 +84,7 @@ contains
 
       select type (b)
       class is (StreamHandler)
-         equal = (a%unit == b%unit)
+         equal = (a%unit == b%unit) .and. (a%getLevel() == b%getLevel())
       class default
          equal = .false.
       end select

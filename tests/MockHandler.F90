@@ -66,7 +66,7 @@ contains
 
       select type (b)
       class is (MockHandler)
-         equal = associated(a%buffer, b%buffer)
+         equal = associated(a%buffer, b%buffer) .and. (a%getLevel() == b%getLevel())
       class default
          equal = .false.
       end select
