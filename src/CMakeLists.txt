@@ -9,6 +9,7 @@ list(APPEND SRCS Object.F90)
 list(APPEND SRCS Exception.F90)
 list(APPEND SRCS Filter.F90)
 list(APPEND SRCS LogRecord.F90)
+list(APPEND SRCS Formatter.F90)
 list(APPEND SRCS Filterer.F90)
 
 list(APPEND SRCS AbstractHandlerPolyWrap.F90)

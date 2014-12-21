@@ -7,7 +7,8 @@ module ASTG_Object_mod
    type, abstract :: Object
       private
    contains
-      procedure :: toString
+      procedure :: toString_self
+      generic :: toString => toString_self
    end type Object
 
 
@@ -15,10 +16,10 @@ contains
 
    ! Empty implementation - avoids forcing subclasses from implementing,
    ! but interface is _alway_ available.
-   function toString(this) result(string)
+   function toString_self(this) result(string)
       class (Object), intent(in) :: this
       character(len=:), allocatable :: string
       string = ''
-   end function toString
+   end function toString_self
 
 end module ASTG_Object_mod

@@ -2,6 +2,7 @@ module Test_Formatter_mod
    use pFUnit_mod
    use ASTG_Formatter_mod
    use iso_fortran_env
+   use ASTG_LogRecord_mod
    
    implicit none
 
@@ -9,12 +10,7 @@ module Test_Formatter_mod
    
 @TestCase
    type, extends(TestCase) :: Test_Formatter
-      integer(int32) :: i32
-      real(real32) :: r32 
-      real(real64) :: r64
-      logical :: logicVal
-      complex(real32) :: cmp32
-      type (Formatter) :: fmt
+      type (Formatter) :: f
    contains
       procedure :: setUp   
       procedure :: tearDown 
@@ -25,12 +21,6 @@ contains
    
    subroutine setUp(this)
       class (Test_Formatter), intent(inout) :: this
-      
-      this%i32 = 1
-      this%r64 = 64.d0
-      this%r32 = 32.0
-      this%logicVal = .true.
-      this%cmp32 = (0,1)
       
    end subroutine setUp
 
@@ -45,8 +35,8 @@ contains
    subroutine test_string(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello')
-      @assertEqual('Hello', this%fmt%getMessage())
+      this%f = Formatter('')
+      @assertEqual('Hello', this%f%toString('Hello'))
       
    end subroutine test_string
 
@@ -55,8 +45,8 @@ contains
    subroutine test_int32(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello ', this%i32)
-      @assertEqual('Hello 1', this%fmt%getMessage())
+      this%f = Formatter('')
+      @assertEqual('1', this%f%toString(1))
       
    end subroutine test_int32
    
@@ -64,8 +54,8 @@ contains
    subroutine test_r32(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello', this%r32)
-      @assertEqual('Hello 32.000000000000', this%fmt%getMessage())
+      this%f = Formatter('')
+      @assertEqual('32.00000', this%f%toString(32.))
       
    end subroutine test_r32
    
@@ -74,8 +64,8 @@ contains
    subroutine test_r64(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello', this%r64)
-      @assertEqual('Hello 64.000000000000', this%fmt%getMessage())
+      this%f = Formatter('Hello')
+      @assertEqual('64.000000000000000', this%f%toString(64.d0))
       
    end subroutine test_r64
    
@@ -83,8 +73,9 @@ contains
    subroutine test_logical(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello ', this%logicVal)
-      @assertEqual('Hello T', this%fmt%getMessage())
+      this%f = Formatter('')
+      @assertEqual('T', this%f%toString(.true.))
+      @assertEqual('F', this%f%toString(.false.))
       
    end subroutine test_logical
    
@@ -92,30 +83,41 @@ contains
    subroutine test_cmp32(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%fmt = Formatter('Hello', this%cmp32)
-      @assertEqual('Hello 0.0000000000000     1.0000000000000', this%fmt%getMessage())
+      this%f = Formatter('')
+      @assertEqual('(0.000000,1.000000)', this%f%toString((0.,1.)))
       
    end subroutine test_cmp32
 
    
-@Test
-   subroutine test_int32_and_r32(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%fmt = Formatter('Hello ', opt1=this%i32, opt2=this%r32)
-      @assertEqual('Hello 1 32.000000000000', this%fmt%getMessage())
-      
-   end subroutine test_int32_and_r32
-   
+   @test
+   subroutine test_toString_unsupported(this)
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
 
-@Test
-   subroutine test_int32_and_r64(this)
-      class (Test_Formatter), intent(inout) :: this
+      type Foo
+      end type Foo
       
-      this%fmt = Formatter('Hello ', opt1=this%i32, opt2=this%r64)
-      @assertEqual('Hello 1 64.000000000000', this%fmt%getMessage())
+      type (Foo) :: x
+
+      this%f = Formatter('')
+      logMessage = this%f%toString(x)
+
+      @assertExceptionRaised('Logger::toString_other() not implemented.')
       
-   end subroutine test_int32_and_r64
-   
+   end subroutine test_toString_unsupported
+
+
+
+   @test
+   subroutine test_format(this)
+      use ASTG_SeverityLevels_mod, only: INFO
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
+
+      this%f = Formatter('Hello')
+      logMessage = this%f%format(LogRecord('name', INFO, 'Hello'))
+
+   end subroutine test_format
+
 
 end module Test_Formatter_mod

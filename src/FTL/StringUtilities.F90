@@ -1,4 +1,5 @@
 module FTL_StringUtilities_mod
+   use iso_fortran_env
    implicit none
    private
 
@@ -10,10 +11,14 @@ module FTL_StringUtilities_mod
    integer, parameter :: UPPER_LOWER_DELTA = iachar('A') - iachar('a')
 
    interface toString
-      module procedure toString_integer
+      module procedure toString_int32
+      module procedure toString_int64
       module procedure toString_real32
       module procedure toString_real64
+      module procedure toString_cmplx64
+      module procedure toString_cmplx128
       module procedure toString_string
+      module procedure toString_logical
    end interface toString
 
 contains
@@ -99,16 +104,28 @@ contains
    end function isLowerCase
 
 
-   function toString_integer(i) result(string)
+   function toString_int32(i) result(string)
       character(:), allocatable :: string
-      integer, intent(in) :: i
+      integer(kind=int32), intent(in) :: i
       
       character(24) :: buf
 
       write(buf,'(i0)') i
       string = trim(buf)
       
-   end function toString_integer
+   end function toString_int32
+
+
+   function toString_int64(i) result(string)
+      character(:), allocatable :: string
+      integer(kind=int64), intent(in) :: i
+      
+      character(24) :: buf
+
+      write(buf,'(i0)') i
+      string = trim(buf)
+      
+   end function toString_int64
 
 
    function toString_real32(x) result(string)
@@ -133,8 +150,30 @@ contains
 
       write(buf,'(g25.17)') x
       string = trim(adjustl(buf))
-      
+
    end function toString_real64
+
+
+   function toString_cmplx64(x) result(string)
+      use iso_fortran_env, only: REAL32
+      character(:), allocatable :: string
+      complex(kind=REAL32), intent(in) :: x
+      
+      string = '(' // toString_real32(real(x,kind=REAL32)) // ',' &
+           & // toString_real32(aimag(x)) // ')'
+      
+   end function toString_cmplx64
+
+
+   function toString_cmplx128(x) result(string)
+      use iso_fortran_env, only: REAL64
+      character(:), allocatable :: string
+      complex(kind=REAL64), intent(in) :: x
+      
+      string = '(' // toString_real64(real(x,kind=REAL64)) // ',' &
+           & // toString_real64(aimag(x)) // ')'
+      
+   end function toString_cmplx128
 
 
    function toString_string(inString) result(string)
@@ -144,6 +183,19 @@ contains
       string = trim(inString)
       
    end function toString_string
+
+
+   function toString_logical(flag) result(string)
+      character(:), allocatable :: string
+      logical, intent(in) :: flag
+
+      if (flag) then
+         string = 'T'
+      else
+         string = 'F'
+      end if
+      
+   end function toString_logical
 
 
 end module FTL_StringUtilities_mod

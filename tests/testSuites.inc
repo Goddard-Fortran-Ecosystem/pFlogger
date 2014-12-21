@@ -15,3 +15,6 @@ ADD_TEST_SUITE(Test_LoggerManager_mod_suite)
 
 ! Log record
 ADD_TEST_SUITE(Test_LogRecord_mod_suite)
+
+! Formatter
+ADD_TEST_SUITE(Test_Formatter_mod_suite)
