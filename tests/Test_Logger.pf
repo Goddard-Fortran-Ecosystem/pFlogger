@@ -275,7 +275,6 @@ contains
       handler = MockHandler(bufferA, level=DEBUG)
       call lgr%removeHandler(handler)
 
-
       call lgr%info('Hello')
       @assertEqual('INFO: Hello', bufferB%buffer)
       @assertTrue(.not. allocated(bufferA%buffer))

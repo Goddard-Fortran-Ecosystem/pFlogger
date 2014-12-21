@@ -11,7 +11,7 @@ contains
       type (LogRecord) :: record
 
       f = Filter('A')
-      record = LogRecord('B', 'some message')
+      record = LogRecord('B', INFO, 'some message')
 
       @assertFalse(f%filter(record))
       
@@ -24,7 +24,7 @@ contains
       type (LogRecord) :: record
 
       f = Filter('A')
-      record = LogRecord('A', 'some message')
+      record = LogRecord('A', INFO, 'some message')
 
       @assertTrue(f%filter(record))
       
@@ -37,11 +37,11 @@ contains
       type (LogRecord) :: record
 
       f = Filter('A')
-      record = LogRecord('AB', 'some message')
+      record = LogRecord('AB', INFO, 'some message')
       @assertTrue(f%filter(record))
 
       f = Filter('AB')
-      record = LogRecord('A', 'some message')
+      record = LogRecord('A', INFO, 'some message')
       @assertFalse(f%filter(record))
       
    end subroutine test_defaultFilterPartialMatch

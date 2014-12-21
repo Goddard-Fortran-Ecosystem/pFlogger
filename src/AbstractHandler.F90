@@ -26,7 +26,7 @@ module ASTG_AbstractHandler_mod
       integer :: level = NOTSET ! default
    contains
       procedure(emitMessage), deferred :: emitMessage
-      procedure :: emit
+      procedure :: handle
       procedure(close), deferred :: close
       procedure(flush), deferred :: flush
       procedure :: setLevel
@@ -76,16 +76,18 @@ contains
 
    
    ! Log a specified message with severity 'level'
-   subroutine emit(this, level, record)
+   subroutine handle(this, record)
       class(AbstractHandler), intent(inout) :: this
-      integer, intent(in) :: level
       type (LogRecord) :: record
-      
+
+      integer :: level
+
+      level = record%getLevel()
       if (level >= this%getLevel()) then
         call this%emitMessage(levelToString(level), record)
       end if
       
-   end subroutine emit
+   end subroutine handle
 
    
    ! Set the logging level of this handler

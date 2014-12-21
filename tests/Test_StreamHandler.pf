@@ -34,25 +34,25 @@ contains
 
    
 @Test
-   subroutine test_emitBasic(this)
+   subroutine test_handleBasic(this)
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(INFO, LogRecord('name', 'hello'))
+      call handler%handle(LogRecord(name='name', message='hello', level=INFO))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
       @assertEqual('INFO: hello', foundMessage)
 
-   end subroutine test_emitBasic
+   end subroutine test_handleBasic
 
    
 @Test
-   subroutine test_emitBelowThreshold(this)
+   subroutine test_handleBelowThreshold(this)
       use iso_fortran_env, only: IOSTAT_END
       class (Test_StreamHandler), intent(inout) :: this
 
@@ -62,18 +62,18 @@ contains
       
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(DEBUG, LogRecord('name', 'hello'))
+      call handler%handle(LogRecord('name', DEBUG, 'hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
       
       @assertEqual(IOSTAT_END, iostatus)
 
-   end subroutine test_emitBelowThreshold
+   end subroutine test_handleBelowThreshold
 
    
 @Test
-   subroutine test_emitAboveThreshold(this)
+   subroutine test_handleAboveThreshold(this)
       class (Test_StreamHandler), intent(inout) :: this
 
       type (StreamHandler) :: handler
@@ -81,14 +81,14 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%emit(critical, LogRecord('name', 'hello'))
+      call handler%handle(LogRecord('name', CRITICAL, 'hello'))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
       @assertEqual('CRITICAL: hello', foundMessage)
 
-   end subroutine test_emitAboveThreshold
+   end subroutine test_handleAboveThreshold
    
 
    @test

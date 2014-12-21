@@ -124,12 +124,12 @@ contains
 
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
-      record = LogRecord(this%name, message)
+      record = LogRecord(this%name, level, message)
       
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
          handler => iter%get_alt()
-         call handler%emit(level, record)
+         call handler%handle(record)
          call iter%next()
       end do
 

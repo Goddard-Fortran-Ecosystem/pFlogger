@@ -3,6 +3,7 @@ module Test_Filterer_mod
    use ASTG_Filterer_mod
    use ASTG_Filter_mod
    use ASTG_LogRecord_mod
+   use ASTG_SeverityLevels_mod, only: INFO
    implicit none
 
 
@@ -14,7 +15,7 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      record = LogRecord('A','message')
+      record = LogRecord('A', INFO, 'message')
       @assertTrue(f%filter(record))
 
    end subroutine test_filterNoFilters
@@ -27,7 +28,7 @@ contains
 
       f = Filterer()
       call f%addFilter(Filter('A'))
-      record = LogRecord('B','message')
+      record = LogRecord('B', INFO, 'message')
      
       @assertFalse(f%filter(record))
 
@@ -41,7 +42,7 @@ contains
 
       f = Filterer()
       call f%addFilter(Filter('A'))
-      record = LogRecord('A','message')
+      record = LogRecord('A', INFO, 'message')
       @assertTrue(f%filter(record))
 
    end subroutine test_filterMatch
@@ -55,10 +56,10 @@ contains
       call f%addFilter(Filter('A'))
       call f%addFilter(Filter('B'))
 
-      record = LogRecord('A','message')
+      record = LogRecord('A', INFO, 'message')
       @assertFalse(f%filter(record))
 
-      record = LogRecord('B','message')
+      record = LogRecord('B', INFO, 'message')
       @assertFalse(f%filter(record))
 
    end subroutine test_filterCombo
@@ -72,10 +73,10 @@ contains
       call f%addFilter(Filter('A'))
       call f%addFilter(Filter('AB'))
 
-      record = LogRecord('AB','message')
+      record = LogRecord('AB', INFO, 'message')
       @assertTrue(f%filter(record))
 
-      record = LogRecord('B','message')
+      record = LogRecord('B', INFO, 'message')
       @assertFalse(f%filter(record))
 
    end subroutine test_filterComboB

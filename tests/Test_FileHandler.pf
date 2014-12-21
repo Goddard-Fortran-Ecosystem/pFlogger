@@ -45,8 +45,8 @@ contains
       type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      record = LogRecord('name','hello')
-      call this%handler%emit(INFO, record)
+      record = LogRecord('name', INFO, 'hello')
+      call this%handler%handle(record)
 
       unit = this%handler%getUnit()
       rewind(unit)
@@ -67,9 +67,9 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('name','hello')
+      record = LogRecord('name', DEBUG, 'hello')
       call handler%setLevel(DEBUG)
-      call this%handler%emit(DEBUG, record)
+      call this%handler%handle(record)
 
       rewind(this%handler%getUnit())
       read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
@@ -88,9 +88,9 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('name','hello')
+      record = LogRecord('name', ERROR, 'hello')
       call handler%setLevel(ERROR)
-      call this%handler%emit(ERROR, record)
+      call this%handler%handle(record)
 
       rewind(this%handler%getUnit())
       read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      

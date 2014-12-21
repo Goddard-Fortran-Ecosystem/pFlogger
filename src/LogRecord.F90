@@ -12,11 +12,13 @@ module ASTG_LogRecord_mod
 
    type, extends(Object) :: LogRecord
       private
+      integer :: level
       character(len=:), allocatable :: name
       character(len=:), allocatable :: message
    contains
-      procedure :: getMessage
       procedure :: getName
+      procedure :: getLevel
+      procedure :: getMessage
    end type LogRecord
 
    interface LogRecord
@@ -28,25 +30,19 @@ contains
 
    
    ! Create a log record. 
-   function newLogRecord(name, message) result(rec)
+   function newLogRecord(name, level, message) result(rec)
       character(len=*), intent(in) :: name
+      integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (LogRecord) :: rec
       
       rec%name = name
+      rec%level = level
       rec%message = message
       
    end function newLogRecord
 
    
-   ! return the message for this LogRecord.
-   function getMessage(this) result(message)
-      class (LogRecord), intent(in) :: this
-      character(len=:), allocatable :: message
-      
-      message = this%message
-      
-   end function getMessage
    
    ! return the name for this LogRecord.
    function getName(this) result(name)
@@ -56,6 +52,21 @@ contains
       name = this%name
       
    end function getName
-   
+
+
+   integer function getLevel(this) result(level)
+      class (LogRecord), intent(in) :: this
+      level = this%level
+   end function getLevel
+
+
+   ! return the message for this LogRecord.
+   function getMessage(this) result(message)
+      class (LogRecord), intent(in) :: this
+      character(len=:), allocatable :: message
+      
+      message = this%message
+      
+   end function getMessage
 
 end module ASTG_LogRecord_mod
