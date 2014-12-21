@@ -13,6 +13,7 @@
 module ASTG_AbstractHandler_mod
    use ASTG_Filterer_mod
    use ASTG_SeverityLevels_mod, only: levelToString
+   use ASTG_SeverityLevels_mod, only: NOTSET
    use ASTG_LogRecord_mod
    
    implicit none
@@ -22,7 +23,7 @@ module ASTG_AbstractHandler_mod
    
    type, extends(Filterer), abstract :: AbstractHandler
       private
-      integer :: level
+      integer :: level = NOTSET ! default
    contains
       procedure(emitMessage), deferred :: emitMessage
       procedure :: emit

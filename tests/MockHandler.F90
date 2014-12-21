@@ -31,11 +31,13 @@ module MockHandler_mod
    
 contains
 
-   function newMockHandler(buffer) result(handler)
+   function newMockHandler(buffer, level) result(handler)
       type (MockHandler) :: handler
-      type (MockBuffer), target :: buffer
+      type (MockBuffer), target, intent(in) :: buffer
+      integer, optional, intent(in) :: level
 
       handler%buffer => buffer
+      if (present(level)) call handler%setLevel(level)
 
    end function newMockHandler
 

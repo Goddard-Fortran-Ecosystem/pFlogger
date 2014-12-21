@@ -225,5 +225,21 @@ contains
 ! Note there are no cases wher logger%critical(...) will not emit, so we cannot
 ! test for an even higher severity.
 
+   @test
+   subroutine test_removeHandler_missing(this)
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler) :: handler
+      type (MockBuffer) :: buffer
+
+      lgr = Logger('A')
+      handler = MockHandler(buffer, level=DEBUG)
+
+      call lgr%removeHandler(handler)
+      @assertExceptionRaised('Logger%removeHandler() called - logger has no such handler.')
+
+   end subroutine test_removeHandler_missing
+
 end module Test_Logger_mod
 

@@ -6,6 +6,7 @@
 ! message and ignores it if the message level is less severe than its own
 ! level (default is INFO).
 module ASTG_Logger_mod
+   use ASTG_Exception_mod
    use ASTG_Filterer_mod, only: Filterer
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
@@ -90,7 +91,7 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
-      call this%handlers%pop_back()
+      call throw('Logger%removeHandler() called - logger has no such handler.')
       
    end subroutine removeHandler
 
