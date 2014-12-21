@@ -30,6 +30,10 @@ module ASTG_AbstractHandler_mod
       procedure(flush), deferred :: flush
       procedure :: setLevel
       procedure :: getLevel
+      procedure(equal), deferred :: equal
+      generic :: operator(==) => equal
+      procedure :: notEqual
+      generic :: operator(/=) => notEqual
    end type AbstractHandler
 
    abstract interface
@@ -55,6 +59,14 @@ module ASTG_AbstractHandler_mod
          import AbstractHandler
          class(AbstractHandler), intent(inout) :: this
       end subroutine flush
+
+
+      logical function equal(a, b)
+         import AbstractHandler
+         class (AbstractHandler), intent(in) :: a
+         class (AbstractHandler), intent(in) :: b
+      end function equal
+
 
    end interface
 
@@ -93,4 +105,14 @@ contains
       
    end function getLevel
  
+
+   logical function notEqual(a, b)
+      class (AbstractHandler), intent(in) :: a
+      class (AbstractHandler), intent(in) :: b
+      
+      notEqual = .not. (a == b)
+
+   end function notEqual
+   
+   
 end module ASTG_AbstractHandler_mod

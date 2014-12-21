@@ -5,8 +5,6 @@ module Test_StreamHandler_mod
    use ASTG_LogRecord_mod
    implicit none
 
-   public :: Test_StreamHandler
-   
 @TestCase
    type, extends(TestCase) :: Test_StreamHandler
       integer :: unit
@@ -92,5 +90,39 @@ contains
 
    end subroutine test_emitAboveThreshold
    
-   
+
+   @test
+   subroutine test_equal(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler(unit=this%unit)
+      b = StreamHandler(unit=this%unit)
+
+      @assertTrue(a == b)
+      @assertFalse(a /= b)
+
+   end subroutine test_equal
+
+
+   @test
+   subroutine test_notEqual(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler(unit=20)
+      b = StreamHandler(unit=30)
+
+      @assertFalse(a == b)
+      @assertTrue(a /= b)
+
+   end subroutine test_notEqual
+
+
 end module Test_StreamHandler_mod

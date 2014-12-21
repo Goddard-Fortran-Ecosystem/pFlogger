@@ -24,6 +24,7 @@ module ASTG_FileHandler_mod
       procedure :: setFileName
       procedure :: getFileName
       procedure :: emitMessage
+      procedure :: equal
    end type FileHandler
 
    interface FileHandler
@@ -139,5 +140,20 @@ contains
       this%fileName = fileName
 
    end subroutine setFileName
+
+
+   logical function equal(a, b)
+      class (FileHandler), intent(in) :: a
+      class (AbstractHandler), intent(in) :: b
+
+      select type (b)
+      class is (FileHandler)
+         equal = (a%unit == b%unit) .and. (a%fileName == b%fileName)
+      class default
+         equal = .false.
+      end select
+
+   end function equal
+
 
 end module ASTG_FileHandler_mod

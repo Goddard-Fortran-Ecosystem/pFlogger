@@ -18,6 +18,7 @@ module ASTG_StreamHandler_mod
       procedure :: emitMessage
       procedure :: close ! noop
       procedure :: flush => flushUnit
+      procedure :: equal
    end type StreamHandler
 
    interface StreamHandler
@@ -71,5 +72,20 @@ contains
    subroutine close(this)
       class (StreamHandler), intent(inout) :: this
    end subroutine close
+
+
+   logical function equal(a, b)
+      class (StreamHandler), intent(in) :: a
+      class (AbstractHandler), intent(in) :: b
+
+      select type (b)
+      class is (StreamHandler)
+         equal = (a%unit == b%unit)
+      class default
+         equal = .false.
+      end select
+
+   end function equal
+
 
 end module ASTG_StreamHandler_mod

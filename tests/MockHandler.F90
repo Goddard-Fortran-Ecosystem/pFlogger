@@ -21,6 +21,7 @@ module MockHandler_mod
       procedure :: emitMessage
       procedure :: close ! noop
       procedure :: flush => flushUnit
+      procedure :: equal
    end type MockHandler
 
    interface MockHandler
@@ -58,4 +59,19 @@ contains
       class (MockHandler), intent(inout) :: this
    end subroutine close
 
+
+   logical function equal(a, b)
+      class (MockHandler), intent(in) :: a
+      class (AbstractHandler), intent(in) :: b
+
+      select type (b)
+      class is (MockHandler)
+         equal = associated(a%buffer, b%buffer)
+      class default
+         equal = .false.
+      end select
+
+   end function equal
+
+   
 end module MockHandler_mod
