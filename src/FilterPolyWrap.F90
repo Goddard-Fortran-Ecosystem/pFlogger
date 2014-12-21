@@ -1,4 +1,5 @@
 
+
 module FTL_FilterPolyWrap_mod
       use ASTG_Filter_mod, only: Filter   
    implicit none
@@ -10,6 +11,12 @@ module FTL_FilterPolyWrap_mod
       class(Filter), allocatable :: item
    contains
       procedure :: get
+
+#ifdef __INTEL_COMPILER
+      procedure :: copy
+      generic :: assignment(=) => copy
+#endif
+
    end type FilterPolyWrap
 
    interface FilterPolyWrap
@@ -34,6 +41,16 @@ contains
       item => this%item
 
    end function get
+
+
+#ifdef __INTEL_COMPILER
+   subroutine copy(a, b)
+      class(FilterPolyWrap), intent(out) :: a
+      class(FilterPolyWrap), intent(in) :: b
+
+      allocate(a%item, source=b%item)
+   end subroutine copy
+#endif
 
 
 end module FTL_FilterPolyWrap_mod

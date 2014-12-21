@@ -1,4 +1,5 @@
 
+
 module FTL_AbstractHandlerPolyWrap_mod
       use ASTG_AbstractHandler_mod, only: AbstractHandler   
    implicit none
@@ -10,6 +11,12 @@ module FTL_AbstractHandlerPolyWrap_mod
       class(AbstractHandler), allocatable :: item
    contains
       procedure :: get
+
+#ifdef __INTEL_COMPILER
+      procedure :: copy
+      generic :: assignment(=) => copy
+#endif
+
    end type AbstractHandlerPolyWrap
 
    interface AbstractHandlerPolyWrap
@@ -34,6 +41,16 @@ contains
       item => this%item
 
    end function get
+
+
+#ifdef __INTEL_COMPILER
+   subroutine copy(a, b)
+      class(AbstractHandlerPolyWrap), intent(out) :: a
+      class(AbstractHandlerPolyWrap), intent(in) :: b
+
+      allocate(a%item, source=b%item)
+   end subroutine copy
+#endif
 
 
 end module FTL_AbstractHandlerPolyWrap_mod

@@ -91,8 +91,21 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
+      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+
+
+      iter = this%handlers%begin()
+      do while (iter /= this%handlers%end())
+         if (handler == iter%get_alt()) then
+            iter = this%handlers%erase(iter)
+            return
+         end if
+         call iter%next()
+      end do
+
+      ! Only can get here if handler not found
       call throw('Logger%removeHandler() called - logger has no such handler.')
-      
+
    end subroutine removeHandler
 
 
@@ -106,6 +119,8 @@ contains
       type (AbstractHandlerPolyWrapVectorIterator) :: iter
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
+
+      class (AbstractHandlerPolyWrap), pointer :: h
 
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers

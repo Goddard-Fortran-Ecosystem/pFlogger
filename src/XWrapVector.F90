@@ -46,6 +46,7 @@ module FTL_XWrapVector_mod
       procedure :: pop_back
       procedure :: insert_T
       generic :: insert => insert_T
+      procedure :: erase
       procedure :: push_back_alt
       procedure :: insert_alt
 
@@ -451,6 +452,35 @@ contains
       this%numElements = n + 1
 
    end subroutine insert_T
+
+   function erase(this, position) result(iter)
+      type (XWrapVectorIterator) :: iter
+      class (XWrapVector), target, intent(inout) :: this
+      type (XWrapVectorIterator), intent(in) :: position
+
+      type(XWrap), pointer :: p, q
+      
+      if (position == this%end()) return
+
+      iter = position
+      p => iter%get()
+      call iter%next()
+      do while (iter /= this%end())
+         q => iter%get()
+
+! workaround for ifort 15 compiler
+         call move_alloc(from=q%item, to=p%item)
+
+         p => q
+         call iter%next()
+      end do
+
+      call this%pop_back()
+
+      iter%index = position%index
+      iter%elements => this%elements
+
+   end function erase
 
 !---------------------------------------------------
 !  Extend vector by one element and set it to <value>.

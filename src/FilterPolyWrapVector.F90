@@ -46,6 +46,7 @@ module FTL_FilterPolyWrapVector_mod
       procedure :: pop_back
       procedure :: insert_T
       generic :: insert => insert_T
+      procedure :: erase
       procedure :: push_back_alt
       procedure :: insert_alt
 
@@ -454,6 +455,34 @@ contains
       this%numElements = n + 1
 
    end subroutine insert_T
+
+   function erase(this, position) result(iter)
+      type (FilterPolyWrapVectorIterator) :: iter
+      class (FilterPolyWrapVector), target, intent(inout) :: this
+      type (FilterPolyWrapVectorIterator), intent(in) :: position
+
+      type(FilterPolyWrap), pointer :: p, q
+      
+      if (position == this%end()) return
+
+      iter = position
+      p => iter%get()
+      call iter%next()
+      do while (iter /= this%end())
+         q => iter%get()
+
+         p = q
+
+         p => q
+         call iter%next()
+      end do
+
+      call this%pop_back()
+
+      iter%index = position%index
+      iter%elements => this%elements
+
+   end function erase
 
 !---------------------------------------------------
 !  Extend vector by one element and set it to <value>.

@@ -222,9 +222,6 @@ contains
    end subroutine test_critical
 
 
-! Note there are no cases wher logger%critical(...) will not emit, so we cannot
-! test for an even higher severity.
-
    @test
    subroutine test_removeHandler_missing(this)
       class (Test_Logger), intent(inout) :: this
@@ -240,6 +237,51 @@ contains
       @assertExceptionRaised('Logger%removeHandler() called - logger has no such handler.')
 
    end subroutine test_removeHandler_missing
+
+
+   @test
+   subroutine test_removeHandler_present(this)
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler) :: handler
+      type (MockBuffer) :: buffer
+
+      lgr = Logger('A')
+      handler = MockHandler(buffer, level=DEBUG)
+      call lgr%addHandler(handler)
+      call lgr%removeHandler(handler)
+      
+      ! no exception should have been thrown
+   end subroutine test_removeHandler_present
+
+
+   @test
+   subroutine test_removeHandler_remove1st(this)
+      use FTL_AbstracthandlerPolyWrap_mod
+      use FTL_AbstracthandlerPolyWrapVector_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler) :: handler
+      type (MockBuffer) :: bufferA
+      type (MockBuffer) :: bufferB
+
+      lgr = Logger('A')
+      handler = MockHandler(bufferA, level=DEBUG)
+      call lgr%addHandler(handler)
+      handler = MockHandler(bufferB, level=INFO)
+      call lgr%addHandler(handler)
+      handler = MockHandler(bufferA, level=DEBUG)
+      call lgr%removeHandler(handler)
+
+
+      call lgr%info('Hello')
+      @assertEqual('INFO: Hello', bufferB%buffer)
+      @assertTrue(.not. allocated(bufferA%buffer))
+
+   end subroutine test_removeHandler_remove1st
+
 
 end module Test_Logger_mod
 
