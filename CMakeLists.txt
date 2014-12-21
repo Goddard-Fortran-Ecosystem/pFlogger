@@ -16,6 +16,18 @@ include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 
+if ( DEFINED ENV{PFUNIT} )
+#    message( FATAL_ERROR "You can not do this at all, CMake will exit." $ENV{PFUNIT} )
+    OPTION(PFUNIT "Use PFUNIT for development" YES)
+else ()
+    OPTION(PFUNIT "Use PFUNIT for development" NO)
+endif ()
+
+if ( PFUNIT )
+    add_definitions(-DUSE_PFUNIT)
+endif()
+
+option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
 option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
 
 # Default is to build in SERIAL(MPI=NO)
