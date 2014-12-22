@@ -11,6 +11,10 @@ module ASTG_Filter_mod
       character(len=:), allocatable :: name
    contains
       procedure :: filter => filter_ ! name conflict
+      procedure :: equal
+      generic :: operator(==) => equal
+      procedure :: notEqual
+      generic :: operator(/=) => notEqual
    end type Filter
 
    interface Filter
@@ -42,5 +46,22 @@ contains
       end if
 
    end function filter_
+
+   logical function equal(a, b)
+      class(Filter), intent(in) :: a
+      class(Filter), intent(in) :: b
+
+      equal = (a%name == b%name)
+
+   end function equal
+
+
+   logical function notEqual(a, b)
+      class(Filter), intent(in) :: a
+      class(Filter), intent(in) :: b
+
+      notEqual = .not. (a == b)
+
+   end function notEqual
 
 end module ASTG_Filter_mod

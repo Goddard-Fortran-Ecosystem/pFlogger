@@ -44,6 +44,30 @@ contains
       record = LogRecord('A', INFO, 'some message')
       @assertFalse(f%filter(record))
       
+
    end subroutine test_defaultFilterPartialMatch
+
+   @test
+   subroutine test_equal_same()
+      type (Filter) :: f
+
+      f = Filter('A')
+      @assertEqualUserDefined(f,f)
+      @assertFalse(f /= f)
+
+   end subroutine test_equal_same
+
+
+   @test
+   subroutine test_equal_different()
+      type (Filter) :: fa, fb
+
+      fa = Filter('A')
+      fb = Filter('B')
+      @assertFalse(fa == fb)
+      @assertTrue(fa /= fb)
+
+   end subroutine test_equal_different
+
 
 end module Test_Filter_mod
