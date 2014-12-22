@@ -282,5 +282,30 @@ contains
    end subroutine test_removeHandler_remove1st
 
 
+   @test
+   subroutine test_addHandler_noDups(this)
+      use FTL_AbstracthandlerPolyWrap_mod
+      use FTL_AbstracthandlerPolyWrapVector_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger), target :: lgr
+      type (MockBuffer), target :: bufA
+      type (MockBuffer), target :: bufB
+      type (AbstractHandlerPolyWrapVector), pointer :: handlers
+
+      lgr = Logger('A')
+
+      call lgr%addHandler(MockHandler(bufA))
+      call lgr%addHandler(MockHandler(bufB))
+
+      ! Duplicate - do not add.
+      call lgr%addHandler(MockHandler(bufA))
+
+      handlers => lgr%getHandlers()
+      @assertEqual(2, handlers%size())
+
+   end subroutine test_addHandler_noDups
+
+
 end module Test_Logger_mod
 

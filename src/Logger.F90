@@ -82,6 +82,18 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
       
+      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+
+
+      iter = this%handlers%begin()
+      do while (iter /= this%handlers%end())
+         if (handler == iter%get_alt()) then
+            ! duplicate - nothing to do
+            return
+         end if
+         call iter%next()
+      end do
+
       call this%handlers%push_back(AbstractHandlerPolyWrap(handler))
       
    end subroutine addHandler
