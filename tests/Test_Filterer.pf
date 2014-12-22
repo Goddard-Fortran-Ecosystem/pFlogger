@@ -64,6 +64,7 @@ contains
 
    end subroutine test_filterCombo
 
+
    @test
    subroutine test_filterComboB()
       type (Filterer) :: f
@@ -81,5 +82,63 @@ contains
 
    end subroutine test_filterComboB
 
+
+   @test
+   subroutine test_removeFilter_absent()
+      type (Filterer) :: f
+
+      f = Filterer()
+
+      call f%removeFilter(Filter('A'))
+      @assertExceptionRaised('Filterer::removeFilter() - no such filter.')
+
+      call f%addFilter(Filter('A'))
+
+      call f%removeFilter(Filter('B'))
+      @assertExceptionRaised('Filterer::removeFilter() - no such filter.')
+
+
+   end subroutine test_removeFilter_absent
+
+
+   @test
+   subroutine test_removeFilter_simple()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+      call f%removeFilter(Filter('A'))
+
+      ! no filters left
+      record = LogRecord('A', INFO, 'message')
+      @assertTrue(f%filter(record))
+
+      record = LogRecord('B', INFO, 'message')
+      @assertTrue(f%filter(record))
+
+   end subroutine test_removeFilter_simple
+   
+
+   @test
+   subroutine test_removeFilter_nontrivial()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%addFilter(Filter('A'))
+      call f%addFilter(Filter('B'))
+
+      call f%removeFilter(Filter('A'))
+      
+      ! only 'B' left
+      record = LogRecord('A', INFO, 'message')
+      @assertFalse(f%filter(record))
+
+      record = LogRecord('B', INFO, 'message')
+      @assertTrue(f%filter(record))
+
+   end subroutine test_removeFilter_nontrivial
+   
 
 end module Test_Filterer_mod

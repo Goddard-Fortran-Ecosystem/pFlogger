@@ -14,6 +14,7 @@ module ASTG_Filterer_mod
    contains
       procedure :: addFilter
       procedure :: filter => filter_ ! avoid name conflict with class Filter.
+      procedure :: removeFilter
    end type Filterer
 
 
@@ -59,5 +60,29 @@ contains
       end do
 
    end function filter_
+
+
+   subroutine removeFilter(this, f)
+      use ASTG_Exception_mod
+      class(Filterer), intent(inout) :: this
+      class (Filter), intent(in) :: f
+
+      type (FilterPolyWrapVectorIterator) :: iter
+      class (Filter), pointer :: fPtr
+
+      iter = this%filters%begin()
+      do while (iter /= this%filters%end())
+         if (f == iter%get_alt()) then
+            iter = this%filters%erase(iter)
+            return
+         end if
+         call iter%next()
+      end do
+      
+      ! Only can get here if handler not found
+      call throw('Filterer::removeFilter() - no such filter.')
+
+   end subroutine removeFilter
+
 
 end module ASTG_Filterer_mod
