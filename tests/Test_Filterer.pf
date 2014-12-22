@@ -141,4 +141,26 @@ contains
    end subroutine test_removeFilter_nontrivial
    
 
+   @test
+   subroutine test_addFilter_noDups()
+      use FTL_FilterPolyWrap_mod
+      use FTL_FilterPolyWrapVector_mod
+
+      type (Filterer), target :: f
+      type (FilterPolyWrapVector), pointer :: filters
+
+      f = Filterer()
+
+      call f%addFilter(Filter('A'))
+      call f%addFilter(Filter('B'))
+
+      ! Duplicate - do not add.
+      call f%addFilter(Filter('A'))
+
+      filters => f%getFilters()
+      @assertEqual(2, filters%size())
+
+   end subroutine test_addFilter_noDups
+
+
 end module Test_Filterer_mod
