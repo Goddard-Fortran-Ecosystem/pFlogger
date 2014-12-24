@@ -27,6 +27,7 @@ module ASTG_Logger_mod
       type (AbstractHandlerPolyWrapVector) :: handlers
    contains
 
+      procedure :: setName
       procedure :: getName
       procedure :: setParent
       procedure :: getParent
@@ -58,6 +59,7 @@ contains
 
       integer :: level_
 
+      call alog%setName(name)
       aLog%name = name
 
       level_ = INFO_LEVEL
@@ -69,6 +71,15 @@ contains
 !!$      call alog%addHandler(StreamHandler())
       
    end function newLogger
+
+
+   subroutine setName(this, name)
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: name
+
+      this%name = name
+
+   end subroutine setName
 
 
    function getName(this) result(name)

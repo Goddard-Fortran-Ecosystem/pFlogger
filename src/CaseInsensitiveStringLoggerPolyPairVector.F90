@@ -1,26 +1,22 @@
 
-module FTL_CaseInsensitiveStringLoggerPairVectorVector_mod
-      use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVector
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVectorIterator
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVectorReverseIterator
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: swap 
-
+module FTL_CaseInsensitiveStringLoggerPolyPairVector_mod
+      use FTL_CaseInsensitiveStringLoggerPolyPair_mod, only: CaseInsensitiveStringLoggerPolyPair
       
    implicit none
    private
 
-   public :: CaseInsensitiveStringLoggerPairVectorVector
-   public :: CaseInsensitiveStringLoggerPairVectorVectorIterator
-   public :: CaseInsensitiveStringLoggerPairVectorVectorReverseIterator
+   public :: CaseInsensitiveStringLoggerPolyPairVector
+   public :: CaseInsensitiveStringLoggerPolyPairVectorIterator
+   public :: CaseInsensitiveStringLoggerPolyPairVectorReverseIterator
    ! external functions
    public :: swap
 
 
    integer, parameter :: UNINITIALIZED = -1
-   type :: CaseInsensitiveStringLoggerPairVectorVector
+   type :: CaseInsensitiveStringLoggerPolyPairVector
       private
       
-      type(CaseInsensitiveStringLoggerPairVector), allocatable :: elements(:)
+      type(CaseInsensitiveStringLoggerPolyPair), allocatable :: elements(:)
       integer :: numElements = 0
 
    contains
@@ -58,10 +54,10 @@ module FTL_CaseInsensitiveStringLoggerPairVectorVector_mod
       procedure :: rBegin
       procedure :: rEnd
 
-   end type CaseInsensitiveStringLoggerPairVectorVector
+   end type CaseInsensitiveStringLoggerPolyPairVector
 
-   type CaseInsensitiveStringLoggerPairVectorVectorIterator
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: elements(:) => null()
+   type CaseInsensitiveStringLoggerPolyPairVectorIterator
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get
@@ -89,10 +85,10 @@ module FTL_CaseInsensitiveStringLoggerPairVectorVector_mod
       procedure :: add
       generic :: operator(+) => add
 
-   end type CaseInsensitiveStringLoggerPairVectorVectorIterator
+   end type CaseInsensitiveStringLoggerPolyPairVectorIterator
 
-   type CaseInsensitiveStringLoggerPairVectorVectorReverseIterator
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: elements(:) => null()
+   type CaseInsensitiveStringLoggerPolyPairVectorReverseIterator
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get => getRIter
@@ -116,12 +112,12 @@ module FTL_CaseInsensitiveStringLoggerPairVectorVector_mod
       generic :: operator(<=) => rLessThanOrEqualIter
       generic :: operator(>) => rGreaterThanIter
       generic :: operator(>=) => rGreaterThanOrEqualIter
-   end type CaseInsensitiveStringLoggerPairVectorVectorReverseIterator
+   end type CaseInsensitiveStringLoggerPolyPairVectorReverseIterator
 
 
-   interface CaseInsensitiveStringLoggerPairVectorVector
+   interface CaseInsensitiveStringLoggerPolyPairVector
       module procedure constructor_empty
-   end interface CaseInsensitiveStringLoggerPairVectorVector
+   end interface CaseInsensitiveStringLoggerPolyPairVector
 
 
    interface swap
@@ -135,7 +131,7 @@ contains
    ! Returns an empty array.   Note that reserve() may 
    ! preallocate some memory even for an empty Vector.
    function constructor_empty() result(v)
-      type (CaseInsensitiveStringLoggerPairVectorVector) :: v
+      type (CaseInsensitiveStringLoggerPolyPairVector) :: v
 
       call v%reserve(0)
       v%numElements = 0
@@ -146,8 +142,8 @@ contains
 ! Create a Vector by copying from another
 !----------------------------------------------
    subroutine copyVector(this, other)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVector), intent(in) :: other
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVector), intent(in) :: other
 
       integer :: i, n
 
@@ -166,8 +162,8 @@ contains
 ! Create a Vector from a standard Fortran array.
 !----------------------------------------------
    subroutine copyFromArray(this, array)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
-      type(CaseInsensitiveStringLoggerPairVector), intent(in) :: array(:)
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
+      type(CaseInsensitiveStringLoggerPolyPair), intent(in) :: array(:)
 
       integer :: i, n
 
@@ -187,7 +183,7 @@ contains
 ! Note that the internal array may be larger. (See reserve().)
 !----------------------------------------------
    integer function getSize(this) 
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(in) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(in) :: this
       getSize = this%numElements
    end function getSize
 
@@ -197,7 +193,7 @@ contains
 ! Note this is different than the size of the Vector.
 !----------------------------------------------
    integer function capacity(this) 
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(in) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(in) :: this
       capacity = size(this%elements)
    end function capacity
 
@@ -206,7 +202,7 @@ contains
 ! Return true if vector is currently size 0.
 !----------------------------------------------
    logical function empty(this)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(in) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(in) :: this
       empty = (this%numElements == 0)
    end function empty
 
@@ -214,9 +210,9 @@ contains
 ! Return _reference_ to the ith element of Vector.
 !---------------------------------------------------
    function at(this, i) result(ptr)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
       integer, intent(in) :: i
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
 
       ptr => this%elements(i)
 
@@ -226,8 +222,8 @@ contains
 ! Return reference to 1st element of vector.
 !---------------------------------------------------
    function front(this) result(ptr)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
 
       ptr => this%elements(1)
 
@@ -238,8 +234,8 @@ contains
 ! Return reference to last element of vector
 !---------------------------------------------------
    function back(this) result(ptr)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
 
       ptr => this%elements(this%numElements)
 
@@ -252,8 +248,8 @@ contains
 ! Return a reference  to the active portion of the internal array.
 !-----------------------------------------------------------------
    function data(this) result(d)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target :: this
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: d(:)
+      class (CaseInsensitiveStringLoggerPolyPairVector), target :: this
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: d(:)
 
       d => this%elements(1:this%numElements)
 
@@ -266,10 +262,10 @@ contains
 ! of active elements.
 !---------------------------------------------------
    subroutine reserve(this, n)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
       integer, intent(in) :: n
 
-      type(CaseInsensitiveStringLoggerPairVector), allocatable :: tmp(:)
+      type(CaseInsensitiveStringLoggerPolyPair), allocatable :: tmp(:)
       integer :: i, nOld
 
       if (.not. allocated(this%elements)) then
@@ -296,9 +292,9 @@ contains
 ! size, elements are effectively lost.
 !---------------------------------------------------
    subroutine resize(this, n, value)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
       integer, intent(in) :: n
-      type(CaseInsensitiveStringLoggerPairVector), optional, intent(in) :: value
+      type(CaseInsensitiveStringLoggerPolyPair), optional, intent(in) :: value
 
       integer :: i
       integer :: nOld
@@ -336,7 +332,7 @@ contains
 !  storage may not be released.
 !---------------------------------------------------
    subroutine clear(this)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
       call this%resize(0)
    end subroutine clear
 
@@ -346,8 +342,8 @@ contains
 !  Extend vector by one element and set it to <value>.
 !---------------------------------------------------
    subroutine push_back_T(this, value)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
-      type(CaseInsensitiveStringLoggerPairVector), intent(in) :: value
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
+      type(CaseInsensitiveStringLoggerPolyPair), intent(in) :: value
 
       integer :: n
 
@@ -364,7 +360,7 @@ contains
 ! Shrink vector by one element from the end.
 !---------------------------------------------------
    subroutine pop_back(this)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
 
       integer :: n
 
@@ -382,9 +378,9 @@ contains
 !  Insert <value> at position i.  Extends vector by one element.
 !---------------------------------------------------
    subroutine insert_T(this, i, value)
-      class (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
+      class (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
       integer, intent(in) :: i
-      type(CaseInsensitiveStringLoggerPairVector), intent(in) :: value
+      type(CaseInsensitiveStringLoggerPolyPair), intent(in) :: value
 
       integer :: j, n
 
@@ -402,11 +398,11 @@ contains
    end subroutine insert_T
 
    function erase(this, position) result(iter)
-      type (CaseInsensitiveStringLoggerPairVectorVectorIterator) :: iter
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(inout) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: position
+      type (CaseInsensitiveStringLoggerPolyPairVectorIterator) :: iter
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(inout) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: position
 
-      type(CaseInsensitiveStringLoggerPairVector), pointer :: p, q
+      type(CaseInsensitiveStringLoggerPolyPair), pointer :: p, q
       
       if (position == this%end()) return
 
@@ -435,10 +431,10 @@ contains
 ! Swap contents of two vectors.
 !---------------------------------------------------
    subroutine swapVector(this, a)
-      type (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVector), intent(inout) :: a
+      type (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVector), intent(inout) :: a
 
-      type(CaseInsensitiveStringLoggerPairVector), allocatable :: tmp(:)
+      type(CaseInsensitiveStringLoggerPolyPair), allocatable :: tmp(:)
       integer :: nTmp
 
       ! swap elements
@@ -459,8 +455,8 @@ contains
 !  element of vector.
 !------------------------------------------------------
    function begin(this) result(iter)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVectorIterator) :: iter
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVectorIterator) :: iter
       
       iter%elements => this%elements
       iter%index = 1
@@ -473,8 +469,8 @@ contains
 !  after last element of vector.
 !------------------------------------------------------
    function end(this) result(iter)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVectorIterator) :: iter
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVectorIterator) :: iter
       
       iter%elements => this%elements
       iter%index = this%size() + 1 ! past the end
@@ -487,8 +483,8 @@ contains
 !  element of vector.
 !------------------------------------------------------
    function rbegin(this) result(iter)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator) :: iter
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator) :: iter
       
       iter%elements => this%elements
       iter%index = this%size()
@@ -501,8 +497,8 @@ contains
 !  before 1st element of vector.
 !------------------------------------------------------
    function rend(this) result(iter)
-      class (CaseInsensitiveStringLoggerPairVectorVector), target, intent(in) :: this
-      type (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator) :: iter
+      class (CaseInsensitiveStringLoggerPolyPairVector), target, intent(in) :: this
+      type (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator) :: iter
       
       iter%elements => this%elements
       iter%index = 0
@@ -515,8 +511,8 @@ contains
 ! Dereference iterator.
 !-----------------------------------------------------
       function get(this) result(ptr)
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
 
@@ -526,20 +522,20 @@ contains
 
 
       subroutine next(this)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(inout) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(inout) :: this
          this%index = this%index + 1
       end subroutine next
 
 
       subroutine previous(this)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(inout) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(inout) :: this
          this%index = this%index - 1
       end subroutine previous
 
 
       logical function equalIters(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
 
          equalIters = (this%index == other%index)
          
@@ -547,8 +543,8 @@ contains
 
 
       logical function notEqualIters(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
 
          notEqualIters = .not. (this == other)
          
@@ -558,33 +554,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function lessThanIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
          lessThanIter = (this%index < other%index)
       end function lessThanIter
 
       logical function lessThanOrEqualIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
          lessThanOrEqualIter = (this%index <= other%index)
       end function lessThanOrEqualIter
 
       logical function greaterThanIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
          greaterThanIter = (this%index > other%index)
       end function greaterThanIter
 
       logical function greaterThanOrEqualIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: other
          greaterThanOrEqualIter = (this%index >= other%index)
       end function greaterThanOrEqualIter
 
 
       function atDefault(this) result(ptr)
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -592,8 +588,8 @@ contains
 
 
       function atOffset(this, i) result(ptr)
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index + i)
@@ -601,8 +597,8 @@ contains
       end function atOffset
 
       function add(this, n) result(newIter)
-         type (CaseInsensitiveStringLoggerPairVectorVectorIterator) :: newIter
-         class (CaseInsensitiveStringLoggerPairVectorVectorIterator), intent(in) :: this
+         type (CaseInsensitiveStringLoggerPolyPairVectorIterator) :: newIter
+         class (CaseInsensitiveStringLoggerPolyPairVectorIterator), intent(in) :: this
          integer, intent(in) :: n
 
          newIter%index = this%index + n
@@ -612,8 +608,8 @@ contains
 
       ! Dereference iterator
       function getRIter(this) result(ptr)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
 
          ptr => this%elements(this%index)
 
@@ -623,20 +619,20 @@ contains
 
 
       subroutine rNext(this)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(inout) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(inout) :: this
          this%index = this%index - 1
       end subroutine rNext
 
 
       subroutine rPrevious(this)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(inout) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(inout) :: this
          this%index = this%index + 1
       end subroutine rPrevious
 
 
       logical function equalRIters(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
 
          equalRIters = &
               associated(this%elements, other%elements) .and. &
@@ -646,8 +642,8 @@ contains
 
 
       logical function notEqualRIters(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
 
          notEqualRIters = .not. (this == other)
          
@@ -659,33 +655,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function rLessThanIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
          rLessThanIter = (this%index > other%index)
       end function rLessThanIter
 
       logical function rLessThanOrEqualIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
          rLessThanOrEqualIter = (this%index >= other%index)
       end function rLessThanOrEqualIter
 
       logical function rGreaterThanIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
          rGreaterThanIter = (this%index < other%index)
       end function rGreaterThanIter
 
       logical function rGreaterThanOrEqualIter(this, other)
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: other
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: other
          rGreaterThanOrEqualIter = (this%index <= other%index)
       end function rGreaterThanOrEqualIter
 
 
       function rAtDefault(this) result(ptr)
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -693,15 +689,15 @@ contains
 
 
       function rAtOffset(this, i) result(ptr)
-         type(CaseInsensitiveStringLoggerPairVector), pointer :: ptr
-         class (CaseInsensitiveStringLoggerPairVectorVectorReverseIterator), intent(in) :: this
+         type(CaseInsensitiveStringLoggerPolyPair), pointer :: ptr
+         class (CaseInsensitiveStringLoggerPolyPairVectorReverseIterator), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index - i)
          
       end function rAtOffset
 
-end module FTL_CaseInsensitiveStringLoggerPairVectorVector_mod
+end module FTL_CaseInsensitiveStringLoggerPolyPairVector_mod
 
 
 

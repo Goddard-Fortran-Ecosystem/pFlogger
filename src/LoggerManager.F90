@@ -1,7 +1,7 @@
 module ASTG_LoggerManager_mod
    use ASTG_Object_mod
    use ASTG_Logger_mod
-   use FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
+   use FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
    implicit none
    private
 
@@ -9,7 +9,7 @@ module ASTG_LoggerManager_mod
 
    type, extends(Object) :: LoggerManager
       private
-      type (CaseInsensitiveStringLoggerUnorderedMap) :: loggers
+      type (CaseInsensitiveStringLoggerPolyUnorderedMap) :: loggers
    contains
       procedure :: getLogger
       procedure, nopass :: getParentPrefix
@@ -27,7 +27,7 @@ contains
    function newLoggerManager() result(manager)
       type (LoggerManager) :: manager
 
-      manager%loggers = CaseInsensitiveStringLoggerUnorderedMap()
+      manager%loggers = CaseInsensitiveStringLoggerPolyUnorderedMap()
 
    end function newLoggerManager
 
@@ -36,7 +36,7 @@ contains
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
-      type (CaseInsensitiveStringLoggerUnorderedMapIterator) :: iter
+      type (CaseInsensitiveStringLoggerPolyUnorderedMapIterator) :: iter
       character(len=:), allocatable :: parentName
 
       if (this%loggers%count(name) > 0) then

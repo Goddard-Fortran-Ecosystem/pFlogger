@@ -1,24 +1,24 @@
 
 
-#define PAIR  CaseInsensitiveStringLoggerPair
-#define BUCKET  CaseInsensitiveStringLoggerPairVector
-#define BUCKET_VECTOR CaseInsensitiveStringLoggerPairVectorVector
-#define BUCKET_ITERATOR CaseInsensitiveStringLoggerPairVectorIterator
-#define BUCKET_VECTOR_ITERATOR CaseInsensitiveStringLoggerPairVectorVectorIterator
-#define ITERATOR CaseInsensitiveStringLoggerUnorderedMapIterator
-#define UNORDERED_MAP CaseInsensitiveStringLoggerUnorderedMap
+#define PAIR  CaseInsensitiveStringLoggerPolyPair
+#define BUCKET  CaseInsensitiveStringLoggerPolyPairVector
+#define BUCKET_VECTOR CaseInsensitiveStringLoggerPolyPairVectorVector
+#define BUCKET_ITERATOR CaseInsensitiveStringLoggerPolyPairVectorIterator
+#define BUCKET_VECTOR_ITERATOR CaseInsensitiveStringLoggerPolyPairVectorVectorIterator
+#define ITERATOR CaseInsensitiveStringLoggerPolyUnorderedMapIterator
+#define UNORDERED_MAP CaseInsensitiveStringLoggerPolyUnorderedMap
 
-module FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
-   use FTL_CaseInsensitiveStringLoggerPair_mod, only: CaseInsensitiveStringLoggerPair
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVector
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVectorIterator
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: CaseInsensitiveStringLoggerPairVectorReverseIterator
-   use FTL_CaseInsensitiveStringLoggerPairVector_mod, only: swap 
+module FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
+   use FTL_CaseInsensitiveStringLoggerPolyPair_mod, only: CaseInsensitiveStringLoggerPolyPair
+   use FTL_CaseInsensitiveStringLoggerPolyPairVector_mod, only: CaseInsensitiveStringLoggerPolyPairVector
+   use FTL_CaseInsensitiveStringLoggerPolyPairVector_mod, only: CaseInsensitiveStringLoggerPolyPairVectorIterator
+   use FTL_CaseInsensitiveStringLoggerPolyPairVector_mod, only: CaseInsensitiveStringLoggerPolyPairVectorReverseIterator
+   use FTL_CaseInsensitiveStringLoggerPolyPairVector_mod, only: swap 
 
-   use FTL_CaseInsensitiveStringLoggerPairVectorVector_mod, only: CaseInsensitiveStringLoggerPairVectorVector
-   use FTL_CaseInsensitiveStringLoggerPairVectorVector_mod, only: CaseInsensitiveStringLoggerPairVectorVectorIterator
-   use FTL_CaseInsensitiveStringLoggerPairVectorVector_mod, only: CaseInsensitiveStringLoggerPairVectorVectorReverseIterator
-   use FTL_CaseInsensitiveStringLoggerPairVectorVector_mod, only: swap 
+   use FTL_CaseInsensitiveStringLoggerPolyPairVectorVector_mod, only: CaseInsensitiveStringLoggerPolyPairVectorVector
+   use FTL_CaseInsensitiveStringLoggerPolyPairVectorVector_mod, only: CaseInsensitiveStringLoggerPolyPairVectorVectorIterator
+   use FTL_CaseInsensitiveStringLoggerPolyPairVectorVector_mod, only: CaseInsensitiveStringLoggerPolyPairVectorVectorReverseIterator
+   use FTL_CaseInsensitiveStringLoggerPolyPairVectorVector_mod, only: swap 
 
    use FTL_HashFunction_mod
    use FTL_Exception_mod
@@ -34,7 +34,7 @@ module FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
 
    private
 
-   public :: CaseInsensitiveStringLoggerUnorderedMap
+   public :: CaseInsensitiveStringLoggerPolyUnorderedMap
    public :: ITERATOR
    public :: MAX_BUCKET_COUNT
 
@@ -146,7 +146,7 @@ contains
 #endif
 
    integer function size(this)
-      class (CaseInsensitiveStringLoggerUnorderedMap), intent(in) :: this
+      class (CaseInsensitiveStringLoggerPolyUnorderedMap), intent(in) :: this
       
       size = this%size_
    end function size
@@ -204,7 +204,7 @@ contains
       type (ITERATOR) :: iter
       class (UNORDERED_MAP), intent(inout) :: this
       type(CaseInsensitiveString), intent(in) :: key
-      type(Logger), intent(in) :: value
+      class(Logger), intent(in) :: value
 
       ! If implementation is altered to not use insert() directly,
       ! then a check must be added for load factor.
@@ -268,7 +268,7 @@ contains
       type (ITERATOR) :: iter
       class (UNORDERED_MAP), intent(inout) :: this
       character(len=*), intent(in) :: key
-      type(Logger), intent(in) :: value
+      class(Logger), intent(in) :: value
 
       ! If implementation is altered to not use insert() directly,
       ! then a check must be added for load factor.
@@ -295,7 +295,7 @@ contains
 
 
    function at_K(this, key) result(ptr)
-      type(Logger), pointer :: ptr
+      class(Logger), pointer :: ptr
       class (UNORDERED_MAP), intent(in), target :: this
       type(CaseInsensitiveString), intent(in) :: key
 
@@ -352,7 +352,7 @@ contains
 
 
    function at_alt(this, key) result(ptr)
-      type(Logger), pointer :: ptr
+      class(Logger), pointer :: ptr
       class (UNORDERED_MAP), intent(in), target :: this
       character(len=*), intent(in) :: key
 
@@ -513,7 +513,7 @@ contains
 
    function second(this)
       class (ITERATOR), intent(in) :: this
-      type(Logger), pointer :: second
+      class(Logger), pointer :: second
 
       type (PAIR), pointer :: pair
       
@@ -584,4 +584,4 @@ contains
 
    end subroutine next
 
-end module FTL_CaseInsensitiveStringLoggerUnorderedMap_mod
+end module FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
