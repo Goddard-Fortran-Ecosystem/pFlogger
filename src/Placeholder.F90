@@ -1,12 +1,12 @@
 module ASTG_Placeholder_mod
    use FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
-   use ASTG_Logger_mod
+   use ASTG_AbstractLogger_mod
    implicit none
    private
 
    public :: Placeholder
 
-   type, extends(Logger) :: Placeholder
+   type, extends(AbstractLogger) :: Placeholder
       private
       type (CaseInsensitiveStringLoggerPolyUnorderedMap) :: children
    contains

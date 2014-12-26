@@ -29,7 +29,6 @@ module ASTG_Logger_mod
 
       procedure :: setName
       procedure :: getName
-      procedure :: setParent
       procedure :: getParent
       procedure :: log
       procedure :: debug

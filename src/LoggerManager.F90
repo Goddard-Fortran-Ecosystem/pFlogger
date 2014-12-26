@@ -1,6 +1,6 @@
 module ASTG_LoggerManager_mod
    use ASTG_Object_mod
-   use ASTG_Logger_mod
+   use ASTG_AbstractLogger_mod
    use FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
    implicit none
    private
@@ -31,25 +31,25 @@ contains
 
    end function newLoggerManager
 
-   function getLogger(this, name) result(lgr)
+   function getLogger(this, name) result(logger)
       use FTL_CaseInsensitiveString_mod
-      class (Logger), pointer :: lgr
+      class (AbstractLogger), pointer :: logger
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
       type (CaseInsensitiveStringLoggerPolyUnorderedMapIterator) :: iter
       character(len=:), allocatable :: parentName
 
       if (this%loggers%count(name) > 0) then
-         lgr => this%loggers%at(name)
+         logger => this%loggers%at(name)
          return
       end if
 
       iter = this%loggers%emplace(name, Logger(name))
       parentName = this%getParentPrefix(name)
 
-      lgr => this%loggers%at(name)
+      logger => this%loggers%at(name)
       if (parentName /= '') then ! should exist !
-         call lgr%setParent(this%loggers%at(parentName))
+         call logger%setParent(this%loggers%at(parentName))
       end if
 
    end function getLogger
