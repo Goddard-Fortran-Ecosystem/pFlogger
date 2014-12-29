@@ -173,7 +173,11 @@ contains
          inquire(FILE=this%getFileName(), EXIST=is)
          if (is) then ! rename file
             cmd = 'mv '//this%getFileName()//' '//this%getFileName()//'.'//trim(suffix)
+#ifdef INTEL_14
+            call system(cmd)
+#else
             call execute_command_line(cmd)
+#endif
          end if
          if (.not. this%isOpen()) call this%open()
        end if
