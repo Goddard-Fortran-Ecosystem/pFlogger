@@ -25,6 +25,7 @@ contains
       
    end subroutine test_getLogger
 
+   
    @test
    subroutine test_getParentPrefix()
       type (LoggerManager) :: manager
@@ -35,6 +36,7 @@ contains
 
    end subroutine test_getParentPrefix
 
+   
    @test
    subroutine test_parentage()
       type (LoggerManager) :: manager
@@ -47,7 +49,7 @@ contains
       loggerB => manager%getLogger('A.B')
       parentOfB => loggerB%getParent()
       
-      @assertAssociatedWith(loggerA, parentOfB)
+      !@assertAssociatedWith(loggerA, parentOfB)
       select type (parentOfB)
       class is (Logger)
          @assertEqual('A', parentOfB%getName())
