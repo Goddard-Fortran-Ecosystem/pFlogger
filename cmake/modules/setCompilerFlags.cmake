@@ -1,4 +1,4 @@
-if (MPI MATCHES YES)
+if(MPI MATCHES YES)
    # Add CPP flags for MPI=YES
    add_definitions(-DUSE_MPI)
    find_package(MPI REQUIRED)
@@ -25,36 +25,22 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 # Intel compiler flags
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 
-   if (CMAKE_SYSTEM_NAME MATCHES Linux)
-      set (CPPFLAGS 
-         "${CPPFLAGS}"
-      )
-   else()
-      set (CPPFLAGS 
-         "${CPPFLAGS}"
-      )
+   exec_program(ifort ARGS "--version" OUTPUT_VARIABLE ver)
+   string(REGEX REPLACE "^.*[ ]([0-9]+)\\.[0-9].*$" "\\1" IFORT_MAJOR "${ver}")
+   
+   if (${IFORT_MAJOR} MATCHES 14)
+      set(CPPFLAGS "${CPPFLAGS} -DINTEL_14")
    endif()
-
 
    set(F90FLAGS 
-      "${CPPFLAGS} ${FFLAGS_RELEASE} -g -O2 -free -assume realloc_lhs -stand f08"
+      "${CPPFLAGS} ${FFLAGS_RELEASE} -free -assume realloc_lhs -stand f08 -g -O2"
    )
 
-   if (COMPILE_WITH_DEBUG MATCHES YES)
-      set(FFLAGS 
-         "${FFLAGS} -g -O0 -traceback -assume realloc_lhs -stand f08"
-      )
+   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
       set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -traceback -assume realloc_lhs -stand f08"
+         "${F90FLAGS} -O0 -traceback"
       )
    endif()
-
-   if (WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "-g -O0 -traceback -assume realloc_lhs -stand f08"
-      )
-   endif()
-
 
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
@@ -65,22 +51,13 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
       set (CPPFLAGS "${CPPFLAGS}")
    endif()
 
-   # Base flags
    set(F90FLAGS 
       "${CPPFLAGS} -cpp -O2 -ffree-line-length-none"
    )
-   if (COMPILE_WITH_DEBUG MATCHES YES)
-      set(FFLAGS 
-         "${FFLAGS} -g -O0 -fbacktrace"
-      )
-      set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -fbacktrace"
-      )
-   endif()
 
-   if (WITH_PFUNIT MATCHES YES)
+   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
       set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -fbacktrace"
+         "${F90FLAGS} -O0 -fbacktrace"
       )
    endif()
 
