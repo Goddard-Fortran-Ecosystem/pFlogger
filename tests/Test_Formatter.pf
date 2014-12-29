@@ -34,7 +34,7 @@ contains
 @Test
    subroutine test_string(this)
       class (Test_Formatter), intent(inout) :: this
-      
+            
       this%f = Formatter('')
       @assertEqual('Hello', this%f%toString('Hello'))
       
@@ -89,7 +89,7 @@ contains
    end subroutine test_cmp32
 
    
-   @test
+@Test
    subroutine test_toString_unsupported(this)
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
@@ -107,8 +107,7 @@ contains
    end subroutine test_toString_unsupported
 
 
-
-   @test
+@Test
    subroutine test_format(this)
       use ASTG_SeverityLevels_mod, only: INFO
       class (Test_Formatter), intent(inout) :: this      

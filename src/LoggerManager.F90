@@ -1,3 +1,4 @@
+! A manager instance that holds the hierarchy of loggers.
 module ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
@@ -26,6 +27,7 @@ module ASTG_LoggerManager_mod
 contains
 
 
+   ! Initialize with the root node of the logger hierarchy.
    function newLoggerManager() result(manager)
       type (LoggerManager) :: manager
 
@@ -33,6 +35,9 @@ contains
 
    end function newLoggerManager
 
+
+   ! Get a logger with the specified 'name'. Note that 'name' is a
+   ! dot-separated hierarchical name such as 'A', 'A.B','A.B.C', etc 
    function getLogger(this, name) result(lgr)
       use FTL_CIString_mod
       class (Logger), pointer :: lgr

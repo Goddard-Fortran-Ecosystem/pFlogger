@@ -1,3 +1,6 @@
+! Perform arbitrary filtering of LogRecords.
+! Filter class only allows records which are below a certain point in the
+! logger hierarchy. 
 module ASTG_Filter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
@@ -25,13 +28,15 @@ module ASTG_Filter_mod
 contains
 
 
+   ! Initialize filter with the name of the Logger
    function newFilter(name) result(f)
       type (Filter) :: f
       character(len=*), intent(in) :: name
       f%name = name
    end function newFilter
 
-
+   
+   ! Determine if LogRecord can be logged
    logical function filter_(this, record)
       class (Filter), intent(in) :: this
       class (LogRecord), intent(inout) :: record

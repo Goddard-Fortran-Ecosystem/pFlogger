@@ -76,6 +76,7 @@ contains
          str = toString(arg)
 
       type is (character(len=*))
+         print *,'OK arg is <',arg,'>'      
          str = toString(arg)
 
       type is (logical)

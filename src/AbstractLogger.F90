@@ -1,3 +1,4 @@
+! Abstract class for Logger.
 module ASTG_AbstractLogger_mod
    use ASTG_Filterer_mod
    implicit none
@@ -25,6 +26,7 @@ contains
 
    end subroutine setParent
 
+   
    function getParent(this) result(parent)
       class (AbstractLogger), pointer :: parent
       class (AbstractLogger), intent(in) :: this

@@ -1,3 +1,6 @@
+! A base class for loggers and handlers. A filterer uses filters.
+! Main funtion is called filter which determines if a LogRecord
+! is loggable. Thus, this class could be called filterable.
 module ASTG_Filterer_mod
    use ASTG_Object_mod
    use ASTG_Filter_mod
@@ -27,12 +30,14 @@ module ASTG_Filterer_mod
 contains
 
 
+   ! Initializes list of filters to an empty list
    function newFilterer() result(f)
       type (Filterer) :: f
       f%filters = FilterPolyWrapVec()
    end function newFilterer
 
-
+   
+   ! Add a filter to 'this' handler
    subroutine addFilter(this, fltr)
       class (Filterer), intent(inout) :: this
       class (Filter), intent(in) :: fltr
@@ -52,6 +57,8 @@ contains
 
    end subroutine addFilter
 
+
+   ! Filter a LogRecord
    logical function filter_(this, record)
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record

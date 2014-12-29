@@ -1,3 +1,5 @@
+! Instances of this class are used to take the place of 'nodes' for which
+! no logger has been defined.
 module ASTG_Placeholder_mod
    use FTL_CIStringAbstractLoggerPolyUMap_mod
    use ASTG_AbstractLogger_mod
@@ -29,6 +31,7 @@ contains
    end function newPlaceholder
 
 
+   ! Add specified logger as a child of this placeholder
    subroutine addChild(this, child)
       class (Placeholder), intent(inout) :: this
       class (AbstractLogger), intent(in) :: child
