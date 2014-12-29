@@ -36,8 +36,15 @@ list(APPEND SRCS RootLogger.F90)
 list(APPEND SRCS Placeholder.F90)
 list(APPEND SRCS LoggerManager.F90)
 
+message("F90FLAGS ${F90FLAGS}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/FTL)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/FTL)
+
+set_source_files_properties(
+   ${SRCS}
+   PROPERTIES COMPILE_FLAGS 
+   "${CMAKE_Fortran_FLAGS} ${F90FLAGS}"
+)
 
 add_library(${THIS} STATIC ${SRCS})
 target_link_libraries(${THIS} ftl)
