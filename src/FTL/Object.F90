@@ -16,7 +16,7 @@ module FTL_Object_mod
 
    abstract interface
 
-      function toString(this) result(string)
+      pure function toString(this) result(string)
          import Object
          class (Object), intent(in) :: this
          character(:), allocatable :: string
