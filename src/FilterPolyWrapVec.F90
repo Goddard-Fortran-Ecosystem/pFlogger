@@ -7,8 +7,8 @@ module FTL_FilterPolyWrapVec_mod
    private
 
    public :: FilterPolyWrapVec
-   public :: FilterPolyWrapVecIterator
-   public :: FilterPolyWrapVecReverseIterator
+   public :: FilterPolyWrapVecIter
+   public :: FilterPolyWrapVecReverseIter
    ! external functions
    public :: swap
 
@@ -67,7 +67,7 @@ module FTL_FilterPolyWrapVec_mod
 
    end type FilterPolyWrapVec
 
-   type FilterPolyWrapVecIterator
+   type FilterPolyWrapVecIter
       type(FilterPolyWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
@@ -97,9 +97,9 @@ module FTL_FilterPolyWrapVec_mod
       procedure :: add
       generic :: operator(+) => add
 
-   end type FilterPolyWrapVecIterator
+   end type FilterPolyWrapVecIter
 
-   type FilterPolyWrapVecReverseIterator
+   type FilterPolyWrapVecReverseIter
       type(FilterPolyWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
@@ -125,7 +125,7 @@ module FTL_FilterPolyWrapVec_mod
       generic :: operator(<=) => rLessThanOrEqualIter
       generic :: operator(>) => rGreaterThanIter
       generic :: operator(>=) => rGreaterThanOrEqualIter
-   end type FilterPolyWrapVecReverseIterator
+   end type FilterPolyWrapVecReverseIter
 
 
    interface FilterPolyWrapVec
@@ -457,9 +457,9 @@ contains
    end subroutine insert_T
 
    function erase(this, position) result(iter)
-      type (FilterPolyWrapVecIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
       class (FilterPolyWrapVec), target, intent(inout) :: this
-      type (FilterPolyWrapVecIterator), intent(in) :: position
+      type (FilterPolyWrapVecIter), intent(in) :: position
 
       type(FilterPolyWrap), pointer :: p, q
       
@@ -537,7 +537,7 @@ contains
 !------------------------------------------------------
    function begin(this) result(iter)
       class (FilterPolyWrapVec), target, intent(in) :: this
-      type (FilterPolyWrapVecIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = 1
@@ -551,7 +551,7 @@ contains
 !------------------------------------------------------
    function end(this) result(iter)
       class (FilterPolyWrapVec), target, intent(in) :: this
-      type (FilterPolyWrapVecIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size() + 1 ! past the end
@@ -565,7 +565,7 @@ contains
 !------------------------------------------------------
    function rbegin(this) result(iter)
       class (FilterPolyWrapVec), target, intent(in) :: this
-      type (FilterPolyWrapVecReverseIterator) :: iter
+      type (FilterPolyWrapVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size()
@@ -579,7 +579,7 @@ contains
 !------------------------------------------------------
    function rend(this) result(iter)
       class (FilterPolyWrapVec), target, intent(in) :: this
-      type (FilterPolyWrapVecReverseIterator) :: iter
+      type (FilterPolyWrapVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = 0
@@ -593,7 +593,7 @@ contains
 !-----------------------------------------------------
       function get(this) result(ptr)
          type(FilterPolyWrap), pointer :: ptr
-         class (FilterPolyWrapVecIterator), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
 
@@ -601,7 +601,7 @@ contains
       
       function get_alt(this) result(ptr)
          class(Filter), pointer :: ptr
-         class (FilterPolyWrapVecIterator), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)%get()
 
@@ -610,20 +610,20 @@ contains
 
 
       subroutine next(this)
-         class (FilterPolyWrapVecIterator), intent(inout) :: this
+         class (FilterPolyWrapVecIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine next
 
 
       subroutine previous(this)
-         class (FilterPolyWrapVecIterator), intent(inout) :: this
+         class (FilterPolyWrapVecIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine previous
 
 
       logical function equalIters(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
 
          equalIters = (this%index == other%index)
          
@@ -631,8 +631,8 @@ contains
 
 
       logical function notEqualIters(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
 
          notEqualIters = .not. (this == other)
          
@@ -642,33 +642,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function lessThanIter(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
          lessThanIter = (this%index < other%index)
       end function lessThanIter
 
       logical function lessThanOrEqualIter(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
          lessThanOrEqualIter = (this%index <= other%index)
       end function lessThanOrEqualIter
 
       logical function greaterThanIter(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
          greaterThanIter = (this%index > other%index)
       end function greaterThanIter
 
       logical function greaterThanOrEqualIter(this, other)
-         class (FilterPolyWrapVecIterator), intent(in) :: this
-         class (FilterPolyWrapVecIterator), intent(in) :: other
+         class (FilterPolyWrapVecIter), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: other
          greaterThanOrEqualIter = (this%index >= other%index)
       end function greaterThanOrEqualIter
 
 
       function atDefault(this) result(ptr)
          type(FilterPolyWrap), pointer :: ptr
-         class (FilterPolyWrapVecIterator), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -677,7 +677,7 @@ contains
 
       function atOffset(this, i) result(ptr)
          type(FilterPolyWrap), pointer :: ptr
-         class (FilterPolyWrapVecIterator), intent(in) :: this
+         class (FilterPolyWrapVecIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index + i)
@@ -685,8 +685,8 @@ contains
       end function atOffset
 
       function add(this, n) result(newIter)
-         type (FilterPolyWrapVecIterator) :: newIter
-         class (FilterPolyWrapVecIterator), intent(in) :: this
+         type (FilterPolyWrapVecIter) :: newIter
+         class (FilterPolyWrapVecIter), intent(in) :: this
          integer, intent(in) :: n
 
          newIter%index = this%index + n
@@ -696,7 +696,7 @@ contains
 
       ! Dereference iterator
       function getRIter(this) result(ptr)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
          type(FilterPolyWrap), pointer :: ptr
 
          ptr => this%elements(this%index)
@@ -705,7 +705,7 @@ contains
 
       ! Dereference iterator
       function getRIter_alt(this) result(ptr)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
          class(Filter), pointer :: ptr
 
          ptr => this%elements(this%index)%get()
@@ -715,20 +715,20 @@ contains
 
 
       subroutine rNext(this)
-         class (FilterPolyWrapVecReverseIterator), intent(inout) :: this
+         class (FilterPolyWrapVecReverseIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine rNext
 
 
       subroutine rPrevious(this)
-         class (FilterPolyWrapVecReverseIterator), intent(inout) :: this
+         class (FilterPolyWrapVecReverseIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine rPrevious
 
 
       logical function equalRIters(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
 
          equalRIters = &
               associated(this%elements, other%elements) .and. &
@@ -738,8 +738,8 @@ contains
 
 
       logical function notEqualRIters(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
 
          notEqualRIters = .not. (this == other)
          
@@ -751,33 +751,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function rLessThanIter(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
          rLessThanIter = (this%index > other%index)
       end function rLessThanIter
 
       logical function rLessThanOrEqualIter(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
          rLessThanOrEqualIter = (this%index >= other%index)
       end function rLessThanOrEqualIter
 
       logical function rGreaterThanIter(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
          rGreaterThanIter = (this%index < other%index)
       end function rGreaterThanIter
 
       logical function rGreaterThanOrEqualIter(this, other)
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: other
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: other
          rGreaterThanOrEqualIter = (this%index <= other%index)
       end function rGreaterThanOrEqualIter
 
 
       function rAtDefault(this) result(ptr)
          type(FilterPolyWrap), pointer :: ptr
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -786,7 +786,7 @@ contains
 
       function rAtOffset(this, i) result(ptr)
          type(FilterPolyWrap), pointer :: ptr
-         class (FilterPolyWrapVecReverseIterator), intent(in) :: this
+         class (FilterPolyWrapVecReverseIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index - i)

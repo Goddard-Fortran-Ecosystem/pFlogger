@@ -1,6 +1,7 @@
 module Test_LoggerManager_mod
    use pfunit_mod
    use ASTG_LoggerManager_mod 
+   use ASTG_AbstractLogger_mod
    use ASTG_Logger_mod
    implicit none
 
@@ -39,7 +40,7 @@ contains
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
-      class (Logger), pointer :: parentOfB
+      class (AbstractLogger), pointer :: parentOfB
 
       manager = LoggerManager()
       loggerA => manager%getLogger('A')
@@ -47,7 +48,10 @@ contains
       parentOfB => loggerB%getParent()
       
       @assertAssociatedWith(loggerA, parentOfB)
-      @assertEqual('A', parenTOfB%getName())
+      select type (parentOfB)
+      class is (Logger)
+         @assertEqual('A', parentOfB%getName())
+      end select
 
    end subroutine test_parentage
 

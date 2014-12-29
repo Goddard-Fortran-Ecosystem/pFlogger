@@ -1,7 +1,9 @@
 module ASTG_LoggerManager_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
+   use FTL_CIStringAbstractLoggerPolyUMap_mod
+   use ASTG_Logger_mod
    use ASTG_AbstractLogger_mod
-   use FTL_CaseInsensitiveStringLoggerPolyUnorderedMap_mod
    implicit none
    private
 
@@ -9,7 +11,7 @@ module ASTG_LoggerManager_mod
 
    type, extends(Object) :: LoggerManager
       private
-      type (CaseInsensitiveStringLoggerPolyUnorderedMap) :: loggers
+      type (CIStringAbstractLoggerPolyUMap) :: loggers
    contains
       procedure :: getLogger
       procedure, nopass :: getParentPrefix
@@ -27,29 +29,40 @@ contains
    function newLoggerManager() result(manager)
       type (LoggerManager) :: manager
 
-      manager%loggers = CaseInsensitiveStringLoggerPolyUnorderedMap()
+      manager%loggers = CIStringAbstractLoggerPolyUMap()
 
    end function newLoggerManager
 
-   function getLogger(this, name) result(logger)
-      use FTL_CaseInsensitiveString_mod
-      class (AbstractLogger), pointer :: logger
+   function getLogger(this, name) result(lgr)
+      use FTL_CIString_mod
+      class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
-      type (CaseInsensitiveStringLoggerPolyUnorderedMapIterator) :: iter
+      type (CIStringAbstractLoggerPolyUMapIter) :: iter
       character(len=:), allocatable :: parentName
 
+      class (AbstractLogger), pointer :: tmp
+
       if (this%loggers%count(name) > 0) then
-         logger => this%loggers%at(name)
+         tmp => this%loggers%at(name)
+         select type (tmp)
+         class is (Logger)
+            lgr => tmp
+         end select
          return
       end if
 
-      iter = this%loggers%emplace(name, Logger(name))
+      iter = this%loggers%emplace(name, newLogger(name))
       parentName = this%getParentPrefix(name)
 
-      logger => this%loggers%at(name)
+      tmp => this%loggers%at(name)
+      select type (tmp)
+      class is (Logger)
+         lgr => tmp
+      end select
+
       if (parentName /= '') then ! should exist !
-         call logger%setParent(this%loggers%at(parentName))
+         call lgr%setParent(this%loggers%at(parentName))
       end if
 
    end function getLogger

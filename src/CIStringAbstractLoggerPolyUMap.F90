@@ -23,7 +23,7 @@ module FTL_CIStringAbstractLoggerPolyUMap_mod
    use FTL_HashFunction_mod
    use FTL_Exception_mod
 
-      use FTL_CaseInsensitiveString_mod
+      use FTL_CIString_mod
       
    
    
@@ -203,7 +203,7 @@ contains
    function emplace_keyValue(this, key, value ) result(iter)
       type (ITERATOR) :: iter
       class (UNORDERED_MAP), intent(inout) :: this
-      type(CaseInsensitiveString), intent(in) :: key
+      type(CIString), intent(in) :: key
       class(AbstractLogger), intent(in) :: value
 
       ! If implementation is altered to not use insert() directly,
@@ -230,7 +230,7 @@ contains
    function find_K(this, key) result(iter)
       type (ITERATOR) :: iter
       class (UNORDERED_MAP), target, intent(in) :: this
-      type(CaseInsensitiveString), intent(in) :: key
+      type(CIString), intent(in) :: key
 
       class (BUCKET), pointer :: ptr
       class (PAIR), pointer :: item
@@ -272,7 +272,7 @@ contains
 
       ! If implementation is altered to not use insert() directly,
       ! then a check must be added for load factor.
-      iter = this%emplace(PAIR(CaseInsensitiveString(key),value))
+      iter = this%emplace(PAIR(CIString(key),value))
 
    end function emplace_keyValue_alt
 
@@ -282,7 +282,7 @@ contains
       class (UNORDERED_MAP), target, intent(in) :: this
       character(len=*), intent(in) :: key
 
-      iter = this%find(CaseInsensitiveString(key))
+      iter = this%find(CIString(key))
 
    end function find_alt
 
@@ -297,7 +297,7 @@ contains
    function at_K(this, key) result(ptr)
       class(AbstractLogger), pointer :: ptr
       class (UNORDERED_MAP), intent(in), target :: this
-      type(CaseInsensitiveString), intent(in) :: key
+      type(CIString), intent(in) :: key
 
       class (BUCKET), pointer :: pBucket
       class (PAIR), pointer :: item
@@ -329,10 +329,10 @@ contains
 
    integer function count_K(this, key)
       class (UNORDERED_MAP), intent(in) :: this
-      type(CaseInsensitiveString), intent(in) :: key
+      type(CIString), intent(in) :: key
 
       type (ITERATOR),target :: iter
-      type(CaseInsensitiveString), pointer :: foundKey
+      type(CIString), pointer :: foundKey
 
       iter = this%begin()
 
@@ -356,7 +356,7 @@ contains
       class (UNORDERED_MAP), intent(in), target :: this
       character(len=*), intent(in) :: key
 
-      ptr => this%at(CaseInsensitiveString(key))
+      ptr => this%at(CIString(key))
    end function at_alt
 
 
@@ -364,7 +364,7 @@ contains
       class (UNORDERED_MAP), intent(in) :: this
       character(len=*), intent(in) :: key
 
-      count_alt = this%count(CaseInsensitiveString(key))
+      count_alt = this%count(CIString(key))
 
    end function count_alt
 
@@ -502,7 +502,7 @@ contains
 
    function first(this)
       class (ITERATOR), intent(in) :: this
-      type(CaseInsensitiveString), pointer :: first
+      type(CIString), pointer :: first
 
       type (PAIR), pointer :: pair
 
@@ -524,7 +524,7 @@ contains
 
    subroutine throwDuplicateKey(key)
       use FTL_StringUtilities_mod
-      type(CaseInsensitiveString), intent(in) :: key
+      type(CIString), intent(in) :: key
 
       call throw('Duplicate (case insensitive) key in UnorderedMap insert for key<' // &
            & toString(key) // '>')

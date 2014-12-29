@@ -10,6 +10,7 @@ module ASTG_AbstractLogger_mod
       class (AbstractLogger), pointer :: parent => null()
    contains
       procedure :: setParent
+      procedure :: getParent
    end type AbstractLogger
 
 
@@ -24,5 +25,12 @@ contains
 
    end subroutine setParent
 
+   function getParent(this) result(parent)
+      class (AbstractLogger), pointer :: parent
+      class (AbstractLogger), intent(in) :: this
+
+      parent => this%parent
+
+   end function getParent
 
 end module ASTG_AbstractLogger_mod

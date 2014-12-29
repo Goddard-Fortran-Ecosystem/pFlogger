@@ -13,15 +13,17 @@ list(APPEND SRCS Formatter.F90)
 list(APPEND SRCS Filterer.F90)
 
 list(APPEND SRCS AbstractHandlerPolyWrap.F90)
-list(APPEND SRCS AbstractHandlerPolyWrapVector.F90)
+list(APPEND SRCS AbstractHandlerPolyWrapVec.F90)
 
 list(APPEND SRCS FilterPolyWrap.F90)
-list(APPEND SRCS FilterPolyWrapVector.F90)
+list(APPEND SRCS FilterPolyWrapVec.F90)
 
-list(APPEND SRCS CaseInsensitiveStringAbstractLoggerPolyPair.F90)
-list(APPEND SRCS CaseInsensitiveStringAbstractLoggerPolyPairVector.F90)
-list(APPEND SRCS CaseInsensitiveStringAbstractLoggerPolyPairVectorVector.F90)
-list(APPEND SRCS CaseInsensitiveStringAbstractLoggerPolyUnorderedMap.F90)
+list(APPEND SRCS XWrap.F90)
+list(APPEND SRCS XWrapVec.F90)
+list(APPEND SRCS CIStringAbstractLoggerPolyPair.F90)
+list(APPEND SRCS CIStringAbstractLoggerPolyPairVec.F90)
+list(APPEND SRCS CIStringAbstractLoggerPolyPairVecVec.F90)
+list(APPEND SRCS CIStringAbstractLoggerPolyUMap.F90)
 
 list(APPEND SRCS SeverityLevels.F90)
 list(APPEND SRCS AbstractHandler.F90)

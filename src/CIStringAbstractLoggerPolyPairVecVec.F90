@@ -10,8 +10,8 @@ module FTL_CIStringAbstractLoggerPolyPairVecVec_mod
    private
 
    public :: CIStringAbstractLoggerPolyPairVecVec
-   public :: CIStringAbstractLoggerPolyPairVecVecIterator
-   public :: CIStringAbstractLoggerPolyPairVecVecReverseIterator
+   public :: CIStringAbstractLoggerPolyPairVecVecIter
+   public :: CIStringAbstractLoggerPolyPairVecVecReverseIter
    ! external functions
    public :: swap
 
@@ -20,7 +20,7 @@ module FTL_CIStringAbstractLoggerPolyPairVecVec_mod
    type :: CIStringAbstractLoggerPolyPairVecVec
       private
       
-      type(CIStringAbstractLoggerPolyPairVector), allocatable :: elements(:)
+      type(CIStringAbstractLoggerPolyPairVec), allocatable :: elements(:)
       integer :: numElements = 0
 
    contains
@@ -60,8 +60,8 @@ module FTL_CIStringAbstractLoggerPolyPairVecVec_mod
 
    end type CIStringAbstractLoggerPolyPairVecVec
 
-   type CIStringAbstractLoggerPolyPairVecVecIterator
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: elements(:) => null()
+   type CIStringAbstractLoggerPolyPairVecVecIter
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get
@@ -89,10 +89,10 @@ module FTL_CIStringAbstractLoggerPolyPairVecVec_mod
       procedure :: add
       generic :: operator(+) => add
 
-   end type CIStringAbstractLoggerPolyPairVecVecIterator
+   end type CIStringAbstractLoggerPolyPairVecVecIter
 
-   type CIStringAbstractLoggerPolyPairVecVecReverseIterator
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: elements(:) => null()
+   type CIStringAbstractLoggerPolyPairVecVecReverseIter
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
       procedure :: get => getRIter
@@ -116,7 +116,7 @@ module FTL_CIStringAbstractLoggerPolyPairVecVec_mod
       generic :: operator(<=) => rLessThanOrEqualIter
       generic :: operator(>) => rGreaterThanIter
       generic :: operator(>=) => rGreaterThanOrEqualIter
-   end type CIStringAbstractLoggerPolyPairVecVecReverseIterator
+   end type CIStringAbstractLoggerPolyPairVecVecReverseIter
 
 
    interface CIStringAbstractLoggerPolyPairVecVec
@@ -167,7 +167,7 @@ contains
 !----------------------------------------------
    subroutine copyFromArray(this, array)
       class (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
-      type(CIStringAbstractLoggerPolyPairVector), intent(in) :: array(:)
+      type(CIStringAbstractLoggerPolyPairVec), intent(in) :: array(:)
 
       integer :: i, n
 
@@ -216,7 +216,7 @@ contains
    function at(this, i) result(ptr)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
       integer, intent(in) :: i
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
 
       ptr => this%elements(i)
 
@@ -227,7 +227,7 @@ contains
 !---------------------------------------------------
    function front(this) result(ptr)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
 
       ptr => this%elements(1)
 
@@ -239,7 +239,7 @@ contains
 !---------------------------------------------------
    function back(this) result(ptr)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
 
       ptr => this%elements(this%numElements)
 
@@ -253,7 +253,7 @@ contains
 !-----------------------------------------------------------------
    function data(this) result(d)
       class (CIStringAbstractLoggerPolyPairVecVec), target :: this
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: d(:)
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: d(:)
 
       d => this%elements(1:this%numElements)
 
@@ -269,7 +269,7 @@ contains
       class (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
       integer, intent(in) :: n
 
-      type(CIStringAbstractLoggerPolyPairVector), allocatable :: tmp(:)
+      type(CIStringAbstractLoggerPolyPairVec), allocatable :: tmp(:)
       integer :: i, nOld
 
       if (.not. allocated(this%elements)) then
@@ -298,7 +298,7 @@ contains
    subroutine resize(this, n, value)
       class (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
       integer, intent(in) :: n
-      type(CIStringAbstractLoggerPolyPairVector), optional, intent(in) :: value
+      type(CIStringAbstractLoggerPolyPairVec), optional, intent(in) :: value
 
       integer :: i
       integer :: nOld
@@ -347,7 +347,7 @@ contains
 !---------------------------------------------------
    subroutine push_back_T(this, value)
       class (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
-      type(CIStringAbstractLoggerPolyPairVector), intent(in) :: value
+      type(CIStringAbstractLoggerPolyPairVec), intent(in) :: value
 
       integer :: n
 
@@ -384,7 +384,7 @@ contains
    subroutine insert_T(this, i, value)
       class (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
       integer, intent(in) :: i
-      type(CIStringAbstractLoggerPolyPairVector), intent(in) :: value
+      type(CIStringAbstractLoggerPolyPairVec), intent(in) :: value
 
       integer :: j, n
 
@@ -402,11 +402,11 @@ contains
    end subroutine insert_T
 
    function erase(this, position) result(iter)
-      type (CIStringAbstractLoggerPolyPairVecVecIterator) :: iter
+      type (CIStringAbstractLoggerPolyPairVecVecIter) :: iter
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(inout) :: this
-      type (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: position
+      type (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: position
 
-      type(CIStringAbstractLoggerPolyPairVector), pointer :: p, q
+      type(CIStringAbstractLoggerPolyPairVec), pointer :: p, q
       
       if (position == this%end()) return
 
@@ -438,7 +438,7 @@ contains
       type (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: this
       type (CIStringAbstractLoggerPolyPairVecVec), intent(inout) :: a
 
-      type(CIStringAbstractLoggerPolyPairVector), allocatable :: tmp(:)
+      type(CIStringAbstractLoggerPolyPairVec), allocatable :: tmp(:)
       integer :: nTmp
 
       ! swap elements
@@ -460,7 +460,7 @@ contains
 !------------------------------------------------------
    function begin(this) result(iter)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type (CIStringAbstractLoggerPolyPairVecVecIterator) :: iter
+      type (CIStringAbstractLoggerPolyPairVecVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = 1
@@ -474,7 +474,7 @@ contains
 !------------------------------------------------------
    function end(this) result(iter)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type (CIStringAbstractLoggerPolyPairVecVecIterator) :: iter
+      type (CIStringAbstractLoggerPolyPairVecVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size() + 1 ! past the end
@@ -488,7 +488,7 @@ contains
 !------------------------------------------------------
    function rbegin(this) result(iter)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type (CIStringAbstractLoggerPolyPairVecVecReverseIterator) :: iter
+      type (CIStringAbstractLoggerPolyPairVecVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size()
@@ -502,7 +502,7 @@ contains
 !------------------------------------------------------
    function rend(this) result(iter)
       class (CIStringAbstractLoggerPolyPairVecVec), target, intent(in) :: this
-      type (CIStringAbstractLoggerPolyPairVecVecReverseIterator) :: iter
+      type (CIStringAbstractLoggerPolyPairVecVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = 0
@@ -515,8 +515,8 @@ contains
 ! Dereference iterator.
 !-----------------------------------------------------
       function get(this) result(ptr)
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
 
@@ -526,20 +526,20 @@ contains
 
 
       subroutine next(this)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(inout) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine next
 
 
       subroutine previous(this)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(inout) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine previous
 
 
       logical function equalIters(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
 
          equalIters = (this%index == other%index)
          
@@ -547,8 +547,8 @@ contains
 
 
       logical function notEqualIters(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
 
          notEqualIters = .not. (this == other)
          
@@ -558,33 +558,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function lessThanIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
          lessThanIter = (this%index < other%index)
       end function lessThanIter
 
       logical function lessThanOrEqualIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
          lessThanOrEqualIter = (this%index <= other%index)
       end function lessThanOrEqualIter
 
       logical function greaterThanIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
          greaterThanIter = (this%index > other%index)
       end function greaterThanIter
 
       logical function greaterThanOrEqualIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: other
          greaterThanOrEqualIter = (this%index >= other%index)
       end function greaterThanOrEqualIter
 
 
       function atDefault(this) result(ptr)
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -592,8 +592,8 @@ contains
 
 
       function atOffset(this, i) result(ptr)
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index + i)
@@ -601,8 +601,8 @@ contains
       end function atOffset
 
       function add(this, n) result(newIter)
-         type (CIStringAbstractLoggerPolyPairVecVecIterator) :: newIter
-         class (CIStringAbstractLoggerPolyPairVecVecIterator), intent(in) :: this
+         type (CIStringAbstractLoggerPolyPairVecVecIter) :: newIter
+         class (CIStringAbstractLoggerPolyPairVecVecIter), intent(in) :: this
          integer, intent(in) :: n
 
          newIter%index = this%index + n
@@ -612,8 +612,8 @@ contains
 
       ! Dereference iterator
       function getRIter(this) result(ptr)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
 
          ptr => this%elements(this%index)
 
@@ -623,20 +623,20 @@ contains
 
 
       subroutine rNext(this)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(inout) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine rNext
 
 
       subroutine rPrevious(this)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(inout) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine rPrevious
 
 
       logical function equalRIters(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
 
          equalRIters = &
               associated(this%elements, other%elements) .and. &
@@ -646,8 +646,8 @@ contains
 
 
       logical function notEqualRIters(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
 
          notEqualRIters = .not. (this == other)
          
@@ -659,33 +659,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function rLessThanIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
          rLessThanIter = (this%index > other%index)
       end function rLessThanIter
 
       logical function rLessThanOrEqualIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
          rLessThanOrEqualIter = (this%index >= other%index)
       end function rLessThanOrEqualIter
 
       logical function rGreaterThanIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
          rGreaterThanIter = (this%index < other%index)
       end function rGreaterThanIter
 
       logical function rGreaterThanOrEqualIter(this, other)
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: other
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: other
          rGreaterThanOrEqualIter = (this%index <= other%index)
       end function rGreaterThanOrEqualIter
 
 
       function rAtDefault(this) result(ptr)
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -693,8 +693,8 @@ contains
 
 
       function rAtOffset(this, i) result(ptr)
-         type(CIStringAbstractLoggerPolyPairVector), pointer :: ptr
-         class (CIStringAbstractLoggerPolyPairVecVecReverseIterator), intent(in) :: this
+         type(CIStringAbstractLoggerPolyPairVec), pointer :: ptr
+         class (CIStringAbstractLoggerPolyPairVecVecReverseIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index - i)

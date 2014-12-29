@@ -7,29 +7,28 @@
 ! level (default is INFO).
 module ASTG_Logger_mod
    use ASTG_Exception_mod
-   use ASTG_Filterer_mod, only: Filterer
+   use ASTG_AbstractLogger_mod
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
-   use FTL_AbstracthandlerPolyWrapVector_mod
+   use FTL_AbstracthandlerPolyWrapVec_mod
    use ASTG_LogRecord_mod
    
    implicit none
    private
 
    public :: Logger
+   public :: newLogger
 
-   type, extends(Filterer) :: Logger
+   type, extends(AbstractLogger) :: Logger
       private
       integer :: level
       character(len=:), allocatable :: name
-      class (Logger), pointer :: parent => null()
-      type (AbstractHandlerPolyWrapVector) :: handlers
+      type (AbstractHandlerPolyWrapVec) :: handlers
    contains
 
       procedure :: setName
       procedure :: getName
-      procedure :: getParent
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -66,7 +65,7 @@ contains
 ! TODO: Need to NOTSET when inheritance is working
       call aLog%setLevel(level_)
 
-      alog%handlers = AbstractHandlerPolyWrapVector()
+      alog%handlers = AbstractHandlerPolyWrapVec()
 !!$      call alog%addHandler(StreamHandler())
       
    end function newLogger
@@ -92,7 +91,7 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
       
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      type (AbstractHandlerPolyWrapVecIter) :: iter
 
 
       iter = this%handlers%begin()
@@ -113,7 +112,7 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      type (AbstractHandlerPolyWrapVecIter) :: iter
 
 
       iter = this%handlers%begin()
@@ -138,7 +137,7 @@ contains
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      type (AbstractHandlerPolyWrapVectorIterator) :: iter
+      type (AbstractHandlerPolyWrapVecIter) :: iter
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
 
@@ -214,7 +213,7 @@ contains
    ! get handlers associated with this logger
    function getHandlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVector), pointer :: handlers
+      type (AbstractHandlerPolyWrapVec), pointer :: handlers
       
       handlers => this%handlers
       
@@ -230,24 +229,6 @@ contains
       this%level = level
       
    end subroutine setLevel
-
-
-   subroutine setParent(this, parent)
-      class (Logger), intent(inout) :: this
-      class (Logger), target, intent(in) :: parent
-
-      this%parent => parent
-
-   end subroutine setParent
-
-
-   function getParent(this) result(parent)
-      class (Logger), pointer :: parent
-      class (Logger), intent(in) :: this
-
-      parent => this%parent
-
-   end function getParent
 
 
 end module ASTG_Logger_mod

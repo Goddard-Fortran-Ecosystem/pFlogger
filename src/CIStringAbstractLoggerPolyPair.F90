@@ -1,6 +1,6 @@
 module FTL_CIStringAbstractLoggerPolyPair_mod
    
-   use FTL_CaseInsensitiveString_mod
+   use FTL_CIString_mod
    
    
    use ASTG_AbstractLogger_mod, only: AbstractLogger
@@ -13,7 +13,7 @@ module FTL_CIStringAbstractLoggerPolyPair_mod
    public :: swap
 
    type CIStringAbstractLoggerPolyPair
-      type(CaseInsensitiveString) :: first
+      type(CIString) :: first
       class(AbstractLogger), allocatable :: second
    contains
       procedure :: swap => swapPair
@@ -34,7 +34,7 @@ contains
 
    function newPair(first, second) result(pair)
       type (CIStringAbstractLoggerPolyPair) :: pair
-      type(CaseInsensitiveString), intent(in) :: first
+      type(CIString), intent(in) :: first
       class(AbstractLogger), intent(in) :: second
 
       pair%first = first

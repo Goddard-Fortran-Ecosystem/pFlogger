@@ -7,8 +7,8 @@ module FTL_XWrapVec_mod
    private
 
    public :: XWrapVec
-   public :: XWrapVecIterator
-   public :: XWrapVecReverseIterator
+   public :: XWrapVecIter
+   public :: XWrapVecReverseIter
    ! external functions
    public :: swap
 
@@ -64,7 +64,7 @@ module FTL_XWrapVec_mod
 
    end type XWrapVec
 
-   type XWrapVecIterator
+   type XWrapVecIter
       type(XWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
@@ -94,9 +94,9 @@ module FTL_XWrapVec_mod
       procedure :: add
       generic :: operator(+) => add
 
-   end type XWrapVecIterator
+   end type XWrapVecIter
 
-   type XWrapVecReverseIterator
+   type XWrapVecReverseIter
       type(XWrap), pointer :: elements(:) => null()
       integer :: index = UNINITIALIZED
    contains
@@ -122,7 +122,7 @@ module FTL_XWrapVec_mod
       generic :: operator(<=) => rLessThanOrEqualIter
       generic :: operator(>) => rGreaterThanIter
       generic :: operator(>=) => rGreaterThanOrEqualIter
-   end type XWrapVecReverseIterator
+   end type XWrapVecReverseIter
 
 
    interface XWrapVec
@@ -454,9 +454,9 @@ contains
    end subroutine insert_T
 
    function erase(this, position) result(iter)
-      type (XWrapVecIterator) :: iter
+      type (XWrapVecIter) :: iter
       class (XWrapVec), target, intent(inout) :: this
-      type (XWrapVecIterator), intent(in) :: position
+      type (XWrapVecIter), intent(in) :: position
 
       type(XWrap), pointer :: p, q
       
@@ -535,7 +535,7 @@ contains
 !------------------------------------------------------
    function begin(this) result(iter)
       class (XWrapVec), target, intent(in) :: this
-      type (XWrapVecIterator) :: iter
+      type (XWrapVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = 1
@@ -549,7 +549,7 @@ contains
 !------------------------------------------------------
    function end(this) result(iter)
       class (XWrapVec), target, intent(in) :: this
-      type (XWrapVecIterator) :: iter
+      type (XWrapVecIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size() + 1 ! past the end
@@ -563,7 +563,7 @@ contains
 !------------------------------------------------------
    function rbegin(this) result(iter)
       class (XWrapVec), target, intent(in) :: this
-      type (XWrapVecReverseIterator) :: iter
+      type (XWrapVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = this%size()
@@ -577,7 +577,7 @@ contains
 !------------------------------------------------------
    function rend(this) result(iter)
       class (XWrapVec), target, intent(in) :: this
-      type (XWrapVecReverseIterator) :: iter
+      type (XWrapVecReverseIter) :: iter
       
       iter%elements => this%elements
       iter%index = 0
@@ -591,7 +591,7 @@ contains
 !-----------------------------------------------------
       function get(this) result(ptr)
          type(XWrap), pointer :: ptr
-         class (XWrapVecIterator), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
 
@@ -599,7 +599,7 @@ contains
       
       function get_alt(this) result(ptr)
          class(*), pointer :: ptr
-         class (XWrapVecIterator), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)%get()
 
@@ -608,20 +608,20 @@ contains
 
 
       subroutine next(this)
-         class (XWrapVecIterator), intent(inout) :: this
+         class (XWrapVecIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine next
 
 
       subroutine previous(this)
-         class (XWrapVecIterator), intent(inout) :: this
+         class (XWrapVecIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine previous
 
 
       logical function equalIters(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
 
          equalIters = (this%index == other%index)
          
@@ -629,8 +629,8 @@ contains
 
 
       logical function notEqualIters(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
 
          notEqualIters = .not. (this == other)
          
@@ -640,33 +640,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function lessThanIter(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
          lessThanIter = (this%index < other%index)
       end function lessThanIter
 
       logical function lessThanOrEqualIter(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
          lessThanOrEqualIter = (this%index <= other%index)
       end function lessThanOrEqualIter
 
       logical function greaterThanIter(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
          greaterThanIter = (this%index > other%index)
       end function greaterThanIter
 
       logical function greaterThanOrEqualIter(this, other)
-         class (XWrapVecIterator), intent(in) :: this
-         class (XWrapVecIterator), intent(in) :: other
+         class (XWrapVecIter), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: other
          greaterThanOrEqualIter = (this%index >= other%index)
       end function greaterThanOrEqualIter
 
 
       function atDefault(this) result(ptr)
          type(XWrap), pointer :: ptr
-         class (XWrapVecIterator), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -675,7 +675,7 @@ contains
 
       function atOffset(this, i) result(ptr)
          type(XWrap), pointer :: ptr
-         class (XWrapVecIterator), intent(in) :: this
+         class (XWrapVecIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index + i)
@@ -683,8 +683,8 @@ contains
       end function atOffset
 
       function add(this, n) result(newIter)
-         type (XWrapVecIterator) :: newIter
-         class (XWrapVecIterator), intent(in) :: this
+         type (XWrapVecIter) :: newIter
+         class (XWrapVecIter), intent(in) :: this
          integer, intent(in) :: n
 
          newIter%index = this%index + n
@@ -694,7 +694,7 @@ contains
 
       ! Dereference iterator
       function getRIter(this) result(ptr)
-         class (XWrapVecReverseIterator), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: this
          type(XWrap), pointer :: ptr
 
          ptr => this%elements(this%index)
@@ -703,7 +703,7 @@ contains
 
       ! Dereference iterator
       function getRIter_alt(this) result(ptr)
-         class (XWrapVecReverseIterator), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: this
          class(*), pointer :: ptr
 
          ptr => this%elements(this%index)%get()
@@ -713,20 +713,20 @@ contains
 
 
       subroutine rNext(this)
-         class (XWrapVecReverseIterator), intent(inout) :: this
+         class (XWrapVecReverseIter), intent(inout) :: this
          this%index = this%index - 1
       end subroutine rNext
 
 
       subroutine rPrevious(this)
-         class (XWrapVecReverseIterator), intent(inout) :: this
+         class (XWrapVecReverseIter), intent(inout) :: this
          this%index = this%index + 1
       end subroutine rPrevious
 
 
       logical function equalRIters(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
 
          equalRIters = &
               associated(this%elements, other%elements) .and. &
@@ -736,8 +736,8 @@ contains
 
 
       logical function notEqualRIters(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
 
          notEqualRIters = .not. (this == other)
          
@@ -749,33 +749,33 @@ contains
       ! Illegal to use these unless both arguments reference the
       ! same vector.
       logical function rLessThanIter(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
          rLessThanIter = (this%index > other%index)
       end function rLessThanIter
 
       logical function rLessThanOrEqualIter(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
          rLessThanOrEqualIter = (this%index >= other%index)
       end function rLessThanOrEqualIter
 
       logical function rGreaterThanIter(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
          rGreaterThanIter = (this%index < other%index)
       end function rGreaterThanIter
 
       logical function rGreaterThanOrEqualIter(this, other)
-         class (XWrapVecReverseIterator), intent(in) :: this
-         class (XWrapVecReverseIterator), intent(in) :: other
+         class (XWrapVecReverseIter), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: other
          rGreaterThanOrEqualIter = (this%index <= other%index)
       end function rGreaterThanOrEqualIter
 
 
       function rAtDefault(this) result(ptr)
          type(XWrap), pointer :: ptr
-         class (XWrapVecReverseIterator), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: this
 
          ptr => this%elements(this%index)
          
@@ -784,7 +784,7 @@ contains
 
       function rAtOffset(this, i) result(ptr)
          type(XWrap), pointer :: ptr
-         class (XWrapVecReverseIterator), intent(in) :: this
+         class (XWrapVecReverseIter), intent(in) :: this
          integer, intent(in) :: i
 
          ptr => this%elements(this%index - i)

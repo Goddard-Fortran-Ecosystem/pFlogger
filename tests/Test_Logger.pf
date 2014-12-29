@@ -259,7 +259,7 @@ contains
    @test
    subroutine test_removeHandler_remove1st(this)
       use FTL_AbstracthandlerPolyWrap_mod
-      use FTL_AbstracthandlerPolyWrapVector_mod
+      use FTL_AbstracthandlerPolyWrapVec_mod
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
@@ -285,13 +285,13 @@ contains
    @test
    subroutine test_addHandler_noDups(this)
       use FTL_AbstracthandlerPolyWrap_mod
-      use FTL_AbstracthandlerPolyWrapVector_mod
+      use FTL_AbstracthandlerPolyWrapVec_mod
       class (Test_Logger), intent(inout) :: this
 
       type (Logger), target :: lgr
       type (MockBuffer), target :: bufA
       type (MockBuffer), target :: bufB
-      type (AbstractHandlerPolyWrapVector), pointer :: handlers
+      type (AbstractHandlerPolyWrapVec), pointer :: handlers
 
       lgr = Logger('A')
 

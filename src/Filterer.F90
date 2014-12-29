@@ -2,7 +2,7 @@ module ASTG_Filterer_mod
    use ASTG_Object_mod
    use ASTG_Filter_mod
    use ASTG_LogRecord_mod
-   use FTL_FilterPolyWrapVector_mod
+   use FTL_FilterPolyWrapVec_mod
    implicit none
    private
 
@@ -10,7 +10,7 @@ module ASTG_Filterer_mod
 
    type, extends(Object) :: Filterer
       private
-      type (FilterPolyWrapVector) :: filters
+      type (FilterPolyWrapVec) :: filters
    contains
       procedure :: addFilter
       procedure :: filter => filter_ ! avoid name conflict with class Filter.
@@ -29,7 +29,7 @@ contains
 
    function newFilterer() result(f)
       type (Filterer) :: f
-      f%filters = FilterPolyWrapVector()
+      f%filters = FilterPolyWrapVec()
    end function newFilterer
 
 
@@ -37,7 +37,7 @@ contains
       class (Filterer), intent(inout) :: this
       class (Filter), intent(in) :: fltr
 
-      type (FilterPolyWrapVectorIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
@@ -56,7 +56,7 @@ contains
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
-      type (FilterPolyWrapVectorIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
       class (Filter), pointer :: fPtr
 
       filter_ = .true. ! unless
@@ -79,7 +79,7 @@ contains
       class(Filterer), intent(inout) :: this
       class (Filter), intent(in) :: f
 
-      type (FilterPolyWrapVectorIterator) :: iter
+      type (FilterPolyWrapVecIter) :: iter
       class (Filter), pointer :: fPtr
 
       iter = this%filters%begin()
@@ -98,7 +98,7 @@ contains
 
 
    function getFilters(this) result(filters)
-      type (FilterPolyWrapVector), pointer :: filters
+      type (FilterPolyWrapVec), pointer :: filters
       class (Filterer), target, intent(in) :: this
 
       filters => this%filters
