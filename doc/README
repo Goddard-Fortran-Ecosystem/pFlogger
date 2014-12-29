@@ -1,0 +1,6 @@
+The html files contain UML class diagrams for the logger. To view, go to:
+
+http://alexdp.free.fr/violetumleditor/page.php
+
+and download the java jar file. To use run "java -jar violetumleditor-2.0.1.jar".
+Then open one of the html files.
