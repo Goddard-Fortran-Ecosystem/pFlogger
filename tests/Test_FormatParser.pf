@@ -1,4 +1,5 @@
 module Test_FormatParser_mod
+   use FTL_StringVec_mod
    use pFUnit_mod
    use ASTG_FormatParser_mod
    
@@ -19,11 +20,30 @@ contains
    @test
    subroutine test_countTokens()
       type(FormatParser) :: parser
-      type(Token), allocatable :: tokens(:)
+      type(StringVec) :: tokens
 
-      @assertEqual(0, size(parser%getTokens('')))
-      @assertEqual(1, size(parser%getTokens('a')))
+      tokens = parser%getTokens('')
+      @assertEqual(0, tokens%size())
       
+      tokens = parser%getTokens('a')
+      @assertEqual(1, tokens%size())
+
+      tokens = parser%getTokens('a ')
+      @assertEqual(1, tokens%size())      
+
+      tokens = parser%getTokens('a b')
+      @assertEqual(1, tokens%size())      
+      
+      tokens = parser%getTokens('a b c d')
+      @assertEqual(1, tokens%size())      
+      
+      tokens = parser%getTokens(' a')
+      @assertEqual(1, tokens%size())      
+      
+      tokens = parser%getTokens('a  b')
+      @assertEqual(1, tokens%size())      
+      
+
    end subroutine test_countTokens
    
 end module Test_FormatParser_mod

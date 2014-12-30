@@ -1,9 +1,9 @@
 module ASTG_FormatParser_mod
+   use FTL_StringVec_mod
    implicit none
    private
 
    public FormatParser
-   public Token
    
    type FormatParser
    contains
@@ -11,10 +11,6 @@ module ASTG_FormatParser_mod
       procedure, nopass :: getTokens
    end type FormatParser
 
-   type Token
-      character(len=:), allocatable :: token
-   end type Token
-   
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
    
 contains
@@ -28,10 +24,27 @@ contains
    end function isFormat
 
    function getTokens(string) result(tokens)
-      type(Token), allocatable :: tokens(:)
-      character(len=*) :: string
+      type(StringVec) :: tokens
+      character(len=*), intent(in) :: string
+      character(len=:), allocatable :: tmp
+      integer :: loc, n
 
-      allocate(tokens(0))
+      tokens = StringVec()
+
+      if (string == '') return
+
+      tmp = string
+      do while (len(tmp) > 0)
+         loc = scan(tmp, FORMAT_DELIMITER)
+         if (loc > 0) then
+           call tokens%push_back(tmp(1:loc-1))
+           n = len(tmp)
+           tmp = tmp(loc+1:n)
+         else
+           call tokens%push_back(tmp)
+           tmp = ''
+         end if
+      end do
       
    end function getTokens
    
