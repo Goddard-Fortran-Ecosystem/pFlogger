@@ -42,10 +42,17 @@ contains
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
+      character(len=64) :: buffer
+      character(len=:), allocatable :: fmt
       
-      logMessage = ''
+      logMessage = record%getStr()
+      if (allocated(record%value)) then
+        fmt = record%getFmt()
+        write(buffer, "("//fmt//")") record%value
+        logMessage = logMessage // trim(buffer)
+      end if
+      
    end function format
-
 
 
    ! This function operates on different input data types and returns a string
@@ -57,29 +64,29 @@ contains
 
       character(len=80) :: buffer
       character(len=:), allocatable :: str
-
-      select type (arg)
+       
+      select type (p=>arg)
 
       type is (integer(int32))
-         str = toString(arg)
+         str = toString(p)
       type is (integer(int64))
-         str = toString(arg)
+         str = toString(p)
 
       type is (real(real32))
-         str = toString(arg)
+         str = toString(p)
       type is (real(real64))
-         str = toString(arg)
+         str = toString(p)
 
       type is (complex(real32))
-         str = toString(arg)
+         str = toString(p)
       type is (complex(real64))
-         str = toString(arg)
+         str = toString(p)
 
       type is (character(len=*))
-         str = toString(arg)
+         str = toString(p)
 
       type is (logical)
-         str = toString(arg)
+         str = toString(p)
 
       class default ! user defined
          str = this%toStringOther(arg) ! allow subclasses to provid extensions

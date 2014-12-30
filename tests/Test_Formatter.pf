@@ -1,7 +1,8 @@
 module Test_Formatter_mod
    use pFUnit_mod
-   use ASTG_Formatter_mod
    use iso_fortran_env
+   use ASTG_Formatter_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_LogRecord_mod
    
    implicit none
@@ -31,7 +32,7 @@ contains
    end subroutine tearDown
 
 
-@Test
+!@Test
    subroutine test_string(this)
       class (Test_Formatter), intent(inout) :: this
             
@@ -40,6 +41,18 @@ contains
       
    end subroutine test_string
 
+
+   @Test
+   subroutine test_formatint32(this)
+      class (Test_Formatter), intent(inout) :: this
+      type(LogRecord) :: record
+      
+      this%f = Formatter('%a')
+      record = LogRecord('A', INFO, 'Hello %i2.1', 1)
+      @assertEqual('Hello 1', this%f%format(record))
+      
+   end subroutine test_formatint32
+   
 
 @Test
    subroutine test_int32(this)

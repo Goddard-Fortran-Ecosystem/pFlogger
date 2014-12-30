@@ -1,5 +1,6 @@
 module Test_LogRecord_mod
    use pFUnit_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_LogRecord_mod
    use iso_fortran_env
    
@@ -20,6 +21,7 @@ contains
    
    subroutine setUp(this)
       class (Test_LogRecord), intent(inout) :: this
+
       
    end subroutine setUp
 
@@ -30,4 +32,15 @@ contains
    end subroutine tearDown
 
 
+   @test
+   subroutine test_intRecord(this)
+      class (Test_LogRecord), intent(inout) :: this
+      
+      this%record = LogRecord('A',INFO,'Hello')
+      @assertEqual('A', this%record%getName())
+      @assertEqual(INFO, this%record%getLevel())
+      @assertEqual('Hello', this%record%getMessage())
+      
+   end subroutine test_intRecord
+   
 end module Test_LogRecord_mod
