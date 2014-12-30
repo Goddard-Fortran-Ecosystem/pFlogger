@@ -34,16 +34,36 @@ contains
       tokens = parser%getTokens('a b')
       @assertEqual(1, tokens%size())      
       
-      tokens = parser%getTokens('a b c d')
-      @assertEqual(1, tokens%size())      
-      
       tokens = parser%getTokens(' a')
       @assertEqual(1, tokens%size())      
       
-      tokens = parser%getTokens('a  b')
+      tokens = parser%getTokens('%a')
       @assertEqual(1, tokens%size())      
       
-
+      tokens = parser%getTokens('a %a')
+      @assertEqual(2, tokens%size())      
+      
+      tokens = parser%getTokens('a%a')
+      @assertEqual(2, tokens%size())      
+      
    end subroutine test_countTokens
-   
+
+   @test
+   subroutine test_getTokens()
+      use FTL_String_mod
+      type(FormatParser) :: parser
+      type(StringVec) :: tokens
+      
+      tokens = parser%getTokens('a')
+      @assertEqual('a', tokens%at_alt(1))      
+
+      tokens = parser%getTokens(' a')
+      @assertTrue(String(' a') == tokens%at(1))
+      
+      tokens = parser%getTokens('a ')
+      @assertTrue(String('a ') == tokens%at(1))      
+      
+
+   end subroutine test_getTokens
+
 end module Test_FormatParser_mod

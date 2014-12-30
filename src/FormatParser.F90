@@ -23,20 +23,20 @@ contains
       
    end function isFormat
 
-   function getTokens(string) result(tokens)
+   function getTokens(str) result(tokens)
       type(StringVec) :: tokens
-      character(len=*), intent(in) :: string
+      character(len=*), intent(in) :: str
       character(len=:), allocatable :: tmp
       integer :: loc, n
 
       tokens = StringVec()
 
-      if (string == '') return
+      if (str == '') return
 
-      tmp = string
+      tmp = str
       do while (len(tmp) > 0)
          loc = scan(tmp, FORMAT_DELIMITER)
-         if (loc > 0) then
+         if (loc > 1) then
            call tokens%push_back(tmp(1:loc-1))
            n = len(tmp)
            tmp = tmp(loc+1:n)
