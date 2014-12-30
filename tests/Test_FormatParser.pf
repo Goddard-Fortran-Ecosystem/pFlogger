@@ -14,5 +14,16 @@ contains
       @assertTrue(parser%isFormat('%a'))
       
    end subroutine test_isFormat
+
+
+   @test
+   subroutine test_countTokens()
+      type(FormatParser) :: parser
+      type(Token), allocatable :: tokens(:)
+
+      @assertEqual(0, size(parser%getTokens('')))
+      @assertEqual(1, size(parser%getTokens('a')))
+      
+   end subroutine test_countTokens
    
 end module Test_FormatParser_mod
