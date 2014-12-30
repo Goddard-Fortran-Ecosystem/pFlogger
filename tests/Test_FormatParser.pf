@@ -55,7 +55,7 @@ contains
       type(StringVec) :: tokens
       
       tokens = parser%getTokens('a')
-      @assertEqual('a', tokens%at_alt(1))      
+      @assertTrue(String('a') == tokens%at(1))
 
       tokens = parser%getTokens(' a')
       @assertTrue(String(' a') == tokens%at(1))
