@@ -65,7 +65,7 @@ contains
       character(len=80) :: buffer
       character(len=:), allocatable :: str
        
-      select type (p=>arg)
+      select type (p => arg)
 
       type is (integer(int32))
          str = toString(p)
