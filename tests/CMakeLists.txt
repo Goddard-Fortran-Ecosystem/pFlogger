@@ -30,6 +30,7 @@ set(TEST_SRCS
    Test_LogRecord.F90
    Test_LoggerManager.F90
    Test_Formatter.F90
+   Test_FormatParser.F90
 )
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )

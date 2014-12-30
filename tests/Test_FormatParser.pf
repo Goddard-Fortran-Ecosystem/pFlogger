@@ -1,0 +1,18 @@
+module Test_FormatParser_mod
+   use pFUnit_mod
+   use ASTG_FormatParser_mod
+   
+   implicit none
+
+contains
+
+   @test
+   subroutine test_isFormat()
+      type(FormatParser) :: parser
+      
+      @assertFalse(parser%isFormat('A'))
+      @assertTrue(parser%isFormat('%a'))
+      
+   end subroutine test_isFormat
+   
+end module Test_FormatParser_mod

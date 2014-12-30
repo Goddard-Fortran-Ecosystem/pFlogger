@@ -18,3 +18,6 @@ ADD_TEST_SUITE(Test_LogRecord_mod_suite)
 
 ! Formatter
 ADD_TEST_SUITE(Test_Formatter_mod_suite)
+
+! Parser
+ADD_TEST_SUITE(Test_FormatParser_mod_suite)

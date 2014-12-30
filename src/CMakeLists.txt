@@ -35,6 +35,7 @@ list(APPEND SRCS Logger.F90)
 list(APPEND SRCS RootLogger.F90)
 list(APPEND SRCS Placeholder.F90)
 list(APPEND SRCS LoggerManager.F90)
+list(APPEND SRCS FormatParser.F90)
 
 message("F90FLAGS ${F90FLAGS}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/FTL)
