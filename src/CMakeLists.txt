@@ -24,6 +24,7 @@ list(APPEND SRCS CIStringAbstractLoggerPolyPair.F90)
 list(APPEND SRCS CIStringAbstractLoggerPolyPairVec.F90)
 list(APPEND SRCS CIStringAbstractLoggerPolyPairVecVec.F90)
 list(APPEND SRCS CIStringAbstractLoggerPolyUMap.F90)
+list(APPEND SRCS StringVec.F90)
 
 list(APPEND SRCS SeverityLevels.F90)
 list(APPEND SRCS AbstractHandler.F90)
