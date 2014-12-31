@@ -38,6 +38,8 @@ set (MPI "NO"
 # Compiler flags
 include(setCompilerFlags)
 
+set(FTL $ENV{FTL})
+
 add_subdirectory(src)
 if(WITH_PFUNIT MATCHES YES)
    add_subdirectory(tests)

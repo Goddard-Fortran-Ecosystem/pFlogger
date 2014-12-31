@@ -44,7 +44,7 @@ set_source_files_properties(
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
-   ${CMAKE_BINARY_DIR}/src/FTL
+   ${FTL}/mod
    ${PFUNIT}/include
 )
 
@@ -53,14 +53,17 @@ include_directories(
 add_library(${THIS} STATIC ${ALL_SRCS}
 )
 
+link_directories(${FTL}/lib)
+
 target_link_libraries(${THIS}
    logger
    pfunit
+   ftl
 )
 
 set(EXE ${THIS}.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} ${THIS} logger pfunit)
+target_link_libraries(${EXE} ${THIS} logger ftl pfunit)
 
 if (MPI)
    target_link_libraries(${EXE} ${MPI_Fortran_LIBRARIES} )
