@@ -16,7 +16,23 @@ contains
       
    end subroutine test_isFormat
 
+   @test
+   subroutine test_getToken()
+      type(FormatParser) :: parser
+      
+      @assertEqual('a', parser%getToken('a'))
+      @assertEqual('ab', parser%getToken('ab'))
+      @assertEqual('a b', parser%getToken('a b'))
 
+      @assertEqual('%', parser%getToken('%'))
+      @assertEqual('a', parser%getToken('a%2.1'))
+      @assertEqual(' ', parser%getToken(' %2.1'))
+
+      @assertEqual('%a', parser%getToken('%a a'))
+      @assertEqual('%i2.1', parser%getToken('%i2.1 hello'))
+
+   end subroutine test_getToken
+   
    @test
    subroutine test_countTokens()
       type(FormatParser) :: parser
@@ -63,7 +79,18 @@ contains
       tokens = parser%getTokens('a ')
       @assertTrue(String('a ') == tokens%at(1))      
       
+      tokens = parser%getTokens('hello %i2.1')
+      @assertTrue(String('hello ') == tokens%at(1))
+      @assertTrue(String('%i2.1') == tokens%at(2))
 
+      tokens = parser%getTokens('hello %i2.1 other words %a ')
+      @assertTrue(String('hello ') == tokens%at(1))
+      @assertTrue(String('%i2.1') == tokens%at(2))
+      @assertTrue(String(' other words ') == tokens%at(3))
+      @assertTrue(String('%a') == tokens%at(4))
+      @assertTrue(String('') == tokens%at(5))
+
+      
    end subroutine test_getTokens
 
 end module Test_FormatParser_mod

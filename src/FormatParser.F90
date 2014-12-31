@@ -8,10 +8,11 @@ module ASTG_FormatParser_mod
    type FormatParser
    contains
       procedure, nopass :: isFormat
+      procedure, nopass :: getToken
       procedure, nopass :: getTokens
    end type FormatParser
 
-   character(len=1), parameter :: FORMAT_DELIMITER = '%'
+   character(len=*), parameter :: FORMAT_DELIMITERS = '%'
    
 contains
 
@@ -19,31 +20,66 @@ contains
    logical function isFormat(string)
       character(len=*) :: string
 
-      isFormat = (string(1:1) == FORMAT_DELIMITER)
+      isFormat = (scan(string(1:1),FORMAT_DELIMITERS) > 0)
       
    end function isFormat
 
-   function getTokens(str) result(tokens)
+   !-------------------------------------------------------
+   ! Format strings consist of two types of tokens. First there are
+   ! regular text strings that do not contain any FORMAT_DELIMITERS.  Ther
+   ! there are format specifiers that begin with a FORMAT_DELIMITER.
+   ! E.g.  'hello %i2.1' has two tokens: 'hello ' and '%2.1'.  An
+   ! important issue is how to detect the _end_ of a format specifier
+   ! token.  For the moment, we require that those end with a space
+   ! (i.e. '_').
+   !-------------------------------------------------------
+
+   function getToken(string) result(token)
+      character(len=:), allocatable :: token
+      character(len=*), intent(in) :: string
+
+      integer :: idx
+
+      idx = scan(string, FORMAT_DELIMITERS)
+      select case (idx)
+      case (0) ! no format tokens
+         token = string
+      case (1) ! first token is a format 
+         idx = scan(string,' ')
+         if (idx == 0) then ! entire string is token
+            token = string
+         else
+            token = string(1:idx-1)
+         end if
+      case (2:) ! first token is text
+         token = string(1:idx-1)
+      end select
+         
+      if (idx > 1) then ! there is a text token
+         token = string(1:idx-1)
+      else ! there is a format token
+      end if
+      
+   end function getToken
+   
+   function getTokens(string) result(tokens)
       type(StringVec) :: tokens
-      character(len=*), intent(in) :: str
-      character(len=:), allocatable :: tmp
-      integer :: loc, n
+      character(len=*), intent(in) :: string
+      character(len=:), allocatable :: buffer
+      character(len=:), allocatable :: token
+      integer :: n
 
       tokens = StringVec()
 
-      if (str == '') return
+      buffer = string
+      do
+         n = len(buffer)
+         if (n == 0) return
+         
+         token = getToken(buffer)
+         call tokens%push_back(token)
+         buffer = buffer(len(token)+1:n)
 
-      tmp = str
-      do while (len(tmp) > 0)
-         loc = scan(tmp, FORMAT_DELIMITER)
-         if (loc > 1) then
-           call tokens%push_back(tmp(1:loc-1))
-           n = len(tmp)
-           tmp = tmp(loc+1:n)
-         else
-           call tokens%push_back(tmp)
-           tmp = ''
-         end if
       end do
       
    end function getTokens
