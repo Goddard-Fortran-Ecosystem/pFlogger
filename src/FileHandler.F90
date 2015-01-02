@@ -89,7 +89,7 @@ contains
       
       if (this%isOpen()) return
       open(newunit=unit, file=this%getFileName(), &
-           & status='unknown', form='formatted', position='append', action='write')
+           & status='unknown', form='formatted', position='append')
       call this%setUnit(unit)
       this%isOpen_ = .true.
        
