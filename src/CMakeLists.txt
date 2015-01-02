@@ -63,8 +63,6 @@ add_custom_command(OUTPUT ${FTL_SRCS}
 
 message("F90FLAGS ${F90FLAGS}")
 include_directories(${FTL}/mod)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/FTL)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/FTL)
 
 set_source_files_properties(
    ${SRCS}
