@@ -13,6 +13,7 @@ contains
       
       @assertFalse(parser%isFormat('A'))
       @assertTrue(parser%isFormat('%a'))
+      @assertFalse(parser%isFormat('%%a'))
       
    end subroutine test_isFormat
 
@@ -89,7 +90,6 @@ contains
       @assertTrue(String(' other words ') == tokens%at(3))
       @assertTrue(String('%a') == tokens%at(4))
       @assertTrue(String('') == tokens%at(5))
-
       
    end subroutine test_getTokens
 

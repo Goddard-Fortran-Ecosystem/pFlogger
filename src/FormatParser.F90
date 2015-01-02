@@ -12,7 +12,7 @@ module ASTG_FormatParser_mod
       procedure, nopass :: getTokens
    end type FormatParser
 
-   character(len=*), parameter :: FORMAT_DELIMITERS = '%'
+   character(len=*), parameter :: FORMAT_DELIMITER = '%'
    
 contains
 
@@ -20,13 +20,26 @@ contains
    logical function isFormat(string)
       character(len=*) :: string
 
-      isFormat = (scan(string(1:1),FORMAT_DELIMITERS) > 0)
+      integer :: idx
+      character(len=1) :: nextChar
+
+      idx = scan(string(1:1), FORMAT_DELIMITER)
+      if (idx == 0) then
+         isFormat = .false.
+      else
+         if (idx < len(string)) then
+            nextChar = string(idx+1:idx+1)
+            isFormat = (nextChar /= FORMAT_DELIMITER)
+         else
+            isFormat = .true.
+         end if
+      end if
       
    end function isFormat
 
    !-------------------------------------------------------
    ! Format strings consist of two types of tokens. First there are
-   ! regular text strings that do not contain any FORMAT_DELIMITERS.  Ther
+   ! regular text strings that do not contain any FORMAT_DELIMITER.  Ther
    ! there are format specifiers that begin with a FORMAT_DELIMITER.
    ! E.g.  'hello %i2.1' has two tokens: 'hello ' and '%2.1'.  An
    ! important issue is how to detect the _end_ of a format specifier
@@ -40,7 +53,7 @@ contains
 
       integer :: idx
 
-      idx = scan(string, FORMAT_DELIMITERS)
+      idx = scan(string, FORMAT_DELIMITER)
       select case (idx)
       case (0) ! no format tokens
          token = string
