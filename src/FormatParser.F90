@@ -1,4 +1,5 @@
 module ASTG_FormatParser_mod
+   use ASTG_Exception_mod
    use FTL_StringVec_mod
    implicit none
    private
@@ -8,34 +9,34 @@ module ASTG_FormatParser_mod
    type FormatParser
    contains
       procedure, nopass :: isFormat
+      procedure, nopass :: startOfNextToken
       procedure, nopass :: getToken
       procedure, nopass :: getTokens
    end type FormatParser
 
+   ! allow for variants that use other characters;  E.g. % -> $, or () -> {}
    character(len=*), parameter :: FORMAT_DELIMITER = '%'
-   
+   character(len=*), parameter :: OPEN_PAREN = '('
+   character(len=*), parameter :: CLOSE_PAREN = ')'
+   character(len=*), parameter :: SPACE = ' '
+   character(len=*), parameter :: ESCAPE = '\' ! '
+
+
 contains
 
 
    logical function isFormat(string)
       character(len=*) :: string
 
-      integer :: idx
-      character(len=1) :: nextChar
-
-      idx = scan(string(1:1), FORMAT_DELIMITER)
-      if (idx == 0) then
+      if (len(string) == 0) then
          isFormat = .false.
+         call throw("Illegal - empty string in FormatParser.")
       else
-         if (idx < len(string)) then
-            nextChar = string(idx+1:idx+1)
-            isFormat = (nextChar /= FORMAT_DELIMITER)
-         else
-            isFormat = .true.
-         end if
+         isFormat = (string(1:1) == FORMAT_DELIMITER)
       end if
-      
+
    end function isFormat
+
 
    !-------------------------------------------------------
    ! Format strings consist of two types of tokens. First there are
@@ -47,31 +48,67 @@ contains
    ! (i.e. '_').
    !-------------------------------------------------------
 
+   integer function startOfNextToken(string) result(idx)
+      character(len=*), intent(in) :: string
+
+      logical :: isFormatToken
+      character(len=1) :: previousCharacter
+      integer :: i
+
+      isFormatToken = isFormat(string)
+
+      if (isFormatToken) then
+
+         do i = 2, len(string)
+            select case(string(i:i))
+            case (FORMAT_DELIMITER, SPACE)
+               idx = i
+               return
+            case (CLOSE_PAREN)
+               idx = i + 1
+               return
+            end select
+         end do
+         
+         ! entire string
+         idx = len(string) + 1 
+
+      else
+
+         ! scan for start of format
+         do i = 2, len(string)
+            previousCharacter = string(i-1:i-1)
+            if (previousCharacter == ESCAPE) then
+               cycle
+            elseif (string(i:i) == FORMAT_DELIMITER) then
+               idx = i
+               return
+            end if
+
+         end do
+         ! entire string
+         idx = len(string) + 1
+
+      end if
+      
+   end function startOfNextToken
+
    function getToken(string) result(token)
       character(len=:), allocatable :: token
       character(len=*), intent(in) :: string
 
       integer :: idx
+      character(len=1) :: nextCharacter
 
-      idx = scan(string, FORMAT_DELIMITER)
-      select case (idx)
-      case (0) ! no format tokens
-         token = string
-      case (1) ! first token is a format 
-         idx = scan(string,' ')
-         if (idx == 0) then ! entire string is token
-            token = string
-         else
-            token = string(1:idx-1)
-         end if
-      case (2:) ! first token is text
-         token = string(1:idx-1)
-      end select
-         
-      if (idx > 1) then ! there is a text token
-         token = string(1:idx-1)
-      else ! there is a format token
+      idx = startOfNextToken(string)
+      if (idx == 0) then
+         token = ''
+         call throw("Illegal - empty string in FormatParser.")
+         return
       end if
+
+      token = string(1:idx-1)
+         
       
    end function getToken
    
