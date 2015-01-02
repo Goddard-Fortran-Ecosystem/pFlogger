@@ -16,10 +16,6 @@ if(EXISTS $ENV{PFUNIT})
    set(PFUNIT $ENV{PFUNIT})
 endif()
 
-set (CPPFLAGS 
-  "-cpp ${CPPFLAGS}"
-  )
-
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Intel compiler flags
@@ -29,7 +25,7 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
    string(REGEX REPLACE "^.*[ ]([0-9]+)\\.[0-9].*$" "\\1" IFORT_MAJOR "${ver}")
    
    if (${IFORT_MAJOR} MATCHES 14)
-      set(CPPFLAGS "${CPPFLAGS} -DINTEL_14")
+      set(CPPFLAGS "${CPPFLAGS} -DINTEL_14 -cpp")
    endif()
 
    set(F90FLAGS 
@@ -46,7 +42,7 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
    if (CMAKE_SYSTEM_NAME MATCHES Linux)
-      set (CPPFLAGS "${CPPFLAGS}")
+      set (CPPFLAGS "${CPPFLAGS} -cpp")
    else()
       set (CPPFLAGS "${CPPFLAGS}")
    endif()
@@ -61,9 +57,22 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
       )
    endif()
 
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
+   set (CPPFLAGS "${CPPFLAGS} -fpp")
+ 
+  set(F90FLAGS 
+      "${CPPFLAGS}"
+   )
+
+   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
+      set(F90FLAGS 
+         "${F90FLAGS} -O0"
+      )
+   endif()
+
 else()
 
-   message( FATAL_ERROR "Unrecognized compiler. Please use ifort or gfortran" )
+   message( FATAL_ERROR "Unrecognized compiler ${CMAKE_Fortran_COMPILER_ID}. Please use ifort or gfortran" )
 
 endif()
 
