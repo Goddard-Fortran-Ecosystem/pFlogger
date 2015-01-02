@@ -156,34 +156,80 @@ contains
    end function getTokens
 
 
-   function makeString(fmt, arg1) result(rawString)
+   function makeString(fmt, arg1, arg2, arg3) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
+      use FTL_XWrapVec_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
 
       integer, optional :: arg1
+      integer, optional :: arg2
+      integer, optional :: arg3
 
       character(len=80) :: buffer
+      character(len=:), allocatable :: tokenString
+      character(len=:), allocatable :: payload
       type (String), pointer :: token
       type (StringVec), target :: tokens
+      type (XWrapVec), target :: args
 
+      type (StringVecIter) :: fmtIter
+      type (XWrapVecIter) :: argIter
+
+
+      args = XWrapVec()
+      if (present(arg1)) call args%push_back_alt(arg1)
+      if (present(arg2)) call args%push_back_alt(arg2)
+      if (present(arg3)) call args%push_back_alt(arg3)
+         
+      rawString = ''
       tokens = getTokens(fmt)
+      
+      fmtIter = tokens%begin()
+      argIter = args%begin()
 
-      token => tokens%at(1)
-      rawString = token%item
+      do while (fmtIter /= tokens%end())
+         token => fmtIter%get()
+         tokenString = token%item
 
-      if (tokens%size() > 1) then 
-         if (.not. present(arg1)) then
-            call throw('Missing data item in FormatParser.')
-            return
+         payload = getPayload(tokenString)
+         if (isFormat(tokenString)) then
+
+            ! Is there another value?
+            if (argIter == args%end()) then
+               call throw('Not enough values for format string in FormatParser.')
+               return
+            end if
+
+            select type (arg => argIter%get_alt())
+            type is (integer)
+               write(buffer,payload) arg
+               rawString = rawString // trim(buffer)
+            end select
+            call argIter%next()
+         else
+            rawString = rawString // payload
          end if
 
-         
-         write(buffer,'(i1.1)') arg1
-         rawString = rawString // trim(buffer)
+         call fmtIter%next()
 
+      end do
+
+   contains
+
+   subroutine check(n, i, arg)
+      integer, intent(in) :: n
+      integer, intent(in) :: i
+      integer, optional :: arg
+
+      if (n >= i) then 
+         if (.not. present(arg1)) then
+            call throw('Missing data item in FormatParser.')
+         end if
       end if
+   end subroutine check
+
 
    end function makeString
    

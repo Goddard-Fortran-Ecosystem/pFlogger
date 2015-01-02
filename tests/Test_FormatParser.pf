@@ -102,6 +102,9 @@ contains
       tokens = parser%getTokens('a%a')
       @assertEqual(2, tokens%size())      
 
+      tokens = parser%getTokens('- %i1.1%i1.1')
+      @assertEqual(3, tokens%size())      
+
    end subroutine test_countTokens
 
    @test
@@ -149,6 +152,22 @@ contains
       @assertEqual('hello', parser%makeString('hello', 1))
       @assertEqual('- 1', parser%makeString('- %i1.1', 1))
 
+      @assertEqual('- 12', parser%makeString('- %i1.1%i1.1', 1, 2))
+      @assertEqual('- 1 02 003', parser%makeString('- %i1.1 %i2.2 %i3.3', 1, 2, 3))
+
+      @assertEqual('- (1)', parser%makeString('- (%(i1.1))', 1))
+
    end subroutine test_makeString
+
+   @test
+   subroutine test_makeString_detectMissingArgs()
+      type(FormatParser) :: parser
+
+      character(len=:), allocatable :: str
+
+      str = parser%makeString('hello %i')
+      @assertExceptionRaised('Not enough values for format string in FormatParser.')
+
+   end subroutine test_makeString_detectMissingArgs
 
 end module Test_FormatParser_mod
