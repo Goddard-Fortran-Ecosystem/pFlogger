@@ -1,17 +1,18 @@
 module ASTG_FormatParser_mod
+   use ASTG_Object_mod
    use ASTG_Exception_mod
-   use FTL_StringVec_mod
    implicit none
    private
 
    public FormatParser
    
-   type FormatParser
+   type, extends(Object) :: FormatParser
    contains
       procedure, nopass :: isFormat
       procedure, nopass :: startOfNextToken
-      procedure, nopass :: getToken
+      procedure, nopass :: getPayload
       procedure, nopass :: getTokens
+      procedure, nopass :: makeString
    end type FormatParser
 
    ! allow for variants that use other characters;  E.g. % -> $, or () -> {}
@@ -93,45 +94,97 @@ contains
       
    end function startOfNextToken
 
-   function getToken(string) result(token)
-      character(len=:), allocatable :: token
+   function getPayload(string) result(payload)
+      character(len=:), allocatable :: payload
       character(len=*), intent(in) :: string
 
-      integer :: idx
-      character(len=1) :: nextCharacter
+      integer :: n
 
-      idx = startOfNextToken(string)
-      if (idx == 0) then
-         token = ''
-         call throw("Illegal - empty string in FormatParser.")
-         return
+      n  = len(string)
+
+      if (isFormat(string)) then
+         select case(n)
+         case (1)
+            payload = ''
+            call throw("Empty format descripter in FormatParser.")
+         case (2:)
+            if (string(2:2) == OPEN_PAREN) then
+               ! keep all but FORMAT_DELIMETER (now 1st character)
+               payload = string(2:n)
+               if (n == 3) then
+                  call throw("Empty format descripter in FormatParser.")
+                  return
+               end if
+            else
+               ! Fortran requires PAREN to be '(' when passing to write statements
+               payload = '(' // string(2:n) // ')' ! 
+            end if
+         end select
+      else
+         payload = string
       end if
 
-      token = string(1:idx-1)
-         
-      
-   end function getToken
+   end function getPayload
    
-   function getTokens(string) result(tokens)
+   function getTokens(rawString) result(tokens)
+      use FTL_String_mod
+      use FTL_StringVec_mod
       type(StringVec) :: tokens
-      character(len=*), intent(in) :: string
+      character(len=*), intent(in) :: rawString
       character(len=:), allocatable :: buffer
+
       character(len=:), allocatable :: token
-      integer :: n
+
+      integer :: i, n
 
       tokens = StringVec()
 
-      buffer = string
+      buffer = rawString
       do
          n = len(buffer)
+
          if (n == 0) return
-         
-         token = getToken(buffer)
-         call tokens%push_back(token)
-         buffer = buffer(len(token)+1:n)
+
+         i = startOfNextToken(buffer) ! always > 0
+
+         token = buffer(1:i-1)
+         call tokens%push_back(String(token))
+         buffer = buffer(i:n)
 
       end do
       
    end function getTokens
+
+
+   function makeString(fmt, arg1) result(rawString)
+      use FTL_String_mod
+      use FTL_StringVec_mod
+      character(len=:), allocatable :: rawString
+      character(len=*), intent(in) :: fmt
+
+      integer, optional :: arg1
+
+      character(len=80) :: buffer
+      type (String), pointer :: token
+      type (StringVec), target :: tokens
+
+      tokens = getTokens(fmt)
+
+      token => tokens%at(1)
+      rawString = token%item
+
+      if (tokens%size() > 1) then 
+         if (.not. present(arg1)) then
+            call throw('Missing data item in FormatParser.')
+            return
+         end if
+
+         
+         write(buffer,'(i1.1)') arg1
+         rawString = rawString // trim(buffer)
+
+      end if
+
+   end function makeString
    
 end module ASTG_FormatParser_mod

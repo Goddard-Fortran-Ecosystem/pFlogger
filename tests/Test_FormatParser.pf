@@ -22,14 +22,20 @@ contains
 
    ! Cannot parse an empty string
    @test
-   subroutine test_illegalString()
+   subroutine test_getPayload_illegalString()
       type(FormatParser) :: parser
       character(len=:), allocatable :: str
 
-      str = parser%getToken('')
+      str = parser%getPayload('')
       @assertExceptionRaised("Illegal - empty string in FormatParser.")
 
-   end subroutine test_illegalString
+      str = parser%getPayload('%')
+      @assertExceptionRaised("Empty format descripter in FormatParser.")
+
+      str = parser%getPayload('%()')
+      @assertExceptionRaised("Empty format descripter in FormatParser.")
+
+   end subroutine test_getPayload_illegalString
 
 
    @test
@@ -37,6 +43,7 @@ contains
       type(FormatParser) :: parser
       
       @assertEqual(2, parser%startOfNextToken('a'))
+      @assertEqual(3, parser%startOfNextToken('a '))
       @assertEqual(3, parser%startOfNextToken('ab'))
       @assertEqual(4, parser%startOfNextToken('a b'))
 
@@ -52,24 +59,19 @@ contains
    end subroutine test_startOfNextToken
    
    @test
-   subroutine test_getToken()
+   subroutine test_getPayload()
       type(FormatParser) :: parser
       
-      @assertEqual('a', parser%getToken('a'))
-      @assertEqual('ab', parser%getToken('ab'))
-      @assertEqual('a b', parser%getToken('a b'))
+      @assertEqual('a', parser%getPayload('a'))
+      @assertEqual('ab', parser%getPayload('ab'))
+      @assertEqual('a b', parser%getPayload('a b'))
+      @assertEqual('\%a', parser%getPayload('\%a'))
 
-      @assertEqual('a', parser%getToken('a%2.1'))
-      @assertEqual(' ', parser%getToken(' %2.1'))
+      @assertEqual('(a)', parser%getPayload('%a'))
+      @assertEqual('(i2.1)', parser%getPayload('%i2.1'))
+      @assertEqual('(i2.1)', parser%getPayload('%(i2.1)'))
 
-      @assertEqual('%', parser%getToken('%'))
-      @assertEqual('\%a', parser%getToken('\%a'))
-      @assertEqual('%', parser%getToken('% other '))
-      @assertEqual('%a', parser%getToken('%a a'))
-      @assertEqual('%i2.1', parser%getToken('%i2.1 hello'))
-      @assertEqual('%(i2.1)', parser%getToken('%(i2.1) hello'))
-
-   end subroutine test_getToken
+   end subroutine test_getPayload
    
    @test
    subroutine test_countTokens()
@@ -135,8 +137,18 @@ contains
       @assertTrue(String('%a') == tokens%at(4))
       @assertTrue(String('') == tokens%at(5))
 
-
-      
    end subroutine test_getTokens
+
+   @test
+   subroutine test_makeString()
+      type(FormatParser) :: parser
+      
+      @assertEqual('hello', parser%makeString('hello'))
+      @assertEqual('goodbye', parser%makeString('goodbye'))
+
+      @assertEqual('hello', parser%makeString('hello', 1))
+      @assertEqual('- 1', parser%makeString('- %i1.1', 1))
+
+   end subroutine test_makeString
 
 end module Test_FormatParser_mod
