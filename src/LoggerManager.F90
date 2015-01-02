@@ -20,7 +20,7 @@ module ASTG_LoggerManager_mod
 
 
    interface LoggerManager
-      module procedure :: newLoggerManager
+      module procedure newLoggerManager
    end interface LoggerManager
 
 

@@ -27,7 +27,7 @@ module ASTG_LogRecord_mod
    end type LogRecord
 
    interface LogRecord
-      module procedure :: newLogRecord
+      module procedure newLogRecord
    end interface LogRecord
 
    

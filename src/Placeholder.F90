@@ -17,7 +17,7 @@ module ASTG_Placeholder_mod
 
    
    interface Placeholder
-      module procedure :: newPlaceholder
+      module procedure newPlaceholder
    end interface Placeholder
 
 

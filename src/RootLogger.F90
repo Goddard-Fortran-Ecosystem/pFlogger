@@ -10,7 +10,7 @@ module ASTG_RootLogger_mod
 
    
    interface RootLogger
-      module procedure :: newRootLogger
+      module procedure newRootLogger
    end interface RootLogger
 
 

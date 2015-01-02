@@ -19,7 +19,7 @@ module ASTG_Formatter_mod
    end type Formatter
 
    interface Formatter
-      module procedure :: newFormatter
+      module procedure newFormatter
    end interface Formatter
    
    

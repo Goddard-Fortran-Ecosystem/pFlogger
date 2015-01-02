@@ -22,7 +22,7 @@ module ASTG_StreamHandler_mod
    end type StreamHandler
 
    interface StreamHandler
-      module procedure :: newStreamHandler
+      module procedure newStreamHandler
    end interface StreamHandler
 
    
