@@ -9,6 +9,8 @@ module ASTG_FormatParser_mod
    type, extends(Object) :: FormatParser
    contains
       procedure, nopass :: isFormat
+      procedure, nopass :: formatContainsKey
+      procedure, nopass :: getFormatKey
       procedure, nopass :: startOfNextToken
       procedure, nopass :: getPayload
       procedure, nopass :: getTokens
@@ -21,13 +23,14 @@ module ASTG_FormatParser_mod
    character(len=*), parameter :: CLOSE_PAREN = ')'
    character(len=*), parameter :: SPACE = ' '
    character(len=*), parameter :: ESCAPE = '\' ! '
+   character(len=*), parameter :: NAME_SEPARATOR = ':'
 
 
 contains
 
 
    logical function isFormat(string)
-      character(len=*) :: string
+      character(len=*), intent(in) :: string
 
       if (len(string) == 0) then
          isFormat = .false.
@@ -38,6 +41,34 @@ contains
 
    end function isFormat
 
+   
+   logical function formatContainsKey(string)
+      character(len=*), intent(in) :: string
+      
+      formatContainsKey = (index(string,NAME_SEPARATOR) > 0)
+
+   end function formatContainsKey
+
+
+   
+   function getFormatKey(tokenString) result(key)
+      character(len=:), allocatable :: key
+      character(len=*), intent(in) :: tokenString
+
+      integer :: idx
+
+      idx = index(tokenString, NAME_SEPARATOR)
+      select case (idx)
+      case (0)
+         key = ''
+      case (1:3)
+         key = ''
+         call throw('Illegal key/format in FormatParser: <' // tokenString // '>')
+      case (4:)
+         key = tokenString(3:idx-1)
+      end select
+
+   end function getFormatKey
 
    !-------------------------------------------------------
    ! Format strings consist of two types of tokens. First there are
@@ -99,6 +130,7 @@ contains
       character(len=*), intent(in) :: string
 
       integer :: n
+      integer :: idx
 
       n  = len(string)
 
@@ -110,18 +142,28 @@ contains
          case (2:)
             if (string(2:2) == OPEN_PAREN) then
                ! keep all but FORMAT_DELIMETER (now 1st character)
-               payload = string(2:n)
-               if (n == 3) then
-                  call throw("Empty format descripter in FormatParser.")
-                  return
+               if (formatContainsKey(string)) then
+                  idx = index(string, ':')
+                  payload = string(idx+1:n-1)
+               else
+                  payload = string(3:n-1)
                end if
             else
-               ! Fortran requires PAREN to be '(' when passing to write statements
-               payload = '(' // string(2:n) // ')' ! 
+               payload = string(2:n)
             end if
+            if (payload == '') then
+               call throw("Empty format descripter in FormatParser.")
+               return
+            end if
+            ! Wrap with parens for use as Fortran fmt.
+            payload = '(' // payload // ')' ! 
+
          end select
-      else
+
+      else ! raw text
+
          payload = string
+
       end if
 
    end function getPayload
@@ -156,27 +198,40 @@ contains
    end function getTokens
 
 
-   function makeString(fmt, arg1, arg2, arg3) result(rawString)
+   function makeString(fmt, arg1, arg2, arg3, unusable, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
       use FTL_XWrapVec_mod
+      use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
 
+      type UnusableArgument
+      end type UnusableArgument
       integer, optional :: arg1
       integer, optional :: arg2
       integer, optional :: arg3
+      type (UnusableArgument), optional :: unusable
+      type (CIStringXUMap), optional :: extra
 
       character(len=80) :: buffer
       character(len=:), allocatable :: tokenString
+      character(len=:), allocatable :: key
       character(len=:), allocatable :: payload
       type (String), pointer :: token
       type (StringVec), target :: tokens
       type (XWrapVec), target :: args
+      class (*), pointer :: arg
 
       type (StringVecIter) :: fmtIter
       type (XWrapVecIter) :: argIter
+      type (CIStringXUMap) :: extra_
 
+      if (present(extra)) then
+         extra_ = extra
+      else
+         extra_ = CIStringXUMap()
+      end if
 
       args = XWrapVec()
       if (present(arg1)) call args%push_back_alt(arg1)
@@ -195,19 +250,29 @@ contains
 
          payload = getPayload(tokenString)
          if (isFormat(tokenString)) then
-
-            ! Is there another value?
-            if (argIter == args%end()) then
-               call throw('Not enough values for format string in FormatParser.')
-               return
+            ! Does it contain a key?
+            if (formatContainsKey(tokenString)) then
+               key = getFormatKey(tokenString)
+               arg => extra_%at_alt(key)
+               if (.not. associated(arg)) then
+                  call throw('No such key: <' // key // '> in "extra".')
+                  return
+               end if
+            else
+               ! Is there another position value?
+               if (argIter == args%end()) then
+                  call throw('Not enough values for format string in FormatParser.')
+                  return
+               end if
+               arg => argIter%get_alt()
+               call argIter%next()
             end if
 
-            select type (arg => argIter%get_alt())
+            select type (arg)
             type is (integer)
                write(buffer,payload) arg
                rawString = rawString // trim(buffer)
             end select
-            call argIter%next()
          else
             rawString = rawString // payload
          end if
@@ -218,18 +283,17 @@ contains
 
    contains
 
-   subroutine check(n, i, arg)
-      integer, intent(in) :: n
-      integer, intent(in) :: i
-      integer, optional :: arg
-
-      if (n >= i) then 
-         if (.not. present(arg1)) then
-            call throw('Missing data item in FormatParser.')
+      subroutine check(n, i, arg)
+         integer, intent(in) :: n
+         integer, intent(in) :: i
+         integer, optional :: arg
+         
+         if (n >= i) then 
+            if (.not. present(arg1)) then
+               call throw('Missing data item in FormatParser.')
+            end if
          end if
-      end if
-   end subroutine check
-
+      end subroutine check
 
    end function makeString
    

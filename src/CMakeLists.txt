@@ -47,6 +47,10 @@ set(FTL_SRCS
   CIStringAbstractLoggerPolyPairVec.F90
   CIStringAbstractLoggerPolyPairVecVec.F90
   CIStringAbstractLoggerPolyUMap.F90
+  CIStringXPair.F90
+  CIStringXPairVec.F90
+  CIStringXPairVecVec.F90
+  CIStringXUMap.F90
   StringVec.F90
   )
 
