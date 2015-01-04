@@ -14,6 +14,7 @@ module ASTG_FormatParser_mod
       procedure, nopass :: startOfNextToken
       procedure, nopass :: getPayload
       procedure, nopass :: getTokens
+      procedure, nopass :: format
       procedure, nopass :: makeString
    end type FormatParser
 
@@ -25,6 +26,10 @@ module ASTG_FormatParser_mod
    character(len=*), parameter :: ESCAPE = '\' ! '
    character(len=*), parameter :: NAME_SEPARATOR = ':'
 
+
+   ! This private type is used to force some arguments to be passed by keyword.
+   type UnusableArgument
+   end type UnusableArgument
 
 contains
 
@@ -197,22 +202,19 @@ contains
       
    end function getTokens
 
-
-   function makeString(fmt, arg1, arg2, arg3, unusable, extra) result(rawString)
+   function format(fmt, args, unusable, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
-
-      type UnusableArgument
-      end type UnusableArgument
-      integer, optional :: arg1
-      integer, optional :: arg2
-      integer, optional :: arg3
+      type (XWrapVec), optional :: args
       type (UnusableArgument), optional :: unusable
       type (CIStringXUMap), optional :: extra
+
+      type (XWrapVec) :: args_
+      type (CIStringXUMap) :: extra_
 
       character(len=80) :: buffer
       character(len=:), allocatable :: tokenString
@@ -220,12 +222,16 @@ contains
       character(len=:), allocatable :: payload
       type (String), pointer :: token
       type (StringVec), target :: tokens
-      type (XWrapVec), target :: args
       class (*), pointer :: arg
 
       type (StringVecIter) :: fmtIter
       type (XWrapVecIter) :: argIter
-      type (CIStringXUMap) :: extra_
+
+      if (present(args)) then
+         args_ = args
+      else
+         args_ = XWrapVec()
+      end if
 
       if (present(extra)) then
          extra_ = extra
@@ -233,16 +239,11 @@ contains
          extra_ = CIStringXUMap()
       end if
 
-      args = XWrapVec()
-      if (present(arg1)) call args%push_back_alt(arg1)
-      if (present(arg2)) call args%push_back_alt(arg2)
-      if (present(arg3)) call args%push_back_alt(arg3)
-         
       rawString = ''
       tokens = getTokens(fmt)
       
       fmtIter = tokens%begin()
-      argIter = args%begin()
+      argIter = args_%begin()
 
       do while (fmtIter /= tokens%end())
          token => fmtIter%get()
@@ -260,7 +261,7 @@ contains
                end if
             else
                ! Is there another position value?
-               if (argIter == args%end()) then
+               if (argIter == args_%end()) then
                   call throw('Not enough values for format string in FormatParser.')
                   return
                end if
@@ -272,6 +273,9 @@ contains
             type is (integer)
                write(buffer,payload) arg
                rawString = rawString // trim(buffer)
+            type is (real)
+               write(buffer,payload) arg
+               rawString = rawString // trim(buffer)
             end select
          else
             rawString = rawString // payload
@@ -281,20 +285,30 @@ contains
 
       end do
 
-   contains
+   end function format
 
-      subroutine check(n, i, arg)
-         integer, intent(in) :: n
-         integer, intent(in) :: i
-         integer, optional :: arg
+      
+   function makeString(fmt, arg1, arg2, arg3, unusable, extra) result(rawString)
+      use FTL_XWrapVec_mod
+      use FTL_CIStringXUMap_mod
+      character(len=:), allocatable :: rawString
+      character(len=*), intent(in) :: fmt
+
+      integer, optional :: arg1
+      integer, optional :: arg2
+      integer, optional :: arg3
+      type (UnusableArgument), optional :: unusable
+      type (CIStringXUMap), optional :: extra
+
+      type (XWrapVec) :: args
+
+      args = XWrapVec()
+      if (present(arg1)) call args%push_back_alt(arg1)
+      if (present(arg2)) call args%push_back_alt(arg2)
+      if (present(arg3)) call args%push_back_alt(arg3)
+
+      rawString = format(fmt, args, extra=extra)
          
-         if (n >= i) then 
-            if (.not. present(arg1)) then
-               call throw('Missing data item in FormatParser.')
-            end if
-         end if
-      end subroutine check
-
    end function makeString
    
 end module ASTG_FormatParser_mod
