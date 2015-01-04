@@ -4,6 +4,7 @@
 module ASTG_Filter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
+   use FTL_CaseInsensitiveString_mod
    implicit none
    private
 
@@ -11,14 +12,22 @@ module ASTG_Filter_mod
 
    type, extends(Object) :: Filter
       private
-      character(len=:), allocatable :: name
+      ! 'allocatable' below is a workaround for ifort 15.0.1
+      ! Of course it then breaks gfortrn 4.9.1.  sigh.
+#ifdef __INTEL_COMPILER
+      type (CaseInsensitiveString), allocatable :: name
+#else
+      type (CaseInsensitiveString) :: name
+#endif
    contains
       procedure :: filter => filter_ ! name conflict
       procedure :: equal
       generic :: operator(==) => equal
       procedure :: notEqual
       generic :: operator(/=) => notEqual
+      procedure :: toString_self
    end type Filter
+
 
    interface Filter
       module procedure newFilter
@@ -32,7 +41,7 @@ contains
    function newFilter(name) result(f)
       type (Filter) :: f
       character(len=*), intent(in) :: name
-      f%name = name
+      f%name = CaseInsensitiveString(name)
    end function newFilter
 
    
@@ -42,9 +51,11 @@ contains
       class (LogRecord), intent(inout) :: record
 
       character(len=:), allocatable :: recordName
+      integer :: n
 
       recordName = record%getName()
-      if (this%name == recordName(1:len(this%name))) then
+      n = len(this%name)
+      if (this%name == recordName(1:n)) then
          filter_ = .true.  ! do emit
       else
          filter_ = .false. ! do NOT emit
@@ -68,5 +79,15 @@ contains
       notEqual = .not. (a == b)
 
    end function notEqual
+
+
+   function toString_self(this) result(string)
+      character(len=:), allocatable :: string
+      class (Filter), intent(in) :: this
+      
+      string = 'Filter - name = ' // this%name%toString()
+
+   end function toString_self
+
 
 end module ASTG_Filter_mod

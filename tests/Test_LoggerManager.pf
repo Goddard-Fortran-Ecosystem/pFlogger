@@ -91,5 +91,17 @@ contains
 
    end subroutine test_passMessageToParent
 
+@Test
+   subroutine test_caseInsensitiveName()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+
+      manager = LoggerManager()
+      loggerA => manager%getLogger('A')
+      loggerB => manager%getLogger('a')
+
+      @assertTrue(associated(loggerA, loggerB))
+   end subroutine test_caseInsensitiveName
 
 end module Test_LoggerManager_mod
