@@ -35,9 +35,9 @@ contains
       call this%rotHandler1%close()
 
       ! delete files
-      open(newunit=unit, file='logfile1', status='old')
+      open(newunit=unit, file='logFile1', status='old')
       close(unit, status='delete')
-      open(newunit=unit, file='logfile0', status='old')
+      open(newunit=unit, file='logFile0', status='old')
       close(unit, status='delete')
 
    end subroutine tearDown
