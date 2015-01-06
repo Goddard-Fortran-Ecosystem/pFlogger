@@ -43,7 +43,9 @@ contains
    function newFilter(name) result(f)
       type (Filter) :: f
       character(len=*), intent(in) :: name
-      f%name = CaseInsensitiveString(name)
+
+      call f%setName(name)
+
    end function newFilter
 
    
@@ -96,7 +98,7 @@ contains
       class (Filter), intent(inout) :: this
       character(len=*), intent(in) :: name
 
-      this%name = name
+      this%name = CaseInsensitiveString(name)
 
    end subroutine setName
 

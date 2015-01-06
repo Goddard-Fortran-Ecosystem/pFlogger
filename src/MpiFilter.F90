@@ -25,10 +25,6 @@ module ASTG_MpiFilter_mod
       module procedure newMpiFilter
    end interface MpiFilter
 
-#ifdef USE_MPI
-   include 'mpif.h'
-#endif
-
 contains
 
 
@@ -39,9 +35,8 @@ contains
       integer, intent(in) :: communicator
       integer, optional, intent(in) :: rank
       integer :: rank_, myRank
-#ifdef USE_MPI
       integer :: ier
-#endif      
+
       call f%setName(name)
       f%communicator = communicator
 
@@ -53,11 +48,8 @@ contains
       f%rank = rank_
       
       f%shouldFilter = .false.
-#ifdef USE_MPI
       call MPI_Comm_rank(communicator, myRank, ier)
-#else
-      myRank = 0
-#endif      
+
       if (myRank == rank_) f%shouldFilter = .true.
       
    end function newMpiFilter

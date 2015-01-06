@@ -5,7 +5,6 @@ module MockMpi_mod
 
    public :: MockMpi
    public :: setMpiRank
-   public :: MPI_Comm_rank
    public :: mocker
    
    type MockMpi
@@ -24,14 +23,17 @@ contains
       
    end subroutine setMpiRank
 
-   subroutine MPI_Comm_rank(comm, rank, ier)
-      integer, intent(in) :: comm
-      integer, intent(out) :: rank
-      integer, intent(inout) :: ier
-
-      rank = mocker%rank
-      ier = 0
-
-   end subroutine MPI_Comm_rank
-
 end module MockMpi_mod
+
+
+subroutine MPI_Comm_rank(comm, rank, ier)
+   use MockMpi_mod
+   integer, intent(in) :: comm
+   integer, intent(out) :: rank
+   integer, intent(inout) :: ier
+   
+   rank = mocker%rank
+   ier = 0
+   
+end subroutine MPI_Comm_rank
+
