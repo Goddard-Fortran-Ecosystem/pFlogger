@@ -247,6 +247,7 @@ contains
 
       do while (fmtIter /= tokens%end())
          token => fmtIter%get()
+         ! Todo:  "item" is now public in FTL as a workaround for compiler problems.
          tokenString = token%item
 
          payload = getPayload(tokenString)
@@ -288,7 +289,7 @@ contains
    end function format
 
       
-   function makeString(fmt, arg1, arg2, arg3, unusable, extra) result(rawString)
+   function makeString(fmt, arg1, arg2, arg3, unusable, ...,  extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
