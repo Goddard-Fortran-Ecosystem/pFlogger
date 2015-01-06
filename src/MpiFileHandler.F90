@@ -15,8 +15,6 @@ module ASTG_MpiFileHandler_mod
    public :: MpiFileHandler
 
    type, extends(FileHandler) :: MpiFileHandler
-      private
-      character(len=:), allocatable :: fileName
    contains
       procedure :: emitMessage
    end type MpiFileHandler
@@ -53,7 +51,7 @@ contains
       character(len=*), intent(in) :: levelString
       type(LogRecord) :: record
 
-      write(this%unit,'(a)') levelString // ': ' // record%getMessage()
+      write(this%getUnit(),'(a)') levelString // ': ' // record%getMessage()
        
    end subroutine emitMessage
 

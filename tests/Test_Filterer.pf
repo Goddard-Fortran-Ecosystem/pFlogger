@@ -143,11 +143,11 @@ contains
 
    @test
    subroutine test_addFilter_noDups()
-      use FTL_FilterPolyWrap_mod
-      use FTL_FilterPolyWrapVec_mod
+      use FTL_AbstractFilterPolyWrap_mod
+      use FTL_AbstractFilterPolyWrapVec_mod
 
       type (Filterer), target :: f
-      type (FilterPolyWrapVec), pointer :: filters
+      type (AbstractFilterPolyWrapVec), pointer :: filters
 
       f = Filterer()
 

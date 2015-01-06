@@ -5,12 +5,13 @@ module ASTG_Filter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
    use FTL_CaseInsensitiveString_mod
+   use ASTG_AbstractFilter_mod, only: AbstractFilter
    implicit none
    private
 
    public :: Filter
 
-   type, extends(Object) :: Filter
+   type, extends(AbstractFilter) :: Filter
       private
       ! 'allocatable' below is a workaround for ifort 15.0.1
       ! Of course it then breaks gfortrn 4.9.1.  sigh.
@@ -22,7 +23,6 @@ module ASTG_Filter_mod
    contains
       procedure :: filter => filter_ ! name conflict
       procedure :: equal
-      generic :: operator(==) => equal
       procedure :: notEqual
       generic :: operator(/=) => notEqual
       procedure :: setName
@@ -69,9 +69,14 @@ contains
 
    logical function equal(a, b)
       class(Filter), intent(in) :: a
-      class(Filter), intent(in) :: b
+      class(AbstractFilter), intent(in) :: b
 
-      equal = (a%name == b%name)
+      select type (b)
+      type is (Filter)
+         equal = (a%name == b%name)
+      class default
+         equal = .false.
+      end select
 
    end function equal
 

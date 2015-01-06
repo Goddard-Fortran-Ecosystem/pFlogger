@@ -3,9 +3,9 @@
 ! is loggable. Thus, this class could be called filterable.
 module ASTG_Filterer_mod
    use ASTG_Object_mod
-   use ASTG_Filter_mod
+   use ASTG_AbstractFilter_mod
    use ASTG_LogRecord_mod
-   use FTL_FilterPolyWrapVec_mod
+   use FTL_AbstractFilterPolyWrapVec_mod
    implicit none
    private
 
@@ -13,7 +13,7 @@ module ASTG_Filterer_mod
 
    type, extends(Object) :: Filterer
       private
-      type (FilterPolyWrapVec) :: filters
+      type (AbstractFilterPolyWrapVec) :: filters
    contains
       procedure :: addFilter
       procedure :: filter => filter_ ! avoid name conflict with class Filter.
@@ -33,16 +33,16 @@ contains
    ! Initializes list of filters to an empty list
    function newFilterer() result(f)
       type (Filterer) :: f
-      f%filters = FilterPolyWrapVec()
+      f%filters = AbstractFilterPolyWrapVec()
    end function newFilterer
 
    
    ! Add a filter to 'this' handler
    subroutine addFilter(this, fltr)
       class (Filterer), intent(inout) :: this
-      class (Filter), intent(in) :: fltr
+      class (AbstractFilter), intent(in) :: fltr
 
-      type (FilterPolyWrapVecIter) :: iter
+      type (AbstractFilterPolyWrapVecIter) :: iter
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
@@ -63,8 +63,8 @@ contains
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
-      type (FilterPolyWrapVecIter) :: iter
-      class (Filter), pointer :: fPtr
+      type (AbstractFilterPolyWrapVecIter) :: iter
+      class (AbstractFilter), pointer :: fPtr
 
       filter_ = .true. ! unless
 
@@ -84,10 +84,10 @@ contains
    subroutine removeFilter(this, f)
       use ASTG_Exception_mod
       class(Filterer), intent(inout) :: this
-      class (Filter), intent(in) :: f
+      class (AbstractFilter), intent(in) :: f
 
-      type (FilterPolyWrapVecIter) :: iter
-      class (Filter), pointer :: fPtr
+      type (AbstractFilterPolyWrapVecIter) :: iter
+      class (AbstractFilter), pointer :: fPtr
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
@@ -105,7 +105,7 @@ contains
 
 
    function getFilters(this) result(filters)
-      type (FilterPolyWrapVec), pointer :: filters
+      type (AbstractFilterPolyWrapVec), pointer :: filters
       class (Filterer), target, intent(in) :: this
 
       filters => this%filters

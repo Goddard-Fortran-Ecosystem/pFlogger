@@ -18,12 +18,12 @@ contains
       
       comm = 12345
       call setMpiRank(0)
-      f = MpiFilter('A', comm)
+      f = MpiFilter(comm)
       record = LogRecord('A', INFO, 'some message')
       @assertTrue(f%filter(record))
       
       call setMpiRank(1)
-      f = MpiFilter('B', comm)
+      f = MpiFilter(comm)
       @assertFalse(f%filter(record))
       
    end subroutine Test_MpiFilter_defaultRank
@@ -39,12 +39,12 @@ contains
 
       call setMpiRank(0)
       
-      f = MpiFilter('A', comm, rank=1)
+      f = MpiFilter(comm, rank=1)
       @assertFalse(f%filter(record))
       
       call setMpiRank(1)
       
-      f = MpiFilter('A', comm, rank=1)
+      f = MpiFilter(comm, rank=1)
       @assertTrue(f%filter(record))
       
    end subroutine Test_MpiFilter_withRank

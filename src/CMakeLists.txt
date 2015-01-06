@@ -3,41 +3,34 @@
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
-list(APPEND SRCS Object.F90)
-list(APPEND SRCS Exception.F90)
-list(APPEND SRCS Filter.F90)
-list(APPEND SRCS MpiFilter.F90)
-list(APPEND SRCS LogRecord.F90)
-list(APPEND SRCS Formatter.F90)
-list(APPEND SRCS Filterer.F90)
-
-# list(APPEND SRCS AbstractHandlerPolyWrap.F90)
-# list(APPEND SRCS AbstractHandlerPolyWrapVec.F90)
-
-# list(APPEND SRCS FilterPolyWrap.F90)
-# list(APPEND SRCS FilterPolyWrapVec.F90)
-
-# list(APPEND SRCS XWrap.F90)
-# list(APPEND SRCS XWrapVec.F90)
-# list(APPEND SRCS CIStringAbstractLoggerPolyPair.F90)
-# list(APPEND SRCS CIStringAbstractLoggerPolyPairVec.F90)
-# list(APPEND SRCS CIStringAbstractLoggerPolyPairVecVec.F90)
-# list(APPEND SRCS CIStringAbstractLoggerPolyUMap.F90)
-# list(APPEND SRCS StringVec.F90)
-
-list(APPEND SRCS SeverityLevels.F90)
-list(APPEND SRCS AbstractHandler.F90)
-list(APPEND SRCS StreamHandler.F90)
-list(APPEND SRCS RotatingFileHandler.F90)
-list(APPEND SRCS FileHandler.F90)
-list(APPEND SRCS AbstractLogger.F90)
-list(APPEND SRCS Logger.F90)
-list(APPEND SRCS RootLogger.F90)
-list(APPEND SRCS Placeholder.F90)
-list(APPEND SRCS LoggerManager.F90)
-list(APPEND SRCS FormatParser.F90)
+set(SRCS
+   AbstractFilter.F90
+   AbstractHandler.F90
+   AbstractLogger.F90
+   Exception.F90
+   FileHandler.F90
+   Filter.F90
+   FilterPolyWrap.F90
+   FilterPolyWrapVec.F90
+   Filterer.F90
+   FormatParser.F90
+   Formatter.F90
+   LogRecord.F90
+   Logger.F90
+   LoggerManager.F90
+   MpiFileHandler.F90
+   MpiFilter.F90
+   Object.F90
+   Placeholder.F90
+   RootLogger.F90
+   RotatingFileHandler.F90
+   SeverityLevels.F90
+   StreamHandler.F90
+)
 
 set(FTL_SRCS
+  AbstractFilterPolyWrap.F90
+  AbstractFilterPolyWrapVec.F90
   AbstractHandlerPolyWrap.F90
   AbstractHandlerPolyWrapVec.F90
   FilterPolyWrap.F90
