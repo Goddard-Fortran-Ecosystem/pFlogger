@@ -10,8 +10,6 @@ set(SRCS
    Exception.F90
    FileHandler.F90
    Filter.F90
-   FilterPolyWrap.F90
-   FilterPolyWrapVec.F90
    Filterer.F90
    FormatParser.F90
    Formatter.F90
@@ -33,8 +31,6 @@ set(FTL_SRCS
   AbstractFilterPolyWrapVec.F90
   AbstractHandlerPolyWrap.F90
   AbstractHandlerPolyWrapVec.F90
-  FilterPolyWrap.F90
-  FilterPolyWrapVec.F90
   XWrap.F90
   XWrapVec.F90
   CIStringAbstractLoggerPolyPair.F90
