@@ -1,3 +1,7 @@
 include_directories(${CMAKE_BINARY_DIR}/src)
 add_executable(app.x app.F90)
-target_link_libraries(app.x logger)
+target_link_libraries(app.x logger pfunit)
+if (MPI)
+   add_executable(appMpi.x appMpi.F90)
+   target_link_libraries(appMpi.x logger pfunit)
+endif()  

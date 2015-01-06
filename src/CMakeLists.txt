@@ -16,8 +16,8 @@ set(SRCS
    LogRecord.F90
    Logger.F90
    LoggerManager.F90
-   MpiFileHandler.F90
    MpiFilter.F90
+   MpiFileHandler.F90
    Object.F90
    Placeholder.F90
    RootLogger.F90
@@ -27,22 +27,22 @@ set(SRCS
 )
 
 set(FTL_SRCS
-  AbstractFilterPolyWrap.F90
-  AbstractFilterPolyWrapVec.F90
-  AbstractHandlerPolyWrap.F90
-  AbstractHandlerPolyWrapVec.F90
-  XWrap.F90
-  XWrapVec.F90
-  CIStringAbstractLoggerPolyPair.F90
-  CIStringAbstractLoggerPolyPairVec.F90
-  CIStringAbstractLoggerPolyPairVecVec.F90
-  CIStringAbstractLoggerPolyUMap.F90
-  CIStringXPair.F90
-  CIStringXPairVec.F90
-  CIStringXPairVecVec.F90
-  CIStringXUMap.F90
-  StringVec.F90
-  )
+   AbstractFilterPolyWrap.F90
+   AbstractFilterPolyWrapVec.F90
+   AbstractHandlerPolyWrap.F90
+   AbstractHandlerPolyWrapVec.F90
+   XWrap.F90
+   XWrapVec.F90
+   CIStringAbstractLoggerPolyPair.F90
+   CIStringAbstractLoggerPolyPairVec.F90
+   CIStringAbstractLoggerPolyPairVecVec.F90
+   CIStringAbstractLoggerPolyUMap.F90
+   CIStringXPair.F90
+   CIStringXPairVec.F90
+   CIStringXPairVecVec.F90
+   CIStringXUMap.F90
+   StringVec.F90
+)
 
 list(APPEND SRCS ${FTL_SRCS})
 
@@ -63,4 +63,5 @@ set_source_files_properties(
 )
 
 add_library(${THIS} STATIC ${SRCS})
-target_link_libraries(${THIS} ftl)
+
+
