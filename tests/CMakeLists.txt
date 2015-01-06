@@ -18,6 +18,7 @@ endforeach()
 
 set (SRCS
    MockHandler.F90
+   MockMpi.F90
 )
 
 set(TEST_SRCS 
@@ -31,6 +32,7 @@ set(TEST_SRCS
    Test_LoggerManager.F90
    Test_Formatter.F90
    Test_FormatParser.F90
+   Test_MpiFilter.F90
 )
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )

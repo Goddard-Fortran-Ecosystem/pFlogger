@@ -6,6 +6,7 @@ set(THIS logger)
 list(APPEND SRCS Object.F90)
 list(APPEND SRCS Exception.F90)
 list(APPEND SRCS Filter.F90)
+list(APPEND SRCS MpiFilter.F90)
 list(APPEND SRCS LogRecord.F90)
 list(APPEND SRCS Formatter.F90)
 list(APPEND SRCS Filterer.F90)
@@ -64,8 +65,6 @@ add_custom_command(OUTPUT ${FTL_SRCS}
   COMMAND ${FTL}/bin/driver.py ${src}/ftl.config ${src}/ftl.contractions
 )
 
-
-message("F90FLAGS ${F90FLAGS}")
 include_directories(${FTL}/mod)
 
 set_source_files_properties(
