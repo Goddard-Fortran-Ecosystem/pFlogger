@@ -30,13 +30,13 @@ contains
       @assertExceptionRaised("Illegal - empty string in FormatParser.")
 
       str = parser%getPayload('%')
-      @assertExceptionRaised("Empty format descripter in FormatParser.")
+      @assertExceptionRaised("Empty format descriptor in FormatParser.")
 
       str = parser%getPayload('%()')
-      @assertExceptionRaised("Empty format descripter in FormatParser.")
+      @assertExceptionRaised("Empty format descriptor in FormatParser.")
 
       str = parser%getPayload('%(:)')
-      @assertExceptionRaised("Empty format descripter in FormatParser.")
+      @assertExceptionRaised("Empty format descriptor in FormatParser.")
 
    end subroutine test_getPayload_illegalString
 
@@ -60,6 +60,7 @@ contains
       @assertEqual(8, parser%startOfNextToken('%(i2.1) hello'))
 
    end subroutine test_startOfNextToken
+
    
    @test
    subroutine test_getPayload()
@@ -75,6 +76,7 @@ contains
       @assertEqual('(i2.1)', parser%getPayload('%(i2.1)'))
 
    end subroutine test_getPayload
+
    
    @test
    subroutine test_countTokens()
@@ -110,6 +112,7 @@ contains
 
    end subroutine test_countTokens
 
+   
    @test
    subroutine test_getTokens()
       use FTL_String_mod
@@ -145,6 +148,7 @@ contains
 
    end subroutine test_getTokens
 
+   
    @test
    subroutine test_makeString()
       type(FormatParser) :: parser
@@ -159,9 +163,11 @@ contains
       @assertEqual('- 1 02 003', parser%makeString('- %i1.1 %i2.2 %i3.3', 1, 2, 3))
 
       @assertEqual('- (1)', parser%makeString('- (%(i1.1))', 1))
+      @assertEqual('value: 1', parser%makeString('value: %(i1.1)', 1))
 
    end subroutine test_makeString
 
+   
    @test
    subroutine test_makeString_detectMissingArg()
       type(FormatParser) :: parser
@@ -185,6 +191,7 @@ contains
 
    end subroutine test_makeString_detectMissingArgB
 
+   
    @test
    subroutine test_formatContainsKey()
       type(FormatParser) :: parser

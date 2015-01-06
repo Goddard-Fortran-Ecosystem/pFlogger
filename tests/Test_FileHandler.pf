@@ -30,7 +30,7 @@ contains
       call this%handler%close()
 
       ! delete file
-      open(newunit=unit, file='logfile', status='old')
+      open(newunit=unit, file='logFile', status='old')
       close(unit, status='delete')
 
 

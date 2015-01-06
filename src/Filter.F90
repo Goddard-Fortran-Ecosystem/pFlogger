@@ -25,6 +25,8 @@ module ASTG_Filter_mod
       generic :: operator(==) => equal
       procedure :: notEqual
       generic :: operator(/=) => notEqual
+      procedure :: setName
+      procedure :: getName
       procedure :: toString_self
    end type Filter
 
@@ -81,6 +83,24 @@ contains
    end function notEqual
 
 
+   function getName(this) result(name)
+      class (Filter), intent(in) :: this
+      character(len=:), allocatable :: name
+
+      name = this%name
+
+   end function getName
+
+
+   subroutine setName(this, name)
+      class (Filter), intent(inout) :: this
+      character(len=*), intent(in) :: name
+
+      this%name = name
+
+   end subroutine setName
+
+   
    function toString_self(this) result(string)
       character(len=:), allocatable :: string
       class (Filter), intent(in) :: this

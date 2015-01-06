@@ -1,3 +1,6 @@
+! FormatParser methods are used to parse format strings that represent
+! fortran specification expressions. Format strings contain 
+! “replacement fields” delimited by the % sign.
 module ASTG_FormatParser_mod
    use ASTG_Object_mod
    use ASTG_Exception_mod
@@ -77,7 +80,7 @@ contains
 
    !-------------------------------------------------------
    ! Format strings consist of two types of tokens. First there are
-   ! regular text strings that do not contain any FORMAT_DELIMITER.  Ther
+   ! regular text strings that do not contain any FORMAT_DELIMITER. Then
    ! there are format specifiers that begin with a FORMAT_DELIMITER.
    ! E.g.  'hello %i2.1' has two tokens: 'hello ' and '%2.1'.  An
    ! important issue is how to detect the _end_ of a format specifier
@@ -130,6 +133,7 @@ contains
       
    end function startOfNextToken
 
+   
    function getPayload(string) result(payload)
       character(len=:), allocatable :: payload
       character(len=*), intent(in) :: string
@@ -143,7 +147,7 @@ contains
          select case(n)
          case (1)
             payload = ''
-            call throw("Empty format descripter in FormatParser.")
+            call throw("Empty format descriptor in FormatParser.")
          case (2:)
             if (string(2:2) == OPEN_PAREN) then
                ! keep all but FORMAT_DELIMETER (now 1st character)
@@ -157,7 +161,7 @@ contains
                payload = string(2:n)
             end if
             if (payload == '') then
-               call throw("Empty format descripter in FormatParser.")
+               call throw("Empty format descriptor in FormatParser.")
                return
             end if
             ! Wrap with parens for use as Fortran fmt.
@@ -172,6 +176,7 @@ contains
       end if
 
    end function getPayload
+
    
    function getTokens(rawString) result(tokens)
       use FTL_String_mod
@@ -202,6 +207,7 @@ contains
       
    end function getTokens
 
+   
    function format(fmt, args, unusable, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
