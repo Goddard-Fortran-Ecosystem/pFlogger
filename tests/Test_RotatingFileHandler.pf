@@ -37,6 +37,10 @@ contains
       ! delete files
       open(newunit=unit, file='logFile1', status='old')
       close(unit, status='delete')
+      open(newunit=unit, file='logFile1.1', status='unknown')
+      close(unit, status='delete')
+      open(newunit=unit, file='logFile1.2', status='unknown')
+      close(unit, status='delete')
       open(newunit=unit, file='logFile0', status='old')
       close(unit, status='delete')
 

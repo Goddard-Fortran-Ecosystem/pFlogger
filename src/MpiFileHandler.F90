@@ -15,8 +15,9 @@ module ASTG_MpiFileHandler_mod
    public :: MpiFileHandler
 
    type, extends(FileHandler) :: MpiFileHandler
+      private
    contains
-      procedure :: emitMessage
+      procedure :: getSuffix
    end type MpiFileHandler
 
    interface MpiFileHandler
@@ -27,32 +28,41 @@ module ASTG_MpiFileHandler_mod
 contains
 
     
-   function newMpiFileHandler(fileName, level) result(handler)
+   function newMpiFileHandler(fileNamePrefix, mpiCommunicator, level, suffixformat) result(handler)
       type (MpiFileHandler) :: handler
-      character(len=*), intent(in) :: fileName
-      integer, intent(in), optional :: level
-      integer :: level_
-      
-      if (present (level)) then
-        level_ = level
-      else
-        level_ = INFO
-      end if
-      call handler%setFileName(fileName)
-      call handler%open()
-      call handler%setLevel(level_)
+      character(len=*), intent(in) :: fileNamePrefix
+      integer, intent(in) :: mpiCommunicator
+      integer, optional, intent(in) :: level
+      character(len=*), optional, intent(in) :: suffixFormat
+
+      character(len=:), allocatable :: suffix
+      integer :: rank, ier
+
+      call MPI_Comm_rank(mpiCommunicator, rank, ier)
+
+      suffix = handler%getSuffix(rank, suffixFormat)
+      handler%FileHandler = FileHandler(fileNamePrefix // suffix, level)
       
    end function newMpiFileHandler
 
     
-   ! Write a string to a file. Level is specified in levelString
-   subroutine emitMessage(this, levelString, record)
-      class (MpiFileHandler), intent(inout) :: this
-      character(len=*), intent(in) :: levelString
-      type(LogRecord) :: record
+   function getSuffix(this, rank, suffixFormat) result(suffix)
+      use FTL_StringUtilities_mod
+      use ASTG_FormatParser_mod
+      character(len=:), allocatable :: suffix
+      class (MpiFileHandler), intent(in) :: this
+      integer, intent(in) :: rank
+      character(len=*), optional, intent(in) :: suffixFormat
 
-      write(this%getUnit(),'(a)') levelString // ': ' // record%getMessage()
-       
-   end subroutine emitMessage
+      type (FormatParser) :: parser
+
+      if (present(suffixFormat)) then
+         suffix = parser%makeString(suffixFormat, rank)
+      else
+         suffix = '.pe=' // toString(rank)
+      end if
+
+   end function getSuffix
+
 
 end module ASTG_MpiFileHandler_mod

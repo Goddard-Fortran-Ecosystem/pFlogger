@@ -6,6 +6,7 @@ ADD_TEST_SUITE(Test_Filterer_mod_suite)
 ! Handlers
 ADD_TEST_SUITE(Test_StreamHandler_mod_suite)
 ADD_TEST_SUITE(Test_FileHandler_mod_suite)
+ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 ADD_TEST_SUITE(Test_RotatingFileHandler_mod_suite)
 
 ! Logger

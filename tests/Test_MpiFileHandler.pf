@@ -1,0 +1,68 @@
+module Test_MpiFileHandler_mod
+   use ASTG_SeverityLevels_mod
+   use ASTG_MpiFileHandler_mod
+   use ASTG_LogRecord_mod
+   use MockMpi_mod
+   use pfunit_mod
+   implicit none
+
+
+contains
+
+   @test
+   subroutine test_suffix()
+      type (MpiFileHandler) :: handler
+      integer :: comm
+
+      comm = 12345 ! fake
+
+      @assertEqual('.pe=0', handler%getSuffix(rank=0))
+      @assertEqual('.pe=1', handler%getSuffix(rank=1))
+      @assertEqual('.pe=123', handler%getSuffix(rank=123))
+
+   end subroutine test_suffix
+
+
+   @test
+   subroutine test_customSuffix()
+      type (MpiFileHandler) :: handler
+      integer :: comm
+
+      comm = 12345 ! fake
+
+      @assertEqual('.000000', handler%getSuffix(rank=0, suffixFormat= '.%(i6.6)'))
+      @assertEqual('.000123', handler%getSuffix(rank=123, suffixFormat= '.%(i6.6)'))
+
+   end subroutine test_customSuffix
+   
+
+@Test
+   subroutine test_getFileName()
+      type (MpiFileHandler) :: handler
+      character(len=32) :: foundMessage
+      integer :: comm
+      integer :: unit
+
+      comm = 12345
+
+      call setMpiRank(0)
+      handler = MpiFileHandler('logFile', comm)
+      @assertEqual('logFile.pe=0', handler%getFileName())
+      call handler%close()
+
+      open(newunit=unit,file='logFile.pe=0', status='old')
+      close(unit, status='delete')
+
+      call setMpiRank(47)
+      handler = MpiFileHandler('logFile', comm, level=CRITICAL, suffixFormat='_%i3.3')
+      @assertEqual('logFile_047', handler%getFileName())
+      call handler%close()
+
+      open(newunit=unit,file='logFile_047', status='old')
+      close(unit, status='delete')
+
+   end subroutine test_getFileName
+
+
+end module Test_MpiFileHandler_mod
+

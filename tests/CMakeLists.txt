@@ -27,6 +27,7 @@ set(TEST_SRCS
    Test_StreamHandler.F90
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90
+   Test_MpiFileHandler.F90
    Test_Logger.F90
    Test_LogRecord.F90
    Test_LoggerManager.F90
