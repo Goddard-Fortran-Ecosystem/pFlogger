@@ -2,9 +2,9 @@
 # ASTG Logger top level CmakeLists.txt
 #
 # Usage:
-#   cmake -DMPI=YES -DCOMPILE_WITH_DEBUG=NO ..
+#   cmake -DMPI=YES -DCOMPILE_WITH_DEBUG=NO -DTEST_MPI=YES ..
 #
-# Default is USE_MPI=NO, COMPILE_WITH_DEBUG=YES
+# Default is TEST_MPI=YES, MPI=NO, COMPILE_WITH_DEBUG=YES
 #
 # Note that tests use a Mock MPI mechanism and thus do not run under a real
 # MPI. The apps, however, do.
@@ -34,6 +34,10 @@ endif ()
 
 if ( PFUNIT )
     add_definitions(-DUSE_PFUNIT)
+endif()
+
+if(TEST_MPI MATCHES YES)
+  add_definitions(-DLOGGER_USE_MPI)
 endif()
 
 option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)

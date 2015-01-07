@@ -33,7 +33,7 @@ set(TEST_SRCS
    Test_FormatParser.F90
 )
 
-if (MPI) 
+if (TEST_MPI) 
   list(APPEND SRCS
     MockMpi.F90
     )
