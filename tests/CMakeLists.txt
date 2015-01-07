@@ -68,20 +68,10 @@ set(EXE ${THIS}.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
 target_link_libraries(${EXE} ${THIS} logger ftl pfunit)
 
-if (MPI)
-   target_link_libraries(${EXE} ${MPI_Fortran_LIBRARIES} )
-   add_custom_target(tests 
-     COMMAND mpirun -np 4 tests/${EXE} 
-     DEPENDS ${EXE} 
-     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-     COMMENT "Run MPI ${EXE}"
-   )
-else()
-    add_custom_target(tests
-      COMMAND ${EXE} 
-      DEPENDS ${EXE} 
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMENT "Run SERIAL ${EXE}"
-    )
-endif()
+add_custom_target(tests
+   COMMAND ${EXE} 
+   DEPENDS ${EXE} 
+   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+   COMMENT "Run SERIAL ${EXE}"
+)
 add_dependencies(tests ${THIS})

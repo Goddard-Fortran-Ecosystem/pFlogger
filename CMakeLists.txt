@@ -6,6 +6,9 @@
 #
 # Default is USE_MPI=NO, COMPILE_WITH_DEBUG=YES
 #
+# Note that tests use a Mock MPI mechanism and thus do not run under a real
+# MPI. The apps, however, do.
+#
 # ------------------------------------------------------------------------ #
 INCLUDE(CMakeForceCompiler)
 cmake_minimum_required (VERSION 2.8)
@@ -42,11 +45,11 @@ if (MPI)
     if (FIND_MPI)
         find_package(MPI REQUIRED)
         include_directories(${MPI_INCLUDE_PATH})
-        set (COMPILER_WRAPPER mpif90)
+        set (CMAKE_Fortran_COMPILER mpif90)
     endif()
     message( STATUS "MPI enabled")
 endif()
-  
+
 # Compiler flags
 include(setCompilerFlags)
 
