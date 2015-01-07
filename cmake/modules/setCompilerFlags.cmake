@@ -4,7 +4,7 @@ if(MPI MATCHES YES)
    add_definitions(-DLOGGER_USE_MPI)
    find_package(MPI REQUIRED)
    include_directories(${MPI_INCLUDE_PATH})
-   set (COMPILER_WRAPPER mpif90)
+   set (CMAKE_Fortran_COMPILER mpif90)
 endif()
 
 # Add flags for PFUNIT
