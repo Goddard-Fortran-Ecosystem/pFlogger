@@ -12,8 +12,12 @@ module ASTG_Logger_mod
    use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
    use FTL_AbstracthandlerPolyWrapVec_mod
+   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
+   use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
+   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
+   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
+   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use ASTG_LogRecord_mod
-   
    implicit none
    private
 
@@ -29,6 +33,7 @@ module ASTG_Logger_mod
 
       procedure :: setName
       procedure :: getName
+      procedure :: log_
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -39,6 +44,7 @@ module ASTG_Logger_mod
       procedure :: removeHandler
       procedure :: getHandlers
       procedure :: setLevel
+      procedure :: makeRecord
    end type Logger
 
    interface Logger
@@ -50,7 +56,6 @@ contains
    
    ! Initialize the logger with an optional level
    function newLogger(name, level) result(alog)
-      use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
       type (Logger) :: alog
       character(len=*), intent(in) :: name
       integer, optional, intent(in) :: level
@@ -130,13 +135,24 @@ contains
    end subroutine removeHandler
 
 
+   function makeRecord(this, message, level) result(record)
+      class (Logger), intent(inout) :: this
+      type (LogRecord) :: record
+      character(len=*), intent(in) :: message
+      integer, intent(in) :: level
+
+      record = LogRecord(this%getName(), level, message)
+      
+   end function makeRecord
+
+   
    ! Logging routine that calls the appropriate handler and emits
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
-   subroutine log(this, level, message)
+   subroutine log_(this, message, level)
       class (Logger), intent(inout) :: this
-      integer, intent(in) :: level
       character(len=*), intent(in) :: message
+      integer, intent(in) :: level
       type (AbstractHandlerPolyWrapVecIter) :: iter
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
@@ -145,7 +161,7 @@ contains
 
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
-      record = LogRecord(this%name, level, message)
+      record = this%makeRecord(message, level)
       
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
@@ -154,58 +170,75 @@ contains
          call iter%next()
       end do
 
+   end subroutine log_
+
+   
+   ! Convenience methods follow - debug, info, warning, error, critical
+   ! These methods are identical to the log method except that you don’t have
+   ! to specify the level, because the level is implicit in the name.
+   subroutine log(this, message, level)
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), intent(inout) :: this
+      character(len=*), intent(in) :: message
+      integer, optional, intent(in) :: level
+      integer :: level_
+
+      if (present(level)) then
+        level_ = level
+      else
+        level_ = INFO_LEVEL
+      end if
+      
+      call this%log_(message, level_)
+
    end subroutine log
+
 
    ! Convenience methods follow - debug, info, warning, error, critical
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
    subroutine debug(this, message)
-      use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
 
-      call this%log(DEBUG_LEVEL, message)
+      call this%log_(message, DEBUG_LEVEL)
 
    end subroutine debug
 
    
    subroutine info(this, message)
-      use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log(INFO_LEVEL, message)
+      call this%log_(message, INFO_LEVEL)
 
    end subroutine info
 
 
    subroutine warning(this, message)
-      use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log(WARNING_LEVEL, message)
+      call this%log_(message, WARNING_LEVEL)
 
    end subroutine warning
 
    
    subroutine error(this, message)
-      use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log(ERROR_LEVEL, message)
+      call this%log_(message, ERROR_LEVEL)
 
    end subroutine error
 
    
    subroutine critical(this, message)
-      use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log(CRITICAL_LEVEL, message)
+      call this%log_(message, CRITICAL_LEVEL)
 
    end subroutine critical
 

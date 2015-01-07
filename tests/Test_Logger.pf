@@ -2,6 +2,7 @@ module Test_Logger_mod
    use ASTG_Logger_mod
    use MockHandler_mod
    use ASTG_SeverityLevels_mod
+   use ASTG_LogRecord_mod
    use pfunit_mod
    implicit none
 
@@ -48,10 +49,20 @@ contains
    
 
 @Test
+   subroutine test_makeLogRecord(this)
+      class (Test_Logger), intent(inout) :: this
+      type(LogRecord) :: record
+      
+      record = this%basicLogger%makeRecord('hi', INFO)
+      
+   end subroutine test_makeLogRecord
+   
+
+@Test
    subroutine test_logBasic(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%log(INFO, 'test_logBasic')
+      call this%basicLogger%log('test_logBasic', INFO)
       ! buffer is in MockHandler_mod
       @assertEqual('INFO: test_logBasic', this%basicBuffer%buffer)
 
@@ -63,7 +74,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Log a message at DEBUG level
-      call this%basicLogger%log(DEBUG, 'test_logBelowThreshold')
+      call this%basicLogger%log('test_logBelowThreshold', DEBUG)
       ! Message WILL NOT be logged because DEBUG<INFO
       ! Thus buffer will be empty (unallocated)
       @assertFalse(allocated(this%basicBuffer%buffer))
@@ -76,7 +87,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Log a message at CRITICAL level
-      call this%basicLogger%log(CRITICAL, 'test_logAboveThreshold')
+      call this%basicLogger%log('test_logAboveThreshold', CRITICAL)
       ! Message WILL be logged because CRITICAL>INFO
       @assertEqual('CRITICAL: test_logAboveThreshold', this%basicBuffer%buffer)
 

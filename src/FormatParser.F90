@@ -328,28 +328,77 @@ contains
 
    end function format
 
-      
-   function makeString(fmt, arg1, arg2, arg3, unusable, extra) result(rawString)
+
+   function makeString(fmt, &
+        arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &
+        unusable, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
-
-      integer, optional :: arg1
-      integer, optional :: arg2
-      integer, optional :: arg3
+      
+      class(*), optional, intent(in) :: arg1
+      class(*), optional, intent(in) :: arg2
+      class(*), optional, intent(in) :: arg3
+      class(*), optional, intent(in) :: arg4
+      class(*), optional, intent(in) :: arg5
+      class(*), optional, intent(in) :: arg6
+      class(*), optional, intent(in) :: arg7
+      class(*), optional, intent(in) :: arg8
+      class(*), optional, intent(in) :: arg9
       type (UnusableArgument), optional :: unusable
       type (CIStringXUMap), optional :: extra
 
       type (XWrapVec) :: args
-
+      character(len=:), allocatable :: str
+      
       args = XWrapVec()
       if (present(arg1)) call args%push_back_alt(arg1)
       if (present(arg2)) call args%push_back_alt(arg2)
       if (present(arg3)) call args%push_back_alt(arg3)
+      if (present(arg4)) call args%push_back_alt(arg4)
+      if (present(arg5)) call args%push_back_alt(arg5)
+      if (present(arg6)) call args%push_back_alt(arg6)
+      if (present(arg7)) call args%push_back_alt(arg7)
+      if (present(arg8)) call args%push_back_alt(arg8)
+      if (present(arg9)) call args%push_back_alt(arg9)
 
       rawString = format(fmt, args, extra=extra)
-         
+       
    end function makeString
+
+   function handle_(arg) result(str)
+      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      class (*), optional, intent(in) :: arg
+      character(len=:), allocatable :: str
+      character(len=80) :: buffer
+
+      if (.not. present(arg)) then
+         str = ''
+         return
+      end if
+
+      select type (arg)
+      type is (integer(int32))
+         write(buffer,'(i0)') arg
+         str = trim(buffer)
+      type is (real(real32))
+      type is (real(real64))
+         write(buffer,'(g20.14)') arg
+         str = trim(buffer)
+      type is (character(len=*))
+         str = trim(arg)
+      type is (logical)
+      type is (integer(int64))
+      type is (real(real128))
+      type is (complex(real32))
+      type is (complex(real64))
+      type is (complex(real128))
+
+      class default ! user defined
+         str = 'unsupported'
+      end select
+
+   end function handle_
    
 end module ASTG_FormatParser_mod
