@@ -1,9 +1,9 @@
 if(MPI MATCHES YES)
    # Add CPP flags for MPI=YES
-   add_definitions(-DUSE_MPI)
-   find_package(MPI REQUIRED)
-   include_directories(${MPI_INCLUDE_PATH})
-   set (COMPILER_WRAPPER mpif90)
+   add_definitions(-DLOGGER_USE_MPI)
+#   find_package(MPI REQUIRED)
+#   include_directories(${MPI_INCLUDE_PATH})
+#   set (COMPILER_WRAPPER mpif90)
 endif()
 
 # Add flags for PFUNIT

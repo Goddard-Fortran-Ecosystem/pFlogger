@@ -23,7 +23,7 @@ ADD_TEST_SUITE(Test_Formatter_mod_suite)
 ADD_TEST_SUITE(Test_FormatParser_mod_suite)
 
 ! MPI related
-#ifdef USE_MPI
+#ifdef LOGGER_USE_MPI
 ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
 ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 #endif

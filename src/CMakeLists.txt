@@ -16,8 +16,6 @@ set(SRCS
    LogRecord.F90
    Logger.F90
    LoggerManager.F90
-   MpiFilter.F90
-   MpiFileHandler.F90
    Object.F90
    Placeholder.F90
    RootLogger.F90
@@ -25,6 +23,13 @@ set(SRCS
    SeverityLevels.F90
    StreamHandler.F90
 )
+
+if (MPI) 
+list(APPEND SRCS
+   MpiFilter.F90
+   MpiFileHandler.F90
+)
+endif()
 
 set(FTL_SRCS
    AbstractFilterPolyWrap.F90

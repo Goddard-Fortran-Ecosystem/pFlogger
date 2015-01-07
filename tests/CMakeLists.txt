@@ -18,7 +18,6 @@ endforeach()
 
 set (SRCS
    MockHandler.F90
-   MockMpi.F90
 )
 
 set(TEST_SRCS 
@@ -27,14 +26,24 @@ set(TEST_SRCS
    Test_StreamHandler.F90
    Test_RotatingFileHandler.F90
    Test_FileHandler.F90
-   Test_MpiFileHandler.F90
    Test_Logger.F90
    Test_LogRecord.F90
    Test_LoggerManager.F90
    Test_Formatter.F90
    Test_FormatParser.F90
-   Test_MpiFilter.F90
 )
+
+if (MPI) 
+  list(APPEND SRCS
+    MockMpi.F90
+    )
+
+  list(APPEND TEST_SRCS
+    Test_MpiFileHandler.F90
+    Test_MpiFilter.F90
+    )
+endif()
+
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 

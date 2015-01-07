@@ -36,19 +36,7 @@ if ( PFUNIT )
     add_definitions(-DUSE_PFUNIT)
 endif()
 
-option(USE_MPI "Use MPI for parallel runs" NO)
-option(FIND_MPI "Attempt to automatically find MPI information" YES)
 option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
-
-if (MPI)
-    add_definitions(-DUSE_MPI)
-    if (FIND_MPI)
-        find_package(MPI REQUIRED)
-        include_directories(${MPI_INCLUDE_PATH})
-        set (CMAKE_Fortran_COMPILER mpif90)
-    endif()
-    message( STATUS "MPI enabled")
-endif()
 
 # Compiler flags
 include(setCompilerFlags)

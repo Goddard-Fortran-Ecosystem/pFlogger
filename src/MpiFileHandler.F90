@@ -6,10 +6,6 @@ module ASTG_MpiFileHandler_mod
    
    implicit none
 
-#ifdef USE_MPI
-#include "mpif.h"
-#endif
-
    private
 
    public :: MpiFileHandler
