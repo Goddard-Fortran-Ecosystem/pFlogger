@@ -13,6 +13,7 @@ module ASTG_MpiFileHandler_mod
    private
 
    public :: MpiFileHandler
+   public :: setDefaultMpiSuffixFormat
 
    type, extends(FileHandler) :: MpiFileHandler
       private
@@ -24,16 +25,24 @@ module ASTG_MpiFileHandler_mod
       module procedure newMpiFileHandler
    end interface
 
+   type UnusableArg
+   end type UnusableArg
+
+   character(len=*), parameter :: DEFAULT_MPI_SUFFIX_FORMAT = '.pe=%i0'
+   character(len=:), allocatable :: defaultMpiSuffixFormat
    
 contains
 
     
-   function newMpiFileHandler(fileNamePrefix, mpiCommunicator, level, suffixformat) result(handler)
+   function newMpiFileHandler(fileNamePrefix, mpiCommunicator, unused, &
+        & level, suffixformat, delay) result(handler)
       type (MpiFileHandler) :: handler
       character(len=*), intent(in) :: fileNamePrefix
       integer, intent(in) :: mpiCommunicator
+      type (UnusableArg), optional, intent(in) :: unused
       integer, optional, intent(in) :: level
       character(len=*), optional, intent(in) :: suffixFormat
+      logical, optional, intent(in) :: delay
 
       character(len=:), allocatable :: suffix
       integer :: rank, ier
@@ -41,7 +50,7 @@ contains
       call MPI_Comm_rank(mpiCommunicator, rank, ier)
 
       suffix = handler%getSuffix(rank, suffixFormat)
-      handler%FileHandler = FileHandler(fileNamePrefix // suffix, level)
+      handler%FileHandler = FileHandler(fileNamePrefix // suffix, level, delay=delay)
       
    end function newMpiFileHandler
 
@@ -56,13 +65,24 @@ contains
 
       type (FormatParser) :: parser
 
+      character(len=:), allocatable :: fmt
+
       if (present(suffixFormat)) then
-         suffix = parser%makeString(suffixFormat, rank)
+         fmt = suffixFormat
+      elseif (allocated(defaultMpiSuffixFormat)) then
+         fmt = defaultMpiSuffixFormat
       else
-         suffix = '.pe=' // toString(rank)
+         fmt = DEFAULT_MPI_SUFFIX_FORMAT
       end if
+
+      suffix = parser%makeString(fmt, rank)
 
    end function getSuffix
 
+
+   subroutine setDefaultMpiSuffixFormat(suffixFormat)
+      character(len=*), intent(in) :: suffixFormat
+      defaultMpiSuffixFormat = suffixFormat
+   end subroutine setDefaultMpiSuffixFormat
 
 end module ASTG_MpiFileHandler_mod

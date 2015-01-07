@@ -64,5 +64,53 @@ contains
    end subroutine test_getFileName
 
 
+   ! Often it is desirable for the log file not to be created until/if
+   ! a message is sent.  The optional logical argument "delay" on the
+   ! contstructor is used to indicate that configuration.
+   @test
+   subroutine test_delay()
+      type (LogRecord) :: record
+      type (MpiFileHandler) :: handler
+      character(len=*), parameter :: PREFIX = 'delayLog'
+      character(len=*), parameter :: FILE_NAME = 'delayLog' // '.pe=0'
+      logical :: exist
+      integer :: unit
+      integer :: comm
+
+      call setMpiRank(0)
+      comm = 12345
+      handler = MpiFileHandler(PREFIX, comm, level=DEBUG, delay=.true.)
+      inquire(file=FILE_NAME, exist=exist)
+      @assertFalse(exist)
+
+      record = LogRecord('me', INFO, 'hello')
+      call handler%handle(record)
+      inquire(file=FILE_NAME, exist=exist)
+      @assertTrue(exist)
+      
+      call handler%close()
+      open(newunit=unit, file=FILE_NAME, status='old')
+      close(unit, status='delete')
+
+   end subroutine test_delay
+
+   @test
+   subroutine test_setDefaultSuffix()
+      type (MpiFileHandler) :: handler
+      character(len=32) :: foundMessage
+      integer :: comm
+      integer :: unit
+
+      comm = 12345
+
+      call setMpiRank(123)
+      call setDefaultMpiSuffixFormat('.%i4.4') ! warning - global setting
+
+      handler = MpiFileHandler('logFile', comm, delay=.true.)
+      @assertEqual('logFile.0123', handler%getFileName())
+
+   end subroutine test_setDefaultSuffix
+
+
 end module Test_MpiFileHandler_mod
 
