@@ -10,11 +10,14 @@ module ASTG_MpiFileHandler_mod
 
    public :: MpiFileHandler
    public :: setDefaultMpiSuffixFormat
+   public :: default_mpi_suffix_format, defaultMpiSuffixFormat
 
    type, extends(FileHandler) :: MpiFileHandler
       private
    contains
-      procedure :: getSuffix
+! TOD: Dreadful workaround for gfortran 4.9.1 and 4.9.2.  Made
+! getSuffix() an external procedure.
+!!$      procedure :: getSuffix
    end type MpiFileHandler
 
    interface MpiFileHandler
@@ -43,37 +46,45 @@ contains
       character(len=:), allocatable :: suffix
       integer :: rank, ier
 
+      interface
+         function getSuffix(rank, suffixFormat) result(rawString)
+            character(len=:), allocatable :: rawString
+            integer, intent(in) :: rank
+            character(len=*), optional, intent(in) :: suffixFormat
+         end function getSuffix
+      end interface
+
       call MPI_Comm_rank(mpiCommunicator, rank, ier)
 
-      suffix = handler%getSuffix(rank, suffixFormat)
+      suffix = getSuffix(rank, suffixFormat)
       handler%FileHandler = FileHandler(fileNamePrefix // suffix, level, delay=delay)
       
    end function newMpiFileHandler
 
     
-   function getSuffix(this, rank, suffixFormat) result(suffix)
-      use FTL_StringUtilities_mod
-      use ASTG_FormatParser_mod
-      character(len=:), allocatable :: suffix
-      class (MpiFileHandler), intent(in) :: this
-      integer, intent(in) :: rank
-      character(len=*), optional, intent(in) :: suffixFormat
-
-      type (FormatParser) :: parser
-
-      character(len=:), allocatable :: fmt
-
-      if (present(suffixFormat)) then
-         fmt = suffixFormat
-      elseif (allocated(defaultMpiSuffixFormat)) then
-         fmt = defaultMpiSuffixFormat
-      else
-         fmt = DEFAULT_MPI_SUFFIX_FORMAT
-      end if
-
-      suffix = parser%makeString(fmt, rank)
-
-   end function getSuffix
+!!$   function getSuffix(this, rank, suffixFormat) result(suffix)
+!!$      use ASTG_FormatParser_mod
+!!$      use FTL_StringUtilities_mod
+!!$      character(len=:), allocatable :: suffix
+!!$      class (MpiFileHandler), intent(in) :: this
+!!$      integer, intent(in) :: rank
+!!$      character(len=*), optional, intent(in) :: suffixFormat
+!!$
+!!$      type (FormatParser) :: parser
+!!$
+!!$      character(len=:), allocatable :: fmt
+!!$
+!!$      if (present(suffixFormat)) then
+!!$         fmt = suffixFormat
+!!$      elseif (allocated(defaultMpiSuffixFormat)) then
+!!$         fmt = defaultMpiSuffixFormat
+!!$      else
+!!$         fmt = DEFAULT_MPI_SUFFIX_FORMAT
+!!$      end if
+!!$
+!!$      suffix = parser%makeString(fmt, rank)
+!!$
+!!$   end function getSuffix
 
 
    subroutine setDefaultMpiSuffixFormat(suffixFormat)
@@ -81,4 +92,33 @@ contains
       defaultMpiSuffixFormat = suffixFormat
    end subroutine setDefaultMpiSuffixFormat
 
+
 end module ASTG_MpiFileHandler_mod
+
+function getSuffix(rank, suffixFormat) result(suffix)
+   use ASTG_MpiFileHandler_mod
+   use ASTG_FormatParser_mod
+   use FTL_StringUtilities_mod
+   character(len=:), allocatable :: suffix
+   integer, intent(in) :: rank
+   character(len=*), optional, intent(in) :: suffixFormat
+
+   type (FormatParser) :: parser
+
+   character(len=:), allocatable :: fmt
+
+   if (present(suffixFormat)) then
+      fmt = suffixFormat
+   elseif (allocated(defaultMpiSuffixFormat)) then
+      fmt = defaultMpiSuffixFormat
+   else
+      fmt = DEFAULT_MPI_SUFFIX_FORMAT
+   end if
+
+   suffix = parser%makeString(fmt, rank)
+
+end function getSuffix
+
+
+
+
