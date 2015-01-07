@@ -36,19 +36,29 @@ contains
 
     
    ! Initializes the instance with a filename and an optional level
-   function newFileHandler(fileName, level) result(handler)
+   function newFileHandler(fileName, level, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      integer, intent(in), optional :: level
+      integer, optional, intent(in) :: level
+      logical, optional, intent(in) :: delay
+
       integer :: level_
+      logical :: delay_
       
-      if (present (level)) then
+      if (present(level)) then
         level_ = level
       else
         level_ = INFO
       end if
+
+      if (present(delay)) then
+         delay_ = delay
+      else
+         delay_ = .false. ! backward compatibility
+      end if
+
       call handler%setFileName(fileName)
-      call handler%open()
+      if (.not. delay_) call handler%open()
       call handler%setLevel(level_)
       
    end function newFileHandler
@@ -60,6 +70,7 @@ contains
       character(len=*), intent(in) :: levelString
       type(LogRecord) :: record
 
+      if (.not. this%isOpen()) call this%open()
       write(this%unit,'(a)') levelString // ': ' // record%getMessage()
        
    end subroutine emitMessage
