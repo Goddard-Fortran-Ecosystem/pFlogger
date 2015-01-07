@@ -228,4 +228,21 @@ contains
 
    end subroutine test_makeStringExtra
 
+
+   @test
+   subroutine test_newLine()
+      type(FormatParser) :: parser
+      character(len=:), allocatable :: str
+      
+      @assertEqual('hello' // new_line('a'), parser%makeString('hello\n'))
+      @assertEqual('hello\n', parser%makeString('hello\\n'))
+      @assertEqual('hello' // new_line('a') // 'goodbye', parser%makeString('hello\ngoodbye'))
+
+      @assertEqual('A ' // new_line('a') // ' B \' // new_line('a'), parser%makeString('A \n B \\\n'))
+
+      str = parser%makeString('hello\')
+      @assertExceptionRaised("FormatParser:: Cannot terminate format with bare escape '\' character.")
+
+   end subroutine test_newLine
+
 end module Test_FormatParser_mod

@@ -124,7 +124,6 @@ contains
                idx = i
                return
             end if
-
          end do
          ! entire string
          idx = len(string) + 1
@@ -138,8 +137,9 @@ contains
       character(len=:), allocatable :: payload
       character(len=*), intent(in) :: string
 
-      integer :: n
+      integer :: i, j, n
       integer :: idx
+      logical :: escapeFlag
 
       n  = len(string)
 
@@ -172,6 +172,40 @@ contains
       else ! raw text
 
          payload = string
+         if (scan(string, ESCAPE) == 0) return
+         
+         escapeFlag = .false.
+         j = 1
+         do i = 1, len(payload)
+            if (payload(i:i) == ESCAPE) then
+               if (escapeFlag) then
+                  escapeFlag = .false.
+                  payload(j:j) = ESCAPE
+                  j = j + 1
+               else
+                  escapeFlag = .true.
+                  if (i == len(string)) then ! final character
+                     call throw("FormatParser:: Cannot terminate format with bare escape '\' character.")
+                  end if
+               end if
+            else
+               if (escapeFlag) then
+                  if (payload(i:i) == 'n') then ! newline
+                     payload(j:j) = new_line('a')
+                     j = j + 1
+                  else ! unsupported
+                     payload(j:j+1) = payload(i-1:i)
+                     j = j + 2
+                     
+                  end if
+                  escapeFlag = .false.
+               else
+                  payload(j:j) = string(i:i)
+                  j = j + 1
+               end if
+            end if
+         end do
+         payload = payload(1:j-1)
 
       end if
 
