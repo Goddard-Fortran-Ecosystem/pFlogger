@@ -1,14 +1,13 @@
 module ASTG_AbstractFilter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
-   use FTL_CaseInsensitiveString_mod
    
    implicit none
    private
 
    public :: AbstractFilter
 
-   type, abstract :: AbstractFilter
+   type, abstract, extends (Object) :: AbstractFilter
       private
    contains
       procedure(filter), deferred :: filter

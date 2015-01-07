@@ -1,9 +1,15 @@
 # ------------------------------------------------------------------------ #
 # ASTG Logger top level CmakeLists.txt
+#
+# Usage:
+#   cmake -DMPI=YES -DCOMPILE_WITH_DEBUG=NO ..
+#
+# Default is USE_MPI=NO, COMPILE_WITH_DEBUG=YES
+#
 # ------------------------------------------------------------------------ #
+INCLUDE(CMakeForceCompiler)
 cmake_minimum_required (VERSION 2.8)
 project (logger Fortran)
-
 set (CMAKE_VERBOSE_MAKEFILE 1)
 
 set(CMAKE_MODULE_PATH
@@ -27,14 +33,20 @@ if ( PFUNIT )
     add_definitions(-DUSE_PFUNIT)
 endif()
 
-option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
+option(USE_MPI "Use MPI for parallel runs" NO)
+option(FIND_MPI "Attempt to automatically find MPI information" YES)
 option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
 
-# Default is to build in SERIAL(MPI=NO)
-set (MPI "NO"
-   CACHE STRING "Use MPI=YES for parallel builds"
-)
-
+if (MPI)
+    add_definitions(-DUSE_MPI)
+    if (FIND_MPI)
+        find_package(MPI REQUIRED)
+        include_directories(${MPI_INCLUDE_PATH})
+        set (COMPILER_WRAPPER mpif90)
+    endif()
+    message( STATUS "MPI enabled")
+endif()
+  
 # Compiler flags
 include(setCompilerFlags)
 

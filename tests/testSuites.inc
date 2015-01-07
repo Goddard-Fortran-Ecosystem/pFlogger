@@ -1,12 +1,10 @@
 ! Filter and Filterer
 ADD_TEST_SUITE(Test_Filter_mod_suite)
-ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
 ADD_TEST_SUITE(Test_Filterer_mod_suite)
 
 ! Handlers
 ADD_TEST_SUITE(Test_StreamHandler_mod_suite)
 ADD_TEST_SUITE(Test_FileHandler_mod_suite)
-ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 ADD_TEST_SUITE(Test_RotatingFileHandler_mod_suite)
 
 ! Logger
@@ -23,3 +21,9 @@ ADD_TEST_SUITE(Test_Formatter_mod_suite)
 
 ! Parser
 ADD_TEST_SUITE(Test_FormatParser_mod_suite)
+
+! MPI related
+#ifdef USE_MPI
+ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
+ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
+#endif
