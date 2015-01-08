@@ -141,39 +141,21 @@ contains
 
 
    function makeRecord(this, message, level, unusable, &
-        arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 &
+      include 'recordArgsList.inc'
       ) result(record)
       use FTL_XWrapVec_mod
-      use FTL_CIStringXUMap_mod
       use ASTG_FormatParser_mod
       class (Logger), intent(inout) :: this
       type (LogRecord) :: record
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
-      type (UnusableArgument), optional :: unusable
-      class(*), optional, intent(in) :: arg1
-      class(*), optional, intent(in) :: arg2
-      class(*), optional, intent(in) :: arg3
-      class(*), optional, intent(in) :: arg4
-      class(*), optional, intent(in) :: arg5
-      class(*), optional, intent(in) :: arg6
-      class(*), optional, intent(in) :: arg7
-      class(*), optional, intent(in) :: arg8
-      class(*), optional, intent(in) :: arg9
+      
+      include 'recordOptArgs.inc'
       type (XWrapVec) :: args
       type(FormatParser) :: parser
       character(len=:), allocatable :: str
-      
-      args = XWrapVec()
-      if (present(arg1)) call args%push_back_alt(arg1)
-      if (present(arg2)) call args%push_back_alt(arg2)
-      if (present(arg3)) call args%push_back_alt(arg3)
-      if (present(arg4)) call args%push_back_alt(arg4)
-      if (present(arg5)) call args%push_back_alt(arg5)
-      if (present(arg6)) call args%push_back_alt(arg6)
-      if (present(arg7)) call args%push_back_alt(arg7)
-      if (present(arg8)) call args%push_back_alt(arg8)
-      if (present(arg9)) call args%push_back_alt(arg9)
+
+      include 'recordArgsPush.inc'    
 
       str = parser%format(message, args)
       record = LogRecord(this%getName(), level, str)
@@ -191,22 +173,13 @@ contains
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
    subroutine log_(this, message, level, unusable, &
-        arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 &
+      include 'recordArgsList.inc'
       )
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
-      type (UnusableArgument), optional :: unusable
-      class(*), optional, intent(in) :: arg1
-      class(*), optional, intent(in) :: arg2
-      class(*), optional, intent(in) :: arg3
-      class(*), optional, intent(in) :: arg4
-      class(*), optional, intent(in) :: arg5
-      class(*), optional, intent(in) :: arg6
-      class(*), optional, intent(in) :: arg7
-      class(*), optional, intent(in) :: arg8
-      class(*), optional, intent(in) :: arg9
-
+      
+      include 'recordOptArgs.inc'  
       type (AbstractHandlerPolyWrapVecIter) :: iter
       class (AbstractHandler), pointer :: handler
       type (LogRecord) :: record
@@ -231,22 +204,14 @@ contains
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
    subroutine log(this, message, level, unusable, &
-        arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 &
+      include 'recordArgsList.inc'
       )
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, optional, intent(in) :: level
-      type (UnusableArgument), optional :: unusable
-      class(*), optional, intent(in) :: arg1
-      class(*), optional, intent(in) :: arg2
-      class(*), optional, intent(in) :: arg3
-      class(*), optional, intent(in) :: arg4
-      class(*), optional, intent(in) :: arg5
-      class(*), optional, intent(in) :: arg6
-      class(*), optional, intent(in) :: arg7
-      class(*), optional, intent(in) :: arg8
-      class(*), optional, intent(in) :: arg9
+      
+      include 'recordOptArgs.inc'  
       integer :: level_
 
       if (present(level)) then

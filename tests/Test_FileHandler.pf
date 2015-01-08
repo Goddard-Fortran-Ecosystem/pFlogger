@@ -104,6 +104,7 @@ contains
    ! contstructor is used to indicate that configuration.
    @test
    subroutine test_delay(this)
+      use FTL_XWrapVec_mod
       class (Test_FileHandler), intent(inout) :: this
 
       type (LogRecord) :: record
@@ -111,6 +112,7 @@ contains
       character(len=*), parameter :: FILE_NAME = 'delayLog'
       logical :: exist
       integer :: unit
+      type (XWrapVec) :: args
 
       handler = FileHandler(FILE_NAME, delay=.true.)
       inquire(file=FILE_NAME, exist=exist)

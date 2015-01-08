@@ -182,9 +182,10 @@ contains
       @assertEqual('- 1 02 003 10.00', parser%makeString('- %i1.1 %i2.2 %i3.3 %f5.2', i, j, k, u))
       @assertEqual('- 1 02 10.00 5.00 273.0', parser%makeString('- %i1.1 %i2.2 %f5.2 %f4.2 %f5.1', i, j, u, v, T))
       @assertEqual('- 1 02 1 02 003 1 02 003 003', parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3', i, j, i, j, k, i, j, k, k))
+      @assertEqual('- 1 02 1 02 003 1 02 003 003', parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3', i, j, i, j, k, i, j, k, k))
       @assertEqual('- 0.0 3.1415927', parser%makeString('- %f3.1 %f9.7', E, p))
       @assertEqual('- 1234567890', parser%makeString('- %i10.1', time))
-      @assertEqual('- T', parser%makeString('- %l1', time))
+      @assertEqual('- T', parser%makeString('- %l1', land))
 
    end subroutine test_makeStringManyArgs
 

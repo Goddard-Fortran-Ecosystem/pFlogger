@@ -43,14 +43,14 @@ contains
    
 
 @Test
-   subroutine test_makeLogRecord(this)
+   subroutine test_makeRecord(this)
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
       
       record = this%basicLogger%makeRecord('hi', INFO)
       @assertEqual('hi', record%getMessage())
       
-   end subroutine test_makeLogRecord
+   end subroutine test_makeRecord
    
 
 @test

@@ -26,7 +26,9 @@ module ASTG_FormatParser_mod
    character(len=*), parameter :: OPEN_PAREN = '('
    character(len=*), parameter :: CLOSE_PAREN = ')'
    character(len=*), parameter :: SPACE = ' '
-   character(len=*), parameter :: ESCAPE = '\' ! '
+   ! CPP safe escape
+   character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
+   character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
    character(len=*), parameter :: NAME_SEPARATOR = ':'
 
 
@@ -243,7 +245,6 @@ contains
 
    
    function format(fmt, args, unusable, extra) result(rawString)
-      use iso_fortran_env, only: int32, int64, real32, real64
       use FTL_String_mod
       use FTL_StringVec_mod
       use FTL_XWrapVec_mod
@@ -257,7 +258,6 @@ contains
       type (XWrapVec) :: args_
       type (CIStringXUMap) :: extra_
 
-      character(len=80) :: buffer
       character(len=:), allocatable :: tokenString
       character(len=:), allocatable :: key
       character(len=:), allocatable :: payload
@@ -310,25 +310,7 @@ contains
                arg => argIter%get_alt()
                call argIter%next()
             end if
-
-            select type (arg)
-            type is (integer(int32))
-               write(buffer,payload) arg
-               rawString = rawString // trim(buffer)
-            type is (integer(int64))
-               write(buffer,payload) arg
-               rawString = rawString // trim(buffer)
-            type is (real(real32))
-               write(buffer,payload) arg
-               rawString = rawString // trim(buffer)
-            type is (real(real64))
-               write(buffer,payload) arg
-               rawString = rawString // trim(buffer)
-            type is (logical)
-               write(buffer,payload) arg
-               rawString = rawString // trim(buffer)
-            end select
-
+            rawString = rawString // handle_(arg, payload)
          else
             rawString = rawString // payload
          end if
@@ -341,23 +323,14 @@ contains
 
 
    function makeString(fmt, &
-        arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, &
-        unusable, extra) result(rawString)
+      include 'recordArgsList.inc'
+      ,unusable, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
-      
-      class(*), optional, intent(in) :: arg1
-      class(*), optional, intent(in) :: arg2
-      class(*), optional, intent(in) :: arg3
-      class(*), optional, intent(in) :: arg4
-      class(*), optional, intent(in) :: arg5
-      class(*), optional, intent(in) :: arg6
-      class(*), optional, intent(in) :: arg7
-      class(*), optional, intent(in) :: arg8
-      class(*), optional, intent(in) :: arg9
-      type (UnusableArgument), optional :: unusable
+
+      include 'recordOptArgs.inc'    
       type (CIStringXUMap), optional :: extra
       type (XWrapVec) :: args
       type (CIStringXUMap) :: extra_
@@ -369,51 +342,39 @@ contains
          extra_ = CIStringXUMap()
       end if
       
-      args = XWrapVec()
-      if (present(arg1)) call args%push_back_alt(arg1)
-      if (present(arg2)) call args%push_back_alt(arg2)
-      if (present(arg3)) call args%push_back_alt(arg3)
-      if (present(arg4)) call args%push_back_alt(arg4)
-      if (present(arg5)) call args%push_back_alt(arg5)
-      if (present(arg6)) call args%push_back_alt(arg6)
-      if (present(arg7)) call args%push_back_alt(arg7)
-      if (present(arg8)) call args%push_back_alt(arg8)
-      if (present(arg9)) call args%push_back_alt(arg9)
+      include 'recordArgsPush.inc'    
 
       rawString = format(fmt, args, extra=extra_)
        
    end function makeString
 
-   function handle_(arg) result(str)
+   function handle_(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
-      class (*), optional, intent(in) :: arg
-      character(len=:), allocatable :: str
+      character(len=:), allocatable :: rawString
+      class (*), intent(in) :: arg
+      character(len=*), intent(in) :: payload
       character(len=80) :: buffer
 
-      if (.not. present(arg)) then
-         str = ''
-         return
-      end if
-
+      rawString = ''
+      
       select type (arg)
       type is (integer(int32))
-         write(buffer,'(i0)') arg
-         str = trim(buffer)
-      type is (real(real32))
-      type is (real(real64))
-         write(buffer,'(g20.14)') arg
-         str = trim(buffer)
-      type is (character(len=*))
-         str = trim(arg)
-      type is (logical)
+         write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
       type is (integer(int64))
-      type is (real(real128))
-      type is (complex(real32))
-      type is (complex(real64))
-      type is (complex(real128))
-
+         write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
+      type is (real(real32))
+         write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
+      type is (real(real64))
+         write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
+      type is (logical)
+         write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
       class default ! user defined
-         str = 'unsupported'
+         rawString = 'unsupported'
       end select
 
    end function handle_
