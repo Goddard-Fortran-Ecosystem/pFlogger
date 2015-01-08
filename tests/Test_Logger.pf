@@ -54,6 +54,7 @@ contains
       type(LogRecord) :: record
       
       record = this%basicLogger%makeRecord('hi', INFO)
+      @assertEqual('hi', record%getMessage())
       
    end subroutine test_makeLogRecord
    

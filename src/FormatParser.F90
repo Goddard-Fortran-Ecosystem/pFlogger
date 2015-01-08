@@ -243,6 +243,7 @@ contains
 
    
    function format(fmt, args, unusable, extra) result(rawString)
+      use iso_fortran_env, only: int32, int64, real32, real64
       use FTL_String_mod
       use FTL_StringVec_mod
       use FTL_XWrapVec_mod
@@ -311,13 +312,23 @@ contains
             end if
 
             select type (arg)
-            type is (integer)
+            type is (integer(int32))
                write(buffer,payload) arg
                rawString = rawString // trim(buffer)
-            type is (real)
+            type is (integer(int64))
+               write(buffer,payload) arg
+               rawString = rawString // trim(buffer)
+            type is (real(real32))
+               write(buffer,payload) arg
+               rawString = rawString // trim(buffer)
+            type is (real(real64))
+               write(buffer,payload) arg
+               rawString = rawString // trim(buffer)
+            type is (logical)
                write(buffer,payload) arg
                rawString = rawString // trim(buffer)
             end select
+
          else
             rawString = rawString // payload
          end if
@@ -348,9 +359,15 @@ contains
       class(*), optional, intent(in) :: arg9
       type (UnusableArgument), optional :: unusable
       type (CIStringXUMap), optional :: extra
-
       type (XWrapVec) :: args
-      character(len=:), allocatable :: str
+      type (CIStringXUMap) :: extra_
+      
+
+      if (present(extra)) then
+         extra_ = extra
+      else
+         extra_ = CIStringXUMap()
+      end if
       
       args = XWrapVec()
       if (present(arg1)) call args%push_back_alt(arg1)
@@ -363,7 +380,7 @@ contains
       if (present(arg8)) call args%push_back_alt(arg8)
       if (present(arg9)) call args%push_back_alt(arg9)
 
-      rawString = format(fmt, args, extra=extra)
+      rawString = format(fmt, args, extra=extra_)
        
    end function makeString
 
