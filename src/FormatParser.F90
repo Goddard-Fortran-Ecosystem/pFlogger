@@ -325,7 +325,7 @@ contains
 
    function makeString(fmt, &
 #include "recordArgsList.inc"
-      ,unusable, extra) result(rawString)
+      ,extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString

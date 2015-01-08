@@ -52,9 +52,6 @@ module ASTG_Logger_mod
       module procedure newLogger
    end interface Logger
 
-   ! This private type is used to force some arguments to be passed by keyword.
-   type UnusableArgument
-   end type UnusableArgument
 
 contains
 
@@ -140,7 +137,7 @@ contains
    end subroutine removeHandler
 
 
-   function makeRecord(this, message, level, unusable, &
+   function makeRecord(this, message, level, &
 #include "recordArgsList.inc"
       ) result(record)
       use FTL_XWrapVec_mod
@@ -172,7 +169,7 @@ contains
    ! Logging routine that calls the appropriate handler and emits
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
-   subroutine log_(this, message, level, unusable, &
+   subroutine log_(this, message, level, &
 #include "recordArgsList.inc"
       )
       class (Logger), intent(inout) :: this
@@ -203,7 +200,7 @@ contains
    ! Convenience methods follow - debug, info, warning, error, critical
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
-   subroutine log(this, message, level, unusable, &
+   subroutine log(this, message, level, &
 #include "recordArgsList.inc"
       )
       ! Log message with the integer severity 'INFO'.

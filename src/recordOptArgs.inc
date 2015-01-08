@@ -1,4 +1,3 @@
-      type (UnusableArgument), optional :: unusable
       class(*), optional, intent(in) :: arg1
       class(*), optional, intent(in) :: arg2
       class(*), optional, intent(in) :: arg3
