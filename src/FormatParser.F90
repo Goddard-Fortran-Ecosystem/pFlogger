@@ -7,7 +7,7 @@ module ASTG_FormatParser_mod
    implicit none
    private
 
-   public FormatParser
+   public :: FormatParser
    
    type, extends(Object) :: FormatParser
    contains

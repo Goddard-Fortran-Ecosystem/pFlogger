@@ -7,6 +7,15 @@ module Test_MpiFileHandler_mod
    implicit none
 
 
+      interface
+         function getSuffix(rank, suffixFormat) result(rawString)
+            character(len=:), allocatable :: rawString
+            integer, intent(in) :: rank
+            character(len=*), optional, intent(in) :: suffixFormat
+         end function getSuffix
+      end interface
+
+
 contains
 
    @test
@@ -16,9 +25,9 @@ contains
 
       comm = 12345 ! fake
 
-      @assertEqual('.pe=0', handler%getSuffix(rank=0))
-      @assertEqual('.pe=1', handler%getSuffix(rank=1))
-      @assertEqual('.pe=123', handler%getSuffix(rank=123))
+      @assertEqual('.pe=0', getSuffix(rank=0))
+      @assertEqual('.pe=1', getSuffix(rank=1))
+      @assertEqual('.pe=123', getSuffix(rank=123))
 
    end subroutine test_suffix
 
@@ -30,8 +39,8 @@ contains
 
       comm = 12345 ! fake
 
-      @assertEqual('.000000', handler%getSuffix(rank=0, suffixFormat= '.%(i6.6)'))
-      @assertEqual('.000123', handler%getSuffix(rank=123, suffixFormat= '.%(i6.6)'))
+      @assertEqual('.000000', getSuffix(rank=0, suffixFormat= '.%(i6.6)'))
+      @assertEqual('.000123', getSuffix(rank=123, suffixFormat= '.%(i6.6)'))
 
    end subroutine test_customSuffix
    

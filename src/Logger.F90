@@ -33,6 +33,7 @@ module ASTG_Logger_mod
 
       procedure :: setName
       procedure :: getName
+      procedure :: isEnabledFor
       procedure :: log_
       procedure :: log
       procedure :: debug
@@ -179,6 +180,12 @@ contains
       
    end function makeRecord
 
+   logical function isEnabledFor(this, level)
+      class (Logger), intent(in) :: this
+      integer, intent(in) :: level
+
+      isEnabledFor = (level >= this%level)
+   end function isEnabledFor
    
    ! Logging routine that calls the appropriate handler and emits
    ! the logging event.
@@ -247,8 +254,8 @@ contains
       else
         level_ = INFO_LEVEL
       end if
-      
-      call this%log_(message, level_)
+
+      if (this%isEnabledFor(level_)) call this%log_(message, level_)
 
    end subroutine log
 
@@ -258,7 +265,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
 
-      call this%log_(message, DEBUG_LEVEL)
+      if (this%isEnabledFor(DEBUG_LEVEL)) call this%log_(message, DEBUG_LEVEL)
 
    end subroutine debug
 
@@ -266,8 +273,8 @@ contains
    subroutine info(this, message)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
-      
-      call this%log_(message, INFO_LEVEL)
+
+      if (this%isEnabledFor(INFO_LEVEL)) call this%log_(message, INFO_LEVEL)
 
    end subroutine info
 
@@ -276,7 +283,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log_(message, WARNING_LEVEL)
+      if (this%isEnabledFor(WARNING_LEVEL)) call this%log_(message, WARNING_LEVEL)
 
    end subroutine warning
 
@@ -285,7 +292,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log_(message, ERROR_LEVEL)
+      if (this%isEnabledFor(ERROR_LEVEL)) call this%log_(message, ERROR_LEVEL)
 
    end subroutine error
 
@@ -294,7 +301,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       
-      call this%log_(message, CRITICAL_LEVEL)
+      if (this%isEnabledFor(CRITICAL_LEVEL)) call this%log_(message, CRITICAL_LEVEL)
 
    end subroutine critical
 

@@ -11,9 +11,7 @@ module Test_Logger_mod
 @TestCase
    type, extends(TestCase) :: Test_Logger
       type (Logger) :: basicLogger
-      type (Logger) :: levelLogger
       type (MockBuffer) :: basicBuffer
-      type (MockBuffer) :: levelBuffer
    contains
       procedure :: setUp    
       procedure :: tearDown 
@@ -29,12 +27,9 @@ contains
       
       this%basicLogger = Logger('A')
       handler = MockHandler(this%basicBuffer)
-      call handler%setLevel(INFO)
+      call handler%setLevel(DEBUG) ! catch everything
       call this%basicLogger%addHandler(handler)
 
-      ! Create a 'level' logger (uses methods named after level names)
-      this%levelLogger = Logger('A')
-      
    end subroutine setUp
 
 
@@ -43,7 +38,6 @@ contains
 
       ! Clean up mock handler's buffer 
       if (allocated(this%basicBuffer%buffer)) deallocate(this%basicBuffer%buffer)
-      if (allocated(this%levelBuffer%buffer)) deallocate(this%levelBuffer%buffer)
       
    end subroutine tearDown
    
@@ -58,6 +52,32 @@ contains
       
    end subroutine test_makeLogRecord
    
+
+@test
+   subroutine test_isEnabledFor(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%setLevel(DEBUG)
+      @assertTrue(this%basicLogger%isEnabledFor(DEBUG))
+
+      call this%basicLogger%setLevel(INFO)
+      @assertTrue(this%basicLogger%isEnabledFor(INFO))
+      @assertFalse(this%basicLogger%isEnabledFor(DEBUG))
+
+      call this%basicLogger%setLevel(WARNING)
+      @assertTrue(this%basicLogger%isEnabledFor(WARNING))
+      @assertFalse(this%basicLogger%isEnabledFor(INFO))
+
+      call this%basicLogger%setLevel(ERROR)
+      @assertTrue(this%basicLogger%isEnabledFor(ERROR))
+      @assertFalse(this%basicLogger%isEnabledFor(WARNING))
+
+      call this%basicLogger%setLevel(CRITICAL)
+      @assertTrue(this%basicLogger%isEnabledFor(CRITICAL))
+      @assertFalse(this%basicLogger%isEnabledFor(ERROR))
+
+      
+   end subroutine test_isEnabledFor
 
 @Test
    subroutine test_logBasic(this)
@@ -98,44 +118,30 @@ contains
 @Test
    subroutine test_debug(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(DEBUG)
-      call this%levelLogger%addHandler(handler)
-
-      call this%levelLogger%debug('test_debug')
-      @assertEqual('DEBUG: test_debug', this%levelBuffer%buffer)
+      call this%basicLogger%setLevel(DEBUG)
+      call this%basicLogger%debug('test_debug')
+      @assertEqual('DEBUG: test_debug', this%basicBuffer%buffer)
 
    end subroutine test_debug
    
 @Test
    subroutine test_debugNoEmit(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(INFO)
-      call this%levelLogger%addHandler(handler)
+      call this%basicLogger%setLevel(INFO)
       ! Here debug() will not emit message because DEBUG<INFO
-      call this%levelLogger%debug('test_debug')
-      @assertFalse(allocated(this%levelBuffer%buffer))
+      call this%basicLogger%debug('test_debug')
+      @assertFalse(allocated(this%basicBuffer%buffer))
 
    end subroutine test_debugNoEmit
    
 @Test
    subroutine test_info(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(INFO)
-      call this%levelLogger%addHandler(handler)
-      call this%levelLogger%info('test_info')
-      @assertEqual('INFO: test_info', this%levelBuffer%buffer)
+      call this%basicLogger%info('test_info')
+      @assertEqual('INFO: test_info', this%basicBuffer%buffer)
 
    end subroutine test_info
 
@@ -143,14 +149,10 @@ contains
    @Test
    subroutine test_infoNoEmit(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(WARNING)
-      call this%levelLogger%addHandler(handler)
-      call this%levelLogger%info('test_info')
-      @assertFalse(allocated(this%levelBuffer%buffer))
+      call this%basicLogger%setLevel(WARNING)
+      call this%basicLogger%info('test_info')
+      @assertFalse(allocated(this%basicBuffer%buffer))
 
    end subroutine test_infoNoEmit
 
@@ -159,15 +161,10 @@ contains
 @Test
    subroutine test_warning(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(WARNING)
-      call this%levelLogger%addHandler(handler)
-
-      call this%levelLogger%warning('test_warning')
-      @assertEqual('WARNING: test_warning', this%levelBuffer%buffer)
+      call this%basicLogger%setLevel(WARNING)
+      call this%basicLogger%warning('test_warning')
+      @assertEqual('WARNING: test_warning', this%basicBuffer%buffer)
 
    end subroutine test_warning
    
@@ -175,14 +172,10 @@ contains
    @Test
    subroutine test_warningNoEmit(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(ERROR)
-      call this%levelLogger%addHandler(handler)
-      call this%levelLogger%warning('test_warning')
-      @assertFalse(allocated(this%levelBuffer%buffer))
+      call this%basicLogger%setLevel(ERROR)
+      call this%basicLogger%warning('test_warning')
+      @assertFalse(allocated(this%basicBuffer%buffer))
 
    end subroutine test_warningNoEmit
 
@@ -190,15 +183,10 @@ contains
 @Test
    subroutine test_error(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(ERROR)
-      call this%levelLogger%addHandler(handler)
-
-      call this%levelLogger%error('test_error')
-      @assertEqual('ERROR: test_error', this%levelBuffer%buffer)
+      call this%basicLogger%setLevel(ERROR)
+      call this%basicLogger%error('test_error')
+      @assertEqual('ERROR: test_error', this%basicBuffer%buffer)
 
    end subroutine test_error
     
@@ -206,14 +194,10 @@ contains
    @Test
    subroutine test_errorNoEmit(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(CRITICAL)
-      call this%levelLogger%addHandler(handler)
-      call this%levelLogger%error('test_error')
-      @assertFalse(allocated(this%levelBuffer%buffer))
+      call this%basicLogger%setLevel(CRITICAL)
+      call this%basicLogger%error('test_error')
+      @assertFalse(allocated(this%basicBuffer%buffer))
 
    end subroutine test_errorNoEmit
 
@@ -221,15 +205,10 @@ contains
 @Test
    subroutine test_critical(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
 
-      ! Set handler's severity level and add handler to levelLogger
-      handler = MockHandler(this%levelBuffer)
-      call handler%setLevel(CRITICAL)
-      call this%levelLogger%addHandler(handler)
-
-      call this%levelLogger%critical('test_critical')
-      @assertEqual('CRITICAL: test_critical', this%levelBuffer%buffer)
+      call this%basicLogger%setLevel(CRITICAL)
+      call this%basicLogger%critical('test_critical')
+      @assertEqual('CRITICAL: test_critical', this%basicBuffer%buffer)
 
    end subroutine test_critical
 
