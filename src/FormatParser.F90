@@ -323,7 +323,7 @@ contains
 
 
    function makeString(fmt, &
-      include 'recordArgsList.inc'
+#include 'recordArgsList.inc'
       ,unusable, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
