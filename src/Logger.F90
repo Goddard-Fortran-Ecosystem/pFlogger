@@ -137,25 +137,15 @@ contains
    end subroutine removeHandler
 
 
-   function makeRecord(this, message, level, &
-#include "recordArgsList.inc"
-      ) result(record)
+   function makeRecord(this, message, level, args) result(record)
       use FTL_XWrapVec_mod
-      use ASTG_FormatParser_mod
       class (Logger), intent(inout) :: this
       type (LogRecord) :: record
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
+      type (XWrapVec), optional, intent(in) :: args
       
-      include 'recordOptArgs.inc'
-      type (XWrapVec) :: args
-      type(FormatParser) :: parser
-      character(len=:), allocatable :: str
-
-      include 'recordArgsPush.inc'    
-
-      str = parser%format(message, args)
-      record = LogRecord(this%getName(), level, str)
+      record = LogRecord(this%getName(), level, message, args=args)
       
    end function makeRecord
 

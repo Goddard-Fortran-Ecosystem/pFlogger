@@ -3,6 +3,7 @@
 ! the event being logged. The  main information passed in is in message and optional
 ! arguments which are combined to create the message field of the record.
 module ASTG_LogRecord_mod
+   use FTL_XWrapVec_mod
    use ASTG_Object_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
@@ -18,6 +19,7 @@ module ASTG_LogRecord_mod
       character(len=:), allocatable :: message
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
+      type (XWrapVec) :: args
    contains
       procedure :: getName
       procedure :: getLevel
@@ -35,11 +37,13 @@ contains
 
    
    ! Create a log record. 
-   function newLogRecord(name, level, message, value) result(rec)
+   function newLogRecord(name, level, message, value, args) result(rec)
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       integer, optional, intent(in) :: value
+      type (XWrapVec), optional, intent(in) :: args
+
       type (LogRecord) :: rec
       character(len=64) :: strVal
       
@@ -47,7 +51,12 @@ contains
       rec%level = level
       rec%message = message
       if (present(value)) then
-        rec%value = value
+         rec%value = value
+      end if
+      if (present(args)) then
+         rec%args = args
+      else
+         rec%args = XWrapVec()
       end if
       
    end function newLogRecord

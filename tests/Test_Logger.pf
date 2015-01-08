@@ -44,12 +44,17 @@ contains
 
 @Test
    subroutine test_makeRecord(this)
+      use FTL_XWrapVec_mod
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
+      type (XWrapVec) :: args
       
       record = this%basicLogger%makeRecord('hi', INFO)
       @assertEqual('hi', record%getMessage())
       
+      record = this%basicLogger%makeRecord('hi', INFO, args=args)
+      @assertEqual('hi', record%getMessage())
+
    end subroutine test_makeRecord
    
 
