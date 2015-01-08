@@ -141,7 +141,7 @@ contains
 
 
    function makeRecord(this, message, level, unusable, &
-      include 'recordArgsList.inc'
+#include "recordArgsList.inc"
       ) result(record)
       use FTL_XWrapVec_mod
       use ASTG_FormatParser_mod
@@ -173,7 +173,7 @@ contains
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
    subroutine log_(this, message, level, unusable, &
-      include 'recordArgsList.inc'
+#include "recordArgsList.inc"
       )
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -204,7 +204,7 @@ contains
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
    subroutine log(this, message, level, unusable, &
-      include 'recordArgsList.inc'
+#include "recordArgsList.inc"
       )
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
