@@ -118,6 +118,7 @@ contains
       use FTL_String_mod
       type(FormatParser) :: parser
       type(StringVec) :: tokens
+      integer :: i
 
       tokens = parser%getTokens('a')
       @assertTrue(String('a') == tokens%at(1))
@@ -146,6 +147,15 @@ contains
       @assertTrue(String('%a') == tokens%at(4))
       @assertTrue(String('') == tokens%at(5))
 
+      tokens = parser%getTokens('- %i1.1 %i2.1 %i3.1 %i4.1 %i5.1 %i6.1 %7.1')
+      @assertTrue(String('-') == tokens%at(1))
+      @assertEqual(14, tokens%size())
+      @assertTrue(String('%7.1') == tokens%at(14))
+
+      tokens = parser%getTokens('- %i1.1 %i2.1 %i3.1 %i4.1 %i5.1 %i6.1 %7.1 %8.1 %9.1')
+      @assertTrue(String('-') == tokens%at(1))
+      @assertEqual(18, tokens%size())
+      @assertTrue(String('%9.1') == tokens%at(18))
    end subroutine test_getTokens
 
    
@@ -177,12 +187,13 @@ contains
       real :: u=10.0, v=5.0, T=273.0
       real(kind=8) :: E=0.0, p=3.1415927
       logical :: land=.true.
-      
+      character(len=:), allocatable :: str
       @assertEqual('- 1 02 003 1 02', parser%makeString('- %i1.1 %i2.2 %i3.3 %i1.1 %i2.2', i, j, k, i, j))
       @assertEqual('- 1 02 003 10.00', parser%makeString('- %i1.1 %i2.2 %i3.3 %f5.2', i, j, k, u))
       @assertEqual('- 1 02 10.00 5.00 273.0', parser%makeString('- %i1.1 %i2.2 %f5.2 %f4.2 %f5.1', i, j, u, v, T))
-      @assertEqual('- 1 02 1 02 003 1 02 003 003', parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3', i, j, i, j, k, i, j, k, k))
-      @assertEqual('- 1 02 1 02 003 1 02 003 003', parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3', i, j, i, j, k, i, j, k, k))
+      !str = parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3',i,j,i,j,k,i,j,k,k)
+      !@assertEqual('- 1 02 1 02 003 1 02 003 003', str)
+      !@assertEqual('- 1 02 1 02 003 1 02 003 003', parser%makeString('- %i1.1 %i2.2 %i1.1 %i2.2 %i3.3 %i1.1 %i2.2 %i3.3 %i3.3', i, j, i, j, k, i, j, k, k))
       @assertEqual('- 0.0 3.1415927', parser%makeString('- %f3.1 %f9.7', E, p))
       @assertEqual('- 1234567890', parser%makeString('- %i10.1', time))
       @assertEqual('- T', parser%makeString('- %l1', land))
