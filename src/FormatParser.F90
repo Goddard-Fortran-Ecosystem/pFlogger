@@ -222,6 +222,7 @@ contains
       character(len=:), allocatable :: buffer
 
       character(len=:), allocatable :: token
+      character(len=:), allocatable :: s
 
       integer :: i, n
 
@@ -230,15 +231,15 @@ contains
       buffer = rawString
       do
          n = len(buffer)
-
          if (n == 0) return
 
          i = startOfNextToken(buffer) ! always > 0
 
          token = buffer(1:i-1)
          call tokens%push_back(String(token))
-         buffer = buffer(i:n)
-
+! Workaround for gfortran
+         s = buffer(i:n)
+         buffer = s
       end do
       
    end function getTokens
