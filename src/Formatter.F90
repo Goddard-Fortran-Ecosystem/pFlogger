@@ -31,9 +31,13 @@ contains
    ! Default value is "message", else use optional arguments
    function newFormatter(fmt) result(f)
       type (Formatter) :: f
-      character(len=*), intent(in) :: fmt
+      character(len=*), optional, intent(in) :: fmt
       
-      f%fmt = fmt
+      if (present(fmt)) then
+         f%fmt = fmt
+      else
+         f%fmt = '%(message:a)'
+      end if
       
    end function newFormatter
 

@@ -9,12 +9,12 @@ contains
    @test
    subroutine test_oneArg()
       type (XWrapVec) :: args
-      class(*), pointer :: p
+!!$      class(*), pointer :: p
 
       args = makeArgVector(1)
-      @assertEqual(1, args%size())
-      p => args%at_alt(1)
-      select type (p)
+!!$      @assertEqual(1, args%size())
+!!$      p => args%at_alt(1)
+      select type (p => args%at_alt(1))
       type is (integer)
          @assertEqual(1, p)
       class default

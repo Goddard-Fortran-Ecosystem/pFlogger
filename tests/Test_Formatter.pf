@@ -42,7 +42,25 @@ contains
    end subroutine test_string
 
 
-!   @Test
+   @Test
+   subroutine test_formatDefalut(this)
+      use FTL_XWrapVec_mod
+      class (Test_Formatter), intent(inout) :: this
+      type(LogRecord) :: record
+
+      type (XWrapVec) :: args
+      
+      args = XWrapVec()
+      call args%push_back_alt(1)
+      record = LogRecord('A', INFO, 'Goodbye')
+
+      this%f = Formatter()
+      @assertEqual('Goodbye', this%f%format(record))
+      
+   end subroutine test_formatDefalut
+   
+
+   @Test
    subroutine test_formatint32(this)
       use FTL_XWrapVec_mod
       class (Test_Formatter), intent(inout) :: this
@@ -54,7 +72,7 @@ contains
       call args%push_back_alt(1)
       record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
 
-      this%f = Formatter('Hello %a')
+      this%f = Formatter('Hello %(message:a)')
       @assertEqual('Hello Goodbye 1', this%f%format(record))
       
    end subroutine test_formatint32
