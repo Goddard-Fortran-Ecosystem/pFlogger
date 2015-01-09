@@ -50,6 +50,35 @@ contains
 
    end subroutine test_handleBasic
 
+@Test
+   subroutine test_emitBasicWithFormat(this)
+      use FTL_XWrapVec_mod
+      use ASTG_Formatter_mod
+      class (Test_StreamHandler), intent(inout) :: this
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+
+      type (LogRecord) :: record
+      type(Formatter) :: fmt
+      type (XWrapVec) :: args
+      
+      args = XWrapVec()
+      call args%push_back_alt(1)
+
+      ! Create a logging format
+      fmt = Formatter('%(name:a) %(message:a)')
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%setFormatter(fmt)
+      record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      call handler%handle(record)
+      
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      @assertEqual('INFO: '//record%getMessage(), foundMessage)
+      
+   end subroutine test_emitBasicWithFormat
+
    
 @Test
    subroutine test_handleBelowThreshold(this)
