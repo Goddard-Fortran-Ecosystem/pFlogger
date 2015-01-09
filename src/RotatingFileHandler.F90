@@ -8,6 +8,7 @@ module ASTG_RotatingFileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod, only: FileHandler
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
    
    implicit none
    private
@@ -68,6 +69,7 @@ contains
       handler%numBytes = maxBytes_
       handler%backupCount = backupCount_
       fileCount = 0
+      call handler%setFormatter(Formatter(''))
       
    end function newRotatingFileHandler
 

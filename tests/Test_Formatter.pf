@@ -32,7 +32,7 @@ contains
    end subroutine tearDown
 
 
-!@Test
+! @Test
    subroutine test_string(this)
       class (Test_Formatter), intent(inout) :: this
             
@@ -78,7 +78,28 @@ contains
    end subroutine test_formatint32
    
 
-   @Test
+@test
+   subroutine test_dateFormat(this)
+      use FTL_CIStringXUMap_mod
+      use ASTG_FormatParser_mod
+      class (Test_Formatter), intent(inout) :: this
+      type(FormatParser) :: parser
+      type (CIStringXUMap) :: extra
+      type (CIStringXUMapIter) :: iter
+      type(LogRecord) :: record
+
+      
+      extra = CIStringXUMap()
+      iter = extra%emplace('Y', 2015)
+
+      record = LogRecord('A', INFO, 'Hi', extra=extra)
+      this%f = Formatter('%(Y:i4.4)')
+      @assertEqual('2015', this%f%format(record))
+      
+   end subroutine test_dateFormat
+
+
+@Test
    subroutine test_formatWithName(this)
       use FTL_XWrapVec_mod
       class (Test_Formatter), intent(inout) :: this
@@ -119,7 +140,7 @@ contains
    subroutine test_r64(this)
       class (Test_Formatter), intent(inout) :: this
       
-      this%f = Formatter('Hello')
+      this%f = Formatter('')
       @assertEqual('64.000000000000000', this%f%toString(64.d0))
       
    end subroutine test_r64

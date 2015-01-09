@@ -5,6 +5,7 @@ module ASTG_StreamHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
    
    implicit none
    private
@@ -50,6 +51,7 @@ contains
       end if
 
       call handler%setLevel(level_)
+      call handler%setFormatter(Formatter(''))
       
    end function newStreamHandler
 

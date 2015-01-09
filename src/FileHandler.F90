@@ -3,6 +3,7 @@ module ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
    
    implicit none
    private
@@ -60,7 +61,8 @@ contains
       call handler%setFileName(fileName)
       if (.not. delay_) call handler%open()
       call handler%setLevel(level_)
-      
+      call handler%setFormatter(Formatter(''))
+     
    end function newFileHandler
 
     
