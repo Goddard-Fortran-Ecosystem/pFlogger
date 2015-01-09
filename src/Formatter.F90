@@ -39,18 +39,23 @@ contains
 
 
    function format(this, record) result(logMessage)
+      use ASTG_FormatParser_mod
+      use FTL_String_mod
+      use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
-      character(len=64) :: buffer
-      character(len=:), allocatable :: fmt
-      
-      logMessage = record%getStr()
-      if (allocated(record%value)) then
-        fmt = record%getFmt()
-        write(buffer, "("//fmt//")") record%value
-        logMessage = logMessage // trim(buffer)
-      end if
+
+      type (FormatParser) :: parser
+      type (CIStringXUMap) :: extra
+      type (CIStringXUMapIter) :: iter
+
+      extra = record%extra
+
+      logMessage = record%getMessage()
+      iter = extra%emplace('message', String(logMessage))
+
+      logMessage = parser%format(this%fmt, extra=extra)
       
    end function format
 

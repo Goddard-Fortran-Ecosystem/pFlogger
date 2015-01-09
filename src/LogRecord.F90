@@ -4,6 +4,7 @@
 ! arguments which are combined to create the message field of the record.
 module ASTG_LogRecord_mod
    use FTL_XWrapVec_mod
+   use FTL_CIStringXUMap_mod
    use ASTG_Object_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
@@ -14,12 +15,12 @@ module ASTG_LogRecord_mod
    type, extends(Object) :: LogRecord
 !      private
       integer :: level
-      integer, allocatable :: value
       character(len=:), allocatable :: name
       character(len=:), allocatable :: message
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (XWrapVec) :: args
+      type (CIStringXUMap) :: extra
    contains
       procedure :: getName
       procedure :: getLevel
@@ -37,27 +38,39 @@ contains
 
    
    ! Create a log record. 
-   function newLogRecord(name, level, message, value, args) result(rec)
+   function newLogRecord(name, level, message, args, extra) result(rec)
+      use FTL_String_mod
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      integer, optional, intent(in) :: value
       type (XWrapVec), optional, intent(in) :: args
+      type (CIStringXUMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
       character(len=64) :: strVal
+
+      type (CIStringXUMapIter) :: iter
+      type (String) :: wrapName
       
       rec%name = name
       rec%level = level
       rec%message = message
-      if (present(value)) then
-         rec%value = value
-      end if
       if (present(args)) then
          rec%args = args
       else
          rec%args = XWrapVec()
       end if
+
+      if (present(extra)) then
+         rec%extra = extra
+      else
+         rec%extra = CIStringXUMap()
+      end if
+
+      ! workaround for ifort
+      wrapName = name
+      iter = rec%extra%emplace('name', wrapName)
+      iter = rec%extra%emplace('level', level)
       
    end function newLogRecord
 
@@ -81,10 +94,12 @@ contains
 
    ! return the message for this LogRecord.
    function getMessage(this) result(message)
+      use ASTG_FormatParser_mod
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
+      type (FormatParser) :: parser
       
-      message = this%message
+      message = parser%format(this%message, this%args)
       
    end function getMessage
 
