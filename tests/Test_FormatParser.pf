@@ -1,7 +1,7 @@
 module Test_FormatParser_mod
+   use pFUnit_mod
    use FTL_String_mod
    use FTL_StringVec_mod
-   use pFUnit_mod
    use ASTG_FormatParser_mod
    
    implicit none
@@ -223,7 +223,28 @@ contains
 
    end subroutine test_makeString_detectMissingArgB
 
-   
+
+   ! gfortran 4.9.2 cannot handle unlimited polymorphic for
+   ! deferred length strings, so we extend the Logger interface to 
+   ! format String objects which wrap deferred length strings
+   @test
+   subroutine test_makeStringWrapString()
+      type(FormatParser) :: parser
+      
+      @assertEqual('hello there', parser%makeString('hello %a', String('there')))
+
+   end subroutine test_makeStringWrapString
+
+
+   @test(ifndef=__GFORTRAN__)
+   subroutine test_makeStringString()
+      type(FormatParser) :: parser
+      
+      @assertEqual('hello there', parser%makeString('hello %a', 'there'))
+
+   end subroutine test_makeStringString
+
+
    @test
    subroutine test_formatContainsKey()
       type(FormatParser) :: parser

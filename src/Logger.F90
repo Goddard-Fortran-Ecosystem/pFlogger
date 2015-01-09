@@ -212,48 +212,58 @@ contains
    end subroutine log
 
 
-   subroutine debug(this, message)
+   subroutine debug(this, message, ARG_LIST)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
+      include 'recordOptArgs.inc'  
 
-      if (this%isEnabledFor(DEBUG_LEVEL)) call this%log_(message, DEBUG_LEVEL)
+      if (this%isEnabledFor(DEBUG_LEVEL)) &
+         call this%log_(message, DEBUG_LEVEL, ARG_LIST)
 
    end subroutine debug
 
    
-   subroutine info(this, message)
+   subroutine info(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
+      include 'recordOptArgs.inc'  
 
-      if (this%isEnabledFor(INFO_LEVEL)) call this%log_(message, INFO_LEVEL)
+      if (this%isEnabledFor(INFO_LEVEL)) &
+           call this%log_(message, INFO_LEVEL, ARG_LIST)
 
    end subroutine info
 
 
-   subroutine warning(this, message)
+   subroutine warning(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
+      include 'recordOptArgs.inc'  
       
-      if (this%isEnabledFor(WARNING_LEVEL)) call this%log_(message, WARNING_LEVEL)
+      if (this%isEnabledFor(WARNING_LEVEL)) &
+           call this%log_(message, WARNING_LEVEL, ARG_LIST)
 
    end subroutine warning
 
    
-   subroutine error(this, message)
+   subroutine error(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
+      include 'recordOptArgs.inc'  
       
-      if (this%isEnabledFor(ERROR_LEVEL)) call this%log_(message, ERROR_LEVEL)
+      if (this%isEnabledFor(ERROR_LEVEL)) &
+           call this%log_(message, ERROR_LEVEL, ARG_LIST)
 
    end subroutine error
 
    
-   subroutine critical(this, message)
+   subroutine critical(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
+      include 'recordOptArgs.inc'  
       
-      if (this%isEnabledFor(CRITICAL_LEVEL)) call this%log_(message, CRITICAL_LEVEL)
+      if (this%isEnabledFor(CRITICAL_LEVEL)) &
+           call this%log_(message, CRITICAL_LEVEL, ARG_LIST)
 
    end subroutine critical
 

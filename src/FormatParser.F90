@@ -352,6 +352,7 @@ contains
 
    function handle_(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use FTL_String_mod
       character(len=:), allocatable :: rawString
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: payload
@@ -374,6 +375,11 @@ contains
          rawString = rawString // trim(buffer)
       type is (logical)
          write(buffer,payload) arg
+         rawString = rawString // trim(buffer)
+      type is (character(len=*))
+         rawString = rawString // arg
+      type is (String)
+         write(buffer,payload) arg%item
          rawString = rawString // trim(buffer)
       class default ! user defined
          rawString = 'unsupported'
