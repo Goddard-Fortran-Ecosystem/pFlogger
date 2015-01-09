@@ -25,6 +25,7 @@ module ASTG_FormatParser_mod
    character(len=*), parameter :: FORMAT_DELIMITER = '%'
    character(len=*), parameter :: OPEN_PAREN = '('
    character(len=*), parameter :: CLOSE_PAREN = ')'
+   character(len=*), parameter :: LIST_DIRECTED_FORMAT = '(*)'
    character(len=*), parameter :: SPACE = ' '
    ! CPP safe escape
    character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
@@ -52,6 +53,7 @@ contains
       end if
 
    end function isFormat
+
 
    
    logical function formatContainsKey(string)
@@ -362,24 +364,52 @@ contains
       
       select type (arg)
       type is (integer(int32))
-         write(buffer,payload) arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
          rawString = rawString // trim(buffer)
       type is (integer(int64))
-         write(buffer,payload) arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
          rawString = rawString // trim(buffer)
       type is (real(real32))
-         write(buffer,payload) arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
          rawString = rawString // trim(buffer)
       type is (real(real64))
-         write(buffer,payload) arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
          rawString = rawString // trim(buffer)
       type is (logical)
-         write(buffer,payload) arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
          rawString = rawString // trim(buffer)
       type is (character(len=*))
-         rawString = rawString // arg
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            rawString = rawString // arg
+         end if
       type is (String)
-         write(buffer,payload) arg%item
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg%item
+         else
+            write(buffer,payload) arg%item
+         end if
          rawString = rawString // trim(buffer)
       class default ! user defined
          rawString = 'unsupported'

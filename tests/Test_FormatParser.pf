@@ -298,4 +298,26 @@ contains
 
    end subroutine test_newLine
 
+   @test
+   subroutine test_listDirected()
+      type(FormatParser) :: parser
+      character(len=:), allocatable :: str
+      integer :: i
+      real :: x
+      logical :: flag
+
+      str = parser%makeString('%*', 1)
+      read(str,*) i
+      @assertEqual(1, i)
+
+      str = parser%makeString('%*', 1.)
+      read(str,*) x
+      @assertEqual(1., x)
+
+      str = parser%makeString('%*', .true.)
+      read(str,*) flag
+      @assertEquivalent(.true., flag)
+
+   end subroutine test_listDirected
+
 end module Test_FormatParser_mod
