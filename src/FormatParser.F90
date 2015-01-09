@@ -369,40 +369,35 @@ contains
          else
             write(buffer,payload) arg
          end if
-         rawString = rawString // trim(buffer)
       type is (integer(int64))
          if (payload == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
             write(buffer,payload) arg
          end if
-         rawString = rawString // trim(buffer)
       type is (real(real32))
          if (payload == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
             write(buffer,payload) arg
          end if
-         rawString = rawString // trim(buffer)
       type is (real(real64))
          if (payload == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
             write(buffer,payload) arg
          end if
-         rawString = rawString // trim(buffer)
       type is (logical)
          if (payload == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
             write(buffer,payload) arg
          end if
-         rawString = rawString // trim(buffer)
       type is (character(len=*))
          if (payload == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            rawString = rawString // arg
+            write(buffer,payload) arg
          end if
       type is (String)
          if (payload == LIST_DIRECTED_FORMAT) then
@@ -410,10 +405,11 @@ contains
          else
             write(buffer,payload) arg%item
          end if
-         rawString = rawString // trim(buffer)
       class default ! user defined
-         rawString = 'unsupported'
+         buffer = 'unsupported'
       end select
+
+      rawString = rawString // trim(buffer)
 
    end function handle_
 
