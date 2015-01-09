@@ -32,15 +32,15 @@ contains
    end subroutine tearDown
 
 
-   @test
+@Test
    subroutine test_intRecord(this)
       class (Test_LogRecord), intent(inout) :: this
       
-      this%record = LogRecord('A',INFO,'Hello')
+      this%record = LogRecord('A', INFO, 'Hello')
       @assertEqual('A', this%record%getName())
       @assertEqual(INFO, this%record%getLevel())
       @assertEqual('Hello', this%record%getMessage())
       
    end subroutine test_intRecord
-   
+
 end module Test_LogRecord_mod

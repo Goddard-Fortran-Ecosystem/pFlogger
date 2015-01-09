@@ -1,9 +1,9 @@
 module Test_Logger_mod
-   use ASTG_Logger_mod
+   use pfunit_mod
    use MockHandler_mod
+   use ASTG_Logger_mod
    use ASTG_SeverityLevels_mod
    use ASTG_LogRecord_mod
-   use pfunit_mod
    implicit none
 
    public :: Test_Logger
@@ -100,7 +100,7 @@ contains
 
    end subroutine test_logBasic
 
-   
+
 @Test
    subroutine test_logBelowThreshold(this)
       class (Test_Logger), intent(inout) :: this
@@ -157,7 +157,7 @@ contains
    end subroutine test_info
 
 
-   @Test
+@Test
    subroutine test_infoNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
@@ -180,7 +180,7 @@ contains
    end subroutine test_warning
    
 
-   @Test
+@Test
    subroutine test_warningNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
@@ -202,7 +202,7 @@ contains
    end subroutine test_error
     
 
-   @Test
+@Test
    subroutine test_errorNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 

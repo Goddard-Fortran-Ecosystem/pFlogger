@@ -51,6 +51,7 @@ contains
 
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
+      integer,dimension(8) :: values
       
       rec%name = name
       rec%level = level
@@ -71,6 +72,15 @@ contains
       wrapName = name
       iter = rec%extra%emplace('name', wrapName)
       iter = rec%extra%emplace('level', level)
+      
+      call date_and_time(VALUES=values)
+      iter = rec%extra%emplace('Year', values(1))
+      iter = rec%extra%emplace('Month', values(2))
+      iter = rec%extra%emplace('Day', values(3))
+      iter = rec%extra%emplace('Hour', values(5))
+      iter = rec%extra%emplace('Minutes', values(6))
+      iter = rec%extra%emplace('Seconds', values(7))
+      iter = rec%extra%emplace('MilliSecs', values(8))
       
    end function newLogRecord
 
