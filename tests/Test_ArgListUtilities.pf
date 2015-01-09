@@ -9,11 +9,12 @@ contains
    @test
    subroutine test_oneArg()
       type (XWrapVec) :: args
+      class(*), pointer :: p
 
       args = makeArgVector(1)
       @assertEqual(1, args%size())
-
-      select type (p => args%at_alt(1))
+      p => args%at_alt(1)
+      select type (p)
       type is (integer)
          @assertEqual(1, p)
       class default
@@ -27,69 +28,77 @@ contains
    subroutine test_nineArgs()
       use iso_fortran_env
       type (XWrapVec) :: args
-
-
+      class(*), pointer :: p
 
       args = makeArgVector(1_int32, 2_int64, 3._real32, 4._real64, 5_int32, 6_int64, 7._real32, 8._real64, .true.)
       @assertEqual(9, args%size())
 
-      select type (p => args%at_alt(1))
+      p => args%at_alt(1)
+      select type (p)
       type is (integer(kind=int32))
          @assertEqual(1, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(2))
+      p => args%at_alt(2)
+      select type (p)
       type is (integer(kind=int64))
          @assertTrue(2 == p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(3))
+      p => args%at_alt(3)
+      select type (p)
       type is (real(kind=real32))
          @assertEqual(3, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(4))
+      p => args%at_alt(4)
+      select type (p)
       type is (real(kind=real64))
          @assertEqual(4, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(5))
+      p => args%at_alt(5)
+      select type (p)
       type is (integer(kind=int32))
          @assertEqual(5, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(6))
+      p => args%at_alt(6)
+      select type (p)
       type is (integer(kind=int64))
          @assertTrue(6 == p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(7))
+      p => args%at_alt(7)
+      select type (p)
       type is (real(kind=real32))
          @assertEqual(7, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(8))
+      p => args%at_alt(8)
+      select type (p)
       type is (real(kind=real64))
          @assertEqual(8, p)
       class default
          @assertFail('incorrect type')
       end select
 
-      select type (p => args%at_alt(9))
+      p => args%at_alt(9)
+      select type (p)
       type is (logical)
          @assertTrue(p)
       class default
