@@ -22,20 +22,20 @@ program basicLogging
    call log%addHandler(stdHandler)
 
    ! Start logging!
-   call log%info('Starting basicLogging demo')
+   call log%info('Starting demo')
   
    ! inform about errors - note ERROR > INFO
-   call log%error('There is a problem.')
+   call log%error('Temperature cannot be zero')
    
    ! critical messages - note CRITICAL > INFO
-   call log%critical('The program will crash.')
+   call log%critical('Missing IC file. Program will stop.')
    
    ! warnings - note WARNING > INFO
-   call log%warning('This feature is not available.')
+   call log%warning('Max number of iterations reached')
    
    ! debugging: filtering messages via severity level
-   ! note DEBUG < INFO - therefore DEBUG message is not logged
-   call log%debug('Checking temperature values...')
+   ! note DEBUG < INFO - therefore next DEBUG message is not logged
+   call log%debug('Cannot check temperature values...')
    ! so we need to set logger level:
    call log%setLevel(DEBUG)
    call log%debug('Now checking temperature values...')
@@ -43,6 +43,6 @@ program basicLogging
    call log%setLevel(INFO)
 
    ! Done
-   call log%info('DONE')
+   call log%info('Demo is DONE')
    
 end program basicLogging
