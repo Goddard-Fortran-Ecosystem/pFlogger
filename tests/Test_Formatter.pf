@@ -43,7 +43,7 @@ contains
 
 
    @Test
-   subroutine test_formatDefalut(this)
+   subroutine test_formatDefault(this)
       use FTL_XWrapVec_mod
       class (Test_Formatter), intent(inout) :: this
       type(LogRecord) :: record
@@ -57,7 +57,7 @@ contains
       this%f = Formatter()
       @assertEqual('Goodbye', this%f%format(record))
       
-   end subroutine test_formatDefalut
+   end subroutine test_formatDefault
    
 
    @Test
