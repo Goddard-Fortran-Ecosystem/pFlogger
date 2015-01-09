@@ -36,6 +36,8 @@ module ASTG_FormatParser_mod
    type UnusableArgument
    end type UnusableArgument
 
+#define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+
 contains
 
 
@@ -323,27 +325,26 @@ contains
    end function format
 
 
-   function makeString(fmt, &
-#include "recordArgsList.inc"
-      ,extra) result(rawString)
+   function makeString(fmt, ARG_LIST, unusable, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
+      use ASTG_ArgListUtilities_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
 
       include 'recordOptArgs.inc'    
+      type (UnusableArgument), optional, intent(in) :: unusable
       type (CIStringXUMap), optional :: extra
       type (XWrapVec) :: args
       type (CIStringXUMap) :: extra_
-      
 
       if (present(extra)) then
          extra_ = extra
       else
          extra_ = CIStringXUMap()
       end if
-      
-      include 'recordArgsPush.inc'    
+
+      args = makeArgVector(ARG_LIST)
 
       rawString = format(fmt, args, extra=extra_)
        
@@ -379,5 +380,5 @@ contains
       end select
 
    end function handle_
-   
+
 end module ASTG_FormatParser_mod

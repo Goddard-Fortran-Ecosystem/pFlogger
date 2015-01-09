@@ -31,6 +31,7 @@ set(TEST_SRCS
    Test_LoggerManager.F90
    Test_Formatter.F90
    Test_FormatParser.F90
+   Test_ArgListUtilities.F90
 )
 
 if (TEST_MPI) 

@@ -1,0 +1,27 @@
+module Test_ArgListUtilities_mod
+   use pFUnit_mod
+   use ASTG_ArgListUtilities_mod
+   use FTL_XWrapVec_mod
+   implicit none
+
+contains
+
+   @test
+   subroutine test_oneArg()
+      type (XWrapVec) :: args
+
+      args = makeArgVector(1)
+      @assertEqual(1, args%size())
+
+      select type (p => args%at_alt(1))
+      type is (integer)
+         @assertEqual(1, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+   end subroutine test_oneArg
+
+
+
+end module Test_ArgListUtilities_mod

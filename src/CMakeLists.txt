@@ -22,6 +22,7 @@ set(SRCS
    RotatingFileHandler.F90
    SeverityLevels.F90
    StreamHandler.F90
+   ArgListUtilities.F90
 )
 
 if (TEST_MPI) 

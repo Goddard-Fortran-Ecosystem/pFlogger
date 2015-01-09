@@ -34,7 +34,6 @@ module ASTG_Logger_mod
       procedure :: setName
       procedure :: getName
       procedure :: isEnabledFor
-      procedure :: log_
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -45,6 +44,7 @@ module ASTG_Logger_mod
       procedure :: removeHandler
       procedure :: getHandlers
       procedure :: setLevel
+      procedure :: log_
       procedure :: makeRecord
    end type Logger
 
@@ -52,6 +52,7 @@ module ASTG_Logger_mod
       module procedure newLogger
    end interface Logger
 
+#define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
 contains
 
@@ -73,7 +74,6 @@ contains
       call aLog%setLevel(level_)
 
       alog%handlers = AbstractHandlerPolyWrapVec()
-!!$      call alog%addHandler(StreamHandler())
       
    end function newLogger
 
@@ -159,9 +159,9 @@ contains
    ! Logging routine that calls the appropriate handler and emits
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
-   subroutine log_(this, message, level, &
-#include "recordArgsList.inc"
-      )
+   subroutine log_(this, message, level, ARG_LIST)
+      use FTL_XWrapVec_mod
+      use ASTG_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
@@ -172,10 +172,12 @@ contains
       type (LogRecord) :: record
 
       class (AbstractHandlerPolyWrap), pointer :: h
+      type (XWrapVec) :: args
 
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
-      record = this%makeRecord(message, level)
+      args = makeArgVector(ARG_LIST)
+      record = this%makeRecord(message, level, args)
       
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
@@ -190,9 +192,7 @@ contains
    ! Convenience methods follow - debug, info, warning, error, critical
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
-   subroutine log(this, message, level, &
-#include "recordArgsList.inc"
-      )
+   subroutine log(this, message, level, ARG_LIST)
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
