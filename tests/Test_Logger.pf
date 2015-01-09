@@ -11,7 +11,8 @@ module Test_Logger_mod
 @TestCase
    type, extends(TestCase) :: Test_Logger
       type (Logger) :: basicLogger
-      type (MockBuffer) :: basicBuffer
+      ! Here we use a mock handler that collects data in a 'mock buffer'
+      type (MockBuffer) :: mockBuffer
    contains
       procedure :: setUp    
       procedure :: tearDown 
@@ -23,12 +24,12 @@ contains
 
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler) :: handler
+      type (MockHandler) :: mockHandler_
       
       this%basicLogger = Logger('A')
-      handler = MockHandler(this%basicBuffer)
-      call handler%setLevel(DEBUG) ! catch everything
-      call this%basicLogger%addHandler(handler)
+      mockHandler_ = MockHandler(this%mockBuffer)
+      !call mockHandler_%setLevel(DEBUG) ! catch everything
+      call this%basicLogger%addHandler(mockHandler_)
 
    end subroutine setUp
 
@@ -37,7 +38,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Clean up mock handler's buffer 
-      if (allocated(this%basicBuffer%buffer)) deallocate(this%basicBuffer%buffer)
+      if (allocated(this%mockBuffer%buffer)) deallocate(this%mockBuffer%buffer)
       
    end subroutine tearDown
    
@@ -58,7 +59,7 @@ contains
    end subroutine test_makeRecord
    
 
-@test
+@Test
    subroutine test_isEnabledFor(this)
       class (Test_Logger), intent(inout) :: this
 
@@ -84,13 +85,18 @@ contains
       
    end subroutine test_isEnabledFor
 
+   
 @Test
    subroutine test_logBasic(this)
       class (Test_Logger), intent(inout) :: this
 
+      ! Log message with INFO level
       call this%basicLogger%log('test_logBasic', INFO)
-      ! buffer is in MockHandler_mod
-      @assertEqual('INFO: test_logBasic', this%basicBuffer%buffer)
+      @assertEqual('INFO: test_logBasic', this%mockBuffer%buffer)
+
+      ! Log message with CRITICAL level
+      call this%basicLogger%log('test_logBasic', CRITICAL)
+      @assertEqual('CRITICAL: test_logBasic', this%mockBuffer%buffer)
 
    end subroutine test_logBasic
 
@@ -103,7 +109,7 @@ contains
       call this%basicLogger%log('test_logBelowThreshold', DEBUG)
       ! Message WILL NOT be logged because DEBUG<INFO
       ! Thus buffer will be empty (unallocated)
-      @assertFalse(allocated(this%basicBuffer%buffer))
+      @assertFalse(allocated(this%mockBuffer%buffer))
 
    end subroutine test_logBelowThreshold
 
@@ -115,7 +121,7 @@ contains
       ! Log a message at CRITICAL level
       call this%basicLogger%log('test_logAboveThreshold', CRITICAL)
       ! Message WILL be logged because CRITICAL>INFO
-      @assertEqual('CRITICAL: test_logAboveThreshold', this%basicBuffer%buffer)
+      @assertEqual('CRITICAL: test_logAboveThreshold', this%mockBuffer%buffer)
 
    end subroutine test_logAboveThreshold
 
@@ -126,7 +132,7 @@ contains
 
       call this%basicLogger%setLevel(DEBUG)
       call this%basicLogger%debug('test_debug')
-      @assertEqual('DEBUG: test_debug', this%basicBuffer%buffer)
+      @assertEqual('DEBUG: test_debug', this%mockBuffer%buffer)
 
    end subroutine test_debug
    
@@ -137,7 +143,7 @@ contains
       call this%basicLogger%setLevel(INFO)
       ! Here debug() will not emit message because DEBUG<INFO
       call this%basicLogger%debug('test_debug')
-      @assertFalse(allocated(this%basicBuffer%buffer))
+      @assertFalse(allocated(this%mockBuffer%buffer))
 
    end subroutine test_debugNoEmit
    
@@ -146,7 +152,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       call this%basicLogger%info('test_info')
-      @assertEqual('INFO: test_info', this%basicBuffer%buffer)
+      @assertEqual('INFO: test_info', this%mockBuffer%buffer)
 
    end subroutine test_info
 
@@ -157,7 +163,7 @@ contains
 
       call this%basicLogger%setLevel(WARNING)
       call this%basicLogger%info('test_info')
-      @assertFalse(allocated(this%basicBuffer%buffer))
+      @assertFalse(allocated(this%mockBuffer%buffer))
 
    end subroutine test_infoNoEmit
 
@@ -169,7 +175,7 @@ contains
 
       call this%basicLogger%setLevel(WARNING)
       call this%basicLogger%warning('test_warning')
-      @assertEqual('WARNING: test_warning', this%basicBuffer%buffer)
+      @assertEqual('WARNING: test_warning', this%mockBuffer%buffer)
 
    end subroutine test_warning
    
@@ -180,7 +186,7 @@ contains
 
       call this%basicLogger%setLevel(ERROR)
       call this%basicLogger%warning('test_warning')
-      @assertFalse(allocated(this%basicBuffer%buffer))
+      @assertFalse(allocated(this%mockBuffer%buffer))
 
    end subroutine test_warningNoEmit
 
@@ -191,7 +197,7 @@ contains
 
       call this%basicLogger%setLevel(ERROR)
       call this%basicLogger%error('test_error')
-      @assertEqual('ERROR: test_error', this%basicBuffer%buffer)
+      @assertEqual('ERROR: test_error', this%mockBuffer%buffer)
 
    end subroutine test_error
     
@@ -202,7 +208,7 @@ contains
 
       call this%basicLogger%setLevel(CRITICAL)
       call this%basicLogger%error('test_error')
-      @assertFalse(allocated(this%basicBuffer%buffer))
+      @assertFalse(allocated(this%mockBuffer%buffer))
 
    end subroutine test_errorNoEmit
 
@@ -213,7 +219,7 @@ contains
 
       call this%basicLogger%setLevel(CRITICAL)
       call this%basicLogger%critical('test_critical')
-      @assertEqual('CRITICAL: test_critical', this%basicBuffer%buffer)
+      @assertEqual('CRITICAL: test_critical', this%mockBuffer%buffer)
 
    end subroutine test_critical
 
@@ -223,13 +229,13 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
-      type (MockHandler) :: handler
+      type (MockHandler) :: mockHandler_
       type (MockBuffer) :: buffer
 
       lgr = Logger('A')
-      handler = MockHandler(buffer, level=DEBUG)
+      mockHandler_ = MockHandler(buffer, level=DEBUG)
 
-      call lgr%removeHandler(handler)
+      call lgr%removeHandler(mockHandler_)
       @assertExceptionRaised('Logger%removeHandler() called - logger has no such handler.')
 
    end subroutine test_removeHandler_missing
@@ -240,13 +246,13 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
-      type (MockHandler) :: handler
+      type (MockHandler) :: mockHandler_
       type (MockBuffer) :: buffer
 
       lgr = Logger('A')
-      handler = MockHandler(buffer, level=DEBUG)
-      call lgr%addHandler(handler)
-      call lgr%removeHandler(handler)
+      mockHandler_ = MockHandler(buffer, level=DEBUG)
+      call lgr%addHandler(mockHandler_)
+      call lgr%removeHandler(mockHandler_)
       
       ! no exception should have been thrown
    end subroutine test_removeHandler_present
@@ -259,17 +265,17 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
-      type (MockHandler) :: handler
+      type (MockHandler) :: mockHandler_
       type (MockBuffer) :: bufferA
       type (MockBuffer) :: bufferB
 
       lgr = Logger('A')
-      handler = MockHandler(bufferA, level=DEBUG)
-      call lgr%addHandler(handler)
-      handler = MockHandler(bufferB, level=INFO)
-      call lgr%addHandler(handler)
-      handler = MockHandler(bufferA, level=DEBUG)
-      call lgr%removeHandler(handler)
+      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+      call lgr%addHandler(mockHandler_)
+      mockHandler_ = MockHandler(bufferB, level=INFO)
+      call lgr%addHandler(mockHandler_)
+      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+      call lgr%removeHandler(mockHandler_)
 
       call lgr%info('Hello')
       @assertEqual('INFO: Hello', bufferB%buffer)

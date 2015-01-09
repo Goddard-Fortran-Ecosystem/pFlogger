@@ -15,6 +15,7 @@ module ASTG_AbstractHandler_mod
    use ASTG_SeverityLevels_mod, only: levelToString
    use ASTG_SeverityLevels_mod, only: NOTSET
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
    
    implicit none
    private
@@ -24,11 +25,13 @@ module ASTG_AbstractHandler_mod
    type, extends(Filterer), abstract :: AbstractHandler
       private
       integer :: level = NOTSET ! default
+      type(Formatter) :: fmt
    contains
       procedure(emitMessage), deferred :: emitMessage
       procedure :: handle
       procedure(close), deferred :: close
       procedure(flush), deferred :: flush
+      procedure :: setFormatter
       procedure :: setLevel
       procedure :: getLevel
       procedure(equal), deferred :: equal
@@ -88,6 +91,16 @@ contains
       end if
       
    end subroutine handle
+
+   
+   ! Set the formatter for this handler
+   subroutine setFormatter(this, fmt)
+      class (AbstractHandler), intent(inout) :: this
+      type(Formatter) :: fmt
+      
+      this%fmt = fmt
+     
+   end subroutine setFormatter
 
    
    ! Set the logging level of this handler

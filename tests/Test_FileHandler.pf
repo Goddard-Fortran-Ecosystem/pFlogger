@@ -2,6 +2,7 @@ module Test_FileHandler_mod
    use ASTG_SeverityLevels_mod
    use ASTG_FileHandler_mod
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
    use pfunit_mod
    implicit none
 
@@ -55,6 +56,37 @@ contains
       @assertEqual('INFO: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitBasic
+
+
+@Test
+   subroutine test_emitBasicWithFormat(this)
+      use FTL_XWrapVec_mod
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      type (LogRecord) :: record
+      type(Formatter) :: fmt
+      character(len=32) :: foundMessage
+      type (XWrapVec) :: args
+      
+      args = XWrapVec()
+      call args%push_back_alt(1)
+
+      ! Create a logging format
+      fmt = Formatter('%(name:a) %(message:a)')
+
+      call this%handler%setFormatter(fmt)
+
+      record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      call this%handler%handle(record)
+
+      unit = this%handler%getUnit()
+      rewind(unit)
+      read(unit, '(a)') foundMessage
+
+      @assertEqual('INFO: '//record%getMessage(), foundMessage)
+
+   end subroutine test_emitBasicWithFormat
 
    
 @Test
