@@ -23,5 +23,80 @@ contains
    end subroutine test_oneArg
 
 
+   @test
+   subroutine test_nineArgs()
+      use iso_fortran_env
+      type (XWrapVec) :: args
+
+
+
+      args = makeArgVector(1_int32, 2_int64, 3._real32, 4._real64, 5_int32, 6_int64, 7._real32, 8._real64, .true.)
+      @assertEqual(9, args%size())
+
+      select type (p => args%at_alt(1))
+      type is (integer(kind=int32))
+         @assertEqual(1, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(2))
+      type is (integer(kind=int64))
+         @assertTrue(2 == p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(3))
+      type is (real(kind=real32))
+         @assertEqual(3, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(4))
+      type is (real(kind=real64))
+         @assertEqual(4, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(5))
+      type is (integer(kind=int32))
+         @assertEqual(5, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(6))
+      type is (integer(kind=int64))
+         @assertTrue(6 == p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(7))
+      type is (real(kind=real32))
+         @assertEqual(7, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(8))
+      type is (real(kind=real64))
+         @assertEqual(8, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      select type (p => args%at_alt(9))
+      type is (logical)
+         @assertTrue(p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+   end subroutine test_nineArgs
+
 
 end module Test_ArgListUtilities_mod
