@@ -320,4 +320,12 @@ contains
 
    end subroutine test_listDirected
 
+
+   @test
+   subroutine test_integerArray()
+      type (FormatParser) :: parser
+      
+!!$      @assertEqual('1', parser%makeString('%i1.1', arr1D_1=[1])
+   end subroutine test_integerArray
+
 end module Test_FormatParser_mod
