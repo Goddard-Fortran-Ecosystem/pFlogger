@@ -90,7 +90,7 @@ contains
    subroutine flushUnit(this)
       class (FileHandler), intent(inout) :: this
       
-      call flush(this%getUnit())
+      flush(this%getUnit())
       
    end subroutine flushUnit
 

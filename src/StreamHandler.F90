@@ -70,7 +70,7 @@ contains
    subroutine flushUnit(this)
       class (StreamHandler), intent(inout) :: this
       
-      call flush(this%unit)
+      flush(this%unit)
       
    end subroutine flushUnit
 

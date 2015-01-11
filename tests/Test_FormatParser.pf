@@ -59,9 +59,19 @@ contains
       @assertEqual(6, parser%startOfNextToken('%i2.1 hello'))
       @assertEqual(8, parser%startOfNextToken('%(i2.1) hello'))
 
+
    end subroutine test_startOfNextToken
 
-   
+
+   @test
+   subroutine test_startOfNextToken_nestedParens()
+      type(FormatParser) :: parser
+      
+      @assertEqual(13, parser%startOfNextToken('%(2(i1.1,x))'))
+
+   end subroutine test_startOfNextToken_nestedParens
+
+
    @test
    subroutine test_getPayload()
       type(FormatParser) :: parser
@@ -325,7 +335,12 @@ contains
    subroutine test_integerArray()
       type (FormatParser) :: parser
       
-!!$      @assertEqual('1', parser%makeString('%i1.1', arr1D_1=[1])
+      @assertEqual('1', parser%makeString('%i1.1', arr1D_1=[1]))
+      @assertEqual('1,2', parser%makeString('%(i1.1,",",i1.1)', arr1D_1=[1,2]))
+      @assertEqual('hello 0 1,2,', parser%makeString('hello %i1.1 %(2(i1.1,","))', 0, arr1D_1=[1,2]))
+
+      @assertEqual('1. 2. 3. ', parser%makeString('%(3(f2.0,x))', arr1D_1=[1.,2.,3.]))
+
    end subroutine test_integerArray
 
 end module Test_FormatParser_mod

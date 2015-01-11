@@ -101,9 +101,12 @@ contains
       character(len=1) :: previousCharacter
       integer :: i
 
+      integer :: nestingDepth
+      
       isFormatToken = isFormat(string)
 
       if (isFormatToken) then
+         nestingDepth = 0
 
          do i = 2, len(string)
             select case(string(i:i))
@@ -111,8 +114,13 @@ contains
                idx = i
                return
             case (CLOSE_PAREN)
-               idx = i + 1
-               return
+               nestingDepth = nestingDepth - 1
+               if (nestingDepth == 0) then
+                  idx = i + 1
+                  return
+               end if
+            case (OPEN_PAREN)
+               nestingDepth = nestingDepth + 1
             end select
          end do
          
@@ -171,7 +179,7 @@ contains
                return
             end if
             ! Wrap with parens for use as Fortran fmt.
-            payload = '(' // payload // ')' ! 
+            payload = OPEN_PAREN // payload // CLOSE_PAREN ! 
 
          end select
 
@@ -249,7 +257,7 @@ contains
    end function getTokens
 
    
-   function format(fmt, args, unusable, extra) result(rawString)
+   function format(fmt, args, unusable, arr1D_1, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
       use FTL_XWrapVec_mod
@@ -258,6 +266,7 @@ contains
       character(len=*), intent(in) :: fmt
       type (XWrapVec), optional :: args
       type (UnusableArgument), optional :: unusable
+      class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringXUMap), optional :: extra
 
       type (XWrapVec) :: args_
@@ -266,6 +275,7 @@ contains
       character(len=:), allocatable :: tokenString
       character(len=:), allocatable :: key
       character(len=:), allocatable :: payload
+      character(len=:), allocatable :: append
       type (String), pointer :: token
       type (StringVec), target :: tokens
       class (*), pointer :: arg
@@ -306,19 +316,28 @@ contains
                   call throw('No such key: <' // key // '> in "extra".')
                   return
                end if
+               append = handleScalar(arg, payload)
             else
                ! Is there another position value?
                if (argIter == args_%end()) then
-                  call throw('Not enough values for format string in FormatParser.')
-                  return
+                  ! Possibly there is an array argument?
+                  if (present(arr1D_1)) then
+                     append = handleArray1D(arr1D_1, payload)
+                  else
+                     call throw('Not enough values for format string in FormatParser.')
+                     return
+                  end if
+               else
+                  arg => argIter%get_alt()
+                  call argIter%next()
+                  append = handleScalar(arg, payload)
                end if
-               arg => argIter%get_alt()
-               call argIter%next()
             end if
-            rawString = rawString // handle_(arg, payload)
          else
-            rawString = rawString // payload
+            append = payload
          end if
+
+         rawString = rawString // append
 
          call fmtIter%next()
 
@@ -327,7 +346,7 @@ contains
    end function format
 
 
-   function makeString(fmt, ARG_LIST, unusable, extra) result(rawString)
+   function makeString(fmt, ARG_LIST, unusable, arr1D_1, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       use ASTG_ArgListUtilities_mod
@@ -336,29 +355,23 @@ contains
 
       include 'recordOptArgs.inc'    
       type (UnusableArgument), optional, intent(in) :: unusable
+      class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringXUMap), optional :: extra
-      type (XWrapVec) :: args
-      type (CIStringXUMap) :: extra_
 
-      if (present(extra)) then
-         extra_ = extra
-      else
-         extra_ = CIStringXUMap()
-      end if
+      type (XWrapVec) :: args
 
       args = makeArgVector(ARG_LIST)
-
-      rawString = format(fmt, args, extra=extra_)
+      rawString = format(fmt, args, arr1D_1=arr1D_1, extra=extra)
        
    end function makeString
 
-   function handle_(arg, payload) result(rawString)
+   function handleScalar(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       use FTL_String_mod
       character(len=:), allocatable :: rawString
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: payload
-      character(len=80) :: buffer
+      character(len=800) :: buffer
 
       rawString = ''
       
@@ -411,6 +424,74 @@ contains
 
       rawString = rawString // trim(buffer)
 
-   end function handle_
+   end function handleScalar
+
+
+   function handleArray1D(arg, payload) result(rawString)
+      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use FTL_String_mod
+      character(len=:), allocatable :: rawString
+      class (*), intent(in) :: arg(:)
+      character(len=*), intent(in) :: payload
+      character(len=10000) :: buffer  ! very large to be safe for arrays
+      character(len=800) :: item
+      integer :: i
+
+      rawString = ''
+      
+      select type (arg)
+      type is (integer(int32))
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (integer(int64))
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (real(real32))
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (real(real64))
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (logical)
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (character(len=*))
+         if (payload == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,payload) arg
+         end if
+      type is (String)
+         buffer = ''
+         do i = 1, size(arg)
+            if (payload == LIST_DIRECTED_FORMAT) then
+               write(item,*) arg(i)%item
+            else
+               write(item,payload) arg(i)%item
+            end if
+            buffer = trim(buffer) // item
+         end do
+      class default ! user defined
+         buffer = 'unsupported'
+      end select
+
+      rawString = rawString // trim(buffer)
+
+   end function handleArray1D
 
 end module ASTG_FormatParser_mod
