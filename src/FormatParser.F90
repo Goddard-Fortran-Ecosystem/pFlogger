@@ -30,7 +30,7 @@ module ASTG_FormatParser_mod
    ! CPP safe escape
    character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
    character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
-   character(len=*), parameter :: NAME_SEPARATOR = ':'
+   character(len=*), parameter :: KEYWORD_SEPARATOR = '::'
 
 
    ! This private type is used to force some arguments to be passed by keyword.
@@ -59,7 +59,7 @@ contains
    logical function formatContainsKey(string)
       character(len=*), intent(in) :: string
       
-      formatContainsKey = (index(string,NAME_SEPARATOR) > 0)
+      formatContainsKey = (index(string,KEYWORD_SEPARATOR) > 0)
 
    end function formatContainsKey
 
@@ -71,7 +71,7 @@ contains
 
       integer :: idx
 
-      idx = index(tokenString, NAME_SEPARATOR)
+      idx = index(tokenString, KEYWORD_SEPARATOR)
       select case (idx)
       case (0)
          key = ''
@@ -166,8 +166,8 @@ contains
             if (string(2:2) == OPEN_PAREN) then
                ! keep all but FORMAT_DELIMETER (now 1st character)
                if (formatContainsKey(string)) then
-                  idx = index(string, ':')
-                  payload = string(idx+1:n-1)
+                  idx = index(string, KEYWORD_SEPARATOR)
+                  payload = string(idx+2:n-1)
                else
                   payload = string(3:n-1)
                end if

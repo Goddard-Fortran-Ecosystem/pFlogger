@@ -22,13 +22,12 @@ contains
    
    subroutine setUp(this)
       class (Test_Formatter), intent(inout) :: this
-      
+      this%f = Formatter()
    end subroutine setUp
 
    
    subroutine tearDown(this)
       class (Test_Formatter), intent(inout) :: this
-
    end subroutine tearDown
 
 
@@ -48,13 +47,7 @@ contains
       class (Test_Formatter), intent(inout) :: this
       type(LogRecord) :: record
 
-      type (XWrapVec) :: args
-      
-      args = XWrapVec()
-      call args%push_back_alt(1)
       record = LogRecord('A', INFO, 'Goodbye')
-
-      this%f = Formatter()
       @assertEqual('Goodbye', this%f%format(record))
       
    end subroutine test_formatDefault
@@ -72,7 +65,7 @@ contains
       call args%push_back_alt(1)
       record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
 
-      this%f = Formatter('Hello %(message:a)')
+      this%f = Formatter('Hello %(message::a)')
       @assertEqual('Hello Goodbye 1', this%f%format(record))
       
    end subroutine test_formatint32
@@ -93,7 +86,7 @@ contains
       iter = extra%emplace('Y', 2015)
 
       record = LogRecord('A', INFO, 'Hi', extra=extra)
-      this%f = Formatter('%(Y:i4.4)')
+      this%f = Formatter('%(Y::i4.4)')
       @assertEqual('2015', this%f%format(record))
       
    end subroutine test_dateFormat
@@ -111,7 +104,7 @@ contains
       call args%push_back_alt(1)
 
       record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
-      this%f = Formatter('%(name:a) %(message:a)')
+      this%f = Formatter('%(name::a) %(message::a)')
       @assertEqual('A Goodbye 1', this%f%format(record))
       
    end subroutine test_formatWithName

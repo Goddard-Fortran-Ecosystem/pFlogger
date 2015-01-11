@@ -36,7 +36,7 @@ contains
       if (present(fmt)) then
          f%fmt = fmt
       else
-         f%fmt = '%(message:a)'
+         f%fmt = '%(message::a)'
       end if
       
    end function newFormatter

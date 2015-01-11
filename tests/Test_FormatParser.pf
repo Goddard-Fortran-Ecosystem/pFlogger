@@ -19,7 +19,6 @@ contains
       
    end subroutine test_isFormat
 
-
    ! Cannot parse an empty string
    @test
    subroutine test_getPayload_illegalString()
@@ -35,7 +34,7 @@ contains
       str = parser%getPayload('%()')
       @assertExceptionRaised("Empty format descriptor in FormatParser.")
 
-      str = parser%getPayload('%(:)')
+      str = parser%getPayload('%(::)')
       @assertExceptionRaised("Empty format descriptor in FormatParser.")
 
    end subroutine test_getPayload_illegalString
@@ -84,6 +83,8 @@ contains
       @assertEqual('(a)', parser%getPayload('%a'))
       @assertEqual('(i2.1)', parser%getPayload('%i2.1'))
       @assertEqual('(i2.1)', parser%getPayload('%(i2.1)'))
+
+      @assertEqual('(i1.1)', parser%getPayload('%(hi::i1.1)'))
 
    end subroutine test_getPayload
 
@@ -183,7 +184,7 @@ contains
       @assertEqual('- 1 02 003', parser%makeString('- %i1.1 %i2.2 %i3.3', 1, 2, 3))
 
       @assertEqual('- (1)', parser%makeString('- (%(i1.1))', 1))
-      @assertEqual('value: 1', parser%makeString('value: %(i1.1)', 1))
+      @assertEqual('value:: 1', parser%makeString('value:: %(i1.1)', 1))
 
 
    end subroutine test_makeString
@@ -259,7 +260,7 @@ contains
    subroutine test_formatContainsKey()
       type(FormatParser) :: parser
       @assertFalse(parser%formatContainsKey('%(i1)'))
-      @assertTrue(parser%formatContainsKey('%(a:i1)'))
+      @assertTrue(parser%formatContainsKey('%(a::i1)'))
    end subroutine test_formatContainsKey
 
    @test
@@ -268,7 +269,7 @@ contains
       
       @assertEqual('', parser%getFormatKey('%i1'))
       @assertEqual('', parser%getFormatKey('%(a)'))
-      @assertEqual('a', parser%getFormatKey('%(a:i1)'))
+      @assertEqual('a', parser%getFormatKey('%(a::i1)'))
 
    end subroutine test_getFormatKey
 
@@ -285,9 +286,9 @@ contains
       iter = extra%emplace('Tom', 2)
       
       @assertEqual('hello', parser%makeString('hello', extra=extra))
-      @assertEqual('Carlos is 1', parser%makeString('Carlos is %(Carlos:i1)', extra=extra))
-      @assertEqual('Tom is 02', parser%makeString('Tom is %(Tom:i2.2)', extra=extra))
-      @assertEqual('-1-2 002', parser%makeString('-%(Carlos:i1)-%i1 %(Tom:i3.3)', 2, extra=extra))
+      @assertEqual('Carlos is 1', parser%makeString('Carlos is %(Carlos::i1)', extra=extra))
+      @assertEqual('Tom is 02', parser%makeString('Tom is %(Tom::i2.2)', extra=extra))
+      @assertEqual('-1-2 002', parser%makeString('-%(Carlos::i1)-%i1 %(Tom::i3.3)', 2, extra=extra))
 
    end subroutine test_makeStringExtra
 
@@ -332,7 +333,7 @@ contains
 
 
    @test
-   subroutine test_integerArray()
+   subroutine test_Array()
       type (FormatParser) :: parser
       
       @assertEqual('1', parser%makeString('%i1.1', arr1D_1=[1]))
@@ -341,6 +342,8 @@ contains
 
       @assertEqual('1. 2. 3. ', parser%makeString('%(3(f2.0,x))', arr1D_1=[1.,2.,3.]))
 
-   end subroutine test_integerArray
+      @assertEqual('1. 2. 3.', parser%makeString('%(3(f2.0,:,x))', arr1D_1=[1.,2.,3.]))
+
+   end subroutine test_array
 
 end module Test_FormatParser_mod
