@@ -91,11 +91,11 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Log message with INFO level
-      call this%basicLogger%log('test_logBasic', INFO)
+      call this%basicLogger%log(INFO, 'test_logBasic')
       @assertEqual('INFO: test_logBasic', this%mockBuffer%buffer)
 
       ! Log message with CRITICAL level
-      call this%basicLogger%log('test_logBasic', CRITICAL)
+      call this%basicLogger%log(CRITICAL, 'test_logBasic')
       @assertEqual('CRITICAL: test_logBasic', this%mockBuffer%buffer)
 
    end subroutine test_logBasic
@@ -106,7 +106,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Log a message at DEBUG level
-      call this%basicLogger%log('test_logBelowThreshold', DEBUG)
+      call this%basicLogger%log(DEBUG, 'test_logBelowThreshold')
       ! Message WILL NOT be logged because DEBUG<INFO
       ! Thus buffer will be empty (unallocated)
       @assertFalse(allocated(this%mockBuffer%buffer))
@@ -119,7 +119,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       ! Log a message at CRITICAL level
-      call this%basicLogger%log('test_logAboveThreshold', CRITICAL)
+      call this%basicLogger%log(CRITICAL, 'test_logAboveThreshold')
       ! Message WILL be logged because CRITICAL>INFO
       @assertEqual('CRITICAL: test_logAboveThreshold', this%mockBuffer%buffer)
 

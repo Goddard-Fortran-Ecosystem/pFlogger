@@ -159,7 +159,7 @@ contains
    ! Logging routine that calls the appropriate handler and emits
    ! the logging event.
    ! The log method needs two parameters - a message and the severity level
-   subroutine log_(this, message, level, ARG_LIST)
+   subroutine log_(this, level, message, ARG_LIST)
       use FTL_XWrapVec_mod
       use ASTG_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
@@ -192,7 +192,7 @@ contains
    ! Convenience methods follow - debug, info, warning, error, critical
    ! These methods are identical to the log method except that you don’t have
    ! to specify the level, because the level is implicit in the name.
-   subroutine log(this, message, level, ARG_LIST)
+   subroutine log(this, level, message, ARG_LIST)
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -207,7 +207,7 @@ contains
         level_ = INFO_LEVEL
       end if
 
-      if (this%isEnabledFor(level_)) call this%log_(message, level_)
+      if (this%isEnabledFor(level_)) call this%log_(level_, message)
 
    end subroutine log
 
@@ -219,7 +219,7 @@ contains
       include 'recordOptArgs.inc'  
 
       if (this%isEnabledFor(DEBUG_LEVEL)) &
-         call this%log_(message, DEBUG_LEVEL, ARG_LIST)
+         call this%log_(DEBUG_LEVEL, message, ARG_LIST)
 
    end subroutine debug
 
@@ -230,7 +230,7 @@ contains
       include 'recordOptArgs.inc'  
 
       if (this%isEnabledFor(INFO_LEVEL)) &
-           call this%log_(message, INFO_LEVEL, ARG_LIST)
+           call this%log_(INFO_LEVEL, message, ARG_LIST)
 
    end subroutine info
 
@@ -241,7 +241,7 @@ contains
       include 'recordOptArgs.inc'  
       
       if (this%isEnabledFor(WARNING_LEVEL)) &
-           call this%log_(message, WARNING_LEVEL, ARG_LIST)
+           call this%log_(WARNING_LEVEL, message, ARG_LIST)
 
    end subroutine warning
 
@@ -252,7 +252,7 @@ contains
       include 'recordOptArgs.inc'  
       
       if (this%isEnabledFor(ERROR_LEVEL)) &
-           call this%log_(message, ERROR_LEVEL, ARG_LIST)
+           call this%log_(ERROR_LEVEL, message, ARG_LIST)
 
    end subroutine error
 
@@ -263,7 +263,7 @@ contains
       include 'recordOptArgs.inc'  
       
       if (this%isEnabledFor(CRITICAL_LEVEL)) &
-           call this%log_(message, CRITICAL_LEVEL, ARG_LIST)
+           call this%log_(CRITICAL_LEVEL, message, ARG_LIST)
 
    end subroutine critical
 
