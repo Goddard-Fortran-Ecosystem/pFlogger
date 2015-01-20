@@ -50,10 +50,10 @@ contains
       type(LogRecord) :: record
       type (XWrapVec) :: args
       
-      record = this%basicLogger%makeRecord('hi', INFO)
+      record = this%basicLogger%makeRecord(INFO, 'hi')
       @assertEqual('hi', record%getMessage())
       
-      record = this%basicLogger%makeRecord('hi', INFO, args=args)
+      record = this%basicLogger%makeRecord(INFO, 'hi', args=args)
       @assertEqual('hi', record%getMessage())
 
    end subroutine test_makeRecord

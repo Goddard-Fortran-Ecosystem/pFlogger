@@ -137,12 +137,12 @@ contains
    end subroutine removeHandler
 
 
-   function makeRecord(this, message, level, args) result(record)
+   function makeRecord(this, level, message, args) result(record)
       use FTL_XWrapVec_mod
       class (Logger), intent(inout) :: this
       type (LogRecord) :: record
-      character(len=*), intent(in) :: message
       integer, intent(in) :: level
+      character(len=*), intent(in) :: message
       type (XWrapVec), optional, intent(in) :: args
       
       record = LogRecord(this%getName(), level, message, args=args)
@@ -177,7 +177,7 @@ contains
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
       args = makeArgVector(ARG_LIST)
-      record = this%makeRecord(message, level, args)
+      record = this%makeRecord(level, message, args)
       
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
