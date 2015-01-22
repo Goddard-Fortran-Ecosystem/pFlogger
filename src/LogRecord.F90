@@ -27,6 +27,7 @@ module ASTG_LogRecord_mod
       procedure :: getMessage
       procedure :: getStr
       procedure :: getFmt
+      procedure, nopass :: fillDateAndTime
    end type LogRecord
 
    interface LogRecord
@@ -51,7 +52,6 @@ contains
 
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
-      integer,dimension(8) :: values
       
       rec%name = name
       rec%level = level
@@ -72,18 +72,25 @@ contains
       wrapName = name
       iter = rec%extra%emplace('name', wrapName)
       iter = rec%extra%emplace('level', level)
-      
-      call date_and_time(VALUES=values)
-      iter = rec%extra%emplace('Year', values(1))
-      iter = rec%extra%emplace('Month', values(2))
-      iter = rec%extra%emplace('Day', values(3))
-      iter = rec%extra%emplace('Hour', values(5))
-      iter = rec%extra%emplace('Minutes', values(6))
-      iter = rec%extra%emplace('Seconds', values(7))
-      iter = rec%extra%emplace('MilliSecs', values(8))
+      call fillDateAndTime(rec)
       
    end function newLogRecord
 
+   
+   subroutine fillDateAndTime(rec)
+      type(LogRecord), intent(inout) :: rec
+      integer,dimension(8) :: values
+      type (CIStringXUMapIter) :: iter
+      
+      call date_and_time(VALUES=values)
+      iter = rec%extra%emplace('Y', values(1))
+      iter = rec%extra%emplace('M', values(2))
+      iter = rec%extra%emplace('D', values(3))
+      iter = rec%extra%emplace('HH', values(5))
+      iter = rec%extra%emplace('MM', values(6))
+      iter = rec%extra%emplace('SS', values(7))
+      iter = rec%extra%emplace('MS', values(8))
+   end subroutine fillDateAndTime
    
    
    ! return the name for this LogRecord.

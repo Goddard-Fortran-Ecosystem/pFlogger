@@ -38,19 +38,22 @@ program fileLogging
    errFile = FileHandler(rundeck // '.ERR', level=WARNING)
    call errFile%addFilter(rootFilter)
    call errFile%setFormatter(Formatter('%(rank) %(level) %(line) %(file) %a'))
-
+   
+   
    loggerPtr => manager%getLogger('modelE')
    call loggerPtr%addHandler(prtFile)
    call loggerPtr%addHandler(errFile)
-
+   call loggerPtr%info('Hello modelE')
+   
    debugFilter = Filter('chemistry')
-   debugFile = MpiFileHandler('debugChem.%i3.3', MPI_COMM_WORLD, &
+   debugFile = MpiFileHandler('debugChem.%(i3.3)', MPI_COMM_WORLD, &
         level=DEBUG, &
         delay=.true.)
    call debugFile%addFilter(Filter('chemistry'))
 
    loggerPtr => manager%getLogger('modelE.chemistry')
    call loggerPtr%addHandler(debugFile)
+   call loggerPtr%info('Hello chemistry')
 
    call mpi_finalize(ier)
 

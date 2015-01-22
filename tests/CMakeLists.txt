@@ -18,6 +18,7 @@ endforeach()
 
 set (SRCS
    MockHandler.F90
+   MockDateFormat.F90
 )
 
 set(TEST_SRCS 

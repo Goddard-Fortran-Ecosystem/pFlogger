@@ -8,6 +8,21 @@ module Test_FormatParser_mod
 
 contains
 
+!!$   @test
+!!$   subroutine test_timeFormat()
+!!$      use FTL_CIStringXUMap_mod
+!!$      type(FormatParser) :: parser
+!!$      type (CIStringXUMap) :: extra
+!!$      type (CIStringXUMapIter) :: iter
+!!$      
+!!$      extra = CIStringXUMap()
+!!$      iter = extra%emplace('asctime', String('2015-1-22'))
+!!$      
+!!$      @assertEqual('Today is 2015-1-22', parser%makeString('Today is %(asctime)', extra=extra))
+!!$
+!!$   end subroutine test_timeFormat
+!!$
+!!$   
    @test
    subroutine test_isFormat()
       type(FormatParser) :: parser

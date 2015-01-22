@@ -11,11 +11,14 @@ module ASTG_Formatter_mod
    type, extends(Object) :: Formatter
       private
       character(len=:), allocatable :: fmt
+      character(len=:), allocatable :: datefmt
    contains
       procedure :: format
+      procedure :: formatTime
       procedure :: toString_unlimitedPoly
       generic :: toString => toString_unlimitedPoly
       procedure :: toStringOther
+      procedure :: usesTime
    end type Formatter
 
    interface Formatter
@@ -25,29 +28,63 @@ module ASTG_Formatter_mod
    
 contains
 
-   
+ 
    ! Initialize a formatter with a string which makes use of
    ! knowledge of the LogRecord attributes
    ! Default value is "message", else use optional arguments
-   function newFormatter(fmt) result(f)
+   function newFormatter(fmt, datefmt) result(f)
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
+      character(len=*), optional, intent(in) :: datefmt
       
       if (present(fmt)) then
          f%fmt = fmt
       else
          f%fmt = '%(message::a)'
       end if
+       
+      if (present(datefmt)) then
+         f%datefmt = datefmt
+      else
+         f%datefmt = ''
+      end if
+!!$      f%datefmt = ''
       
    end function newFormatter
 
 
+   ! Return the creation time of the specified record as formatted text.
+   function formatTime(this, record, datefmt) result(logMessage)
+      use ASTG_FormatParser_mod
+      use FTL_String_mod
+      use FTL_CIStringXUMap_mod
+      character(len=:), allocatable :: logMessage
+      class (Formatter), intent(inout) :: this
+      class (LogRecord), intent(in) :: record
+      character(len=*), optional, intent(in) :: datefmt
+
+      type (FormatParser) :: parser
+      type (CIStringXUMap) :: extra
+      type (CIStringXUMapIter) :: iter
+      
+      extra = record%extra
+      if (present(datefmt)) then
+         logMessage = parser%format(datefmt, extra=extra)
+!      else
+!         logMessage = datefmt
+      end if
+
+   end function formatTime
+
+   
+   ! Format the specified record as text.
    function format(this, record) result(logMessage)
       use ASTG_FormatParser_mod
       use FTL_String_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: logMessage
-      class (Formatter), intent(in) :: this
+      character(len=:), allocatable :: asctime
+      class (Formatter), intent(inout) :: this
       class (LogRecord), intent(in) :: record
 
       type (FormatParser) :: parser
@@ -56,14 +93,22 @@ contains
 
       extra = record%extra
 
-      logMessage = record%getMessage()
-      iter = extra%emplace('message', String(logMessage))
-
+      iter = extra%emplace('message', String(record%getMessage()))
+      if(this%usesTime()) then
+         asctime = this%formatTime(record, datefmt=this%datefmt)
+         iter = extra%emplace('asctime', String(asctime))
+      end if
       logMessage = parser%format(this%fmt, extra=extra)
-      
+    
    end function format
 
 
+   logical function usesTime(this)
+      class (Formatter), intent(in) :: this
+      usesTime = (index(this%fmt,'%(asctime') > 0)
+   end function usesTime
+
+   
    ! This function operates on different input data types and returns a string
    function toString_unlimitedPoly(this, arg) result(str)
       use FTL_StringUtilities_mod

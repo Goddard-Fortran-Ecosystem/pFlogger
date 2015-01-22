@@ -4,6 +4,7 @@ module Test_Formatter_mod
    use ASTG_Formatter_mod
    use ASTG_SeverityLevels_mod
    use ASTG_LogRecord_mod
+   use MockDateFormat_mod
    
    implicit none
 
@@ -23,6 +24,13 @@ contains
    subroutine setUp(this)
       class (Test_Formatter), intent(inout) :: this
       this%f = Formatter()
+      mockdf%Y = 2015
+      mockdf%M = 1
+      mockdf%D = 2
+      mockdf%HH = 3
+      mockdf%MM = 4
+      mockdf%SS = 5
+      mockdf%MS = 123
    end subroutine setUp
 
    
@@ -53,7 +61,7 @@ contains
    end subroutine test_formatDefault
    
 
-   @Test
+@Test
    subroutine test_formatint32(this)
       use FTL_XWrapVec_mod
       class (Test_Formatter), intent(inout) :: this
@@ -72,7 +80,7 @@ contains
    
 
 @test
-   subroutine test_dateFormat(this)
+   subroutine test_datefmt(this)
       use FTL_CIStringXUMap_mod
       use ASTG_FormatParser_mod
       class (Test_Formatter), intent(inout) :: this
@@ -81,16 +89,51 @@ contains
       type (CIStringXUMapIter) :: iter
       type(LogRecord) :: record
 
+      extra = CIStringXUMap()
+
+      ! record has name, level and message + opt args and/or extra
+      ! Format the specified record as text: format(record)
+      record = LogRecord('someRec', INFO, 'datefmt', extra=extra)
+      this%f = Formatter(fmt='%(asctime::a)', &
+                         datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2)')
+      @assertEqual('2015-01-22', this%f%format(record))
+
+   end subroutine test_datefmt
+
+
+!@test
+   subroutine test_DateFormatMessage(this)
+      use FTL_CIStringXUMap_mod
+      use ASTG_FormatParser_mod
+      class (Test_Formatter), intent(inout) :: this
+      type(FormatParser) :: parser
+      type (CIStringXUMap) :: extra
+      type (CIStringXUMapIter) :: iter
+      type(LogRecord) :: record
+      character(len=20) :: date
       
       extra = CIStringXUMap()
-      iter = extra%emplace('Y', 2015)
 
-      record = LogRecord('A', INFO, 'Hi', extra=extra)
+      ! record has name, level and message + opt args and/or extra
+      record = LogRecord('recName', INFO, 'Hi', extra=extra)
+      call mockdf%fillDateAndTime(record)
       this%f = Formatter('%(Y::i4.4)')
-      @assertEqual('2015', this%f%format(record))
       
-   end subroutine test_dateFormat
+      ! Format the specified record as text: format(record)
+      write(date, '(i4)') mockdf%Y
+      @assertEqual('2015', this%f%format(record))
 
+      record = LogRecord('recName', INFO, 'Hi', extra=extra)
+      this%f = Formatter('%(M::i2.2)')
+      write(date,'(i2.2)') mockdf%M
+      @assertEqual(date, this%f%format(record))
+
+      record = LogRecord('anotherName', INFO, 'Hi', extra=extra)
+      this%f = Formatter('%(HH::i4.4)-%(MM::i2.2)-%(SS::i2.2)')
+      write(date,'(i2.2,a,i2.2,a,i2.2)') mockdf%HH,'-',mockdf%MM,'-',mockdf%SS
+      @assertEqual(date, this%f%format(record))
+
+   end subroutine test_DateFormatMessage
 
 @Test
    subroutine test_formatWithName(this)
