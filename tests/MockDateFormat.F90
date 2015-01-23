@@ -18,6 +18,7 @@ module MockDateFormat_mod
       integer :: MM
       integer :: SS
       integer :: MS
+      type (Formatter) :: f
    contains
       procedure :: fillDateAndTime
    end type MockDateFormat

@@ -48,8 +48,6 @@ contains
       type (CIStringXUMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
-      character(len=64) :: strVal
-
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       
