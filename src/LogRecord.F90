@@ -6,6 +6,7 @@ module ASTG_LogRecord_mod
    use FTL_XWrapVec_mod
    use FTL_CIStringXUMap_mod
    use ASTG_Object_mod
+   use ASTG_SeverityLevels_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
    private
@@ -70,6 +71,7 @@ contains
       wrapName = name
       iter = rec%extra%emplace('name', wrapName)
       iter = rec%extra%emplace('level', level)
+      iter = rec%extra%emplace('levelName', String(levelToString(level)))
       call fillDateAndTime(rec)
       
    end function newLogRecord

@@ -42,12 +42,11 @@ contains
    end function newMockHandler
 
    
-   subroutine emitMessage(this, levelString, record)
+   subroutine emitMessage(this, record)
       class (MockHandler), intent(inout) :: this
-      character(len=*), intent(in) :: levelString
       type (LogRecord) :: record
 
-      this%buffer%buffer = levelString // ': ' // record%getMessage()
+      this%buffer%buffer = record%getMessage()
       
    end subroutine emitMessage
 

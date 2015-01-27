@@ -3,10 +3,13 @@ module Test_StreamHandler_mod
    use ASTG_SeverityLevels_mod
    use ASTG_StreamHandler_mod
    use ASTG_LogRecord_mod
+   use ASTG_Formatter_mod
+   use MockDateFormat_mod
    implicit none
 
 @TestCase
    type, extends(TestCase) :: Test_StreamHandler
+      type (Formatter) :: f
       integer :: unit
    contains
       procedure :: setUp   
@@ -21,6 +24,14 @@ contains
 
       open(newunit=this%unit, file='testStreamHandler.txt', form='formatted', &
            status='new')
+      mockdf%f = Formatter()
+      mockdf%Y = 2015
+      mockdf%M = 1
+      mockdf%D = 2
+      mockdf%HH = 3
+      mockdf%MM = 4
+      mockdf%SS = 5
+      mockdf%MS = 123
 
    end subroutine setUp
 
@@ -41,12 +52,12 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%handle(LogRecord(name='name', message='hello', level=INFO))
+      call handler%handle(LogRecord(name='SHname', message='hello', level=INFO))
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
-      @assertEqual('INFO: hello', foundMessage)
+      @assertEqual('INFO: SHname: hello', foundMessage)
 
    end subroutine test_handleBasic
 
@@ -66,7 +77,7 @@ contains
       call args%push_back_alt(1)
 
       ! Create a logging format
-      fmt = Formatter('%(name:a) %(message:a)')
+      fmt = Formatter('%(levelName::a): %(name::a): %(message::a)')
 
       handler = StreamHandler(unit=this%unit)
       call handler%setFormatter(fmt)
@@ -75,9 +86,57 @@ contains
       
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
-      @assertEqual('INFO: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: A: '//record%getMessage(), foundMessage)
       
    end subroutine test_emitBasicWithFormat
+
+   
+@Test
+   subroutine test_emitBasicWithFormatAndDate(this)
+      use FTL_XWrapVec_mod
+      use ASTG_Formatter_mod
+      use FTL_CIStringXUMap_mod
+      use FTL_String_mod
+      class (Test_StreamHandler), intent(inout) :: this
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+
+      type (LogRecord) :: record
+      type(Formatter) :: fmt
+      type (XWrapVec) :: args
+      type (CIStringXUMap) :: extra
+      type (CIStringXUMapIter) :: iter
+      type (String) :: wrapName
+      
+      args = XWrapVec()
+      call args%push_back_alt(1)
+
+      ! Create a LogRecord
+      extra = CIStringXUMap()
+      record%name = 'someRec'
+      record%level = INFO
+      record%message = 'datefmt'
+      record%extra = extra
+      ! workaround for ifort
+      wrapName = 'someRec'
+      iter = record%extra%emplace('name', wrapName)
+      iter = record%extra%emplace('level', INFO)
+      iter = record%extra%emplace('levelName', String(levelToString(INFO)))
+
+      call mockdf%fillDateAndTime(record)
+      mockdf%f = Formatter(&
+           fmt='%(asctime::a) %(levelName::a): %(name::a): %(message::a)', &
+           datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)')
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%setFormatter(mockdf%f)
+      call handler%handle(record)
+      
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      @assertEqual('03-04-05 INFO: someRec: '//record%getMessage(), foundMessage)
+      
+   end subroutine test_emitBasicWithFormatAndDate
 
    
 @Test
@@ -115,7 +174,7 @@ contains
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
       
-      @assertEqual('CRITICAL: hello', foundMessage)
+      @assertEqual('CRITICAL: name: hello', foundMessage)
 
    end subroutine test_handleAboveThreshold
    

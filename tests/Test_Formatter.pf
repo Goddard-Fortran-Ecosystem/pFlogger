@@ -82,7 +82,6 @@ contains
 @test
    subroutine test_datefmtMessage(this)
       use FTL_CIStringXUMap_mod
-      use ASTG_FormatParser_mod
       use FTL_String_mod
       class (Test_Formatter), intent(inout) :: this
       type (CIStringXUMap) :: extra
@@ -114,7 +113,6 @@ contains
 @test
    subroutine test_datefmt(this)
       use FTL_CIStringXUMap_mod
-      use ASTG_FormatParser_mod
       use FTL_String_mod
       class (Test_Formatter), intent(inout) :: this
       type (CIStringXUMap) :: extra

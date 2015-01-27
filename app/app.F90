@@ -21,7 +21,9 @@ program fileLogging
    type (StreamHandler) :: prtFile
    type (MpiFileHandler) :: debugFile
    type (LoggerManager) :: manager
-   class (Logger), pointer :: loggerPtr
+   class (Logger), pointer :: loggerStd
+   class (Logger), pointer :: loggerErr
+   class (Logger), pointer :: loggerChem
 
    character(len=:), allocatable :: rundeck
 
@@ -32,28 +34,30 @@ program fileLogging
    manager = LoggerManager()
    rootFilter = MpiFilter(MPI_COMM_WORLD)
 
-   prtFile = StreamHandler(OUTPUT_UNIT, level=INFO)
+   prtFile = StreamHandler(OUTPUT_UNIT, level=DEBUG)
    call prtFile%addFilter(rootFilter)
+   loggerStd => manager%getLogger('modelE')
+   call loggerStd%addHandler(prtFile)
+   call loggerStd%warning('Warning on screen!')
    
-   errFile = FileHandler(rundeck // '.ERR', level=WARNING)
+   errFile = FileHandler(rundeck // '.ERR', level=INFO)
    call errFile%addFilter(rootFilter)
    call errFile%setFormatter(Formatter('%(rank) %(level) %(line) %(file) %a'))
    
-   
-   loggerPtr => manager%getLogger('modelE')
-   call loggerPtr%addHandler(prtFile)
-   call loggerPtr%addHandler(errFile)
-   call loggerPtr%info('Hello modelE')
+   loggerErr => manager%getLogger('modelE')
+   call loggerErr%addHandler(errFile)
+   call loggerErr%info('Info on file!')
    
    debugFilter = Filter('chemistry')
-   debugFile = MpiFileHandler('debugChem.%(i3.3)', MPI_COMM_WORLD, &
+   debugFile = MpiFileHandler('debugChem', MPI_COMM_WORLD, &
         level=DEBUG, &
+        suffixFormat='.%(i3.3)', &
         delay=.true.)
-   call debugFile%addFilter(Filter('chemistry'))
+   call debugFile%addFilter(debugFilter)
 
-   loggerPtr => manager%getLogger('modelE.chemistry')
-   call loggerPtr%addHandler(debugFile)
-   call loggerPtr%info('Hello chemistry')
+   loggerChem => manager%getLogger('modelE.chemistry')
+   call loggerChem%addHandler(debugFile)
+   call loggerChem%debug('Debug on mpi files!')
 
    call mpi_finalize(ier)
 

@@ -7,6 +7,7 @@ module ASTG_RotatingFileHandler_mod
    use iso_fortran_env
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod, only: FileHandler
+   use ASTG_AbstractHandler_mod, only: BASIC_FORMAT
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod
    
@@ -69,7 +70,7 @@ contains
       handler%numBytes = maxBytes_
       handler%backupCount = backupCount_
       fileCount = 0
-      call handler%setFormatter(Formatter(''))
+      call handler%setFormatter(Formatter(BASIC_FORMAT))
       
    end function newRotatingFileHandler
 
@@ -116,16 +117,15 @@ contains
    end function convertNumBytes_
       
    
-   ! Write a string to a file. Level is specified in levelString
-   subroutine emitMessage(this, levelString, record)
+   ! Write a string to a file.
+   subroutine emitMessage(this, record)
       class (RotatingFileHandler), intent(inout) :: this
-      character(len=*), intent(in) :: levelString
       type (LogRecord) :: record
 
       if (this%shouldRollover()) then
          call this%doRollover()
       else
-         write(this%getUnit(), '(a)') levelString // ': ' // record%getMessage()
+         write(this%getUnit(), '(a)') this%format(record)
       end if
     
    end subroutine emitMessage

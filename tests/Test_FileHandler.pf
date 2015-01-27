@@ -46,20 +46,45 @@ contains
       type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      record = LogRecord('name', INFO, 'hello')
+      record = LogRecord('logName', INFO, 'hello')
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual('INFO: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: logName: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitBasic
 
 
 @Test
    subroutine test_emitBasicWithFormat(this)
+      use FTL_XWrapVec_mod
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      type (LogRecord) :: record
+      character(len=32) :: foundMessage
+      type (XWrapVec) :: args
+      
+      args = XWrapVec()
+      call args%push_back_alt(1)
+
+      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
+      call this%handler%handle(record)
+
+      unit = this%handler%getUnit()
+      rewind(unit)
+      read(unit, '(a)') foundMessage
+
+      @assertEqual('INFO: Aname: '//record%getMessage(), foundMessage)
+
+   end subroutine test_emitBasicWithFormat
+
+
+@Test
+   subroutine test_emitBasicWithFormatter(this)
       use FTL_XWrapVec_mod
       class (Test_FileHandler), intent(inout) :: this   
 
@@ -73,20 +98,20 @@ contains
       call args%push_back_alt(1)
 
       ! Create a logging format
-      fmt = Formatter('%(name:a) %(message:a)')
+      fmt = Formatter('%(levelName::a)- %(name::a)- %(message::a)')
 
       call this%handler%setFormatter(fmt)
 
-      record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual('INFO: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO- Aname- '//record%getMessage(), foundMessage)
 
-   end subroutine test_emitBasicWithFormat
+   end subroutine test_emitBasicWithFormatter
 
    
 @Test
@@ -120,13 +145,13 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('name', ERROR, 'hello')
+      record = LogRecord('logName', ERROR, 'hello')
       call handler%setLevel(ERROR)
       call this%handler%handle(record)
 
       rewind(this%handler%getUnit())
       read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
-      @assertEqual('ERROR: '//record%getMessage(), foundMessage)
+      @assertEqual('ERROR: logName: '//record%getMessage(), foundMessage)
 
    end subroutine test_emitAboveThreshold
 

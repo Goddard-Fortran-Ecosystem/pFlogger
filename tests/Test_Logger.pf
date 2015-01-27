@@ -92,11 +92,11 @@ contains
 
       ! Log message with INFO level
       call this%basicLogger%log(INFO, 'test_logBasic')
-      @assertEqual('INFO: test_logBasic', this%mockBuffer%buffer)
+      @assertEqual('test_logBasic', this%mockBuffer%buffer)
 
       ! Log message with CRITICAL level
       call this%basicLogger%log(CRITICAL, 'test_logBasic')
-      @assertEqual('CRITICAL: test_logBasic', this%mockBuffer%buffer)
+      @assertEqual('test_logBasic', this%mockBuffer%buffer)
 
    end subroutine test_logBasic
 
@@ -121,7 +121,7 @@ contains
       ! Log a message at CRITICAL level
       call this%basicLogger%log(CRITICAL, 'test_logAboveThreshold')
       ! Message WILL be logged because CRITICAL>INFO
-      @assertEqual('CRITICAL: test_logAboveThreshold', this%mockBuffer%buffer)
+      @assertEqual('test_logAboveThreshold', this%mockBuffer%buffer)
 
    end subroutine test_logAboveThreshold
 
@@ -132,7 +132,7 @@ contains
 
       call this%basicLogger%setLevel(DEBUG)
       call this%basicLogger%debug('test_debug')
-      @assertEqual('DEBUG: test_debug', this%mockBuffer%buffer)
+      @assertEqual('test_debug', this%mockBuffer%buffer)
 
    end subroutine test_debug
    
@@ -152,7 +152,7 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       call this%basicLogger%info('test_info')
-      @assertEqual('INFO: test_info', this%mockBuffer%buffer)
+      @assertEqual('test_info', this%mockBuffer%buffer)
 
    end subroutine test_info
 
@@ -175,7 +175,7 @@ contains
 
       call this%basicLogger%setLevel(WARNING)
       call this%basicLogger%warning('test_warning')
-      @assertEqual('WARNING: test_warning', this%mockBuffer%buffer)
+      @assertEqual('test_warning', this%mockBuffer%buffer)
 
    end subroutine test_warning
    
@@ -197,7 +197,7 @@ contains
 
       call this%basicLogger%setLevel(ERROR)
       call this%basicLogger%error('test_error')
-      @assertEqual('ERROR: test_error', this%mockBuffer%buffer)
+      @assertEqual('test_error', this%mockBuffer%buffer)
 
    end subroutine test_error
     
@@ -219,7 +219,7 @@ contains
 
       call this%basicLogger%setLevel(CRITICAL)
       call this%basicLogger%critical('test_critical')
-      @assertEqual('CRITICAL: test_critical', this%mockBuffer%buffer)
+      @assertEqual('test_critical', this%mockBuffer%buffer)
 
    end subroutine test_critical
 
@@ -278,7 +278,7 @@ contains
       call lgr%removeHandler(mockHandler_)
 
       call lgr%info('Hello')
-      @assertEqual('INFO: Hello', bufferB%buffer)
+      @assertEqual('Hello', bufferB%buffer)
       @assertTrue(.not. allocated(bufferA%buffer))
 
    end subroutine test_removeHandler_remove1st

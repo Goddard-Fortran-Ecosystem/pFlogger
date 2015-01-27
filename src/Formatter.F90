@@ -59,7 +59,7 @@ contains
       use FTL_String_mod
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: logMessage
-      class (Formatter), intent(inout) :: this
+      class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
       character(len=*), optional, intent(in) :: datefmt
 
@@ -84,7 +84,7 @@ contains
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: logMessage
       character(len=:), allocatable :: asctime
-      class (Formatter), intent(inout) :: this
+      class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
 
       type (FormatParser) :: parser

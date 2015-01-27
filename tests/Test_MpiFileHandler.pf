@@ -7,18 +7,18 @@ module Test_MpiFileHandler_mod
    implicit none
 
 
-      interface
-         function getSuffix(rank, suffixFormat) result(rawString)
-            character(len=:), allocatable :: rawString
-            integer, intent(in) :: rank
-            character(len=*), optional, intent(in) :: suffixFormat
-         end function getSuffix
-      end interface
+   interface
+      function getSuffix(rank, suffixFormat) result(rawString)
+         character(len=:), allocatable :: rawString
+         integer, intent(in) :: rank
+         character(len=*), optional, intent(in) :: suffixFormat
+      end function getSuffix
+   end interface
 
 
 contains
 
-   @test
+@test
    subroutine test_suffix()
       type (MpiFileHandler) :: handler
       integer :: comm
@@ -32,7 +32,7 @@ contains
    end subroutine test_suffix
 
 
-   @test
+@test
    subroutine test_customSuffix()
       type (MpiFileHandler) :: handler
       integer :: comm

@@ -44,6 +44,7 @@ module ASTG_Logger_mod
       procedure :: removeHandler
       procedure :: getHandlers
       procedure :: setLevel
+      procedure :: getLevel
       procedure :: log_
       procedure :: makeRecord
    end type Logger
@@ -99,7 +100,6 @@ contains
       class (AbstractHandler), intent(in) :: handler
       
       type (AbstractHandlerPolyWrapVecIter) :: iter
-
 
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
@@ -281,13 +281,21 @@ contains
    ! Set the logging level of this logger
    subroutine setLevel(this, level)
       class (Logger), intent(inout) :: this
-      integer, intent(in) :: level
-      
+      integer, intent(in) :: level      
 
       this%level = level
       
    end subroutine setLevel
 
+
+   ! Get the logging level of this logger
+   function getLevel(this) result(level)
+      class (Logger), intent(inout) :: this
+      integer :: level
+      
+      level = this%level
+      
+   end function getLevel
 
 end module ASTG_Logger_mod
 

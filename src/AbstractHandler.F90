@@ -21,6 +21,7 @@ module ASTG_AbstractHandler_mod
    private
 
    public :: AbstractHandler
+   public :: BASIC_FORMAT
    
    type, extends(Filterer), abstract :: AbstractHandler
       private
@@ -32,6 +33,7 @@ module ASTG_AbstractHandler_mod
       procedure(close), deferred :: close
       procedure(flush), deferred :: flush
       procedure :: setFormatter
+      procedure :: format
       procedure :: setLevel
       procedure :: getLevel
       procedure(equal), deferred :: equal
@@ -43,11 +45,10 @@ module ASTG_AbstractHandler_mod
    abstract interface
 
       ! This version is intended to be implemented by subclasses
-      subroutine emitMessage(this, levelString, record)
+      subroutine emitMessage(this, record)
          import AbstractHandler
          import LogRecord
          class (AbstractHandler), intent(inout) :: this
-         character(len=*), intent(in) :: levelString
          type (LogRecord) :: record
       end subroutine emitMessage
 
@@ -74,6 +75,7 @@ module ASTG_AbstractHandler_mod
 
    end interface
 
+   character(len=*), parameter :: BASIC_FORMAT = '%(levelName::a): %(name::a): %(message::a)'
    
 contains
 
@@ -87,11 +89,19 @@ contains
 
       level = record%getLevel()
       if (level >= this%getLevel()) then
-        call this%emitMessage(levelToString(level), record)
+        call this%emitMessage(record)
       end if
       
    end subroutine handle
 
+   function format(this, record) result(message)
+      class(AbstractHandler), intent(in) :: this
+      type(LogRecord), intent(inout) :: record
+      character(len=:), allocatable :: message
+      
+      message = this%fmt%format(record)
+      
+   end function format
    
    ! Set the formatter for this handler
    subroutine setFormatter(this, fmt)
@@ -99,7 +109,7 @@ contains
       type(Formatter) :: fmt
       
       this%fmt = fmt
-     
+      
    end subroutine setFormatter
 
    
