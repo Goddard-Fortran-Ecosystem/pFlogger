@@ -51,6 +51,7 @@ contains
       type (LogRecord) :: rec
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
+      character(len=:), allocatable :: levelName
       
       rec%name = name
       rec%level = level
@@ -67,11 +68,18 @@ contains
          rec%extra = CIStringXUMap()
       end if
 
+      iter = rec%extra%emplace('level', level)
       ! workaround for ifort
       wrapName = name
-      iter = rec%extra%emplace('name', wrapName)
-      iter = rec%extra%emplace('level', level)
-      iter = rec%extra%emplace('levelName', String(levelToString(level)))
+      iter = rec%extra%emplace('name', wrapName)      
+      ! workaround for ifort
+      levelName = levelToString(level)
+#ifdef __INTEL_COMPILER
+      iter= rec%extra%emplace('levelName', levelName)
+#else
+      ! workaround for gcc
+      iter= rec%extra%emplace('levelName', String(levelName))
+#endif
       call fillDateAndTime(rec)
       
    end function newLogRecord
