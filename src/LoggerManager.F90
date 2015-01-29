@@ -1,8 +1,18 @@
-! A manager instance that holds the hierarchy of loggers.
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_LoggerManager_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
+! A manager instance that holds the hierarchy of loggers. 
+!------------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
+   use FTL_CIStringAbstractLoggerPolyUMap_mod
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
-   use FTL_CIStringAbstractLoggerPolyUMap_mod
    use ASTG_Logger_mod
    use ASTG_AbstractLogger_mod
    implicit none
@@ -27,7 +37,13 @@ module ASTG_LoggerManager_mod
 contains
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getLogger
+   !
+   ! DESCRIPTION: 
    ! Initialize with the root node of the logger hierarchy.
+   !---------------------------------------------------------------------------
    function newLoggerManager() result(manager)
       type (LoggerManager) :: manager
 
@@ -36,8 +52,17 @@ contains
    end function newLoggerManager
 
 
-   ! Get a logger with the specified 'name'. Note that 'name' is a
-   ! dot-separated hierarchical name such as 'A', 'A.B','A.B.C', etc 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getLogger
+   !
+   ! DESCRIPTION: 
+   ! Get a logger with the specified 'name', creating it if necessary.
+   ! Note that:
+   ! 1) 'name' is a dot-separated hierarchical name such as 'A','A.B','A.B.C',
+   !    etc.
+   ! 2) 'name' is case insensitive.
+   !---------------------------------------------------------------------------
    function getLogger(this, name) result(lgr)
       use FTL_CIString_mod
       class (Logger), pointer :: lgr
@@ -73,6 +98,15 @@ contains
    end function getLogger
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getParentPrefix
+   !
+   ! DESCRIPTION: 
+   ! In the logger hierarchy, the parent prefix is the string preceding the
+   ! last logger in the hierarchy. For example: the parent prefix of c in the
+   ! logger hierarchy a.b.c is a.b
+   !---------------------------------------------------------------------------
    function getParentPrefix(name) result(prefix)
       character(len=*), intent(in) :: name
       character(len=:), allocatable :: prefix

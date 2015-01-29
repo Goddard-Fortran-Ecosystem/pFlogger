@@ -43,4 +43,17 @@ contains
       
    end subroutine test_intRecord
 
+@Test
+   subroutine test_args(this)
+      use FTL_XWrapVec_mod
+      class (Test_LogRecord), intent(inout) :: this
+      type (XWrapVec) :: args
+      
+      this%record = LogRecord('A', INFO, 'Hello')
+      @assertEqual('A', this%record%getName())
+      @assertEqual(INFO, this%record%getLevel())
+      @assertEqual('Hello', this%record%getMessage())
+      
+   end subroutine test_args
+
 end module Test_LogRecord_mod

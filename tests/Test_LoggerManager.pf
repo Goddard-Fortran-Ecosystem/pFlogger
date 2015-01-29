@@ -5,28 +5,32 @@ module Test_LoggerManager_mod
    use ASTG_Logger_mod
    implicit none
 
-
 contains
 
-   @test
-   subroutine test_getLogger()
+   
+@test
+   subroutine test_getName()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
-      character(len=:), allocatable :: name
+      class (Logger), pointer :: loggerC
 
       manager = LoggerManager()
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('B')
 
-      name = loggerA%getName()
       @assertEqual('A', loggerA%getName())
       @assertEqual('B', loggerB%getName())
+
+      ! If name is empty then...
+      loggerC => manager%getLogger('')
+      ! ... expect ROOT
+      @assertEqual('ROOT', loggerC%getName())
       
-   end subroutine test_getLogger
+   end subroutine test_getName
 
    
-   @test
+@test
    subroutine test_getParentPrefix()
       type (LoggerManager) :: manager
 
@@ -37,7 +41,7 @@ contains
    end subroutine test_getParentPrefix
 
    
-   @test
+@test
    subroutine test_parentage()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
@@ -49,7 +53,6 @@ contains
       loggerB => manager%getLogger('A.B')
       parentOfB => loggerB%getParent()
       
-      !@assertAssociatedWith(loggerA, parentOfB)
       select type (parentOfB)
       class is (Logger)
          @assertEqual('A', parentOfB%getName())
@@ -58,7 +61,7 @@ contains
    end subroutine test_parentage
 
 
-   @test
+@test
    subroutine test_noParent()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
@@ -72,7 +75,7 @@ contains
    end subroutine test_noParent
 
 
-   @test
+@test
    subroutine test_passMessageToParent()
       use MockHandler_mod
       type (LoggerManager) :: manager
@@ -91,7 +94,8 @@ contains
 
    end subroutine test_passMessageToParent
 
-@Test
+   
+@test
    subroutine test_caseInsensitiveName()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA

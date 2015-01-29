@@ -18,7 +18,6 @@ module Test_Logger_mod
       procedure :: tearDown 
    end type Test_Logger
 
-   
 contains
 
 
@@ -28,7 +27,7 @@ contains
       
       this%basicLogger = Logger('A')
       mockHandler_ = MockHandler(this%mockBuffer)
-      !call mockHandler_%setLevel(DEBUG) ! catch everything
+
       call this%basicLogger%addHandler(mockHandler_)
 
    end subroutine setUp
@@ -224,7 +223,7 @@ contains
    end subroutine test_critical
 
 
-   @test
+@test
    subroutine test_removeHandler_missing(this)
       class (Test_Logger), intent(inout) :: this
 
@@ -241,7 +240,7 @@ contains
    end subroutine test_removeHandler_missing
 
 
-   @test
+@test
    subroutine test_removeHandler_present(this)
       class (Test_Logger), intent(inout) :: this
 
@@ -258,7 +257,7 @@ contains
    end subroutine test_removeHandler_present
 
 
-   @test
+@test
    subroutine test_removeHandler_remove1st(this)
       use FTL_AbstracthandlerPolyWrap_mod
       use FTL_AbstracthandlerPolyWrapVec_mod
@@ -284,7 +283,7 @@ contains
    end subroutine test_removeHandler_remove1st
 
 
-   @test
+@test
    subroutine test_addHandler_noDups(this)
       use FTL_AbstracthandlerPolyWrap_mod
       use FTL_AbstracthandlerPolyWrapVec_mod

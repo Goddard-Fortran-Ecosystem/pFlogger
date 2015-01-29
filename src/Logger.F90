@@ -1,3 +1,12 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_Logger_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
 ! A logger instance represents a logging channel, i.e. a medium thorugh
 ! which information (logging events) about an application is conveyed.
 ! Associated with a logger instance is a set of handlers which dispatch
@@ -5,13 +14,14 @@
 ! A logger has associated with it a severity level. A looger looks at a
 ! message and ignores it if the message level is less severe than its own
 ! level (default is INFO).
+!------------------------------------------------------------------------------
 module ASTG_Logger_mod
-   use ASTG_Exception_mod
-   use ASTG_AbstractLogger_mod
-   use ASTG_AbstractHandler_mod, only: AbstractHandler
-   use ASTG_StreamHandler_mod, only: StreamHandler
    use FTL_AbstracthandlerPolyWrap_mod
    use FTL_AbstracthandlerPolyWrapVec_mod
+   use ASTG_Exception_mod
+   use ASTG_AbstractLogger_mod
+   use ASTG_AbstractHandler_mod
+   use ASTG_StreamHandler_mod
    use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
    use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
    use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
@@ -58,7 +68,15 @@ module ASTG_Logger_mod
 contains
 
    
-   ! Instantiate a logger with a name and an optional level
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newLogger
+   !
+   ! DESCRIPTION: 
+   ! This constructor instantiates a logger with a name and an optional level
+   ! (default is INFO). Logger instance also has an (empty) vector of handlers
+   ! associated with it.
+   !---------------------------------------------------------------------------
    function newLogger(name, level) result(alog)
       type (Logger) :: alog
       character(len=*), intent(in) :: name
@@ -69,6 +87,7 @@ contains
 
       name_ = name
       if (name=='') then
+      ! Initialize the logger with the name "ROOT"  
         name_ = 'ROOT'
       end if  
       call alog%setName(name_)
@@ -84,6 +103,13 @@ contains
    end function newLogger
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setName
+   !
+   ! DESCRIPTION: 
+   ! Set the name for this logger.
+   !---------------------------------------------------------------------------
    subroutine setName(this, name)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: name
@@ -93,6 +119,13 @@ contains
    end subroutine setName
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getName
+   !
+   ! DESCRIPTION: 
+   ! Get the name for this logger.
+   !---------------------------------------------------------------------------
    function getName(this) result(name)
       character(len=:), allocatable :: name
       class (Logger), intent(in) :: this
@@ -100,6 +133,13 @@ contains
    end function getName
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! addHandler
+   !
+   ! DESCRIPTION: 
+   ! Add the specified handler to this logger and increment handlers vector.
+   !---------------------------------------------------------------------------
    subroutine addHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
@@ -114,12 +154,19 @@ contains
          end if
          call iter%next()
       end do
-
+      ! increment
       call this%handlers%push_back(AbstractHandlerPolyWrap(handler))
       
    end subroutine addHandler
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! removeHandler
+   !
+   ! DESCRIPTION: 
+   ! Remove the specified handler to this logger.
+   !---------------------------------------------------------------------------
    subroutine removeHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
@@ -130,6 +177,7 @@ contains
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
          if (handler == iter%get_alt()) then
+            ! remove hadler from handlers vector
             iter = this%handlers%erase(iter)
             return
          end if
@@ -142,6 +190,13 @@ contains
    end subroutine removeHandler
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! makeRecord
+   !
+   ! DESCRIPTION: 
+   ! Create a logRecord
+   !---------------------------------------------------------------------------
    function makeRecord(this, level, message, args) result(record)
       use FTL_XWrapVec_mod
       class (Logger), intent(inout) :: this
@@ -154,16 +209,30 @@ contains
       
    end function makeRecord
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! isEnabledFor
+   !
+   ! DESCRIPTION: 
+   ! Is this logger enabled for level 'level'?
+   !---------------------------------------------------------------------------
    logical function isEnabledFor(this, level)
       class (Logger), intent(in) :: this
       integer, intent(in) :: level
 
       isEnabledFor = (level >= this%level)
+      
    end function isEnabledFor
    
-   ! Logging routine that calls the appropriate handler and emits
-   ! the logging event.
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! log_
+   !
+   ! DESCRIPTION: 
+   ! Low level logging routine which creates a LogRecord and then calls the
+   ! appropriate handler of this logger to handle the record.
    ! The log method needs two parameters - a message and the severity level
+   !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST)
       use FTL_XWrapVec_mod
       use ASTG_ArgListUtilities_mod
@@ -194,9 +263,14 @@ contains
    end subroutine log_
 
    
-   ! Convenience methods follow - debug, info, warning, error, critical
-   ! These methods are identical to the log method except that you don’t have
-   ! to specify the level, because the level is implicit in the name.
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! log
+   !
+   ! DESCRIPTION: 
+   ! Log a message with default severity level or altenatively as specified
+   ! in optional input argument 'level'.
+   !---------------------------------------------------------------------------
    subroutine log(this, level, message, ARG_LIST)
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
@@ -218,6 +292,17 @@ contains
    end subroutine log
 
 
+   ! Convenience methods follow - debug, info, warning, error, critical
+   ! These methods are identical to the log method except that you don’t have
+   ! to specify the level, because the level is implicit in the name.
+   
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! debug
+   !
+   ! DESCRIPTION: 
+   ! Log a message with severity level DEBUG.
+   !---------------------------------------------------------------------------
    subroutine debug(this, message, ARG_LIST)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
@@ -230,6 +315,13 @@ contains
    end subroutine debug
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! info
+   !
+   ! DESCRIPTION: 
+   ! Log a message with severity level INFO.
+   !---------------------------------------------------------------------------
    subroutine info(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -241,6 +333,13 @@ contains
    end subroutine info
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! warning
+   !
+   ! DESCRIPTION: 
+   ! Log a message with severity level WARNING.
+   !---------------------------------------------------------------------------
    subroutine warning(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -252,6 +351,13 @@ contains
    end subroutine warning
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! error
+   !
+   ! DESCRIPTION: 
+   ! Log a message with severity level ERROR.
+   !---------------------------------------------------------------------------
    subroutine error(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -263,6 +369,13 @@ contains
    end subroutine error
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! critical
+   !
+   ! DESCRIPTION: 
+   ! Log a message with severity level CRITICAL.
+   !---------------------------------------------------------------------------
    subroutine critical(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -274,7 +387,13 @@ contains
    end subroutine critical
 
    
-   ! get handlers associated with this logger
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! getHandlers
+   !
+   ! DESCRIPTION: 
+   ! Get handlers pointer associated with this logger.
+   !---------------------------------------------------------------------------
    function getHandlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
       type (AbstractHandlerPolyWrapVec), pointer :: handlers
@@ -284,7 +403,13 @@ contains
    end function getHandlers
 
 
-   ! Set the logging level of this logger
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setLevel
+   !
+   ! DESCRIPTION: 
+   ! Set the logging level of this logger.
+   !---------------------------------------------------------------------------
    subroutine setLevel(this, level)
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level      
@@ -294,7 +419,13 @@ contains
    end subroutine setLevel
 
 
-   ! Get the logging level of this logger
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getLevel
+   !
+   ! DESCRIPTION: 
+   ! Get the logging level of this logger.
+   !---------------------------------------------------------------------------
    function getLevel(this) result(level)
       class (Logger), intent(inout) :: this
       integer :: level

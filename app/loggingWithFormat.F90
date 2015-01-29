@@ -6,8 +6,7 @@ program loggingWithFormat
    implicit none
    
    type (Logger) :: log
-   type (StreamHandler) :: stdout1, stdout2, stderr1, stderr2
-   integer :: T=273
+   type (StreamHandler) :: stdout1, stdout2, stdout3
 
    ! Create a Logger and give it a name. A log message will be displayed
    ! with the following default format: <LEVEL: NAME: MESSAGE>.
@@ -20,10 +19,8 @@ program loggingWithFormat
    call stdout1%setLevel(DEBUG)
    stdout2 = StreamHandler()
    call stdout2%setLevel(DEBUG)
-   stderr1 = StreamHandler()
-   call stderr1%setLevel(DEBUG)
-   stderr2 = StreamHandler()
-   call stderr2%setLevel(DEBUG)
+   stdout3 = StreamHandler()
+   call stdout3%setLevel(DEBUG)
    
    ! Change the output format. Now the output will simply display
    ! <MESSAGE> rather than <LEVEL: NAME: MESSAGE>.
@@ -35,35 +32,24 @@ program loggingWithFormat
    print *,'---DISPLAY MESSAGE ONLY---'
    call log%info('Starting MAIN program.')
 
-   ! Change the output format. 
-   call stdout2%setFormatter(Formatter('%(message::a) %i4 %a'))
-   call log%removeHandler(stdout1)
-   call log%addHandler(stdout2)
-   
-!!$   ! Change log level to DEBUG
-!!$   call log%setLevel(DEBUG)
-!!$   print *,'---DISPLAY MESSAGE and INTEGER WITH FORMAT---'
-!!$   call log%debug('T at (140,35,10) is 273.')   
-
-   
    ! Change the output format. Will use %(asctime::) attribute to set
    ! date format:
-   call stderr1%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
+   call stdout2%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
       datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2) %(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
-   call log%removeHandler(stdout2)
-   call log%addHandler(stderr1)
+   call log%removeHandler(stdout1)
+   call log%addHandler(stdout2)
 
-   print *,'---DISPLAY Y-M-D HH:MM:SS and MESSAGE---'
+   print *,'---DISPLAY DATE and TIME and MESSAGE---'
    call log%info('Starting MAIN program.')
    
    ! Change the output format. Will use %(asctime::) attribute to set
    ! a new date format:
-   call stderr2%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
+   call stdout3%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
                          datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
-   call log%removeHandler(stderr2)
-   call log%addHandler(stderr2)
+   call log%removeHandler(stdout2)
+   call log%addHandler(stdout3)
 
-   print *,'---DISPLAY only HH:MM:SS and MESSAGE---'
+   print *,'---DISPLAY only TIME and MESSAGE---'
    call log%info('Starting MAIN program.')
    print *,'---DONE---'
 
