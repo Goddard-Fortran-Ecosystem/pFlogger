@@ -36,7 +36,9 @@ module ASTG_FileHandler_mod
 contains
 
     
-   ! Initializes the instance with a filename and an optional level
+   ! Instattiate a file handler withh a given file name. Optionally
+   ! set a level and a delay. If a delay is set to true then we
+   ! don't open the stream.
    function newFileHandler(fileName, level, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
@@ -66,7 +68,7 @@ contains
    end function newFileHandler
 
     
-   ! Write a string to a file. Level is specified in levelString
+   ! Write a formatted string to a file.
    subroutine emitMessage(this, record)
       class (FileHandler), intent(inout) :: this
       type(LogRecord) :: record
@@ -112,6 +114,7 @@ contains
    subroutine close(this)
       class (FileHandler), intent(inout) :: this
 
+      call this%flush()
       close(this%getUnit())
       this%isOpen_ = .false.
 

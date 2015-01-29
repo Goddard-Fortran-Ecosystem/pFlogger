@@ -58,16 +58,21 @@ module ASTG_Logger_mod
 contains
 
    
-   ! Initialize the logger with an optional level
+   ! Instantiate a logger with a name and an optional level
    function newLogger(name, level) result(alog)
       type (Logger) :: alog
       character(len=*), intent(in) :: name
       integer, optional, intent(in) :: level
 
       integer :: level_
+      character(len=:), allocatable :: name_
 
-      call alog%setName(name)
-      aLog%name = name
+      name_ = name
+      if (name=='') then
+        name_ = 'ROOT'
+      end if  
+      call alog%setName(name_)
+      aLog%name = name_
 
       level_ = INFO_LEVEL
       if (present (level)) level_ = level
@@ -207,7 +212,8 @@ contains
         level_ = INFO_LEVEL
       end if
 
-      if (this%isEnabledFor(level_)) call this%log_(level_, message)
+      if (this%isEnabledFor(level_)) &
+           call this%log_(level_, message, ARG_LIST)
 
    end subroutine log
 

@@ -65,7 +65,6 @@ module ASTG_AbstractHandler_mod
          class(AbstractHandler), intent(inout) :: this
       end subroutine flush
 
-
       logical function equal(a, b)
          import AbstractHandler
          class (AbstractHandler), intent(in) :: a
@@ -94,6 +93,8 @@ contains
       
    end subroutine handle
 
+
+   ! format a record, return a message - before 'emit'
    function format(this, record) result(message)
       class(AbstractHandler), intent(in) :: this
       type(LogRecord), intent(inout) :: record
@@ -102,6 +103,7 @@ contains
       message = this%fmt%format(record)
       
    end function format
+
    
    ! Set the formatter for this handler
    subroutine setFormatter(this, fmt)

@@ -6,7 +6,6 @@ module ASTG_Formatter_mod
    private
 
    public :: Formatter
-   public :: getMessage
 
    type, extends(Object) :: Formatter
       private
@@ -160,16 +159,6 @@ contains
       
 
    end function toStringOther
-
-   
-   ! return the message for this LogRecord.
-   function getMessage(this) result(message)
-      class (LogRecord), intent(in) :: this
-      character(len=:), allocatable :: message
-      
-!!$      message = this%record%getMessage()
-      
-   end function getMessage
 
    
 end module ASTG_Formatter_mod

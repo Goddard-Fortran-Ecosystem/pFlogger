@@ -1,48 +1,50 @@
 program basicLogging
    use ASTG_Logger_mod
    use ASTG_StreamHandler_mod
-   use ASTG_SeverityLevels_mod
+   use ASTG_FileHandler_mod
+   use ASTG_SeverityLevels_mod, only: DEBUG, WARNING
    implicit none
    
    type (Logger) :: log
-   type (StreamHandler) :: stdHandler
+   type (StreamHandler) :: stdout
+   type (FileHandler) :: logfile
 
-   ! Create a Logger and give it a name.
-   ! NOTE: Loggers have message levels to filter out messages
-   ! and default is INFO.
-   log = Logger('appLog')
+   ! Create a Logger and give it a name. A log message will be displayed
+   ! with the following default format: <LEVEL: NAME: MESSAGE>.
+   ! Note that if the log name is the empty string then it will be given
+   ! the default name 'ROOT'.
+   log = Logger('')
 
-   ! We need to specify where to output messages, Choose STDOUT.
-   ! So, we need to create a STDOUT stream handler:
-   stdHandler = StreamHandler()
-   ! By default handler level is INFO, change to DEBUG:
-   call stdHandler%setLevel(DEBUG)
+   ! We will log in two places : STDOUT and a file
+   ! Specify a handler for STDOUT
+   stdout = StreamHandler()
+   call stdout%setLevel(WARNING) 
+   call log%addHandler(stdout)
 
-   ! Add this handler to logger so that logger can use it
-   call log%addHandler(stdHandler)
+   ! Specify a handler for log file
+   logfile = FileHandler('LOG')
+   call logfile%setLevel(DEBUG) 
+   call log%addHandler(logfile)
 
-   ! Start logging!
-   call log%info('Starting demo')
-  
-   ! inform about errors - note ERROR > INFO
-   call log%error('Temperature cannot be zero')
-   
-   ! critical messages - note CRITICAL > INFO
-   call log%critical('Missing IC file. Program will stop.')
-   
-   ! warnings - note WARNING > INFO
-   call log%warning('Max number of iterations reached')
-   
-   ! debugging: filtering messages via severity level
-   ! note DEBUG < INFO - therefore next DEBUG message is not logged
-   call log%debug('Cannot check temperature values...')
-   ! so we need to set logger level:
+   ! Log away...
+   print *,'---WITH DEFAULT LEVEL---'
+   call log%info('Starting MAIN program.')
+   call log%warning('Time step is too large.')
+   call log%error('Max number of iterations exceeded.')
+   call log%critical('CFL criterion violated. Program will abort.')
+   call log%debug('T at (140,35,10) is  273K.')
+
+   ! Default log level is INFO. Therefore to diagnose
+   ! problems, change log level to DEBUG
    call log%setLevel(DEBUG)
-   call log%debug('Now checking temperature values...')
-   ! When done, set back to INFO
-   call log%setLevel(INFO)
+   print *,'---WITH DEBUG LEVEL---'
+   call log%info('Starting MAIN program.')
+   call log%warning('Time step is too large.')
+   call log%error('Max number of iterations exceeded.')
+   call log%critical('CFL criterion violated. Program will abort.')
+   call log%debug('T at (140,35,10) is  273K.')   
 
-   ! Done
-   call log%info('Demo is DONE')
-   
+   print *,'---DONE---'
+
 end program basicLogging
+

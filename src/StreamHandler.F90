@@ -62,7 +62,8 @@ contains
       type(LogRecord) :: record
 
       write(this%unit, '(a)') this%format(record)
-      
+      call this%flush()
+     
    end subroutine emitMessage
 
    

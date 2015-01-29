@@ -71,13 +71,15 @@ contains
       iter = rec%extra%emplace('level', level)
       ! workaround for ifort
       wrapName = name
-      iter = rec%extra%emplace('name', wrapName)      
-      ! workaround for ifort
+      iter = rec%extra%emplace('name', wrapName)
+
       levelName = levelToString(level)
+      ! Compiler workarounds
 #ifdef __INTEL_COMPILER
+      ! ifort
       iter= rec%extra%emplace('levelName', levelName)
 #else
-      ! workaround for gcc
+      ! gfortran
       iter= rec%extra%emplace('levelName', String(levelName))
 #endif
       call fillDateAndTime(rec)
