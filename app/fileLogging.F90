@@ -12,15 +12,15 @@ program fileLogging
    ! Create a Logger and give it a name.
    ! NOTE: Loggers have message levels to filter out messages
    ! and default is INFO.
-   log = Logger('appLog')
+   log = Logger('fileLog')
 
    ! Create a file handler, argument is fileName
    fHandler = FileHandler('app.LOG')
    ! By default handler level is INFO, change to DEBUG:
    call fHandler%setLevel(DEBUG)
 
-   ! Create a logging format
-   fmt = Formatter('%(name:a) %(message:a)')
+   ! Create a logging format, this excludes LEVEL info
+   fmt = Formatter('%(name::a): %(message::a)')
 
    call fHandler%setFormatter(fmt)
    
@@ -28,9 +28,10 @@ program fileLogging
    call log%addHandler(fHandler)
    
    ! Start logging!
-   call log%info('Starting fileLogging demo')
+   print *,'---Logging to file app.LOG---'
+   call log%info('This is a message in a LOG file.')
    
    ! Done
-   call log%info('DONE')
+   print *,'---DONE---'
    
 end program fileLogging
