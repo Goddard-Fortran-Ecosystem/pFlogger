@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_MpiFileHandler_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! A handler class which writes logging events to disk files under MPI.
+!> @brief
+!> A handler class which writes logging events to disk files under MPI.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_MpiFileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO

@@ -4,11 +4,16 @@
 !
 ! MODULE: ASTG_RootLogger_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! Defines a unique -ROOT- logger in the logger hierarchy. It _MUST_ have a
-! level and is named 'root'.
+!> @brief
+!> Defines a unique -ROOT- logger in the logger hierarchy. It _MUST_ have a
+!> level and is named 'root'.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_RootLogger_mod
    use ASTG_Logger_mod

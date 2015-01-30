@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_FileHandler_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! A handler class which writes logging events to disk files
+!> @brief
+!> A handler class which writes logging events to disk files
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO

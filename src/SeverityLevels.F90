@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_SeverityLevels_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! Specify severity levels used to logging messages.
+!> @brief
+!> Specify severity levels used to logging messages.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
    implicit none

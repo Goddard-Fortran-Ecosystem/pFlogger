@@ -4,12 +4,17 @@
 !
 ! MODULE: ASTG_Filterer_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! A base class for loggers and handlers that allows them to share common code.
-! Note that a filterer uses filters. Main funtion is called filter which
-! determines if a LogRecord is "loggable".
+!> @brief
+!> A base class for loggers and handlers that allows them to share common code.
+!> Note that a filterer uses filters. Main funtion is called filter which
+!> determines if a LogRecord is "loggable".
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Filterer_mod
    use ASTG_Object_mod

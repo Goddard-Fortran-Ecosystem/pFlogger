@@ -4,14 +4,19 @@
 !
 ! MODULE: ASTG_RotatingFileHandler_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! Handler for logging to a set of files, which switches from one file
-! to the next when the current file reaches a certain size.
-! By default, the file grows indefinitely. You can specify particular
-! values of maxBytes and backupCount to allow the file to rollover at
-! a predetermined size.
+!> @brief
+!> Handler for logging to a set of files, which switches from one file
+!> to the next when the current file reaches a certain size.
+!> By default, the file grows indefinitely. You can specify particular
+!> values of maxBytes and backupCount to allow the file to rollover at
+!> a predetermined size.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_RotatingFileHandler_mod
    use iso_fortran_env

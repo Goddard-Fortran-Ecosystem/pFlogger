@@ -4,24 +4,29 @@
 !
 ! MODULE: ASTG_Formatter_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION: 
-! Formatter instances are used to convert a LogRecord to text.
-! Formatters need to know how a LogRecord is constructed. They are
-! responsible for converting a LogRecord to (usually) a string.
-! The Formatter can be initialized with a format string which makes use of
-! knowledge of the LogRecord attributes - e.g. the default value mentioned
-! above makes use of the fact that the user's message and arguments are pre-
-! formatted into a LogRecord's message attribute. Currently, the useful
-! attributes in a LogRecord are described by:
+!> @brief
+!> Formatter instances are used to convert a LogRecord to text.
+!> Formatters need to know how a LogRecord is constructed. They are
+!> responsible for converting a LogRecord to (usually) a string.
+!> The Formatter can be initialized with a format string which makes use of
+!> knowledge of the LogRecord attributes - e.g. the default value mentioned
+!> above makes use of the fact that the user's message and arguments are pre-
+!> formatted into a LogRecord's message attribute. Currently, the useful
+!> attributes in a LogRecord are described by:
+!>
+!> %(name)s            Name of the logger
+!> %(levelname)s       Text logging level for the message ("DEBUG", "INFO",
+!>                        "WARNING", "ERROR", "CRITICAL")
+!> %(asctime)s         Textual time when the LogRecord was created
+!> %(message)s         The result of record.getMessage(), computed just as
+!>                        the record is emitted
 !
-! %(name)s            Name of the logger
-! %(levelname)s       Text logging level for the message ("DEBUG", "INFO",
-!                        "WARNING", "ERROR", "CRITICAL")
-! %(asctime)s         Textual time when the LogRecord was created
-! %(message)s         The result of record.getMessage(), computed just as
-!                        the record is emitted
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Formatter_mod
    use ASTG_Object_mod
@@ -116,12 +121,13 @@ contains
    ! format
    !
    ! DESCRIPTION: 
-   ! Format the specified record as text.
-   ! The record's attribute dictionary is used as the operand to a
-   ! string formatting operation which yields the returned string.
-   ! If the formatting string uses the time (as determined by a call to
-   ! usesTime(), formatTime() is called to format the event time. The
-   ! formatting of the dictionary is then performed by the format parser.
+   ! Format the specified record as text - this calls FormatParser's format.
+   ! The record's attribute dictionary is used as the operand to a string
+   ! formatting operation which yields the returned string. If the formatting 
+   ! string uses the time (as determined by a call to usesTime(), formatTime()
+   ! is called to format the event time. The formatting of the dictionary is
+   ! then performed by the format parser. For example, for a record message
+   ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use ASTG_FormatParser_mod

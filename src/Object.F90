@@ -4,9 +4,17 @@
 !
 ! MODULE: ASTG_Object_mod
 !
-! AUTHOR: ASTG staff
+!> @author
+!> ASTG staff
 !
 ! DESCRIPTION:
+!> @brief
+!> An "object" is the "class" that you inherit from to make a class. So:
+!>     a class is-a object.
+!> Note however that not all logger framework classes inherit from Object.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Object_mod
    implicit none

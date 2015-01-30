@@ -4,13 +4,18 @@
 !
 ! MODULE: ASTG_LogRecord_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION: 
-! A LogRecord instance represents an event being logged. Its instances are created
-! every time something is logged. They contain all the information pertinent to
-! the event being logged. The  main information passed in is in message and optional
-! arguments which are combined to create the message field of the record.
+!> @brief
+!> A LogRecord instance represents an event being logged. Its instances are created
+!> every time something is logged. They contain all the information pertinent to
+!> the event being logged. The  main information passed in is in message and optional
+!> arguments which are combined to create the message field of the record.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
    use FTL_XWrapVec_mod

@@ -4,12 +4,17 @@
 !
 ! MODULE: ASTG_FormatParser_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION: 
-! FormatParser methods are used to parse format strings that represent fortran
-! specification expressions. Format strings contain “replacement fields” 
-! delimited by the % sign.
+!> @brief
+!> FormatParser methods are used to parse format strings that represent fortran
+!> specification expressions. Format strings contain “replacement fields” 
+!> delimited by the % sign.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_FormatParser_mod
    use ASTG_Object_mod
@@ -77,12 +82,18 @@ contains
    ! FUNCTION: 
    ! formatContainsKey
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Check if specified string contains the keyword separator (::).
    !---------------------------------------------------------------------------
    logical function formatContainsKey(string)
       character(len=*), intent(in) :: string
       
-      formatContainsKey = (index(string,KEYWORD_SEPARATOR) > 0)
+      if (len(string) == 0) then
+         formatContainsKey = .false.
+         call throw("Illegal keyword separator - must use ::")
+      else
+         formatContainsKey = (index(string,KEYWORD_SEPARATOR) > 0)
+      end if
 
    end function formatContainsKey
 
@@ -91,7 +102,8 @@ contains
    ! FUNCTION: 
    ! getFormatKey
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Returns format key, i.e., the contents of the format after the :: separator.
    !---------------------------------------------------------------------------
    function getFormatKey(tokenString) result(key)
       character(len=:), allocatable :: key
@@ -117,13 +129,12 @@ contains
    ! startOfNextToken
    !
    ! DESCRIPTION: 
-   ! Format strings consist of two types of tokens. First there are
-   ! regular text strings that do not contain any FORMAT_DELIMITER. Then
-   ! there are format specifiers that begin with a FORMAT_DELIMITER.
-   ! E.g.  'hello %i2.1' has two tokens: 'hello ' and '%2.1'.  An
-   ! important issue is how to detect the _end_ of a format specifier
-   ! token.  For the moment, we require that those end with a space
-   ! (i.e. '_').
+   ! Format strings consist of two types of tokens. First there are regular text
+   ! strings that do not contain any FORMAT_DELIMITER. Then there are format
+   ! specifiers that begin with a FORMAT_DELIMITER. E.g.  'hello %i2.1' has two
+   ! tokens: 'hello ' and '%2.1'. An important issue is how to detect the _end_
+   ! of a format specifier token.  For the moment, we require that those end with
+   ! a space (i.e. '_').
    !---------------------------------------------------------------------------  
    integer function startOfNextToken(string) result(idx)
       character(len=*), intent(in) :: string
@@ -182,7 +193,8 @@ contains
    ! FUNCTION: 
    ! getPayload
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Returns a string that is the actual format descriptor in specified string.
    !---------------------------------------------------------------------------
    function getPayload(string) result(payload)
       character(len=:), allocatable :: payload
@@ -236,7 +248,7 @@ contains
                else
                   escapeFlag = .true.
                   if (i == len(string)) then ! final character
-                     call throw("FormatParser:: Cannot terminate format with bare escape '\' character.")
+                    call throw("FormatParser:: Cannot terminate format with bare escape '\' character.")
                   end if
                end if
             else
@@ -267,7 +279,8 @@ contains
    ! FUNCTION: 
    ! getTokens
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Returns a vector of 'tokens' in a specified format descriptor.
    !---------------------------------------------------------------------------
    function getTokens(rawString) result(tokens)
       use FTL_String_mod
@@ -304,7 +317,12 @@ contains
    ! FUNCTION: 
    ! format
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Parses LogRecord 'message' attributes and returns a 'formatted message'.
+   ! For example, the default format for a Logger message is:
+   !     %(levelName::a): %(name::a): %(message::a)
+   ! Thus, a typical output (rawString) might be:
+   !     INFO: myLog: Hello world!
    !---------------------------------------------------------------------------
    function format(fmt, args, unusable, arr1D_1, extra) result(rawString)
       use FTL_String_mod
@@ -399,7 +417,9 @@ contains
    ! FUNCTION: 
    ! makeString
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! Returns a string constructed from a fortran format specification. Note
+   ! that it calls format above.
    !---------------------------------------------------------------------------
    function makeString(fmt, ARG_LIST, unusable, arr1D_1, extra) result(rawString)
       use FTL_XWrapVec_mod
@@ -425,7 +445,9 @@ contains
    ! FUNCTION: 
    ! handleScalar
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! scalar variables passed to it.
    !---------------------------------------------------------------------------
    function handleScalar(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
@@ -494,6 +516,8 @@ contains
    ! handleArray1D
    !
    ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 1D vector variables passed to it.
    !---------------------------------------------------------------------------
    function handleArray1D(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128

@@ -4,11 +4,16 @@
 !
 ! MODULE: ASTG_StreamHandler_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! A handler class which writes logging events to a stream, e.g. STDOUT
-! Note that this class does not close the stream.
+!> @brief
+!> A handler class which writes logging events to a stream, e.g. STDOUT
+!> Note that this class does not close the stream.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_StreamHandler_mod
    use iso_fortran_env, only: OUTPUT_UNIT

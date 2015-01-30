@@ -4,9 +4,15 @@
 !
 ! MODULE: ASTG_Exception_mod
 !
-! AUTHOR: ASTG staff
+!> @author
+!> ASTG staff
 !
 ! DESCRIPTION:
+!> @brief
+!> This module contains a simple method to handle exceptions (runtime errors).
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Exception_mod
    implicit none
@@ -21,7 +27,7 @@ contains
    ! throw
    !
    ! DESCRIPTION: 
-   ! Throws exception.
+   ! Throws exception with explanation for the error.
    !---------------------------------------------------------------------------
 
 #ifdef USE_PFUNIT

@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_AbstractLogger_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! AbstractLogger class provides common code to use in Logger class.
+!> @brief
+!> AbstractLogger class provides common code to use in Logger class.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_AbstractLogger_mod
    use ASTG_Filterer_mod

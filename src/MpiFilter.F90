@@ -4,12 +4,17 @@
 !
 ! MODULE: ASTG_MpiFilter_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! Perform arbitrary filtering of LogRecords.
-! MpiFilter class only allows records which are below a certain point in the
-! logger hierarchy. 
+!> @brief
+!> Perform arbitrary filtering of LogRecords.
+!> MpiFilter class only allows records which are below a certain point in the
+!> logger hierarchy. 
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_MpiFilter_mod
    use ASTG_AbstractFilter_mod

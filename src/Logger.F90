@@ -4,16 +4,21 @@
 !
 ! MODULE: ASTG_Logger_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION: 
-! A logger instance represents a logging channel, i.e. a medium thorugh
-! which information (logging events) about an application is conveyed.
-! Associated with a logger instance is a set of handlers which dispatch
-! logging events to specific destinations, e.g. STDOUT or a FILE
-! A logger has associated with it a severity level. A looger looks at a
-! message and ignores it if the message level is less severe than its own
-! level (default is INFO).
+!> @brief
+!> A logger instance represents a logging channel, i.e. a medium thorugh
+!> which information (logging events) about an application is conveyed.
+!> Associated with a logger instance is a set of handlers which dispatch
+!> logging events to specific destinations, e.g. STDOUT or a FILE
+!> A logger has associated with it a severity level. A looger looks at a
+!> message and ignores it if the message level is less severe than its own
+!> level (default is INFO).
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Logger_mod
    use FTL_AbstracthandlerPolyWrap_mod

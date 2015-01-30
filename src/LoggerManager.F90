@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_LoggerManager_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION: 
-! A manager instance that holds the hierarchy of loggers. 
+!> @brief
+!> A manager instance that holds the hierarchy of loggers. 
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
    use FTL_CIStringAbstractLoggerPolyUMap_mod

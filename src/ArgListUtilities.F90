@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_ArgListUtilities_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! Utilities used to deal with unlimited polymorphic entities.
+!> @brief
+!> Utilities used to deal with unlimited polymorphic entities.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_ArgListUtilities_mod
    implicit none

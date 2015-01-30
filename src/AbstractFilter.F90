@@ -4,10 +4,15 @@
 !
 ! MODULE: ASTG_AbstractFilter_mod
 !
-! AUTHOR: ASTG staff
+!> @author 
+!> ASTG staff
 !
 ! DESCRIPTION:
-! AbstractFilter class provides common code to use in Filter class.
+!> @brief
+!> AbstractFilter class provides common code to use in Filter class.
+!
+! REVISION HISTORY:
+! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_AbstractFilter_mod
    use ASTG_Object_mod
