@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_AbstractFilter_mod
+! MODULE: ASTG_Filterer_mod
 !
 ! AUTHOR: ASTG staff
 !

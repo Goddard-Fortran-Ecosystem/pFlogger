@@ -1,4 +1,14 @@
-! A handler class which writes logging events to disk files under MPI
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_MpiFileHandler_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
+! A handler class which writes logging events to disk files under MPI.
+!------------------------------------------------------------------------------
 module ASTG_MpiFileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_FileHandler_mod
@@ -15,7 +25,7 @@ module ASTG_MpiFileHandler_mod
    type, extends(FileHandler) :: MpiFileHandler
       private
    contains
-! TOD: Dreadful workaround for gfortran 4.9.1 and 4.9.2.  Made
+! TODO: Dreadful workaround for gfortran 4.9.1 and 4.9.2.  Made
 ! getSuffix() an external procedure.
 !!$      procedure :: getSuffix
    end type MpiFileHandler
@@ -33,6 +43,15 @@ module ASTG_MpiFileHandler_mod
 contains
 
     
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newMpiFileHandler
+   !
+   ! DESCRIPTION: 
+   ! Instantiate an mpi file handler with a given communicator. Optionally
+   ! set level, suffix format and delay. If a delay is set to true then we
+   ! don't open the stream.
+   !---------------------------------------------------------------------------
    function newMpiFileHandler(fileNamePrefix, mpiCommunicator, unused, &
         & level, suffixformat, delay) result(handler)
       type (MpiFileHandler) :: handler
@@ -46,6 +65,7 @@ contains
       character(len=:), allocatable :: suffix
       integer :: rank, ier
 
+      ! Interface needed for external function
       interface
          function getSuffix(rank, suffixFormat) result(rawString)
             character(len=:), allocatable :: rawString
@@ -95,6 +115,15 @@ contains
 
 end module ASTG_MpiFileHandler_mod
 
+! Workaround for gfortran 4.9.1 and 4.9.2
+!---------------------------------------------------------------------------  
+! FUNCTION: 
+! getSuffix
+!
+! DESCRIPTION: 
+! Returns a suffix format to append to files created under parallel
+! runs. If suffixFormat is not specified use DEFAULT_MPI_SUFFIX_FORMAT.
+!---------------------------------------------------------------------------  
 function getSuffix(rank, suffixFormat) result(suffix)
    use ASTG_MpiFileHandler_mod
    use ASTG_FormatParser_mod

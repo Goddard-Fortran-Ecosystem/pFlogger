@@ -1,3 +1,13 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_Exception_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
+!------------------------------------------------------------------------------
 module ASTG_Exception_mod
    implicit none
    private
@@ -5,6 +15,14 @@ module ASTG_Exception_mod
    public :: throw
 
 contains
+
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! throw
+   !
+   ! DESCRIPTION: 
+   ! Throws exception.
+   !---------------------------------------------------------------------------
 
 #ifdef USE_PFUNIT
 

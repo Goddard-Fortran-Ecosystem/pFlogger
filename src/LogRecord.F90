@@ -1,7 +1,17 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_LogRecord_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
 ! A LogRecord instance represents an event being logged. Its instances are created
 ! every time something is logged. They contain all the information pertinent to
 ! the event being logged. The  main information passed in is in message and optional
 ! arguments which are combined to create the message field of the record.
+!------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
    use FTL_XWrapVec_mod
    use FTL_CIStringXUMap_mod
@@ -26,8 +36,8 @@ module ASTG_LogRecord_mod
       procedure :: getName
       procedure :: getLevel
       procedure :: getMessage
-      procedure :: getStr
-      procedure :: getFmt
+!      procedure :: getStr
+!      procedure :: getFmt
       procedure, nopass :: fillDateAndTime
    end type LogRecord
 
@@ -39,7 +49,13 @@ module ASTG_LogRecord_mod
 contains
 
    
-   ! Create a log record. 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newLogRecord
+   !
+   ! DESCRIPTION:
+   ! Initialize a logging record with interesting information.
+   !---------------------------------------------------------------------------
    function newLogRecord(name, level, message, args, extra) result(rec)
       use FTL_String_mod
       character(len=*), intent(in) :: name
@@ -87,6 +103,14 @@ contains
    end function newLogRecord
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! fillDateAndTime
+   !
+   ! DESCRIPTION: 
+   ! Helper routine to initialize log record dictionary with date/time
+   ! information.
+   !---------------------------------------------------------------------------
    subroutine fillDateAndTime(rec)
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
@@ -103,7 +127,13 @@ contains
    end subroutine fillDateAndTime
    
    
-   ! return the name for this LogRecord.
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getName
+   !
+   ! DESCRIPTION: 
+   ! Get the name for this log record.
+   !---------------------------------------------------------------------------
    function getName(this) result(name)
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: name
@@ -113,13 +143,28 @@ contains
    end function getName
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getLevel
+   !
+   ! DESCRIPTION: 
+   ! Get the level associated with this log record. This is needed to 'handle'
+   ! a message (see AbstractHandler).
+   !---------------------------------------------------------------------------
    integer function getLevel(this) result(level)
       class (LogRecord), intent(in) :: this
       level = this%level
    end function getLevel
 
 
-   ! return the message for this LogRecord.
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getMessage
+   !
+   ! DESCRIPTION: 
+   ! Return the message for this LogRecord after parsing any user-supplied
+   ! arguments associated with message.
+   !---------------------------------------------------------------------------
    function getMessage(this) result(message)
       use ASTG_FormatParser_mod
       class (LogRecord), intent(in) :: this
@@ -131,6 +176,7 @@ contains
    end function getMessage
 
 
+! TODO: Is there any use for this function?   
    function getStr(this) result(str)
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: str
@@ -147,6 +193,7 @@ contains
    end function getStr
 
    
+! TODO: Is there any use for this function?   
    function getFmt(this) result(fmt)
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: fmt

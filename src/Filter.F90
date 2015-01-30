@@ -58,7 +58,7 @@ contains
    ! newFilter
    !
    ! DESCRIPTION: 
-   ! Initialize with the name of the logger which, together with its
+   ! Initialize filter with the name of the logger which, together with its
    ! children, will have its events allowed through the filter. If no
    ! name is specified, allow every event.
    !---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ contains
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! newFilter
+   ! filter
    !
    ! DESCRIPTION: 
    ! Determine if LogRecord can be logged.
@@ -97,6 +97,13 @@ contains
 
    end function filter_
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! equal
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'equal' operation for filters.
+   !---------------------------------------------------------------------------  
    logical function equal(a, b)
       class(Filter), intent(in) :: a
       class(AbstractFilter), intent(in) :: b
@@ -111,6 +118,13 @@ contains
    end function equal
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! notEqual
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'not equal' operation for filters.
+   !---------------------------------------------------------------------------  
    logical function notEqual(a, b)
       class(Filter), intent(in) :: a
       class(Filter), intent(in) :: b
@@ -120,6 +134,13 @@ contains
    end function notEqual
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getName
+   !
+   ! DESCRIPTION: 
+   ! Get the name associated with this filter.
+   !---------------------------------------------------------------------------  
    function getName(this) result(name)
       class (Filter), intent(in) :: this
       character(len=:), allocatable :: name
@@ -129,6 +150,13 @@ contains
    end function getName
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setName
+   !
+   ! DESCRIPTION: 
+   ! Set the name associated with this filter.
+   !---------------------------------------------------------------------------  
    subroutine setName(this, name)
       class (Filter), intent(inout) :: this
       character(len=*), intent(in) :: name

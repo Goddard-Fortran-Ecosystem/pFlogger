@@ -179,7 +179,7 @@ contains
    ! FUNCTION: 
    ! notEqual
    !
-   ! DESCRIPTION: 
+   ! DESCRIPTION:
    ! Overloads 'not equal' operation for handlers.
    !---------------------------------------------------------------------------  
    logical function notEqual(a, b)

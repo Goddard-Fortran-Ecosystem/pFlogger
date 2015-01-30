@@ -1,3 +1,14 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_SeverityLevels_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
+! Specify severity levels used to logging messages.
+!------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
    implicit none
    private
@@ -23,6 +34,14 @@ module ASTG_SeverityLevels_mod
 
 contains
 
+   
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! levelToString
+   !
+   ! DESCRIPTION:
+   ! Convert a numeric severity level to string identifier.
+   !---------------------------------------------------------------------------
    function levelToString(level) result(string)
       character(len=:), allocatable :: string
       integer, intent(in) :: level

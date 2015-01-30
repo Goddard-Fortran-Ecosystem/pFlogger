@@ -1,6 +1,16 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_MpiFilter_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
 ! Perform arbitrary filtering of LogRecords.
 ! MpiFilter class only allows records which are below a certain point in the
 ! logger hierarchy. 
+!------------------------------------------------------------------------------
 module ASTG_MpiFilter_mod
    use ASTG_AbstractFilter_mod
    use FTL_CaseInsensitiveString_mod
@@ -29,6 +39,15 @@ module ASTG_MpiFilter_mod
 contains
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFilter
+   !
+   ! DESCRIPTION: 
+   ! Initialize filter with the MPI communicator and, optionally, its MPI rank.
+   ! That is, only allow messages that have the specified rank. If rank is not
+   ! specified then print to root rank.
+   !---------------------------------------------------------------------------
    ! Initialize filter with the name of the Logger
    function newMpiFilter(communicator, rank) result(f)
       type (MpiFilter) :: f
@@ -54,7 +73,15 @@ contains
    end function newMpiFilter
 
    
-   ! Determine if LogRecord can be logged
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! filter
+   !
+   ! DESCRIPTION: 
+   ! Determine if LogRecord can be logged.
+   ! Is the specified record to be logged? Returns FALSE for no, TRUE for
+   ! yes.
+   !---------------------------------------------------------------------------
    logical function filter(this, record)
       class (MpiFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
@@ -71,6 +98,13 @@ contains
    end function filter
    
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! equal
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'equal' operation for MPI filters.
+   !---------------------------------------------------------------------------  
    logical function equal(a, b)
       class(MpiFilter), intent(in) :: a
       class(AbstractFilter), intent(in) :: b
@@ -85,6 +119,13 @@ contains
    end function equal
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setRank
+   !
+   ! DESCRIPTION: 
+   ! Set the MPI rank associated with this MPI filter.
+   !---------------------------------------------------------------------------  
    subroutine setRank(this, rank)
       class (MpiFilter) :: this
       integer, intent(in) :: rank
@@ -94,6 +135,13 @@ contains
    end subroutine setRank
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getRank
+   !
+   ! DESCRIPTION: 
+   ! Get the MPI rank associated with this MPI filter.
+   !---------------------------------------------------------------------------  
    function getRank(this) result(rank)
       class (MpiFilter) :: this
       integer :: rank

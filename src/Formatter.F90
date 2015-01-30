@@ -1,4 +1,28 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_Formatter_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
 ! Formatter instances are used to convert a LogRecord to text.
+! Formatters need to know how a LogRecord is constructed. They are
+! responsible for converting a LogRecord to (usually) a string.
+! The Formatter can be initialized with a format string which makes use of
+! knowledge of the LogRecord attributes - e.g. the default value mentioned
+! above makes use of the fact that the user's message and arguments are pre-
+! formatted into a LogRecord's message attribute. Currently, the useful
+! attributes in a LogRecord are described by:
+!
+! %(name)s            Name of the logger
+! %(levelname)s       Text logging level for the message ("DEBUG", "INFO",
+!                        "WARNING", "ERROR", "CRITICAL")
+! %(asctime)s         Textual time when the LogRecord was created
+! %(message)s         The result of record.getMessage(), computed just as
+!                        the record is emitted
+!------------------------------------------------------------------------------
 module ASTG_Formatter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
@@ -28,9 +52,15 @@ module ASTG_Formatter_mod
 contains
 
  
-   ! Initialize a formatter with a string which makes use of
-   ! knowledge of the LogRecord attributes
-   ! Default value is "message", else use optional arguments
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFormatter
+   !
+   ! DESCRIPTION: 
+   ! Initialize a formatter with specified format strings or a default as
+   ! described above. Allow for specialized date formatting using the optional
+   ! datefmt argument.
+   !---------------------------------------------------------------------------
    function newFormatter(fmt, datefmt) result(f)
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
@@ -47,12 +77,17 @@ contains
       else
          f%datefmt = ''
       end if
-!!$      f%datefmt = ''
       
    end function newFormatter
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! formatTime
+   !
+   ! DESCRIPTION: 
    ! Return the creation time of the specified record as formatted text.
+   !---------------------------------------------------------------------------
    function formatTime(this, record, datefmt) result(logMessage)
       use ASTG_FormatParser_mod
       use FTL_String_mod
@@ -76,7 +111,18 @@ contains
    end function formatTime
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! format
+   !
+   ! DESCRIPTION: 
    ! Format the specified record as text.
+   ! The record's attribute dictionary is used as the operand to a
+   ! string formatting operation which yields the returned string.
+   ! If the formatting string uses the time (as determined by a call to
+   ! usesTime(), formatTime() is called to format the event time. The
+   ! formatting of the dictionary is then performed by the format parser.
+   !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use ASTG_FormatParser_mod
       use FTL_String_mod
@@ -102,13 +148,26 @@ contains
    end function format
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! usesTime
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the creation time of the record.
+   !---------------------------------------------------------------------------
    logical function usesTime(this)
       class (Formatter), intent(in) :: this
       usesTime = (index(this%fmt,'%(asctime') > 0)
    end function usesTime
 
    
-   ! This function operates on different input data types and returns a string
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! toString_unlimitedPoly
+   !
+   ! DESCRIPTION: 
+   ! This function operates on different input data types and returns a string.
+   !---------------------------------------------------------------------------
    function toString_unlimitedPoly(this, arg) result(str)
       use FTL_StringUtilities_mod
       use iso_fortran_env
@@ -148,6 +207,13 @@ contains
    end function toString_unlimitedPoly
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! toStringOther
+   !
+   ! DESCRIPTION: 
+   ! Exception handler for unimplemented unlimited polymorphic variables.
+   !---------------------------------------------------------------------------
    function toStringOther(this, arg) result(str)
       use ASTG_Exception_mod
       character(len=:), allocatable :: str

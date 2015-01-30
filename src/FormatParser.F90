@@ -1,6 +1,16 @@
-! FormatParser methods are used to parse format strings that represent
-! fortran specification expressions. Format strings contain 
-! “replacement fields” delimited by the % sign.
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_FormatParser_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
+! FormatParser methods are used to parse format strings that represent fortran
+! specification expressions. Format strings contain “replacement fields” 
+! delimited by the % sign.
+!------------------------------------------------------------------------------
 module ASTG_FormatParser_mod
    use ASTG_Object_mod
    use ASTG_Exception_mod
@@ -42,6 +52,14 @@ module ASTG_FormatParser_mod
 contains
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! isFormat
+   !
+   ! DESCRIPTION: 
+   ! Check if specified string is a valid format specification. String must
+   ! begin with % sign. If so, return TRUE, else throw an exception.
+   !---------------------------------------------------------------------------
    logical function isFormat(string)
       character(len=*), intent(in) :: string
 
@@ -54,8 +72,13 @@ contains
 
    end function isFormat
 
-
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! formatContainsKey
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    logical function formatContainsKey(string)
       character(len=*), intent(in) :: string
       
@@ -63,8 +86,13 @@ contains
 
    end function formatContainsKey
 
-
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getFormatKey
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function getFormatKey(tokenString) result(key)
       character(len=:), allocatable :: key
       character(len=*), intent(in) :: tokenString
@@ -84,7 +112,11 @@ contains
 
    end function getFormatKey
 
-   !-------------------------------------------------------
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! startOfNextToken
+   !
+   ! DESCRIPTION: 
    ! Format strings consist of two types of tokens. First there are
    ! regular text strings that do not contain any FORMAT_DELIMITER. Then
    ! there are format specifiers that begin with a FORMAT_DELIMITER.
@@ -92,8 +124,7 @@ contains
    ! important issue is how to detect the _end_ of a format specifier
    ! token.  For the moment, we require that those end with a space
    ! (i.e. '_').
-   !-------------------------------------------------------
-
+   !---------------------------------------------------------------------------  
    integer function startOfNextToken(string) result(idx)
       character(len=*), intent(in) :: string
 
@@ -147,6 +178,12 @@ contains
    end function startOfNextToken
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getPayload
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function getPayload(string) result(payload)
       character(len=:), allocatable :: payload
       character(len=*), intent(in) :: string
@@ -226,6 +263,12 @@ contains
    end function getPayload
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getTokens
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function getTokens(rawString) result(tokens)
       use FTL_String_mod
       use FTL_StringVec_mod
@@ -257,6 +300,12 @@ contains
    end function getTokens
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! format
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function format(fmt, args, unusable, arr1D_1, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
@@ -346,6 +395,12 @@ contains
    end function format
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! makeString
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function makeString(fmt, ARG_LIST, unusable, arr1D_1, extra) result(rawString)
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
@@ -365,6 +420,13 @@ contains
        
    end function makeString
 
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleScalar
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function handleScalar(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       use FTL_String_mod
@@ -427,6 +489,12 @@ contains
    end function handleScalar
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray1D
+   !
+   ! DESCRIPTION: 
+   !---------------------------------------------------------------------------
    function handleArray1D(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       use FTL_String_mod
