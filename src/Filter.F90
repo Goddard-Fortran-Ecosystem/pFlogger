@@ -1,10 +1,24 @@
-! Perform arbitrary filtering of LogRecords.
-! Filter class only allows records which are below a certain point in the
-! logger hierarchy. 
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_Filter_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION: 
+! Use a filter to perform arbitrary filtering of LogRecords.
+! Loggers and Handlers can optionally use Filter instances to filter
+! records as desired. The base filter class only allows events which are
+! below a certain point in the logger hierarchy. For example, a filter
+! initialized with "A.B" will allow events logged by loggers "A.B",
+! "A.B.C", "A.B.C.D", "A.B.D" etc. but not "A.BB", "B.A.B" etc. If
+! initialized with the empty string, all events are passed.
+!------------------------------------------------------------------------------
 module ASTG_Filter_mod
+   use FTL_CaseInsensitiveString_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
-   use FTL_CaseInsensitiveString_mod
    use ASTG_AbstractFilter_mod, only: AbstractFilter
    implicit none
    private
@@ -39,7 +53,15 @@ module ASTG_Filter_mod
 contains
 
 
-   ! Initialize filter with the name of the Logger
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFilter
+   !
+   ! DESCRIPTION: 
+   ! Initialize with the name of the logger which, together with its
+   ! children, will have its events allowed through the filter. If no
+   ! name is specified, allow every event.
+   !---------------------------------------------------------------------------
    function newFilter(name) result(f)
       type (Filter) :: f
       character(len=*), intent(in) :: name
@@ -49,7 +71,15 @@ contains
    end function newFilter
 
    
-   ! Determine if LogRecord can be logged
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFilter
+   !
+   ! DESCRIPTION: 
+   ! Determine if LogRecord can be logged.
+   ! Is the specified record to be logged? Returns FALSE for no, TRUE for
+   ! yes.
+   !---------------------------------------------------------------------------
    logical function filter_(this, record)
       class (Filter), intent(in) :: this
       class (LogRecord), intent(inout) :: record

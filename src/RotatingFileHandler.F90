@@ -1,8 +1,18 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_RotatingFileHandler_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
 ! Handler for logging to a set of files, which switches from one file
 ! to the next when the current file reaches a certain size.
 ! By default, the file grows indefinitely. You can specify particular
 ! values of maxBytes and backupCount to allow the file to rollover at
 ! a predetermined size.
+!------------------------------------------------------------------------------
 module ASTG_RotatingFileHandler_mod
    use iso_fortran_env
    use ASTG_SeverityLevels_mod, only: INFO
@@ -36,6 +46,15 @@ module ASTG_RotatingFileHandler_mod
 contains
 
     
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newRotatingFileHandler
+   !
+   ! DESCRIPTION: 
+   ! Instantiate a rotating file handler with a given file name. Optionally
+   ! set maxBytes, backupcount and level. Note maxBytes can be specified
+   ! in kb, mb or gb. E.g. maxBytes=100mb.
+   !---------------------------------------------------------------------------
    function newRotatingFileHandler(fileName, maxBytes, backupCount, level) &
         result(handler)
       type (RotatingFileHandler) :: handler
@@ -75,6 +94,13 @@ contains
    end function newRotatingFileHandler
 
    
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! convertNumBytes
+   !
+   ! DESCRIPTION: 
+   ! Convert maxBytes descriptor to bytes.
+   !---------------------------------------------------------------------------  
    function convertNumBytes_(maxBytes) result(nBytes)
       character(len=*), intent(in) :: maxBytes
       integer(int64) :: nBytes
@@ -117,7 +143,13 @@ contains
    end function convertNumBytes_
       
    
-   ! Write a string to a file.
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! emitMessage
+   !
+   ! DESCRIPTION: 
+   ! Write a formatted string to a file.
+   !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (RotatingFileHandler), intent(inout) :: this
       type (LogRecord) :: record
@@ -131,7 +163,13 @@ contains
    end subroutine emitMessage
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! shouldRollover
+   !
+   ! DESCRIPTION: 
    ! Determine if rollover should occur.
+   !---------------------------------------------------------------------------  
    function shouldRollover(this) result(rollOver)
       class (RotatingFileHandler), intent(in) :: this
       logical :: rollOver 
@@ -146,7 +184,22 @@ contains
    end function shouldRollover
 
    
-   ! Rollover occurs whenever the current log file exceeds maxBytes
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! doRollover
+   !
+   ! DESCRIPTION: 
+   ! Rollover occurs whenever the current log file is nearly maxBytes in
+   ! length. If backupCount is >= 1, the system will successively create
+   ! new files with the same pathname as the base file, but with extensions
+   ! ".1", ".2" etc. appended to it. For example, with a backupCount of 5
+   ! and a base file name of "app.log", you would get "app.log",
+   ! "app.log.1", "app.log.2", ... through to "app.log.5". The file being
+   ! written to is always "app.log" - when it gets filled up, it is closed
+   ! and renamed to "app.log.1", and if files "app.log.1", "app.log.2" etc.
+   ! exist, then they are renamed to "app.log.2", "app.log.3" etc.
+   ! respectively.
+   !---------------------------------------------------------------------------  
    subroutine doRollover(this)
       class (RotatingFileHandler), intent(inout) :: this
       

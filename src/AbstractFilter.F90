@@ -1,3 +1,14 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_AbstractFilter_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
+! AbstractFilter class provides common code to use in Filter class.
+!------------------------------------------------------------------------------
 module ASTG_AbstractFilter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod

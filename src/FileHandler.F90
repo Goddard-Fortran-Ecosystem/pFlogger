@@ -1,4 +1,14 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_FileHandler_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
 ! A handler class which writes logging events to disk files
+!------------------------------------------------------------------------------
 module ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
@@ -36,9 +46,15 @@ module ASTG_FileHandler_mod
 contains
 
     
-   ! Instattiate a file handler withh a given file name. Optionally
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFileHandler
+   !
+   ! DESCRIPTION: 
+   ! Instantiate a file handler with a given file name. Optionally
    ! set a level and a delay. If a delay is set to true then we
    ! don't open the stream.
+   !---------------------------------------------------------------------------
    function newFileHandler(fileName, level, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
@@ -68,7 +84,13 @@ contains
    end function newFileHandler
 
     
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! emitMessage
+   !
+   ! DESCRIPTION: 
    ! Write a formatted string to a file.
+   !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (FileHandler), intent(inout) :: this
       type(LogRecord) :: record
@@ -80,6 +102,13 @@ contains
    end subroutine emitMessage
 
     
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! isOpen
+   !
+   ! DESCRIPTION: 
+   ! Check if file unit is open. 
+   !---------------------------------------------------------------------------  
    logical function isOpen(this)
       class (FileHandler), intent(in) :: this
        
@@ -89,6 +118,13 @@ contains
    end function isOpen
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! flushUnit
+   !
+   ! DESCRIPTION: 
+   ! Flushes unit currently open for output.
+   !---------------------------------------------------------------------------  
    subroutine flushUnit(this)
       class (FileHandler), intent(inout) :: this
       
@@ -97,7 +133,13 @@ contains
    end subroutine flushUnit
 
    
-   ! Open the disk file used by this handler
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! open
+   !
+   ! DESCRIPTION: 
+   ! Open the disk file used by this handler.
+   !---------------------------------------------------------------------------  
    subroutine open(this)
       class (FileHandler), intent(inout) :: this
       integer :: unit
@@ -111,6 +153,13 @@ contains
    end subroutine open
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! close
+   !
+   ! DESCRIPTION: 
+   ! Closes the disk file used by this handler.
+   !---------------------------------------------------------------------------  
    subroutine close(this)
       class (FileHandler), intent(inout) :: this
 
@@ -121,7 +170,13 @@ contains
    end subroutine close
 
 
-   ! Set the fortran unit number for this handler
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setUnit
+   !
+   ! DESCRIPTION: 
+   ! Set the fortran unit number for this handler.
+   !---------------------------------------------------------------------------  
    subroutine setUnit(this, unit)
       class (FileHandler), intent(inout) :: this
       integer, intent(in) :: unit
@@ -131,7 +186,13 @@ contains
    end subroutine setUnit
 
 
-   ! Get the fortran unit number for this handler
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getUnit
+   !
+   ! DESCRIPTION: 
+   ! Get the fortran unit number for this handler.
+   !---------------------------------------------------------------------------  
    integer function getUnit(this) result(unit)
       class (FileHandler), intent(in) :: this
 
@@ -140,6 +201,13 @@ contains
    end function getUnit
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getFileName
+   !
+   ! DESCRIPTION: 
+   ! Get the file name associated with this handler.
+   !---------------------------------------------------------------------------  
    function getFileName(this) result(fileName)
       class (FileHandler), intent(in) :: this
       character(len=:), allocatable :: fileName
@@ -149,6 +217,13 @@ contains
    end function getFileName
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setFileName
+   !
+   ! DESCRIPTION: 
+   ! Set the file name associated with this handler.
+   !---------------------------------------------------------------------------  
    subroutine setFileName(this, fileName)
       class (FileHandler), intent(inout) :: this
       character(len=*), intent(in) :: fileName
@@ -158,6 +233,13 @@ contains
    end subroutine setFileName
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! equal
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'equal' operation for file handlers.
+   !---------------------------------------------------------------------------  
    logical function equal(a, b)
       class (FileHandler), intent(in) :: a
       class (AbstractHandler), intent(in) :: b

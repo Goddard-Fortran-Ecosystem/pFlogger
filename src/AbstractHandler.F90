@@ -1,3 +1,12 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_AbstractHandler_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
 ! Abstract class for handlers. This is a placeholder to define specific
 ! handler interfaces. Instances of this class define how logging events 
 ! are dispatched to specific destinations. Handlers are passed LogRecord
@@ -10,6 +19,7 @@
 ! message to the desired format and sends the formatted text back to the
 ! Handler. Finally the Handler receives the message as formatted text back
 ! from the Formatter and emits it to your destination.
+!------------------------------------------------------------------------------
 module ASTG_AbstractHandler_mod
    use ASTG_Filterer_mod
    use ASTG_SeverityLevels_mod, only: levelToString
@@ -74,12 +84,19 @@ module ASTG_AbstractHandler_mod
 
    end interface
 
-   character(len=*), parameter :: BASIC_FORMAT = '%(levelName::a): %(name::a): %(message::a)'
+   character(len=*), parameter :: BASIC_FORMAT = &
+        '%(levelName::a): %(name::a): %(message::a)'
    
 contains
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! handle
+   !
+   ! DESCRIPTION: 
    ! Log a specified message with severity 'level'
+   !---------------------------------------------------------------------------
    subroutine handle(this, record)
       class(AbstractHandler), intent(inout) :: this
       type (LogRecord) :: record
@@ -94,7 +111,13 @@ contains
    end subroutine handle
 
 
-   ! format a record, return a message - before 'emit'
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! format
+   !
+   ! DESCRIPTION: 
+   ! Format a record using specified formatter.
+   !---------------------------------------------------------------------------
    function format(this, record) result(message)
       class(AbstractHandler), intent(in) :: this
       type(LogRecord), intent(inout) :: record
@@ -105,7 +128,13 @@ contains
    end function format
 
    
-   ! Set the formatter for this handler
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setFormatter
+   !
+   ! DESCRIPTION: 
+   ! Set the formatter for this handler.
+   !---------------------------------------------------------------------------
    subroutine setFormatter(this, fmt)
       class (AbstractHandler), intent(inout) :: this
       type(Formatter) :: fmt
@@ -115,7 +144,13 @@ contains
    end subroutine setFormatter
 
    
-   ! Set the logging level of this handler
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! setLevel
+   !
+   ! DESCRIPTION: 
+   ! Set the logging level of this handler.
+   !---------------------------------------------------------------------------  
    subroutine setLevel(this, level)
       class (AbstractHandler), intent(inout) :: this
       integer, intent(in) :: level
@@ -125,7 +160,13 @@ contains
    end subroutine setLevel
 
    
-   ! Get the logging level of this handler
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getLevel
+   !
+   ! DESCRIPTION: 
+   ! Get the logging level of this handler.
+   !---------------------------------------------------------------------------  
    integer function getLevel(this)
       class (AbstractHandler), intent(in) :: this
       
@@ -134,6 +175,13 @@ contains
    end function getLevel
  
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! notEqual
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'not equal' operation for handlers.
+   !---------------------------------------------------------------------------  
    logical function notEqual(a, b)
       class (AbstractHandler), intent(in) :: a
       class (AbstractHandler), intent(in) :: b

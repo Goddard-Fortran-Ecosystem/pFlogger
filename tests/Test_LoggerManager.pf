@@ -75,6 +75,8 @@ contains
    end subroutine test_noParent
 
 
+! TODO: what is this testing?
+! TODO: Most of these tests should be in Test_Logger   
 @test
    subroutine test_passMessageToParent()
       use MockHandler_mod

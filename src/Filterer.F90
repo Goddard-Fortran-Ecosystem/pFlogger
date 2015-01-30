@@ -1,6 +1,16 @@
-! A base class for loggers and handlers. A filterer uses filters.
-! Main funtion is called filter which determines if a LogRecord
-! is loggable. Thus, this class could be called filterable.
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_AbstractFilter_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
+! A base class for loggers and handlers that allows them to share common code.
+! Note that a filterer uses filters. Main funtion is called filter which
+! determines if a LogRecord is "loggable".
+!------------------------------------------------------------------------------
 module ASTG_Filterer_mod
    use ASTG_Object_mod
    use ASTG_AbstractFilter_mod
@@ -30,14 +40,26 @@ module ASTG_Filterer_mod
 contains
 
 
-   ! Initializes list of filters to an empty list
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newFilterer
+   !
+   ! DESCRIPTION: 
+   ! Initializes list of filters to an empty list.
+   !---------------------------------------------------------------------------
    function newFilterer() result(f)
       type (Filterer) :: f
       f%filters = AbstractFilterPolyWrapVec()
    end function newFilterer
 
    
-   ! Add a filter to 'this' handler
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! addFilter
+   !
+   ! DESCRIPTION: 
+   ! Add a filter to 'this' handler.
+   !---------------------------------------------------------------------------
    subroutine addFilter(this, fltr)
       class (Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: fltr
@@ -58,7 +80,15 @@ contains
    end subroutine addFilter
 
 
-   ! Filter a LogRecord
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! filter_
+   !
+   ! DESCRIPTION: 
+   ! Determine if a record is loggable by consulting all the filters.
+   ! The default is to allow the record to be logged unless otherwise
+   ! specified by the filter.  Returns FALSE if a record, else TRUE.
+   !---------------------------------------------------------------------------
    logical function filter_(this, record)
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record
@@ -81,6 +111,13 @@ contains
    end function filter_
 
 
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! removeFilter
+   !
+   ! DESCRIPTION: 
+   ! Remove filter from 'this' handler.
+   !---------------------------------------------------------------------------
    subroutine removeFilter(this, f)
       use ASTG_Exception_mod
       class(Filterer), intent(inout) :: this
@@ -104,7 +141,14 @@ contains
    end subroutine removeFilter
 
 
-   function getFilters(this) result(filters)
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! getFilters
+   !
+   ! DESCRIPTION: 
+   ! Get list of "this" filters.
+   !---------------------------------------------------------------------------
+  function getFilters(this) result(filters)
       type (AbstractFilterPolyWrapVec), pointer :: filters
       class (Filterer), target, intent(in) :: this
 

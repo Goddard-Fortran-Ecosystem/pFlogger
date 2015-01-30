@@ -1,5 +1,15 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+! MODULE: ASTG_StreamHandler_mod
+!
+! AUTHOR: ASTG staff
+!
+! DESCRIPTION:
 ! A handler class which writes logging events to a stream, e.g. STDOUT
 ! Note that this class does not close the stream.
+!------------------------------------------------------------------------------
 module ASTG_StreamHandler_mod
    use iso_fortran_env, only: OUTPUT_UNIT
    use ASTG_SeverityLevels_mod, only: INFO
@@ -30,7 +40,14 @@ module ASTG_StreamHandler_mod
 contains
 
    
-   ! Initialize the stream handler
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! newStreamHandler
+   !
+   ! DESCRIPTION: 
+   ! Instatiate a stream handler. If uit is not specified use OUTPUT_UNIT.
+   ! OUTPUT_UNIT is defined by iso_fortran_env to be STDOUT (unit=6).
+   !---------------------------------------------------------------------------
    function newStreamHandler(unit, level) result(handler)
       type (StreamHandler) :: handler
       integer, optional, intent(in) :: unit
@@ -56,7 +73,13 @@ contains
    end function newStreamHandler
 
    
-   ! Write a string to a stream. Level is specified in levelString
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! emitMessage
+   !
+   ! DESCRIPTION: 
+   ! Write a formatted string to a stream.
+   !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (StreamHandler), intent(inout) :: this
       type(LogRecord) :: record
@@ -67,6 +90,13 @@ contains
    end subroutine emitMessage
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! flushUnit
+   !
+   ! DESCRIPTION: 
+   ! Flushes unit currently open for output.
+   !---------------------------------------------------------------------------  
    subroutine flushUnit(this)
       class (StreamHandler), intent(inout) :: this
       
@@ -75,11 +105,25 @@ contains
    end subroutine flushUnit
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! close
+   !
+   ! DESCRIPTION: 
+   ! A no-op routine.
+   !---------------------------------------------------------------------------  
    subroutine close(this)
       class (StreamHandler), intent(inout) :: this
    end subroutine close
 
 
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! equal
+   !
+   ! DESCRIPTION: 
+   ! Overloads 'equal' operation for stream handlers.
+   !---------------------------------------------------------------------------  
    logical function equal(a, b)
       class (StreamHandler), intent(in) :: a
       class (AbstractHandler), intent(in) :: b
