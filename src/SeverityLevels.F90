@@ -15,6 +15,7 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
+   use ASTG_Exception_mod
    implicit none
    private
 
@@ -53,17 +54,19 @@ contains
 
       select case (level)
       case (NOTSET)
-        string = 'NOTSET'
+         string = 'NOTSET'
       case (DEBUG)
-        string = 'DEBUG'
+         string = 'DEBUG'
       case (INFO)
-        string = 'INFO'
+         string = 'INFO'
       case (WARNING)
-        string = 'WARNING'
+         string = 'WARNING'
       case (ERROR)
-        string = 'ERROR'
+         string = 'ERROR'
       case (CRITICAL)
-        string = 'CRITICAL'
+         string = 'CRITICAL'
+      case default
+         call throw('Unknown level. Please use a valid level.')
       end select
       
    end function levelToString

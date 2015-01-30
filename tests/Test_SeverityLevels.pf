@@ -1,0 +1,24 @@
+module Test_SeverityLevels_mod
+   use pFUnit_mod
+   use ASTG_SeverityLevels_mod
+   use iso_fortran_env
+   
+   implicit none
+
+contains
+
+   
+   @test
+   subroutine test_levelToString()
+      
+      ! Level numeric values range from NOTSET=0 to CRITICAL=50
+      @assertEqual('NOTSET', levelToString(NOTSET))
+      @assertEqual('CRITICAL', levelToString(CRITICAL))
+      ! Therefore, the following should throw an exception:
+      print *, levelToString(70)
+      ! Catch it here:
+      @assertExceptionRaised('Unknown level. Please use a valid level.')
+      
+   end subroutine test_levelToString
+
+end module Test_SeverityLevels_mod

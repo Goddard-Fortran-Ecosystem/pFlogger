@@ -1,4 +1,4 @@
-program fileLogging
+program app
 
    use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
@@ -62,4 +62,4 @@ program fileLogging
    call mpi_finalize(ier)
 
 
-end program fileLogging
+end program app

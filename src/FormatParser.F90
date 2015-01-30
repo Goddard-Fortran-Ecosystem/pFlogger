@@ -87,13 +87,15 @@ contains
    !---------------------------------------------------------------------------
    logical function formatContainsKey(string)
       character(len=*), intent(in) :: string
-      
-      if (len(string) == 0) then
-         formatContainsKey = .false.
-         call throw("Illegal keyword separator - must use ::")
-      else
-         formatContainsKey = (index(string,KEYWORD_SEPARATOR) > 0)
-      end if
+      integer :: idx
+
+      idx = index(string,':')
+      if (idx > 0) then
+         if (string(idx:idx+1) /= KEYWORD_SEPARATOR) then
+            call throw("Illegal keyword separator - must use ::")
+         end if
+     end if   
+     formatContainsKey = (idx > 0)
 
    end function formatContainsKey
 

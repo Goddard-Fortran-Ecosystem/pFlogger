@@ -23,6 +23,9 @@ ADD_TEST_SUITE(Test_Formatter_mod_suite)
 ADD_TEST_SUITE(Test_FormatParser_mod_suite)
 ADD_TEST_SUITE(Test_ArgListUtilities_mod_suite)
 
+! Others
+ADD_TEST_SUITE(Test_SeverityLevels_mod_suite)
+
 ! MPI related
 #ifdef LOGGER_USE_MPI
 ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
