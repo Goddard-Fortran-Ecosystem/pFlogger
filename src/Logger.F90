@@ -134,7 +134,9 @@ contains
    function getName(this) result(name)
       character(len=:), allocatable :: name
       class (Logger), intent(in) :: this
+      
       name = this%name
+      
    end function getName
 
    
@@ -177,7 +179,6 @@ contains
       class (AbstractHandler), intent(in) :: handler
 
       type (AbstractHandlerPolyWrapVecIter) :: iter
-
 
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
@@ -244,24 +245,19 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
+      include 'recordOptArgs.inc'
       
-      include 'recordOptArgs.inc'  
       type (AbstractHandlerPolyWrapVecIter) :: iter
       class (AbstractHandler), pointer :: handler
-      type (LogRecord) :: record
-
-      class (AbstractHandlerPolyWrap), pointer :: h
       type (XWrapVec) :: args
 
+      args = makeArgVector(ARG_LIST)
+      iter = this%handlers%begin()
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
-      args = makeArgVector(ARG_LIST)
-      record = this%makeRecord(level, message, args)
-      
-      iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
          handler => iter%get_alt()
-         call handler%handle(record)
+         call handler%handle(this%makeRecord(level, message, args))
          call iter%next()
       end do
 
@@ -280,9 +276,9 @@ contains
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
-      integer, optional, intent(in) :: level
+      integer, optional, intent(in) :: level     
+      include 'recordOptArgs.inc'
       
-      include 'recordOptArgs.inc'  
       integer :: level_
 
       if (present(level)) then
