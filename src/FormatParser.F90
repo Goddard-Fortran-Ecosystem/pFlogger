@@ -105,7 +105,7 @@ contains
    ! getFormatKey
    !
    ! DESCRIPTION:
-   ! Returns format key, i.e., the contents of the format after the :: separator.
+   ! Returns format key, i.e., the contents of the format before the :: separator.
    !---------------------------------------------------------------------------
    function getFormatKey(tokenString) result(key)
       character(len=:), allocatable :: key
