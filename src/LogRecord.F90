@@ -227,16 +227,16 @@ contains
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, message, args, extra)
       use FTL_XWrapVec_mod
-      use FTL_StringXUMap_mod
+      use FTL_CIStringXUMap_mod
       use FTL_String_mod
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (XWrapVec), optional, intent(in) :: args
-      type (StringXUMap), optional, intent(in) :: extra
+      type (CIStringXUMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
-      type (StringXUMapIter) :: iter
+      type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       character(len=:), allocatable :: levelName
       
@@ -252,7 +252,7 @@ contains
       if (present(extra)) then
          rec%extra = extra
       else
-         rec%extra = StringXUMap()
+         rec%extra = CIStringXUMap()
       end if
 
       iter = rec%extra%emplace('level', level)
