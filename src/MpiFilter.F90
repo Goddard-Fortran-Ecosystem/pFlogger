@@ -31,7 +31,7 @@ module ASTG_MpiFilter_mod
       integer :: rank
       logical :: shouldFilter
    contains
-      procedure :: filter !=> filter_ ! name conflict
+      procedure :: doFilter
       procedure :: equal
       procedure :: setRank
       procedure :: getRank
@@ -80,14 +80,14 @@ contains
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! filter
+   ! Filter
    !
    ! DESCRIPTION: 
    ! Determine if LogRecord can be logged.
    ! Is the specified record to be logged? Returns FALSE for no, TRUE for
    ! yes.
    !---------------------------------------------------------------------------
-   logical function filter(this, record)
+   logical function doFilter(this, record)
       class (MpiFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
@@ -100,7 +100,7 @@ contains
          filter = .false.
       end if
       
-   end function filter
+   end function doFilter
    
 
    !---------------------------------------------------------------------------  
