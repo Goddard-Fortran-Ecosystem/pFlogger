@@ -229,13 +229,13 @@ contains
       use FTL_XWrapVec_mod
       use FTL_CIStringXUMap_mod
       use FTL_String_mod
+      type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (XWrapVec), optional, intent(in) :: args
       type (CIStringXUMap), optional, intent(in) :: extra
 
-      type (LogRecord) :: rec
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       character(len=:), allocatable :: levelName

@@ -29,6 +29,7 @@ module ASTG_Filter_mod
    private
 
    public :: Filter
+   public :: initfilter
 
    type, extends(AbstractFilter) :: Filter
       private
@@ -74,6 +75,24 @@ contains
       call f%setName(name)
 
    end function newFilter
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! initFilter
+   !
+   ! DESCRIPTION: 
+   ! Initialize filter with the name of the logger which, together with its
+   ! children, will have its events allowed through the filter. If no
+   ! name is specified, allow every event.
+   !---------------------------------------------------------------------------
+   subroutine initFilter(f, name)
+      type (Filter), intent(out) :: f
+      character(len=*), intent(in) :: name
+
+      call f%setName(name)
+
+   end subroutine initFilter
 
    
    !---------------------------------------------------------------------------  
