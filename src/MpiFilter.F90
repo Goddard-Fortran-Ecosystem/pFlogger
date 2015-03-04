@@ -95,9 +95,9 @@ contains
       integer :: n
 
       if (this%shouldFilter) then 
-         filter = .true.  ! do emit
+         doFilter = .true.  ! do emit
       else
-         filter = .false.
+         doFilter = .false.
       end if
       
    end function doFilter
