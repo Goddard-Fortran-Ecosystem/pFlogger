@@ -17,7 +17,7 @@ contains
       f = Filter('A')
       record = LogRecord('B', INFO, 'some message')
 
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
       
    end subroutine test_defaultFilterNameMismatch
 
@@ -30,7 +30,7 @@ contains
       f = Filter('A')
       record = LogRecord('A', INFO, 'some message')
 
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
       
    end subroutine test_defaultFilterNameMatch
 
@@ -42,11 +42,11 @@ contains
 
       f = Filter('A')
       record = LogRecord('AB', INFO, 'some message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
       f = Filter('AB')
       record = LogRecord('A', INFO, 'some message')
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
       
 
    end subroutine test_defaultFilterPartialMatch

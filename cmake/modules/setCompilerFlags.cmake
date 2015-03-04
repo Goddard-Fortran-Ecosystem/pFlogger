@@ -59,7 +59,7 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
    endif()
 
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
-   set (CPPFLAGS "${CPPFLAGS} -fpp")
+   set (CPPFLAGS "${CPPFLAGS} -fpp -D__NAG__")
  
   set(F90FLAGS 
       "${CPPFLAGS}"

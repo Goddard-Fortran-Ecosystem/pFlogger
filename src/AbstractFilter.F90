@@ -26,19 +26,19 @@ module ASTG_AbstractFilter_mod
    type, abstract, extends (Object) :: AbstractFilter
       private
    contains
-      procedure(filter), deferred :: filter
+      procedure(doFilter), deferred :: doFilter
       procedure(equal), deferred :: equal
       generic :: operator(==) => equal
    end type AbstractFilter
 
    abstract interface
 
-      logical function filter(this, record)
+      logical function doFilter(this, record)
          import AbstractFilter
          import LogRecord
          class (AbstractFilter), intent(in) :: this
          class (LogRecord), intent(inout) :: record
-      end function filter 
+      end function doFilter
 
       logical function equal(a, b)
          import AbstractFilter

@@ -16,7 +16,7 @@ contains
 
       f = Filterer()
       record = LogRecord('A', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
    end subroutine test_filterNoFilters
    
@@ -30,7 +30,7 @@ contains
       call f%addFilter(Filter('A'))
       record = LogRecord('B', INFO, 'message')
      
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
 
    end subroutine test_filterMismatch
 
@@ -43,7 +43,7 @@ contains
       f = Filterer()
       call f%addFilter(Filter('A'))
       record = LogRecord('A', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
    end subroutine test_filterMatch
 
@@ -57,10 +57,10 @@ contains
       call f%addFilter(Filter('B'))
 
       record = LogRecord('A', INFO, 'message')
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
 
       record = LogRecord('B', INFO, 'message')
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
 
    end subroutine test_filterCombo
 
@@ -75,10 +75,10 @@ contains
       call f%addFilter(Filter('AB'))
 
       record = LogRecord('AB', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
       record = LogRecord('B', INFO, 'message')
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
 
    end subroutine test_filterComboB
 
@@ -112,10 +112,10 @@ contains
 
       ! no filters left
       record = LogRecord('A', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
       record = LogRecord('B', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
    end subroutine test_removeFilter_simple
    
@@ -133,10 +133,10 @@ contains
       
       ! only 'B' left
       record = LogRecord('A', INFO, 'message')
-      @assertFalse(f%filter(record))
+      @assertFalse(f%doFilter(record))
 
       record = LogRecord('B', INFO, 'message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%doFilter(record))
 
    end subroutine test_removeFilter_nontrivial
    

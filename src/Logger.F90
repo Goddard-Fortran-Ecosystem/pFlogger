@@ -210,10 +210,14 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (XWrapVec), optional, intent(in) :: args
-      
-      record = LogRecord(this%getName(), level, message, args=args)
+
+      character(len=:), allocatable :: name
+
+      name = this%getName()
+      call initLogRecord(record, name, level, message, args=args)
       
    end function makeRecord
+
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 

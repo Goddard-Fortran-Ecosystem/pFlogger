@@ -40,7 +40,7 @@ module ASTG_Filter_mod
       type (CaseInsensitiveString) :: name
 #endif
    contains
-      procedure :: filter => filter_ ! name conflict
+      procedure :: doFilter
       procedure :: equal
       procedure :: notEqual
       generic :: operator(/=) => notEqual
@@ -85,22 +85,25 @@ contains
    ! Is the specified record to be logged? Returns FALSE for no, TRUE for
    ! yes.
    !---------------------------------------------------------------------------
-   logical function filter_(this, record)
+   logical function doFilter(this, record)
       class (Filter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
       character(len=:), allocatable :: recordName
       integer :: n
 
+
       recordName = record%getName()
+
       n = len(this%name)
+
       if (this%name == recordName(1:n)) then
-         filter_ = .true.  ! do emit
+         doFilter = .true.  ! do emit
       else
-         filter_ = .false. ! do NOT emit
+         doFilter = .false. ! do NOT emit
       end if
 
-   end function filter_
+   end function doFilter
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 

@@ -27,6 +27,7 @@ module ASTG_LogRecord_mod
    private
 
    public :: LogRecord
+   public :: initLogRecord
 
    type, extends(Object) :: LogRecord
 !      private
@@ -215,5 +216,61 @@ contains
       end if
       
    end function getFmt
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! initLogRecord
+   !
+   ! DESCRIPTION:
+   ! Initialize a logging record with interesting information.
+   !---------------------------------------------------------------------------
+   subroutine initLogRecord(rec, name, level, message, args, extra)
+      use FTL_XWrapVec_mod
+      use FTL_StringXUMap_mod
+      use FTL_String_mod
+      character(len=*), intent(in) :: name
+      integer, intent(in) :: level
+      character(len=*), intent(in) :: message
+      type (XWrapVec), optional, intent(in) :: args
+      type (StringXUMap), optional, intent(in) :: extra
+
+      type (LogRecord) :: rec
+      type (StringXUMapIter) :: iter
+      type (String) :: wrapName
+      character(len=:), allocatable :: levelName
+      
+      rec%name = name
+      rec%level = level
+      rec%message = message
+      if (present(args)) then
+         rec%args = args
+      else
+         rec%args = XWrapVec()
+      end if
+
+      if (present(extra)) then
+         rec%extra = extra
+      else
+         rec%extra = StringXUMap()
+      end if
+
+      iter = rec%extra%emplace('level', level)
+      ! workaround for ifort
+      wrapName = name
+      iter = rec%extra%emplace('name', wrapName)
+
+      levelName = levelToString(level)
+      ! Compiler workarounds
+#ifdef __INTEL_COMPILER
+      ! ifort
+      iter= rec%extra%emplace('levelName', levelName)
+#else
+      ! gfortran
+      iter= rec%extra%emplace('levelName', String(levelName))
+#endif
+      call fillDateAndTime(rec)
+      
+   end subroutine initLogRecord
 
 end module ASTG_LogRecord_mod

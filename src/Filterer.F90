@@ -31,7 +31,7 @@ module ASTG_Filterer_mod
       type (AbstractFilterPolyWrapVec) :: filters
    contains
       procedure :: addFilter
-      procedure :: filter => filter_ ! avoid name conflict with class Filter.
+      procedure :: doFilter
       procedure :: removeFilter
       procedure :: getFilters
    end type Filterer
@@ -87,33 +87,33 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! filter_
+   ! doFilter
    !
    ! DESCRIPTION: 
    ! Determine if a record is loggable by consulting all the filters.
    ! The default is to allow the record to be logged unless otherwise
    ! specified by the filter.  Returns FALSE if a record, else TRUE.
    !---------------------------------------------------------------------------
-   logical function filter_(this, record)
+   logical function doFilter(this, record)
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
       type (AbstractFilterPolyWrapVecIter) :: iter
       class (AbstractFilter), pointer :: fPtr
 
-      filter_ = .true. ! unless
+      doFilter = .true. ! unless
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
          fPtr => iter%get_alt()
-         if (.not. fPtr%filter(record)) then
-            filter_ = .false.
+         if (.not. fPtr%doFilter(record)) then
+            doFilter = .false.
             exit
          end if
          call iter%next()
       end do
 
-   end function filter_
+   end function doFilter
 
 
    !---------------------------------------------------------------------------  
