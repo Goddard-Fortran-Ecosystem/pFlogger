@@ -63,8 +63,8 @@ contains
    end subroutine test_getFormatKey
 
 
-   ! Format strings have two tokens: regular text and those that contain
-   ! a FORMAT_DELIMITER, %.
+   ! Format strings have two types of tokens: regular text and format specifiers
+   ! (those that contain a FORMAT_DELIMITER, %).
    @test
    subroutine test_startOfNextTokenRegularText()
       type(FormatParser) :: parser

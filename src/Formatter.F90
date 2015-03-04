@@ -14,8 +14,8 @@
 !> responsible for converting a LogRecord to (usually) a string.
 !> The Formatter can be initialized with a format string which makes use of
 !> knowledge of the LogRecord attributes - e.g. the default value mentioned
-!> above makes use of the fact that the user's message and arguments are pre-
-!> formatted into a LogRecord's message attribute. Currently, the useful
+!> above makes use of the fact that the user's message and arguments are
+!> preformatted into a LogRecord's message attribute. Currently, the useful
 !> attributes in a LogRecord are described by:
 !>
 !> %(name)s            Name of the logger
