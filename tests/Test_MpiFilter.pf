@@ -20,11 +20,11 @@ contains
       call setMpiRank(0)
       f = MpiFilter(comm)
       record = LogRecord('A', INFO, 'some message')
-      @assertTrue(f%filter(record))
+      @assertTrue(f%dofilter(record))
       
       call setMpiRank(1)
       f = MpiFilter(comm)
-      @assertFalse(f%filter(record))
+      @assertFalse(f%dofilter(record))
       
    end subroutine Test_MpiFilter_defaultRank
 
@@ -40,12 +40,12 @@ contains
       call setMpiRank(0)
       
       f = MpiFilter(comm, rank=1)
-      @assertFalse(f%filter(record))
+      @assertFalse(f%dofilter(record))
       
       call setMpiRank(1)
       
       f = MpiFilter(comm, rank=1)
-      @assertTrue(f%filter(record))
+      @assertTrue(f%dofilter(record))
       
    end subroutine Test_MpiFilter_withRank
 
