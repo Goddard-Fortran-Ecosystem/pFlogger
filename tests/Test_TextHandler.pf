@@ -1,0 +1,157 @@
+module Test_TextHandler_mod
+   use pFUnit_mod
+   use ASTG_FormatToken_mod
+   use ASTG_NewFormatParser_mod
+
+
+contains
+
+
+@test
+   subroutine test_appendOneChar()
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call textHandler(parser, 'a')
+      call parser%getBuffer(buffer)
+      @assertEqual('a', buffer)
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
+
+   end subroutine test_appendOneChar
+
+
+@test
+   subroutine test_appendTwoChar()
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call textHandler(parser, 'a')
+      call textHandler(parser, '-')
+
+      call parser%getBuffer(buffer)
+      @assertEqual('a-', buffer)
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
+
+   end subroutine test_appendTwoChar
+
+
+@test
+   subroutine test_startSingleQuote()
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call textHandler(parser,'a')
+      call textHandler(parser,"'") ! single quote
+
+      call parser%getBuffer(buffer)
+      @assertEqual("a'", buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, singleQuoteHandler), 'state should now be single quote')
+
+
+   end subroutine test_startSingleQuote
+
+@test
+   subroutine test_startDoubleQuote()
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call textHandler(parser,'a')
+      call textHandler(parser,'"') ! double quote
+
+      call parser%getBuffer(buffer)
+      @assertEqual('a"', buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, doubleQuoteHandler), 'state should now be single quote')
+
+   end subroutine test_startDoubleQuote
+
+
+@test
+   subroutine test_startPositionFormat()
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('a')
+      call textHandler(parser, '%')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
+
+      ! previous token should have terminated
+      call parser%getBuffer(buffer)
+      @assertEqual('', buffer)
+      @assertEqual(1, parser%size())
+
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('a', t%textString)
+
+   end subroutine test_startPositionFormat
+
+
+! Sanity check - very first character might start a position format specifier.
+@test
+   subroutine test_immediatePositionFormat()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+      call textHandler(parser, '%')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
+
+      ! buffer should still be empty, and no tokens.
+      call parser%getBuffer(buffer)
+      @assertEqual('', buffer)
+      @assertEqual(0, parser%size())
+
+   end subroutine test_immediatePositionFormat
+
+
+   ! At the end of the string, the handler should create a token.
+   ! C_NULL_CHAR is used to signar end of string internally.  User code
+   ! relies on standard string termination in Fortran.
+@test
+   subroutine test_endOfString_text()
+      use iso_c_binding, only: C_NULL_CHAR
+      type (FormatParser) :: parser
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('hi')
+      call textHandler(parser, C_NULL_CHAR)
+
+      @assertEqual(1, parser%size())
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('hi', t%textString)
+      
+   end subroutine test_endOfString_text
+
+
+end module Test_TextHandler_mod

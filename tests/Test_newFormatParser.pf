@@ -9,52 +9,7 @@ module Test_newFormatParser_mod
 contains
 
 
-@test
-   subroutine test_textHandlerDefault()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
 
-      parser = FormatParser()
-
-      call parser%parseCharacter('a')
-      call parser%getBuffer(buffer)
-      @assertEqual('a', buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
-
-      ! And again
-      call parser%parseCharacter('-')
-      call parser%getBuffer(buffer)
-      @assertEqual('a-', buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
-
-   end subroutine test_textHandlerDefault
-
-
-@test
-   subroutine test_textStartSingleQuote()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call parser%parse("a'") ! single quote
-      call parser%getBuffer(buffer)
-      @assertEqual("a'", buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, singleQuoteHandler), 'state should now be single quote')
-
-      parser = FormatParser()
-      call parser%parse("a'b")
-      call parser%getBuffer(buffer)
-      @assertEqual("a'b", buffer)
-
-   end subroutine test_textStartSingleQuote
 
 @test
    subroutine test_textMatchSingleQuote()
@@ -75,26 +30,6 @@ contains
    end subroutine test_textMatchSingleQuote
 
 
-@test
-   subroutine test_textStartDoubleQuote()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call parser%parse('a"') ! double quote
-      call parser%getBuffer(buffer)
-      @assertEqual('a"', buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, doubleQuoteHandler), 'state should now be doubleQuote')
-
-      call parser%parse('b')
-      call parser%getBuffer(buffer)
-      @assertEqual('a"b', buffer)
-
-   end subroutine test_textStartDoubleQuote
 
 @test
    subroutine test_textMatchDoubleQuote()
@@ -114,29 +49,6 @@ contains
 
    end subroutine test_textMatchDoubleQuote
 
-
-@test
-   subroutine test_textStartPositionFormat()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
-
-      parser = FormatParser()
-      call parser%parse('a%')
-
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
-
-      ! previous token should have terminated
-      call parser%getBuffer(buffer)
-      @assertEqual('', buffer)
-      @assertEqual(1, parser%size())
-      t => parser%at(1)
-      @assertEqual(TEXT, t%type)
-      @assertEqual('a', t%textString)
-   end subroutine test_textStartPositionFormat
 
 
 @test
@@ -262,30 +174,6 @@ contains
 
    end subroutine test_terminateKeywordFormat
 
-
-   ! At the end of the string, the buffer should be grabbed as a
-   ! final token.  If empty, there is nothing to do.
-   ! Using C_NULL_CHAR as the signal.  Otherwise, I think the states
-   ! must be upgraded to objects. 
-@test
-   subroutine test_endOfString_text()
-      use iso_c_binding, only: C_NULL_CHAR
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
-
-      parser = FormatParser()
-      call parser%parse('hi')
-      call parser%parseCharacter(C_NULL_CHAR)
-
-      @assertEqual(1, parser%size())
-      t => parser%at(1)
-      @assertEqual(TEXT, t%type)
-      @assertEqual('hi', t%textString)
-      
-   end subroutine test_endOfString_text
 
 
 @test
