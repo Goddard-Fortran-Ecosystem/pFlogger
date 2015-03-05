@@ -12,20 +12,104 @@ contains
       type (FormatParser) :: parser
       type (FormatToken) :: token
       procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
 
       parser = FormatParser()
-      call parser%setHandler(textHandler)
 
       call parser%parseCharacter('a')
-
-      token = parser%getCurrentToken()
-      @assertEqual('a', token%textString)
-
-      ! state should not change
+      call parser%getBuffer(buffer)
+      @assertEqual('a', buffer)
       call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler))
+      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
+
+      ! And again
+      call parser%parseCharacter('-')
+      call parser%getBuffer(buffer)
+      @assertEqual('a-', buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
 
    end subroutine test_textHandlerDefault
 
-   
+
+@test
+   subroutine test_textStartSingleQuote()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call parser%parse("a'") ! single quote
+      call parser%getBuffer(buffer)
+      @assertEqual("a'", buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, singleQuoteHandler), 'state should now be single quote')
+
+      parser = FormatParser()
+      call parser%parse("a'b")
+      call parser%getBuffer(buffer)
+      @assertEqual("a'b", buffer)
+
+   end subroutine test_textStartSingleQuote
+
+@test
+   subroutine test_textMatchSingleQuote()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call parser%parse("a'b'") ! single quotes
+
+      call parser%getBuffer(buffer)
+      @assertEqual("a'b'", buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+
+   end subroutine test_textMatchSingleQuote
+
+
+@test
+   subroutine test_textStartDoubleQuote()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call parser%parse('a"') ! double quote
+      call parser%getBuffer(buffer)
+      @assertEqual('a"', buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, doubleQuoteHandler), 'state should now be doubleQuote')
+
+      call parser%parse('b')
+      call parser%getBuffer(buffer)
+      @assertEqual('a"b', buffer)
+
+   end subroutine test_textStartDoubleQuote
+
+@test
+   subroutine test_textMatchDoubleQuote()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+
+      call parser%parse('a"b"')
+
+      call parser%getBuffer(buffer)
+      @assertEqual('a"b"', buffer)
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+
+   end subroutine test_textMatchDoubleQuote
+
 end module Test_newFormatParser_mod
