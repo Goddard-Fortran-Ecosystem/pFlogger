@@ -50,6 +50,7 @@ set(FTL_SRCS
    CIStringXPairVecVec.F90
    CIStringXUMap.F90
    StringVec.F90
+   FormatTokenVec.F90
 )
 
 list(APPEND SRCS ${FTL_SRCS})

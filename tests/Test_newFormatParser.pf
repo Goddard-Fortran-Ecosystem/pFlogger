@@ -112,4 +112,28 @@ contains
 
    end subroutine test_textMatchDoubleQuote
 
+
+@test
+   subroutine test_textStartPositionFormat()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('a%')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
+
+      ! previous token should have terminated
+      call parser%getBuffer(buffer)
+      @assertEqual('', buffer)
+      @assertEqual(1, parser%size())
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('a', t%textString)
+   end subroutine test_textStartPositionFormat
+
 end module Test_newFormatParser_mod

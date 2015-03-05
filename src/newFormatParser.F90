@@ -1,5 +1,6 @@
 module ASTG_NewFormatParser_mod
    use ASTG_FormatToken_mod
+   use FTL_FormatTokenVec_mod
    implicit none
    private
 
@@ -7,12 +8,14 @@ module ASTG_NewFormatParser_mod
    public :: HandlerInterface
 
    public :: textHandler
+   public :: positionFormatHandler
    public :: singleQuoteHandler
    public :: doubleQuoteHandler
 
    integer, parameter :: MAX_LEN_TOKEN=1000
+   character(len=1), parameter :: FORMAT_DELIMITER = '%'
 
-   type FormatParser
+   type, extends(FormatTokenVec) :: FormatParser
       private
       integer :: currentPosition = 0
       character(len=MAX_LEN_TOKEN) :: buffer
@@ -82,6 +85,7 @@ contains
 
       call this%handler(char)
 
+
    end subroutine parseCharacter
 
 
@@ -106,7 +110,7 @@ contains
       character(:), pointer :: buffer
       class (FormatParser), target, intent(in) :: this
 
-      buffer => this%buffer(1:len_trim(this%buffer))
+      buffer => this%buffer(1:this%currentPosition)
    end subroutine getBuffer
 
    function getCurrentToken(this) result(token)
@@ -124,21 +128,30 @@ contains
    subroutine textHandler(this, char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
-
-      associate (pos => this%currentPosition)
-        pos = pos + 1
-        this%buffer(pos:pos) = char
-      end associate
+      type (FormatToken) :: t
 
       select case (char)
       case ("'")
          this%handler => singleQuoteHandler
       case ('"')
          this%handler => doubleQuoteHandler
-      case default
-         ! stay text
+      case (FORMAT_DELIMITER)
+         this%handler => positionFormatHandler
+         associate (pos => this%currentPosition)
+           if (pos > 0) then ! send buffer to new token
+              t%type = TEXT
+              t%textString = this%buffer(1:pos)
+              pos = 0
+              call this%push_back(t)
+           end if
+         end associate
+         return ! char should not be put in buffer
       end select
 
+      associate (pos => this%currentPosition)
+        pos = pos + 1
+        this%buffer(pos:pos) = char
+      end associate
 
    end subroutine textHandler
 
@@ -184,5 +197,26 @@ contains
 
    end subroutine doubleQuoteHandler
 
+
+   subroutine positionFormatHandler(this, char)
+      class (FormatParser), intent(inout) :: this
+      character(len=1), intent(in) :: char
+
+
+!!$      select case (char)
+!!$      case ("'")
+!!$         this%handler => singleQuoteHandler
+!!$      case ('"')
+!!$         this%handler => doubleQuoteHandler
+!!$      case default
+!!$         ! stay text
+!!$      end select
+
+      associate (pos => this%currentPosition)
+        pos = pos + 1
+        this%buffer(pos:pos) = char
+      end associate
+
+   end subroutine positionFormatHandler
 
 end module ASTG_NewFormatParser_mod
