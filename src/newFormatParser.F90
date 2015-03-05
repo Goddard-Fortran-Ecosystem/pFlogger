@@ -9,11 +9,20 @@ module ASTG_NewFormatParser_mod
 
    public :: textHandler
    public :: positionFormatHandler
+   public :: keywordFormatHandler
    public :: singleQuoteHandler
    public :: doubleQuoteHandler
 
    integer, parameter :: MAX_LEN_TOKEN=1000
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
+   character(len=1), parameter :: OPEN_CURLY_BRACE = '{'
+   character(len=1), parameter :: CLOSE_CURLY_BRACE = '}'
+   character(len=1), parameter :: KEYWORD_SEPARATOR = ','
+   character(len=1), parameter :: SPACE = ' '
+   ! Tricky to make a literal with backslash when using CPP 
+   ! as a preprocessor.
+   character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
+   character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
 
    type, extends(FormatTokenVec) :: FormatParser
       private
@@ -126,6 +135,7 @@ contains
 ! Various contexts:
 
    subroutine textHandler(this, char)
+      use iso_c_binding, only: C_NULL_CHAR
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
       type (FormatToken) :: t
@@ -135,7 +145,7 @@ contains
          this%handler => singleQuoteHandler
       case ('"')
          this%handler => doubleQuoteHandler
-      case (FORMAT_DELIMITER)
+      case (FORMAT_DELIMITER, C_NULL_CHAR)
          this%handler => positionFormatHandler
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
@@ -199,24 +209,82 @@ contains
 
 
    subroutine positionFormatHandler(this, char)
+      use iso_c_binding, only: C_NULL_CHAR
+      use ASTG_Exception_mod, only: throw
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
-
-
-!!$      select case (char)
-!!$      case ("'")
-!!$         this%handler => singleQuoteHandler
-!!$      case ('"')
-!!$         this%handler => doubleQuoteHandler
-!!$      case default
-!!$         ! stay text
-!!$      end select
+      type (FormatToken) :: t
 
       associate (pos => this%currentPosition)
+
+        select case (char)
+        case (SPACE, ESCAPE, C_NULL_CHAR)
+           this%handler => textHandler
+           if (pos > 0) then ! send buffer to new token
+              t%type = POSITION
+              t%formatString = this%buffer(1:pos)
+              pos = 0
+              call this%push_back(t)
+              if (char == ESCAPE) return ! discard char
+           end if
+        case (OPEN_CURLY_BRACE) ! {
+           if (pos > 0) then
+              call throw('FormatParser::positionFormatHandler() - ' // &
+                   & 'illegal start of keyword format: ' // this%buffer(1:pos))
+              return
+           end if
+           this%handler => keywordFormatHandler
+           return ! do not retain char
+        case default
+         ! stay position format
+        end select
+
         pos = pos + 1
         this%buffer(pos:pos) = char
+
       end associate
 
    end subroutine positionFormatHandler
+
+
+   subroutine keywordFormatHandler(this, char)
+      use iso_c_binding, only: C_NULL_CHAR
+      use ASTG_Exception_mod, only: throw
+      class (FormatParser), intent(inout) :: this
+      character(len=1), intent(in) :: char
+      type (FormatToken) :: t
+
+      integer :: idx
+
+      associate ( pos => this%currentPosition )
+
+        select case (char)
+        case (C_NULL_CHAR)
+           call throw('FormatParser::keywordFormatHandler() - incomplete keyword format specifier.')
+        case (CLOSE_CURLY_BRACE)
+           this%handler => textHandler
+           if (pos > 0) then ! send buffer to new token
+              t%type = KEYWORD
+              idx = index(this%buffer(1:pos), KEYWORD_SEPARATOR)
+              if (idx == 1) then
+                 call throw('FormatParser::keywordFormatHandler() - missing keyword in format specifier')
+                 return
+              end if
+              t%keywordString = this%buffer(1:idx-1)
+              t%formatString = this%buffer(idx+1:pos)
+              call this%push_back(t)
+              pos = 0
+              return ! do not retain the closing brace
+           end if
+        case default
+           ! stay keyword format
+        end select
+
+        pos = pos + 1
+        this%buffer(pos:pos) = char
+
+      end associate
+
+   end subroutine keywordFormatHandler
 
 end module ASTG_NewFormatParser_mod

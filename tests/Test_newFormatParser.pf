@@ -4,6 +4,8 @@ module Test_newFormatParser_mod
    use ASTG_FormatToken_mod
    implicit none
 
+
+
 contains
 
 
@@ -135,5 +137,196 @@ contains
       @assertEqual(TEXT, t%type)
       @assertEqual('a', t%textString)
    end subroutine test_textStartPositionFormat
+
+
+@test
+   subroutine test_immediatePositionFormat()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+
+      parser = FormatParser()
+      call parser%parse('%i3')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
+
+      ! previous token should have terminated
+      call parser%getBuffer(buffer)
+      @assertEqual('i3', buffer)
+      @assertEqual(0, parser%size())
+   end subroutine test_immediatePositionFormat
+
+
+@test
+   subroutine test_terminatePositionFormatWithSpace()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('a %i3 x')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+
+      call parser%getBuffer(buffer)
+      @assertEqual(' x', buffer, 'space should be retained')
+      @assertEqual(2, parser%size())
+
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('a ', t%textString)
+
+      t => parser%at(2)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('i3', t%formatString)
+
+   end subroutine test_terminatePositionFormatWithSpace
+
+@test
+   subroutine test_terminatePositionFormatBackspace()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('a %i3\x')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+
+      call parser%getBuffer(buffer)
+      @assertEqual('x', buffer, 'space should not be retained')
+      @assertEqual(2, parser%size())
+
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('a ', t%textString)
+
+      t => parser%at(2)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('i3', t%formatString)
+
+   end subroutine test_terminatePositionFormatBackspace
+
+
+@test
+   subroutine test_textStartKeywordFormat()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('a%{')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, keywordFormatHandler), 'context changes to keyword format')
+
+   end subroutine test_textStartKeywordFormat
+
+
+@test
+   subroutine test_terminateKeywordFormat()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('rank is %{rank,i3}')
+
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+
+      call parser%getBuffer(buffer)
+      @assertEqual('', buffer, 'space should be retained')
+      @assertEqual(2, parser%size())
+
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('rank is ', t%textString)
+
+      t => parser%at(2)
+      @assertEqual(KEYWORD, t%type)
+      @assertEqual('i3', t%formatString)
+      @assertEqual('rank', t%keywordString)
+
+   end subroutine test_terminateKeywordFormat
+
+
+   ! At the end of the string, the buffer should be grabbed as a
+   ! final token.  If empty, there is nothing to do.
+   ! Using C_NULL_CHAR as the signal.  Otherwise, I think the states
+   ! must be upgraded to objects. 
+@test
+   subroutine test_endOfString_text()
+      use iso_c_binding, only: C_NULL_CHAR
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('hi')
+      call parser%parseCharacter(C_NULL_CHAR)
+
+      @assertEqual(1, parser%size())
+      t => parser%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('hi', t%textString)
+      
+   end subroutine test_endOfString_text
+
+
+@test
+   subroutine test_endOfString_pos()
+      use iso_c_binding, only: C_NULL_CHAR
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('%f10.3')
+      call parser%parseCharacter(C_NULL_CHAR)
+
+      @assertEqual(1, parser%size())
+      t => parser%at(1)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('f10.3', t%formatString)
+      
+   end subroutine test_endOfString_pos
+
+
+! Keyword format specifiers must be terminated
+@test
+   subroutine test_endOfString_keyword()
+      use iso_c_binding, only: C_NULL_CHAR
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+      character(len=:), pointer :: buffer
+      type (FormatToken), pointer :: t
+
+      parser = FormatParser()
+      call parser%parse('%{rank,i3') ! unterminated
+      call parser%parseCharacter(C_NULL_CHAR)
+
+      @assertExceptionRaised('FormatParser::keywordFormatHandler() - incomplete keyword format specifier.')
+      @assertEqual(0, parser%size())
+      
+   end subroutine test_endOfString_keyword
+
 
 end module Test_newFormatParser_mod
