@@ -1,0 +1,31 @@
+module Test_newFormatParser_mod
+   use pFUnit_mod
+   use ASTG_NewFormatParser_mod
+   use ASTG_FormatToken_mod
+   implicit none
+
+contains
+
+
+@test
+   subroutine test_textHandlerDefault()
+      type (FormatParser) :: parser
+      type (FormatToken) :: token
+      procedure (HandlerInterface), pointer :: procPtr
+
+      parser = FormatParser()
+      call parser%setHandler(textHandler)
+
+      call parser%parseCharacter('a')
+
+      token = parser%getCurrentToken()
+      @assertEqual('a', token%textString)
+
+      ! state should not change
+      call parser%getHandler(procPtr)
+      @assertTrue(associated(procPtr, textHandler))
+
+   end subroutine test_textHandlerDefault
+
+   
+end module Test_newFormatParser_mod
