@@ -63,7 +63,7 @@ contains
       parser%buffer = ''
       parser%currentPosition = 0 ! buffer is empty
 
-      parser%handler => textHandler ! assume start with text (but confirm)
+      call parser%setHandler(textHandler) ! assume start with text (but confirm)
 
    end function newFormatParser
 
@@ -140,11 +140,11 @@ contains
 
       select case (char)
       case ("'")
-         this%handler => singleQuoteHandler
+         call this%setHandler(singleQuoteHandler)
       case ('"')
-         this%handler => doubleQuoteHandler
+         call this%setHandler(doubleQuoteHandler)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
-         this%handler => positionFormatHandler
+         call this%setHandler(positionFormatHandler)
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
@@ -175,7 +175,7 @@ contains
 
       select case (char)
       case ("'")
-         this%handler => textHandler
+         call this%setHandler(textHandler)
       case default
          ! stay single quote
       end select
@@ -196,7 +196,7 @@ contains
 
       select case (char)
       case ('"')
-         this%handler => textHandler
+         call this%setHandler(textHandler)
       case default
          ! stay double quote
       end select
@@ -215,7 +215,7 @@ contains
 
         select case (char)
         case (SPACE, ESCAPE, C_NULL_CHAR)
-           this%handler => textHandler
+         call this%setHandler(textHandler)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
@@ -227,7 +227,7 @@ contains
                    & 'illegal start of keyword format: ' // this%buffer(1:pos))
               return
            end if
-           this%handler => keywordFormatHandler
+           call this%setHandler(keywordFormatHandler)
            return ! do not retain char
         case default
          ! stay position format
@@ -254,7 +254,7 @@ contains
         case (C_NULL_CHAR)
            call throw('FormatParser::keywordFormatHandler() - incomplete keyword format specifier.')
         case (CLOSE_CURLY_BRACE)
-           this%handler => textHandler
+           call this%setHandler(textHandler)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0

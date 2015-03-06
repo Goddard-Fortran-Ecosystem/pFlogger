@@ -11,43 +11,6 @@ contains
 
 
 
-@test
-   subroutine test_textMatchSingleQuote()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call parser%parse("a'b'") ! single quotes
-
-      call parser%getBuffer(buffer)
-      @assertEqual("a'b'", buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
-
-   end subroutine test_textMatchSingleQuote
-
-
-
-@test
-   subroutine test_textMatchDoubleQuote()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call parser%parse('a"b"')
-
-      call parser%getBuffer(buffer)
-      @assertEqual('a"b"', buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
-
-   end subroutine test_textMatchDoubleQuote
 
 
 
