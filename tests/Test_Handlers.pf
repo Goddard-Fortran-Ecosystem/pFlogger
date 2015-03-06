@@ -1,7 +1,7 @@
 module Test_Handlers_mod
    use pFUnit_mod
    use ASTG_FormatToken_mod
-   use ASTG_NewFormatParser_mod
+   use ASTG_newFormatParser_mod
 
    @testParameter(constructor=newTestParameter)
    type, extends(AbstractTestParameter) :: TestParam
@@ -42,14 +42,25 @@ contains
          procedure (HandlerInterface), nopass, pointer :: handlerOut
       end type struct
 
+      ! workaround for CPP "eating" backspaces
+      character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
+      character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
+
       params = [ &
-           & makeParam(textHandler, '', 'a', 'a', .false., textHandler), &
-           & makeParam(textHandler, 'a', 'b', 'ab', .false., textHandler), &
-           & makeParam(textHandler, 'a', "'", "a'", .false., singleQuoteHandler), &
-           & makeParam(textHandler, 'a', '"', 'a"', .false., doubleQuoteHandler), &
+           & makeParam(textHandler, '', 'a', 'a', .false., textHandler) &
+           & ,makeParam(textHandler, 'a', 'b', 'ab', .false., textHandler) &
+           & ,makeParam(textHandler, 'a', "'", "a'", .false., singleQuoteHandler) &
+           & ,makeParam(textHandler, 'a', '"', 'a"', .false., doubleQuoteHandler) &
            
-           & makeParam(singleQuoteHandler, "a'b", "'", "a'b'", .false., textHandler), &
-           & makeParam(doubleQuoteHandler, 'a"b', '"', 'a"b"', .false., textHandler) &
+           & ,makeParam(singleQuoteHandler, "a'b", "'", "a'b'", .false., textHandler) &
+           & ,makeParam(doubleQuoteHandler, 'a"b', '"', 'a"b"', .false., textHandler) &
+
+           & ,makeParam(textHandler, '', '%', '', .false., positionFormatHandler) &
+           & ,makeParam(positionFormatHandler, '', '{', '', .false., keywordFormatHandler) &
+
+           & ,makeParam(positionFormatHandler, '%i3', ' ', ' ', .true., textHandler) &
+           & ,makeParam(positionFormatHandler, '%i3', ESCAPE, '', .true., textHandler) &
+
            & ]
 
    contains
@@ -119,7 +130,7 @@ contains
       call this%param%handlerIn(this%parser, this%param%nextCharIn)
 
       call this%parser%getBuffer(buffer)
-      @assertEqual(this%param%bufferOut, buffer)
+      @assertEqual(this%param%bufferOut, buffer, whiteSpace=KEEP_ALL)
 
    end subroutine test_outBuffer
 
@@ -132,7 +143,6 @@ contains
       procedure (HandlerInterface), pointer :: expectedPtr
 
       call this%param%handlerIn(this%parser, this%param%nextCharIn)
-      print*,__FILE__,__LINE__
 
       call this%parser%getHandler(procPtr)
       expectedPtr => this%param%handlerOut
