@@ -3,155 +3,143 @@ module Test_TextHandler_mod
    use ASTG_FormatToken_mod
    use ASTG_NewFormatParser_mod
 
+   @testParameter(constructor=newTestParameter)
+   type, extends(AbstractTestParameter) :: TestParam
+      ! in
+      character(len=:), allocatable :: bufferIn
+      character(len=1) :: nextCharIn
+      ! expected
+      character(len=:), allocatable :: bufferOut
+      logical :: startNewToken
+      procedure (HandlerInterface), nopass, pointer :: handlerOut
+   contains
+      procedure :: toString
+   end type TestParam
+      
+
+   @TestCase(constructor=newTestCase, testParameters={getParameters()})
+   type, extends(ParameterizedTestCase) :: TextHandlerTestCase
+      type (FormatParser) :: parser
+      type (TestParam) :: param
+   contains
+      procedure :: setUp
+      procedure :: tearDown
+   end type TextHandlerTestCase
 
 contains
 
+   
+   function getParameters() result(params)
+      type (TestParam), allocatable :: params(:)
 
-@test
-   subroutine test_appendOneChar()
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
+      type struct
+         character(len=:), allocatable :: bufferIn
+         character(len=1) :: char
+         character(len=:), allocatable :: bufferOut
+         logical :: startNewToken
+         procedure (HandlerInterface), nopass, pointer :: handlerOut
+      end type struct
 
-      parser = FormatParser()
+      params = [ &
+           & makeTestParameter(struct('', 'a', 'a', .false., texthandler)), &
+           & makeTestParameter(struct('a', 'b', 'ab', .false., texthandler)), &
+           & makeTestParameter(struct('a', "'", "a'", .false., singleQuoteHandler)), &
+           & makeTestParameter(struct('a', '"', 'a"', .false., doubleQuoteHandler)) &
+      & ]
 
-      call textHandler(parser, 'a')
-      call parser%getBuffer(buffer)
-      @assertEqual('a', buffer)
-
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
-
-   end subroutine test_appendOneChar
-
-
-@test
-   subroutine test_appendTwoChar()
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call textHandler(parser, 'a')
-      call textHandler(parser, '-')
-
-      call parser%getBuffer(buffer)
-      @assertEqual('a-', buffer)
-
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'state should remain text')
-
-   end subroutine test_appendTwoChar
-
-
-@test
-   subroutine test_startSingleQuote()
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call textHandler(parser,'a')
-      call textHandler(parser,"'") ! single quote
-
-      call parser%getBuffer(buffer)
-      @assertEqual("a'", buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, singleQuoteHandler), 'state should now be single quote')
-
-
-   end subroutine test_startSingleQuote
-
-@test
-   subroutine test_startDoubleQuote()
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-
-      call textHandler(parser,'a')
-      call textHandler(parser,'"') ! double quote
-
-      call parser%getBuffer(buffer)
-      @assertEqual('a"', buffer)
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, doubleQuoteHandler), 'state should now be single quote')
-
-   end subroutine test_startDoubleQuote
-
-
-@test
-   subroutine test_startPositionFormat()
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
-
-      parser = FormatParser()
-      call parser%parse('a')
-      call textHandler(parser, '%')
-
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
-
-      ! previous token should have terminated
-      call parser%getBuffer(buffer)
-      @assertEqual('', buffer)
-      @assertEqual(1, parser%size())
-
-      t => parser%at(1)
-      @assertEqual(TEXT, t%type)
-      @assertEqual('a', t%textString)
-
-   end subroutine test_startPositionFormat
-
-
-! Sanity check - very first character might start a position format specifier.
-@test
-   subroutine test_immediatePositionFormat()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-
-      parser = FormatParser()
-      call textHandler(parser, '%')
-
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, positionFormatHandler), 'context changes to position format')
-
-      ! buffer should still be empty, and no tokens.
-      call parser%getBuffer(buffer)
-      @assertEqual('', buffer)
-      @assertEqual(0, parser%size())
-
-   end subroutine test_immediatePositionFormat
-
-
-   ! At the end of the string, the handler should create a token.
-   ! C_NULL_CHAR is used to signar end of string internally.  User code
-   ! relies on standard string termination in Fortran.
-@test
-   subroutine test_endOfString_text()
-      use iso_c_binding, only: C_NULL_CHAR
-      type (FormatParser) :: parser
-      procedure (HandlerInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
-
-      parser = FormatParser()
-      call parser%parse('hi')
-      call textHandler(parser, C_NULL_CHAR)
-
-      @assertEqual(1, parser%size())
-      t => parser%at(1)
-      @assertEqual(TEXT, t%type)
-      @assertEqual('hi', t%textString)
+   contains
       
-   end subroutine test_endOfString_text
+      function makeTestParameter(s) result(param)
+         type (TestParam) :: param
+         type (struct), intent(in) :: s
+         param%bufferIn = s%bufferIn
+         param%nextCharIn = s%char
+         param%bufferOut = s%bufferOut
+         param%startNewToken = s%startNewToken
+         param%handlerOut => s%handlerOut
+      end function makeTestParameter
+
+   end function getParameters
+
+
+   function toString(this) result(str)
+      character(len=:), allocatable :: str
+      class (TestParam), intent(in) :: this
+      
+      character(len=:), allocatable :: message
+      message = 'bufferIn=<' // this%bufferIn // '>'
+      message = message // '; char=<' // this%nextCharIn // '>'
+      str = message
+   end function toString
+
+
+   function newTestCase(param) result(tstCase)
+      type (TextHandlerTestCase) :: tstCase
+      type (TestParam) :: param
+
+      tstCase%param = param
+
+   end function newTestCase
+
+
+   subroutine setUp(this)
+      class (TextHandlerTestCase), intent(inout) :: this
+      
+      this%parser = FormatParser()
+      call this%parser%setBuffer(this%param%bufferIn)
+
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (TextHandlerTestCase), intent(inout) :: this
+   end subroutine tearDown
+
+
+@test
+   subroutine test_outBuffer(this)
+      class (TextHandlerTestCase), intent(inout) :: this
+
+      character(len=:), pointer :: buffer
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      call this%parser%getBuffer(buffer)
+      @assertEqual(this%param%bufferOut, buffer)
+
+   end subroutine test_outBuffer
+
+
+@test
+   subroutine test_outHandler(this)
+      class (TextHandlerTestCase), intent(inout) :: this
+
+      procedure (HandlerInterface), pointer :: procPtr
+      procedure (HandlerInterface), pointer :: expectedPtr
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      call this%parser%getHandler(procPtr)
+      expectedPtr => this%param%handlerOut
+      @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
+
+   end subroutine test_outHandler
+
+
+@test
+   subroutine test_startNewToken(this)
+      class (TextHandlerTestCase), intent(inout) :: this
+
+      procedure (HandlerInterface), pointer :: procPtr
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      if (this%param%startNewToken) then
+         @assertEqual(1, this%parser%size())
+      else
+         @assertEqual(0, this%parser%size())
+      end if
+
+   end subroutine test_startNewToken
 
 
 end module Test_TextHandler_mod

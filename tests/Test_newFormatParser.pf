@@ -95,7 +95,7 @@ contains
 
       t => parser%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3', t%formatString)
+      @assertEqual('i3', t%formatSpecifier)
 
    end subroutine test_terminatePositionFormatWithSpace
 
@@ -123,7 +123,7 @@ contains
 
       t => parser%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3', t%formatString)
+      @assertEqual('i3', t%formatSpecifier)
 
    end subroutine test_terminatePositionFormatBackspace
 
@@ -169,7 +169,7 @@ contains
 
       t => parser%at(2)
       @assertEqual(KEYWORD, t%type)
-      @assertEqual('i3', t%formatString)
+      @assertEqual('i3', t%formatSpecifier)
       @assertEqual('rank', t%keywordString)
 
    end subroutine test_terminateKeywordFormat
@@ -192,7 +192,7 @@ contains
       @assertEqual(1, parser%size())
       t => parser%at(1)
       @assertEqual(POSITION, t%type)
-      @assertEqual('f10.3', t%formatString)
+      @assertEqual('f10.3', t%formatSpecifier)
       
    end subroutine test_endOfString_pos
 

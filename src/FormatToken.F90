@@ -1,4 +1,5 @@
 module ASTG_FormatToken_mod
+   use ASTG_Exception_mod, only: throw
    implicit none
    private
    
@@ -9,12 +10,54 @@ module ASTG_FormatToken_mod
       enumerator :: TEXT, POSITION, KEYWORD
    end enum
 
+   character(len=1), parameter :: KEYWORD_SEPARATOR = ','
+
    type FormatToken
       integer :: type ! use enum
       character(len=:), allocatable :: textString
-      character(len=:), allocatable :: formatString
+      character(len=:), allocatable :: formatSpecifier
       character(len=:), allocatable :: keywordString
    end type FormatToken
+
+
+   interface FormatToken
+      module procedure newFormatToken
+   end interface FormatToken
+
+
+contains
+
+
+   function newFormatToken(type, string) result(token)
+      type (FormatToken) :: token
+      integer, intent(in) :: type
+      character(len=*), intent(in) :: string
+
+      integer :: idx
+
+      token%type = type
+
+      select case (type)
+
+      case (TEXT)
+         token%textString = string
+
+      case (POSITION)
+         token%formatSpecifier = string
+
+      case (KEYWORD)
+         idx = index(string, KEYWORD_SEPARATOR)
+         if (idx == 1) then
+            token%keywordString = ''
+            call throw('FormatParser::keywordFormatHandler() - missing keyword in format specifier')
+            return
+         end if
+         token%keywordString = string(:idx-1)
+         token%formatSpecifier = string(idx+1:)
+      end select
+      
+   end function newFormatToken
+
 
 end module ASTG_FormatToken_mod
    

@@ -1,5 +1,4 @@
 module ASTG_NewFormatParser_mod
-   use ASTG_FormatToken_mod
    use FTL_FormatTokenVec_mod
    implicit none
    private
@@ -17,7 +16,6 @@ module ASTG_NewFormatParser_mod
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
    character(len=1), parameter :: OPEN_CURLY_BRACE = '{'
    character(len=1), parameter :: CLOSE_CURLY_BRACE = '}'
-   character(len=1), parameter :: KEYWORD_SEPARATOR = ','
    character(len=1), parameter :: SPACE = ' '
    ! Tricky to make a literal with backslash when using CPP 
    ! as a preprocessor.
@@ -28,13 +26,12 @@ module ASTG_NewFormatParser_mod
       private
       integer :: currentPosition = 0
       character(len=MAX_LEN_TOKEN) :: buffer
-      type (FormatToken) :: currentToken
       procedure (HandlerInterface), pointer :: handler
    contains
       procedure :: setHandler
       procedure :: getHandler
+      procedure :: setBuffer ! for testing
       procedure :: getBuffer
-      procedure :: getCurrentToken
       procedure :: parseCharacter
       procedure :: parse
    end type FormatParser
@@ -112,6 +109,15 @@ contains
    end subroutine parse
 
 
+   subroutine setBuffer(this, buffer)
+      class (FormatParser), intent(inout) :: this
+      character(len=*), intent(in) :: buffer
+      
+      this%buffer = buffer
+      this%currentPosition = len(buffer)
+   end subroutine setBuffer
+
+
    ! This should be a function that returns a pointer.
    ! Unfortunately gfortran 4.9.1 munges string pointers in
    ! that context.
@@ -122,23 +128,15 @@ contains
       buffer => this%buffer(1:this%currentPosition)
    end subroutine getBuffer
 
-   function getCurrentToken(this) result(token)
-      use ASTG_FormatToken_mod
-      type (FormatToken), pointer :: token
-      class (FormatParser), target, intent(in) :: this
-
-      token => this%CurrentToken
-   end function getCurrentToken
-
 
 
 ! Various contexts:
 
    subroutine textHandler(this, char)
+      use ASTG_FormatToken_mod
       use iso_c_binding, only: C_NULL_CHAR
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
-      type (FormatToken) :: t
 
       select case (char)
       case ("'")
@@ -149,10 +147,8 @@ contains
          this%handler => positionFormatHandler
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
-              t%type = TEXT
-              t%textString = this%buffer(1:pos)
+              call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
               pos = 0
-              call this%push_back(t)
            end if
          end associate
          return ! char should not be put in buffer
@@ -211,9 +207,9 @@ contains
    subroutine positionFormatHandler(this, char)
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
+      use ASTG_FormatToken_mod
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
-      type (FormatToken) :: t
 
       associate (pos => this%currentPosition)
 
@@ -221,10 +217,8 @@ contains
         case (SPACE, ESCAPE, C_NULL_CHAR)
            this%handler => textHandler
            if (pos > 0) then ! send buffer to new token
-              t%type = POSITION
-              t%formatString = this%buffer(1:pos)
+              call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
-              call this%push_back(t)
               if (char == ESCAPE) return ! discard char
            end if
         case (OPEN_CURLY_BRACE) ! {
@@ -248,13 +242,11 @@ contains
 
 
    subroutine keywordFormatHandler(this, char)
+      use ASTG_FormatToken_mod
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
-      type (FormatToken) :: t
-
-      integer :: idx
 
       associate ( pos => this%currentPosition )
 
@@ -264,15 +256,7 @@ contains
         case (CLOSE_CURLY_BRACE)
            this%handler => textHandler
            if (pos > 0) then ! send buffer to new token
-              t%type = KEYWORD
-              idx = index(this%buffer(1:pos), KEYWORD_SEPARATOR)
-              if (idx == 1) then
-                 call throw('FormatParser::keywordFormatHandler() - missing keyword in format specifier')
-                 return
-              end if
-              t%keywordString = this%buffer(1:idx-1)
-              t%formatString = this%buffer(idx+1:pos)
-              call this%push_back(t)
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0
               return ! do not retain the closing brace
            end if
