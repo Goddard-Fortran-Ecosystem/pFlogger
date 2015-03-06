@@ -1,0 +1,145 @@
+module Test_Handlers_mod
+   use pFUnit_mod
+   use ASTG_FormatToken_mod
+   use ASTG_NewFormatParser_mod
+
+   @testParameter(constructor=newTestParameter)
+   type, extends(AbstractTestParameter) :: TestParam
+      ! in
+      character(len=:), allocatable :: bufferIn
+      character(len=1) :: nextCharIn
+      ! expected
+      character(len=:), allocatable :: bufferOut
+      logical :: startNewToken
+      procedure (HandlerInterface), nopass, pointer :: handlerOut
+   contains
+      procedure :: toString
+   end type TestParam
+      
+
+   @TestCase(constructor=newTestCase, testParameters={getParameters()})
+   type, extends(ParameterizedTestCase) :: HandlersTestCase
+      type (FormatParser) :: parser
+      type (TestParam) :: param
+   contains
+      procedure :: setUp
+      procedure :: tearDown
+   end type HandlersTestCase
+
+contains
+
+   
+   function getParameters() result(params)
+      type (TestParam), allocatable :: params(:)
+
+      type struct
+         character(len=:), allocatable :: bufferIn
+         character(len=1) :: char
+         character(len=:), allocatable :: bufferOut
+         logical :: startNewToken
+         procedure (HandlerInterface), nopass, pointer :: handlerOut
+      end type struct
+
+      params = [ &
+           & makeTestParameter(struct('', 'a', 'a', .false., texthandler)), &
+           & makeTestParameter(struct('a', 'b', 'ab', .false., texthandler)), &
+           & makeTestParameter(struct('a', "'", "a'", .false., singleQuoteHandler)), &
+           & makeTestParameter(struct('a', '"', 'a"', .false., doubleQuoteHandler)) &
+      & ]
+
+   contains
+      
+      function makeTestParameter(s) result(param)
+         type (TestParam) :: param
+         type (struct), intent(in) :: s
+         param%bufferIn = s%bufferIn
+         param%nextCharIn = s%char
+         param%bufferOut = s%bufferOut
+         param%startNewToken = s%startNewToken
+         param%handlerOut => s%handlerOut
+      end function makeTestParameter
+
+   end function getParameters
+
+
+   function toString(this) result(str)
+      character(len=:), allocatable :: str
+      class (TestParam), intent(in) :: this
+      
+      character(len=:), allocatable :: message
+      message = 'bufferIn=<' // this%bufferIn // '>'
+      message = message // '; char=<' // this%nextCharIn // '>'
+      str = message
+   end function toString
+
+
+   function newTestCase(param) result(tstCase)
+      type (HandlersTestCase) :: tstCase
+      type (TestParam) :: param
+
+      tstCase%param = param
+
+   end function newTestCase
+
+
+   subroutine setUp(this)
+      class (HandlersTestCase), intent(inout) :: this
+      
+      this%parser = FormatParser()
+      call this%parser%setBuffer(this%param%bufferIn)
+
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (HandlersTestCase), intent(inout) :: this
+   end subroutine tearDown
+
+
+@test
+   subroutine test_outBuffer(this)
+      class (HandlersTestCase), intent(inout) :: this
+
+      character(len=:), pointer :: buffer
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      call this%parser%getBuffer(buffer)
+      @assertEqual(this%param%bufferOut, buffer)
+
+   end subroutine test_outBuffer
+
+
+@test
+   subroutine test_outHandler(this)
+      class (HandlersTestCase), intent(inout) :: this
+
+      procedure (HandlerInterface), pointer :: procPtr
+      procedure (HandlerInterface), pointer :: expectedPtr
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      call this%parser%getHandler(procPtr)
+      expectedPtr => this%param%handlerOut
+      @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
+
+   end subroutine test_outHandler
+
+
+@test
+   subroutine test_startNewToken(this)
+      class (HandlersTestCase), intent(inout) :: this
+
+      procedure (HandlerInterface), pointer :: procPtr
+
+      call textHandler(this%parser, this%param%nextCharIn)
+
+      if (this%param%startNewToken) then
+         @assertEqual(1, this%parser%size())
+      else
+         @assertEqual(0, this%parser%size())
+      end if
+
+   end subroutine test_startNewToken
+
+
+end module Test_Handlers_mod

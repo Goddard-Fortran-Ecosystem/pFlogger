@@ -20,7 +20,7 @@ ADD_TEST_SUITE(Test_LogRecord_mod_suite)
 ADD_TEST_SUITE(Test_Formatter_mod_suite)
 
 ! Parser
-ADD_TEST_SUITE(Test_TextHandler_mod_suite)
+ADD_TEST_SUITE(Test_Handlers_mod_suite)
 ADD_TEST_SUITE(Test_newFormatParser_mod_suite)
 ADD_TEST_SUITE(Test_FormatParser_mod_suite)
 ADD_TEST_SUITE(Test_ArgListUtilities_mod_suite)
