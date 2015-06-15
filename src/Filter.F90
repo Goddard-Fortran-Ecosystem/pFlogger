@@ -21,7 +21,6 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Filter_mod
-   use FTL_CaseInsensitiveString_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
    use ASTG_AbstractFilter_mod, only: AbstractFilter
@@ -35,11 +34,7 @@ module ASTG_Filter_mod
       private
       ! 'allocatable' below is a workaround for ifort 15.0.1
       ! Of course it then breaks gfortrn 4.9.1.  sigh.
-#ifdef __INTEL_COMPILER
-      type (CaseInsensitiveString), allocatable :: name
-#else
-      type (CaseInsensitiveString) :: name
-#endif
+      character(len=:), allocatable :: name
    contains
       procedure :: doFilter
       procedure :: equal
@@ -111,18 +106,52 @@ contains
       character(len=:), allocatable :: recordName
       integer :: n
 
-
       recordName = record%getName()
 
       n = len(this%name)
 
-      if (this%name == recordName(1:n)) then
+      if (sameString(this%name,recordName)) then
          doFilter = .true.  ! do emit
       else
          doFilter = .false. ! do NOT emit
       end if
 
    end function doFilter
+
+   logical function sameString(a, b) result(same)
+      character(len=*), intent(in) :: a
+      character(len=*), intent(in) :: b
+
+      character(len=1) :: charA, charB
+      integer :: i
+
+      do i = 1, min(len(a),len(b))
+         charA = lowerCase(a(i:i))
+         charB = lowerCase(b(i:i))
+         if (charA /= charB) then
+            same = .false.
+            return
+         end if
+      end do
+
+      ! only match if _all_ of a is included in b.
+      same = (len(a) <= len(b))
+
+   contains
+
+      character(len=1) function lowerCase(char) result(lChar)
+         integer, parameter :: UPPER_LOWER_DELTA = iachar('A') - iachar('a')
+         character(len=1), intent(in) :: char
+
+         if (char >= 'A' .and. char <= 'Z') then
+            lChar = achar(iachar(char) - UPPER_LOWER_DELTA)
+         else
+            lChar = char
+         end if
+
+      end function lowerCase
+            
+   end function sameString
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
@@ -188,7 +217,7 @@ contains
       class (Filter), intent(inout) :: this
       character(len=*), intent(in) :: name
 
-      this%name = CaseInsensitiveString(name)
+      this%name = name
 
    end subroutine setName
 
@@ -197,7 +226,7 @@ contains
       character(len=:), allocatable :: string
       class (Filter), intent(in) :: this
       
-      string = 'Filter - name = ' // this%name%toString()
+      string = 'Filter - name = ' // this%name
 
    end function toString_self
 
