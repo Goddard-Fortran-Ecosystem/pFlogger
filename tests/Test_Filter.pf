@@ -2,8 +2,6 @@ module Test_Filter_mod
    use pFUnit_mod
    use ASTG_Filter_mod
    use ASTG_LogRecord_mod
-   use FTL_Object_mod
-   use FTL_CaseInsensitiveString_mod
    use ASTG_SeverityLevels_mod, only: INFO
 
 contains
