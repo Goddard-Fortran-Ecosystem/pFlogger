@@ -25,6 +25,7 @@ set(SRCS
    SeverityLevels.F90
    StreamHandler.F90
    ArgListUtilities.F90
+   CIStringLoggerPolyMap.F90
 )
 
 if (TEST_MPI) 
@@ -55,22 +56,23 @@ set(FTL_SRCS
 
 list(APPEND SRCS ${FTL_SRCS})
 
-set( bin ${CMAKE_CURRENT_BINARY_DIR} )
-set( src ${CMAKE_CURRENT_SOURCE_DIR} )
+set (bin ${CMAKE_CURRENT_BINARY_DIR} )
+set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
-add_custom_command(OUTPUT ${FTL_SRCS}
+add_custom_command (OUTPUT ${FTL_SRCS}
   WORKING_DIRECTORY ${bin}
   COMMAND ${FTL}/bin/driver.py ${src}/ftl.config ${src}/ftl.contractions
 )
 
-include_directories(${FTL}/mod)
+include_directories (${FTL}/mod)
+include_directories (${NEWFTL}/include)
 
-set_source_files_properties(
+set_source_files_properties (
    ${SRCS}
    PROPERTIES COMPILE_FLAGS 
    "${CMAKE_Fortran_FLAGS} ${F90FLAGS}"
 )
 
-add_library(${THIS} STATIC ${SRCS})
+add_library (${THIS} STATIC ${SRCS})
 
 
