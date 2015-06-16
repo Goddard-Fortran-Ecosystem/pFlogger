@@ -60,16 +60,16 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
       type (LogRecord) :: record
       character(len=32) :: foundMessage
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       
-      args = XWrapVec()
-      call args%push_back_alt(1)
+      args = UnlimitedVector()
+      call args%push_back(1)
 
       record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
@@ -85,17 +85,17 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormatter(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
       type (LogRecord) :: record
       type(Formatter) :: fmt
       character(len=32) :: foundMessage
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       
-      args = XWrapVec()
-      call args%push_back_alt(1)
+      args = UnlimitedVector()
+      call args%push_back(1)
 
       ! Create a logging format
       fmt = Formatter('%(levelName::a)- %(name::a)- %(message::a)')
@@ -161,7 +161,7 @@ contains
    ! contstructor is used to indicate that configuration.
    @test
    subroutine test_delay(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this
 
       type (LogRecord) :: record
@@ -169,7 +169,7 @@ contains
       character(len=*), parameter :: FILE_NAME = 'delayLog'
       logical :: exist
       integer :: unit
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
 
       handler = FileHandler(FILE_NAME, delay=.true.)
       inquire(file=FILE_NAME, exist=exist)

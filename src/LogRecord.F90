@@ -18,6 +18,7 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
+   use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use FTL_XWrapVec_mod
    use FTL_CIStringXUMap_mod
    use ASTG_Object_mod
@@ -36,7 +37,7 @@ module ASTG_LogRecord_mod
       character(len=:), allocatable :: message
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       type (CIStringXUMap) :: extra
    contains
       procedure :: getName
@@ -67,7 +68,7 @@ contains
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      type (XWrapVec), optional, intent(in) :: args
+      type (UnlimitedVector), optional, intent(in) :: args
       type (CIStringXUMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
@@ -81,7 +82,7 @@ contains
       if (present(args)) then
          rec%args = args
       else
-         rec%args = XWrapVec()
+         rec%args = UnlimitedVector()
       end if
 
       if (present(extra)) then
@@ -226,14 +227,14 @@ contains
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, message, args, extra)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use FTL_CIStringXUMap_mod
       use FTL_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      type (XWrapVec), optional, intent(in) :: args
+      type (UnlimitedVector), optional, intent(in) :: args
       type (CIStringXUMap), optional, intent(in) :: extra
 
       type (CIStringXUMapIter) :: iter
@@ -246,7 +247,7 @@ contains
       if (present(args)) then
          rec%args = args
       else
-         rec%args = XWrapVec()
+         rec%args = UnlimitedVector()
       end if
 
       if (present(extra)) then

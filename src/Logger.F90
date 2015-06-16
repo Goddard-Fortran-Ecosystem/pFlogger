@@ -199,12 +199,12 @@ contains
    ! Create a logRecord
    !---------------------------------------------------------------------------
    function makeRecord(this, level, message, args) result(record)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(inout) :: this
       type (LogRecord) :: record
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      type (XWrapVec), optional, intent(in) :: args
+      type (UnlimitedVector), optional, intent(in) :: args
 
       character(len=:), allocatable :: name
 
@@ -239,7 +239,7 @@ contains
    ! The log method needs two parameters - a message and the severity level
    !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -248,7 +248,7 @@ contains
       
       type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: handler
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
 
       args = makeArgVector(ARG_LIST)
       iter = this%handlers%begin()

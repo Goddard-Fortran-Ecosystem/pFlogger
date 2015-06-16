@@ -44,10 +44,10 @@ contains
 
 @Test
    subroutine test_makeRecord(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       
       record = this%basicLogger%makeRecord(INFO, 'hi')
       @assertEqual('hi', record%getMessage())

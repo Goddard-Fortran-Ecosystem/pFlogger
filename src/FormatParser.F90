@@ -329,16 +329,17 @@ contains
    function format(fmt, args, unusable, arr1D_1, extra) result(rawString)
       use FTL_String_mod
       use FTL_StringVec_mod
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVectorIterator => VectorIterator
       use FTL_CIStringXUMap_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
-      type (XWrapVec), optional :: args
+      type (UnlimitedVector), optional :: args
       type (UnusableArgument), optional :: unusable
       class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringXUMap), optional :: extra
 
-      type (XWrapVec) :: args_
+      type (UnlimitedVector) :: args_
       type (CIStringXUMap) :: extra_
 
       character(len=:), allocatable :: tokenString
@@ -350,12 +351,12 @@ contains
       class (*), pointer :: arg
 
       type (StringVecIter) :: fmtIter
-      type (XWrapVecIter) :: argIter
+      type (UnlimitedVectorIterator) :: argIter
 
       if (present(args)) then
          args_ = args
       else
-         args_ = XWrapVec()
+         args_ = UnlimitedVector()
       end if
 
       if (present(extra)) then
@@ -397,7 +398,7 @@ contains
                      return
                   end if
                else
-                  arg => argIter%get_alt()
+                  arg => argIter%get()
                   call argIter%next()
                   append = handleScalar(arg, payload)
                end if
@@ -424,7 +425,7 @@ contains
    ! that it calls format above.
    !---------------------------------------------------------------------------
    function makeString(fmt, ARG_LIST, unusable, arr1D_1, extra) result(rawString)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use FTL_CIStringXUMap_mod
       use ASTG_ArgListUtilities_mod
       character(len=:), allocatable :: rawString
@@ -435,7 +436,7 @@ contains
       class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringXUMap), optional :: extra
 
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
 
       args = makeArgVector(ARG_LIST)
       rawString = format(fmt, args, arr1D_1=arr1D_1, extra=extra)

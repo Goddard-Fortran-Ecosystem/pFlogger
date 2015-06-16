@@ -63,7 +63,7 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_Formatter_mod
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
@@ -71,10 +71,10 @@ contains
 
       type (LogRecord) :: record
       type(Formatter) :: fmt
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       
-      args = XWrapVec()
-      call args%push_back_alt(1)
+      args = UnlimitedVector()
+      call args%push_back(1)
 
       ! Create a logging format
       fmt = Formatter('%(levelName::a): %(name::a): %(message::a)')
@@ -93,7 +93,7 @@ contains
    
 @Test
    subroutine test_emitBasicWithFormatAndDate(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_Formatter_mod
       use FTL_CIStringXUMap_mod
       use FTL_String_mod
@@ -103,13 +103,13 @@ contains
 
       type (LogRecord) :: record
       type(Formatter) :: fmt
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       type (CIStringXUMap) :: extra
       type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       
-      args = XWrapVec()
-      call args%push_back_alt(1)
+      args = UnlimitedVector()
+      call args%push_back(1)
 
       ! Create a LogRecord
       extra = CIStringXUMap()

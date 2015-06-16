@@ -33,21 +33,21 @@ contains
    ! of unlimited polymorphic entities.
    !---------------------------------------------------------------------------
    function makeArgVector(ARG_LIST) result(args)
-      use FTL_XWrapVec_mod
-      type (XWrapVec) :: args
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      type (UnlimitedVector) :: args
       include 'recordOptArgs.inc'  
 
-      args = XWrapVec()
+      args = UnlimitedVector()
 
-      if (present(arg1)) call args%push_back_alt(arg1)
-      if (present(arg2)) call args%push_back_alt(arg2)
-      if (present(arg3)) call args%push_back_alt(arg3)
-      if (present(arg4)) call args%push_back_alt(arg4)
-      if (present(arg5)) call args%push_back_alt(arg5)
-      if (present(arg6)) call args%push_back_alt(arg6)
-      if (present(arg7)) call args%push_back_alt(arg7)
-      if (present(arg8)) call args%push_back_alt(arg8)
-      if (present(arg9)) call args%push_back_alt(arg9)
+      if (present(arg1)) call args%push_back(arg1)
+      if (present(arg2)) call args%push_back(arg2)
+      if (present(arg3)) call args%push_back(arg3)
+      if (present(arg4)) call args%push_back(arg4)
+      if (present(arg5)) call args%push_back(arg5)
+      if (present(arg6)) call args%push_back(arg6)
+      if (present(arg7)) call args%push_back(arg7)
+      if (present(arg8)) call args%push_back(arg8)
+      if (present(arg9)) call args%push_back(arg9)
       
    end function makeArgVector
 
