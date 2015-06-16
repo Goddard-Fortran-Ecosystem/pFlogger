@@ -21,8 +21,8 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Logger_mod
-   use FTL_AbstracthandlerPolyWrap_mod
-   use FTL_AbstracthandlerPolyWrapVec_mod
+   use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
+   use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVectorIterator => VectorIterator
    use ASTG_Exception_mod
    use ASTG_AbstractLogger_mod
    use ASTG_AbstractHandler_mod
@@ -43,7 +43,7 @@ module ASTG_Logger_mod
       private
       integer :: level
       character(len=:), allocatable :: name
-      type (AbstractHandlerPolyWrapVec) :: handlers
+      type (HandlerVector) :: handlers
    contains
 
       procedure :: setName
@@ -103,7 +103,7 @@ contains
 ! TODO: Need to NOTSET when inheritance is working
       call aLog%setLevel(level_)
 
-      alog%handlers = AbstractHandlerPolyWrapVec()
+      alog%handlers = HandlerVector()
       
    end function newLogger
 
@@ -151,18 +151,18 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
       
-      type (AbstractHandlerPolyWrapVecIter) :: iter
+      type (HandlerVectorIterator) :: iter
 
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
-         if (handler == iter%get_alt()) then
+         if (handler == iter%get()) then
             ! duplicate - nothing to do
             return
          end if
          call iter%next()
       end do
       ! increment
-      call this%handlers%push_back(AbstractHandlerPolyWrap(handler))
+      call this%handlers%push_back(handler)
       
    end subroutine addHandler
 
@@ -178,20 +178,15 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
-      type (AbstractHandlerPolyWrapVecIter) :: iter
-
-      iter = this%handlers%begin()
-      do while (iter /= this%handlers%end())
-         if (handler == iter%get_alt()) then
-            ! remove hadler from handlers vector
-            iter = this%handlers%erase(iter)
-            return
-         end if
-         call iter%next()
-      end do
-
-      ! Only can get here if handler not found
-      call throw('Logger%removeHandler() called - logger has no such handler.')
+      integer :: i
+      
+      i = this%handlers%get_index(handler)
+      if (i > 0) then
+         call this%handlers%erase(this%handlers%begin() + i - 1)
+      else
+         ! Only can get here if handler not found
+         call throw('Logger%removeHandler() called - logger has no such handler.')
+      end if
 
    end subroutine removeHandler
 
@@ -251,7 +246,7 @@ contains
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
       
-      type (AbstractHandlerPolyWrapVecIter) :: iter
+      type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: handler
       type (XWrapVec) :: args
 
@@ -260,7 +255,7 @@ contains
       ! Create LogRecord object from the message string and pass the LogRecord
       ! to its Handlers
       do while (iter /= this%handlers%end())
-         handler => iter%get_alt()
+         handler => iter%get()
          call handler%handle(this%makeRecord(level, message, args))
          call iter%next()
       end do
@@ -401,7 +396,7 @@ contains
    !---------------------------------------------------------------------------
    function getHandlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
-      type (AbstractHandlerPolyWrapVec), pointer :: handlers
+      type (HandlerVector), pointer :: handlers
       
       handlers => this%handlers
       

@@ -25,7 +25,10 @@ set(SRCS
    SeverityLevels.F90
    StreamHandler.F90
    ArgListUtilities.F90
-   CIStringLoggerPolyMap.F90
+# FTL containers
+   CIStringAbstractLoggerPolyMap.F90
+   AbstractHandlerPolyVector.F90
+   AbstractFilterPolyVector.F90
 )
 
 if (TEST_MPI) 
@@ -36,16 +39,8 @@ list(APPEND SRCS
 endif()
 
 set(FTL_SRCS
-   AbstractFilterPolyWrap.F90
-   AbstractFilterPolyWrapVec.F90
-   AbstractHandlerPolyWrap.F90
-   AbstractHandlerPolyWrapVec.F90
    XWrap.F90
    XWrapVec.F90
-   CIStringAbstractLoggerPolyPair.F90
-   CIStringAbstractLoggerPolyPairVec.F90
-   CIStringAbstractLoggerPolyPairVecVec.F90
-   CIStringAbstractLoggerPolyUMap.F90
    CIStringXPair.F90
    CIStringXPairVec.F90
    CIStringXPairVecVec.F90

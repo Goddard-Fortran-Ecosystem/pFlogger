@@ -15,8 +15,8 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
-   use ASTG_CIStringLoggerPolyMap_mod, only: LoggerMap => Map
-   use ASTG_CIStringLoggerPolyMap_mod, only: LoggerMapIterator => MapIterator
+   use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMap => Map
+   use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMapIterator => MapIterator
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
    use ASTG_Logger_mod

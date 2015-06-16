@@ -17,7 +17,7 @@
 ! TODO: Is this class necessary?
 !------------------------------------------------------------------------------
 module ASTG_Placeholder_mod
-   use FTL_CIStringAbstractLoggerPolyUMap_mod
+   use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMap => Map
    use ASTG_AbstractLogger_mod
    implicit none
    private
@@ -26,7 +26,7 @@ module ASTG_Placeholder_mod
 
    type, extends(AbstractLogger) :: Placeholder
       private
-      type (CIStringAbstractLoggerPolyUMap) :: children
+      type (LoggerMap) :: children
    contains
       procedure :: addChild
    end type Placeholder

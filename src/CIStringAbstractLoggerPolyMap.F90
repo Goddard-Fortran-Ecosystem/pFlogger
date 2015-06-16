@@ -1,4 +1,4 @@
-module  ASTG_CIStringLoggerPolyMap_mod
+module  ASTG_CIStringAbstractLoggerPolyMap_mod
    use ASTG_AbstractLogger_mod
 #define _key_string_deferred
 #define _key_equal_defined
@@ -43,5 +43,5 @@ module  ASTG_CIStringLoggerPolyMap_mod
 
    end function caseInsensitiveLessThan
 
-end module ASTG_CIStringLoggerPolyMap_mod
+end module ASTG_CIStringAbstractLoggerPolyMap_mod
 
