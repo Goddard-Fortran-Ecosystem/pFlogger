@@ -15,7 +15,8 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
-   use FTL_CIStringAbstractLoggerPolyUMap_mod
+   use ASTG_CIStringLoggerPolyMap_mod, only: LoggerMap => Map
+   use ASTG_CIStringLoggerPolyMap_mod, only: LoggerMapIterator => MapIterator
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
    use ASTG_Logger_mod
@@ -27,7 +28,7 @@ module ASTG_LoggerManager_mod
 
    type, extends(Object) :: LoggerManager
       private
-      type (CIStringAbstractLoggerPolyUMap) :: loggers
+      type (LoggerMap) :: loggers
    contains
       procedure :: getLogger
       procedure, nopass :: getParentPrefix
@@ -52,8 +53,6 @@ contains
    function newLoggerManager() result(manager)
       type (LoggerManager) :: manager
 
-      manager%loggers = CIStringAbstractLoggerPolyUMap()
-
    end function newLoggerManager
 
 
@@ -69,35 +68,39 @@ contains
    ! 2) 'name' is case insensitive.
    !---------------------------------------------------------------------------
    function getLogger(this, name) result(lgr)
-      use FTL_CIString_mod
+      use ASTG_Exception_mod
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
-      type (CIStringAbstractLoggerPolyUMapIter) :: iter
       character(len=:), allocatable :: parentName
 
       class (AbstractLogger), pointer :: tmp
 
-      if (this%loggers%count(name) > 0) then
+      tmp => this%loggers%at(name)
+      if (associated(tmp)) then  ! cast to Logger
+         select type (tmp)
+         class is (Logger)
+            lgr => tmp
+         class default
+            call throw('LoggerManager::getLogger() - Illegal type of logger <' &
+                 & // name // '>')
+         end select
+         return
+
+      else ! new logger
+
+         call this%loggers%insert(name, newLogger(name))
+         parentName = this%getParentPrefix(name)
+
          tmp => this%loggers%at(name)
          select type (tmp)
          class is (Logger)
             lgr => tmp
          end select
-         return
-      end if
 
-      iter = this%loggers%emplace(name, newLogger(name))
-      parentName = this%getParentPrefix(name)
-
-      tmp => this%loggers%at(name)
-      select type (tmp)
-      class is (Logger)
-         lgr => tmp
-      end select
-
-      if (parentName /= '') then ! should exist !
-         call lgr%setParent(this%loggers%at(parentName))
+         if (parentName /= '') then ! should exist !
+            call lgr%setParent(this%loggers%at(parentName))
+         end if
       end if
 
    end function getLogger
