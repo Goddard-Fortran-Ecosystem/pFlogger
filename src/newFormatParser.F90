@@ -1,5 +1,5 @@
 module ASTG_NewFormatParser_mod
-   use FTL_FormatTokenVec_mod
+   use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
    implicit none
    private
 
@@ -22,7 +22,7 @@ module ASTG_NewFormatParser_mod
    character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
    character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
 
-   type, extends(FormatTokenVec) :: FormatParser
+   type, extends(FormatTokenVector) :: FormatParser
       private
       integer :: currentPosition = 0
       character(len=MAX_LEN_TOKEN) :: buffer

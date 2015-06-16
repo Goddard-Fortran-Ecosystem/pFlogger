@@ -286,7 +286,6 @@ contains
 @test
    subroutine test_addHandler_noDups(this)
       use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
-      use FTL_AbstracthandlerPolyWrapVec_mod
       class (Test_Logger), intent(inout) :: this
 
       type (Logger), target :: lgr

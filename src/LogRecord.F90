@@ -19,8 +19,7 @@
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-   use FTL_XWrapVec_mod
-   use FTL_CIStringXUMap_mod
+   use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
    use iso_fortran_env, only: int32, real32, int64, real64, real128
@@ -38,7 +37,7 @@ module ASTG_LogRecord_mod
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (UnlimitedVector) :: args
-      type (CIStringXUMap) :: extra
+      type (CIStringUnlimitedMap) :: extra
    contains
       procedure :: getName
       procedure :: getLevel
@@ -69,10 +68,9 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (UnlimitedVector), optional, intent(in) :: args
-      type (CIStringXUMap), optional, intent(in) :: extra
+      type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
-      type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       character(len=:), allocatable :: levelName
       
@@ -87,23 +85,23 @@ contains
 
       if (present(extra)) then
          rec%extra = extra
-      else
-         rec%extra = CIStringXUMap()
+!!$      else
+!!$         rec%extra = CIStringXUMap()
       end if
 
-      iter = rec%extra%emplace('level', level)
+      call rec%extra%insert('level', level)
       ! workaround for ifort
       wrapName = name
-      iter = rec%extra%emplace('name', wrapName)
+      call rec%extra%insert('name', wrapName)
 
       levelName = levelToString(level)
       ! Compiler workarounds
 #ifdef __INTEL_COMPILER
       ! ifort
-      iter= rec%extra%emplace('levelName', levelName)
+      call rec%extra%insert('levelName', levelName)
 #else
       ! gfortran
-      iter= rec%extra%emplace('levelName', String(levelName))
+      call rec%extra%insert('levelName', String(levelName))
 #endif
       call fillDateAndTime(rec)
       
@@ -121,16 +119,15 @@ contains
    subroutine fillDateAndTime(rec)
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
-      type (CIStringXUMapIter) :: iter
       
       call date_and_time(VALUES=values)
-      iter = rec%extra%emplace('Y', values(1))
-      iter = rec%extra%emplace('M', values(2))
-      iter = rec%extra%emplace('D', values(3))
-      iter = rec%extra%emplace('HH', values(5))
-      iter = rec%extra%emplace('MM', values(6))
-      iter = rec%extra%emplace('SS', values(7))
-      iter = rec%extra%emplace('MS', values(8))
+      call rec%extra%insert('Y', values(1))
+      call rec%extra%insert('M', values(2))
+      call rec%extra%insert('D', values(3))
+      call rec%extra%insert('HH', values(5))
+      call rec%extra%insert('MM', values(6))
+      call rec%extra%insert('SS', values(7))
+      call rec%extra%insert('MS', values(8))
    end subroutine fillDateAndTime
    
    
@@ -228,16 +225,15 @@ contains
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, message, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use FTL_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (UnlimitedVector), optional, intent(in) :: args
-      type (CIStringXUMap), optional, intent(in) :: extra
+      type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
-      type (CIStringXUMapIter) :: iter
       type (String) :: wrapName
       character(len=:), allocatable :: levelName
       
@@ -252,23 +248,23 @@ contains
 
       if (present(extra)) then
          rec%extra = extra
-      else
-         rec%extra = CIStringXUMap()
+!!$      else
+!!$         rec%extra = CIStringXUMap()
       end if
 
-      iter = rec%extra%emplace('level', level)
+      call rec%extra%insert('level', level)
       ! workaround for ifort
       wrapName = name
-      iter = rec%extra%emplace('name', wrapName)
+      call rec%extra%insert('name', wrapName)
 
       levelName = levelToString(level)
       ! Compiler workarounds
 #ifdef __INTEL_COMPILER
       ! ifort
-      iter= rec%extra%emplace('levelName', levelName)
+      call rec%extra%insert('levelName', levelName)
 #else
       ! gfortran
-      iter= rec%extra%emplace('levelName', String(levelName))
+      call rec%extra%insert('levelName', String(levelName))
 #endif
       call fillDateAndTime(rec)
       

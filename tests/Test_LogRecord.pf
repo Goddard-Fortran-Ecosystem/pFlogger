@@ -45,9 +45,9 @@ contains
 
 @Test
    subroutine test_args(this)
-      use FTL_XWrapVec_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_LogRecord), intent(inout) :: this
-      type (XWrapVec) :: args
+      type (UnlimitedVector) :: args
       
       this%record = LogRecord('A', INFO, 'Hello')
       @assertEqual('A', this%record%getName())

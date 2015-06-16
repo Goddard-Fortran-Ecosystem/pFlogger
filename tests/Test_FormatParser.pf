@@ -343,14 +343,12 @@ contains
 
    @test
    subroutine test_makeStringExtra()
-      use FTL_CIStringXUMap_mod
+   use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       type(FormatParser) :: parser
-      type (CIStringXUMap) :: extra
-      type (CIStringXUMapIter) :: iter
+      type (CIStringUnlimitedMap) :: extra
       
-      extra = CIStringXUMap()
-      iter = extra%emplace('Carlos', 1)
-      iter = extra%emplace('Tom', 2)
+      call extra%insert('Carlos', 1)
+      call extra%insert('Tom', 2)
       
       @assertEqual('hello', parser%makeString('hello', extra=extra))
       @assertEqual('Carlos is 1', parser%makeString('Carlos is %(Carlos::i1)', extra=extra))

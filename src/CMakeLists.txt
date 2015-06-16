@@ -30,6 +30,10 @@ set(SRCS
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
    UnlimitedVector.F90
+   CIStringUnlimitedMap.F90
+   FormatTokenVector.F90
+   StringVector.F90
+FormatTokenVector.F90
 )
 
 if (TEST_MPI) 
@@ -40,14 +44,12 @@ list(APPEND SRCS
 endif()
 
 set(FTL_SRCS
-   XWrap.F90
-   XWrapVec.F90
-   CIStringXPair.F90
-   CIStringXPairVec.F90
-   CIStringXPairVecVec.F90
-   CIStringXUMap.F90
+#   CIStringXPair.F90
+#   CIStringXPairVec.F90
+#   CIStringXPairVecVec.F90
+#   CIStringXUMap.F90
    StringVec.F90
-   FormatTokenVec.F90
+#   FormatTokenVec.F90
 )
 
 list(APPEND SRCS ${FTL_SRCS})

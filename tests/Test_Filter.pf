@@ -11,12 +11,14 @@ contains
       use FTL_Object_mod
       type (Filter) :: f
       type (LogRecord) :: record
+      logical :: flag
 
       f = Filter('A')
       record = LogRecord('B', INFO, 'some message')
+      flag = f%doFilter(record)
 
-      @assertFalse(f%doFilter(record))
-      
+      @assertFalse(flag)
+      print*,__LINE__,__FILE__
    end subroutine test_defaultFilterNameMismatch
 
 
@@ -25,6 +27,7 @@ contains
       type (Filter) :: f
       type (LogRecord) :: record
 
+      print*,__LINE__,__FILE__
       call initFilter(f, 'A')
       call initLogRecord(record, 'A', INFO, 'some message')
 

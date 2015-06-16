@@ -106,15 +106,19 @@ contains
       character(len=:), allocatable :: recordName
       integer :: n
 
+      print*,__LINE__,__FILE__
       recordName = record%getName()
 
+      print*,__LINE__,__FILE__
       n = len(this%name)
 
+      print*,__LINE__,__FILE__
       if (sameString(this%name,recordName)) then
          doFilter = .true.  ! do emit
       else
          doFilter = .false. ! do NOT emit
       end if
+      print*,__LINE__,__FILE__, doFilter
 
    end function doFilter
 

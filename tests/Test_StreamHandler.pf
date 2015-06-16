@@ -95,7 +95,7 @@ contains
    subroutine test_emitBasicWithFormatAndDate(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_Formatter_mod
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use FTL_String_mod
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
@@ -104,24 +104,22 @@ contains
       type (LogRecord) :: record
       type(Formatter) :: fmt
       type (UnlimitedVector) :: args
-      type (CIStringXUMap) :: extra
-      type (CIStringXUMapIter) :: iter
+      type (CIStringUnlimitedMap) :: extra
       type (String) :: wrapName
       
       args = UnlimitedVector()
       call args%push_back(1)
 
       ! Create a LogRecord
-      extra = CIStringXUMap()
       record%name = 'someRec'
       record%level = INFO
       record%message = 'datefmt'
       record%extra = extra
       ! workaround for ifort
       wrapName = 'someRec'
-      iter = record%extra%emplace('name', wrapName)
-      iter = record%extra%emplace('level', INFO)
-      iter = record%extra%emplace('levelName', String(levelToString(INFO)))
+      call record%extra%insert('name', wrapName)
+      call record%extra%insert('level', INFO)
+      call record%extra%insert('levelName', String(levelToString(INFO)))
 
       call mockdf%fillDateAndTime(record)
       mockdf%f = Formatter(&

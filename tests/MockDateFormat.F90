@@ -1,7 +1,7 @@
 module MockDateFormat_mod
    use ASTG_Formatter_mod
    use ASTG_LogRecord_mod
-   use FTL_CIStringXUMap_mod
+   use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
    implicit none
    private
 
@@ -32,15 +32,14 @@ contains
       class(MockDateFormat), intent(in) :: this
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
-      type (CIStringXUMapIter) :: iter
       
-      iter = rec%extra%emplace('Y', this%Y)
-      iter = rec%extra%emplace('M', this%M)
-      iter = rec%extra%emplace('D', this%D)
-      iter = rec%extra%emplace('HH', this%HH)
-      iter = rec%extra%emplace('MM', this%MM)
-      iter = rec%extra%emplace('SS', this%SS)
-      iter = rec%extra%emplace('MS', this%MS)
+      call rec%extra%insert('Y', this%Y)
+      call rec%extra%insert('M', this%M)
+      call rec%extra%insert('D', this%D)
+      call rec%extra%insert('HH', this%HH)
+      call rec%extra%insert('MM', this%MM)
+      call rec%extra%insert('SS', this%SS)
+      call rec%extra%insert('MS', this%MS)
       
    end subroutine fillDateAndTime
 

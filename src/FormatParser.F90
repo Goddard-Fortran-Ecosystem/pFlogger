@@ -331,16 +331,17 @@ contains
       use FTL_StringVec_mod
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_UnlimitedVector_mod, only: UnlimitedVectorIterator => VectorIterator
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
       type (UnlimitedVector), optional :: args
       type (UnusableArgument), optional :: unusable
       class (*), optional, intent(in) :: arr1D_1(:)
-      type (CIStringXUMap), optional :: extra
+      type (CIStringUnlimitedMap), optional :: extra
 
       type (UnlimitedVector) :: args_
-      type (CIStringXUMap) :: extra_
+      type (CIStringUnlimitedMap) :: extra_
 
       character(len=:), allocatable :: tokenString
       character(len=:), allocatable :: key
@@ -361,8 +362,8 @@ contains
 
       if (present(extra)) then
          extra_ = extra
-      else
-         extra_ = CIStringXUMap()
+!!$      else
+!!$         extra_ = CIStringUnlimitedMap()
       end if
 
       rawString = ''
@@ -381,7 +382,7 @@ contains
             ! Does it contain a key?
             if (formatContainsKey(tokenString)) then
                key = getFormatKey(tokenString)
-               arg => extra_%at_alt(key)
+               arg => extra_%at(key)
                if (.not. associated(arg)) then
                   call throw('No such key: <' // key // '> in "extra".')
                   return
@@ -426,7 +427,7 @@ contains
    !---------------------------------------------------------------------------
    function makeString(fmt, ARG_LIST, unusable, arr1D_1, extra) result(rawString)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use ASTG_ArgListUtilities_mod
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
@@ -434,7 +435,7 @@ contains
       include 'recordOptArgs.inc'    
       type (UnusableArgument), optional, intent(in) :: unusable
       class (*), optional, intent(in) :: arr1D_1(:)
-      type (CIStringXUMap), optional :: extra
+      type (CIStringUnlimitedMap), optional :: extra
 
       type (UnlimitedVector) :: args
 

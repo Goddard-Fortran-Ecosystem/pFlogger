@@ -96,15 +96,15 @@ contains
    function formatTime(this, record, datefmt) result(logMessage)
       use ASTG_FormatParser_mod
       use FTL_String_mod
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
       character(len=*), optional, intent(in) :: datefmt
 
       type (FormatParser) :: parser
-      type (CIStringXUMap) :: extra
-      type (CIStringXUMapIter) :: iter
+      type (CIStringUnlimitedMap) :: extra
       
       extra = record%extra
       if (present(datefmt)) then
@@ -132,22 +132,22 @@ contains
    function format(this, record) result(logMessage)
       use ASTG_FormatParser_mod
       use FTL_String_mod
-      use FTL_CIStringXUMap_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+
       character(len=:), allocatable :: logMessage
       character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
 
       type (FormatParser) :: parser
-      type (CIStringXUMap) :: extra
-      type (CIStringXUMapIter) :: iter
+      type (CIStringUnlimitedMap) :: extra
 
       extra = record%extra
 
-      iter = extra%emplace('message', String(record%getMessage()))
+      call extra%insert('message', String(record%getMessage()))
       if(this%usesTime()) then
          asctime = this%formatTime(record, datefmt=this%datefmt)
-         iter = extra%emplace('asctime', String(asctime))
+         call extra%insert('asctime', String(asctime))
       end if
       logMessage = parser%format(this%fmt, extra=extra)
     
