@@ -70,17 +70,15 @@ include_directories(
 add_library(${THIS} STATIC ${ALL_SRCS}
 )
 
-link_directories(${FTL}/lib)
 
 target_link_libraries(${THIS}
    logger
    pfunit
-   ftl
 )
 
 set(EXE ${THIS}.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} ${THIS} logger ftl pfunit)
+target_link_libraries(${EXE} ${THIS} logger pfunit)
 
 add_custom_target(tests
    COMMAND ${EXE} 
