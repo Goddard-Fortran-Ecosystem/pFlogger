@@ -1,7 +1,5 @@
 module Test_FormatParser_mod
    use pFUnit_mod
-   use FTL_String_mod
-   use FTL_StringVec_mod
    use ASTG_FormatParser_mod
    
    implicit none
@@ -162,8 +160,9 @@ contains
    ! Note that getTokens internally calls startOfNextToken.
    @test
    subroutine test_countTokens()
+      use ASTG_StringVector_mod, only: StringVector => Vector
       type(FormatParser) :: parser
-      type(StringVec) :: tokens
+      type(StringVector) :: tokens
 
       tokens = parser%getTokens('')
       @assertEqual(0, tokens%size())
@@ -198,47 +197,47 @@ contains
    ! Note that getTokens internally calls startOfNextToken.
    @test
    subroutine test_getTokens()
-      use FTL_String_mod
+      use ASTG_StringVector_mod, only: StringVector => Vector
       type(FormatParser) :: parser
-      type(StringVec) :: tokens
+      type(StringVector) :: tokens
       integer :: i
 
       tokens = parser%getTokens('a')
-      @assertTrue(String('a') == tokens%at(1))
+      @assertTrue('a' == tokens%at(1))
 
       tokens = parser%getTokens(' a')
-      @assertTrue(String(' a') == tokens%at(1))
+      @assertTrue(' a' == tokens%at(1))
 
       tokens = parser%getTokens('a ')
-      @assertTrue(String('a ') == tokens%at(1))      
+      @assertTrue('a ' == tokens%at(1))      
       
       tokens = parser%getTokens('hello %i2.1')
-      @assertTrue(String('hello ') == tokens%at(1))
-      @assertTrue(String('%i2.1') == tokens%at(2))
+      @assertTrue('hello ' == tokens%at(1))
+      @assertTrue('%i2.1' == tokens%at(2))
 
       tokens = parser%getTokens('hello %i2.1 other words %a ')
-      @assertTrue(String('hello ') == tokens%at(1))
-      @assertTrue(String('%i2.1') == tokens%at(2))
-      @assertTrue(String(' other words ') == tokens%at(3))
-      @assertTrue(String('%a') == tokens%at(4))
-      @assertTrue(String('') == tokens%at(5))
+      @assertTrue('hello ' == tokens%at(1))
+      @assertTrue('%i2.1' == tokens%at(2))
+      @assertTrue(' other words ' == tokens%at(3))
+      @assertTrue('%a' == tokens%at(4))
+      @assertTrue('' == tokens%at(5))
 
       tokens = parser%getTokens('hello %(i2.1)other words %a ')
-      @assertTrue(String('hello ') == tokens%at(1))
-      @assertTrue(String('%(i2.1)') == tokens%at(2))
-      @assertTrue(String('other words ') == tokens%at(3))
-      @assertTrue(String('%a') == tokens%at(4))
-      @assertTrue(String('') == tokens%at(5))
+      @assertTrue('hello ' == tokens%at(1))
+      @assertTrue('%(i2.1)' == tokens%at(2))
+      @assertTrue('other words ' == tokens%at(3))
+      @assertTrue('%a' == tokens%at(4))
+      @assertTrue('' == tokens%at(5))
 
       tokens = parser%getTokens('- %i1.1 %i2.1 %i3.1 %i4.1 %i5.1 %i6.1 %7.1')
-      @assertTrue(String('-') == tokens%at(1))
+      @assertTrue('-' == tokens%at(1))
       @assertEqual(14, tokens%size())
-      @assertTrue(String('%7.1') == tokens%at(14))
+      @assertTrue('%7.1' == tokens%at(14))
 
       tokens = parser%getTokens('- %i1.1 %i2.1 %i3.1 %i4.1 %i5.1 %i6.1 %7.1 %8.1 %9.1')
-      @assertTrue(String('-') == tokens%at(1))
+      @assertTrue('-' == tokens%at(1))
       @assertEqual(18, tokens%size())
-      @assertTrue(String('%9.1') == tokens%at(18))
+      @assertTrue('%9.1' == tokens%at(18))
    end subroutine test_getTokens
 
 
@@ -268,11 +267,13 @@ contains
    
    @test
    subroutine test_makeStringManyArgs()
+      use iso_fortran_env, only: int32, int64
+      use iso_fortran_env, only: real32
       type(FormatParser) :: parser
       integer :: i=1, j=2, k=3
-      integer(kind=8) :: time=1234567890
+      integer(kind=int32) :: time=1234567890
       real :: u=10.0, v=5.0, T=273.0
-      real(kind=8) :: E=0.0, p=3.1415927
+      real(kind=real32) :: E=0.0, p=3.1415927
       logical :: land=.true.
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
@@ -327,7 +328,7 @@ contains
    subroutine test_makeStringWrapString()
       type(FormatParser) :: parser
       
-      @assertEqual('hello there', parser%makeString('hello %a', String('there')))
+      @assertEqual('hello there', parser%makeString('hello %a', 'there'))
 
    end subroutine test_makeStringWrapString
 

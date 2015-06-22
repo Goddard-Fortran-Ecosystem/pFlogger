@@ -66,6 +66,7 @@ contains
       case (CRITICAL)
          string = 'CRITICAL'
       case default
+         string=''
          call throw('Unknown level. Please use a valid level.')
       end select
       

@@ -157,12 +157,14 @@ contains
    !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (RotatingFileHandler), intent(inout) :: this
-      type (LogRecord) :: record
+      type (LogRecord), intent(in) :: record
+      integer :: fileSize
 
       if (this%shouldRollover()) then
          call this%doRollover()
       else
          write(this%getUnit(), '(a)') this%format(record)
+         inquire(this%getUnit(), size=fileSize)
       end if
     
    end subroutine emitMessage
@@ -181,7 +183,9 @@ contains
       integer :: fileSize
       
       rollOver = .false.
-      inquire(this%getUnit(), SIZE=fileSize)
+      flush(this%getUnit())
+      inquire(this%getUnit(), size=fileSize)
+
       if (fileSize > this%numBytes) then
          rollOver = .true.
       end if
@@ -216,6 +220,7 @@ contains
       if (this%isOpen()) then
          call this%close()
       end if
+
       if (fileCount < this%backupCount) then
          fileCount = fileCount + 1
          select case (fileCount)

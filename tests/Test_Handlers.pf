@@ -3,169 +3,169 @@ module Test_Handlers_mod
    use ASTG_FormatToken_mod
    use ASTG_newFormatParser_mod
 
-   @testParameter(constructor=newTestParameter)
-   type, extends(AbstractTestParameter) :: TestParam
-      ! in
-      procedure (HandlerInterface), nopass, pointer :: handlerIn
-      character(len=:), allocatable :: bufferIn
-      character(len=1) :: nextCharIn
-      ! expected
-      character(len=:), allocatable :: bufferOut
-      logical :: startNewToken
-      procedure (HandlerInterface), nopass, pointer :: handlerOut
-   contains
-      procedure :: toString
-   end type TestParam
-      
-
-   @TestCase(constructor=newTestCase, testParameters={getParameters()})
-   type, extends(ParameterizedTestCase) :: HandlersTestCase
-      type (FormatParser) :: parser
-      type (TestParam) :: param
-   contains
-      procedure :: setUp
-      procedure :: tearDown
-   end type HandlersTestCase
-
-contains
-
-   
-   function getParameters() result(params)
-      type (TestParam), allocatable :: params(:)
-
-      type struct
-         procedure (HandlerInterface), nopass, pointer :: handlerIn
-         character(len=:), allocatable :: bufferIn
-         character(len=1) :: char
-         character(len=:), allocatable :: bufferOut
-         logical :: startNewToken
-         procedure (HandlerInterface), nopass, pointer :: handlerOut
-      end type struct
-
-      ! workaround for CPP "eating" backspaces
-      character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
-      character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
-
-      params = [ &
-           & makeParam(textHandler, '', 'a', 'a', .false., textHandler) &
-           & ,makeParam(textHandler, 'a', 'b', 'ab', .false., textHandler) &
-           & ,makeParam(textHandler, 'a', "'", "a'", .false., singleQuoteHandler) &
-           & ,makeParam(textHandler, 'a', '"', 'a"', .false., doubleQuoteHandler) &
-           
-           & ,makeParam(singleQuoteHandler, "a'b", "'", "a'b'", .false., textHandler) &
-           & ,makeParam(doubleQuoteHandler, 'a"b', '"', 'a"b"', .false., textHandler) &
-
-           & ,makeParam(textHandler, '', '%', '', .false., positionFormatHandler) &
-           & ,makeParam(positionFormatHandler, '', '{', '', .false., keywordFormatHandler) &
-
-           & ,makeParam(positionFormatHandler, '%i3', ' ', ' ', .true., textHandler) &
-           & ,makeParam(positionFormatHandler, '%i3', ESCAPE, '', .true., textHandler) &
-
-           & ]
-
-   contains
-      
-      function makeParam(handlerIn, bufferIn, nextCharIn, &
-           & bufferOut, startNewToken, handlerOut) result(param)
-         type (TestParam) :: param
-         
-         procedure (HandlerInterface) :: handlerIn
-         character(len=*) :: bufferIn
-         character(len=1) :: nextCharIn
-         character(len=*) :: bufferOut
-         logical :: startNewToken
-         procedure (HandlerInterface) :: handlerOut
-
-         param%handlerIn => handlerIn
-         param%bufferIn = bufferIn
-         param%nextCharIn = nextCharIn
-         param%bufferOut = bufferOut
-         param%startNewToken = startNewToken
-         param%handlerOut => handlerOut
-      end function makeParam
-
-   end function getParameters
-
-
-   function toString(this) result(str)
-      character(len=:), allocatable :: str
-      class (TestParam), intent(in) :: this
-      
-      character(len=:), allocatable :: message
-      message = 'bufferIn=<' // this%bufferIn // '>'
-      message = message // '; char=<' // this%nextCharIn // '>'
-      str = message
-   end function toString
-
-
-   function newTestCase(param) result(tstCase)
-      type (HandlersTestCase) :: tstCase
-      type (TestParam) :: param
-
-      tstCase%param = param
-
-   end function newTestCase
-
-
-   subroutine setUp(this)
-      class (HandlersTestCase), intent(inout) :: this
-      
-      this%parser = FormatParser()
-      call this%parser%setHandler(this%param%handlerIn)
-      call this%parser%setBuffer(this%param%bufferIn)
-
-   end subroutine setUp
-
-   subroutine tearDown(this)
-      class (HandlersTestCase), intent(inout) :: this
-   end subroutine tearDown
-
-
-@test
-   subroutine test_outBuffer(this)
-      class (HandlersTestCase), intent(inout) :: this
-
-      character(len=:), pointer :: buffer
-
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
-
-      call this%parser%getBuffer(buffer)
-      @assertEqual(this%param%bufferOut, buffer, whiteSpace=KEEP_ALL)
-
-   end subroutine test_outBuffer
-
-
-@test
-   subroutine test_outHandler(this)
-      class (HandlersTestCase), intent(inout) :: this
-
-      procedure (HandlerInterface), pointer :: procPtr
-      procedure (HandlerInterface), pointer :: expectedPtr
-
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
-
-      call this%parser%getHandler(procPtr)
-      expectedPtr => this%param%handlerOut
-      @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
-
-   end subroutine test_outHandler
-
-
-@test
-   subroutine test_startNewToken(this)
-      class (HandlersTestCase), intent(inout) :: this
-
-      procedure (HandlerInterface), pointer :: procPtr
-
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
-
-      if (this%param%startNewToken) then
-         @assertEqual(1, this%parser%size())
-      else
-         @assertEqual(0, this%parser%size())
-      end if
-
-   end subroutine test_startNewToken
-
+!!$   @testParameter(constructor=newTestParameter)
+!!$   type, extends(AbstractTestParameter) :: TestParam
+!!$      ! in
+!!$      procedure (HandlerInterface), nopass, pointer :: handlerIn
+!!$      character(len=:), allocatable :: bufferIn
+!!$      character(len=1) :: nextCharIn
+!!$      ! expected
+!!$      character(len=:), allocatable :: bufferOut
+!!$      logical :: startNewToken
+!!$      procedure (HandlerInterface), nopass, pointer :: handlerOut
+!!$   contains
+!!$      procedure :: toString
+!!$   end type TestParam
+!!$      
+!!$
+!!$   @TestCase(constructor=newTestCase, testParameters={getParameters()})
+!!$   type, extends(ParameterizedTestCase) :: HandlersTestCase
+!!$      type (FormatParser) :: parser
+!!$      type (TestParam) :: param
+!!$   contains
+!!$      procedure :: setUp
+!!$      procedure :: tearDown
+!!$   end type HandlersTestCase
+!!$
+!!$contains
+!!$
+!!$   
+!!$   function getParameters() result(params)
+!!$      type (TestParam), allocatable :: params(:)
+!!$
+!!$      type struct
+!!$         procedure (HandlerInterface), nopass, pointer :: handlerIn
+!!$         character(len=:), allocatable :: bufferIn
+!!$         character(len=1) :: char
+!!$         character(len=:), allocatable :: bufferOut
+!!$         logical :: startNewToken
+!!$         procedure (HandlerInterface), nopass, pointer :: handlerOut
+!!$      end type struct
+!!$
+!!$      ! workaround for CPP "eating" backspaces
+!!$      character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
+!!$      character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
+!!$
+!!$      params = [ &
+!!$           & makeParam(textHandler, '', 'a', 'a', .false., textHandler) &
+!!$           & ,makeParam(textHandler, 'a', 'b', 'ab', .false., textHandler) &
+!!$           & ,makeParam(textHandler, 'a', "'", "a'", .false., singleQuoteHandler) &
+!!$           & ,makeParam(textHandler, 'a', '"', 'a"', .false., doubleQuoteHandler) &
+!!$           
+!!$           & ,makeParam(singleQuoteHandler, "a'b", "'", "a'b'", .false., textHandler) &
+!!$           & ,makeParam(doubleQuoteHandler, 'a"b', '"', 'a"b"', .false., textHandler) &
+!!$
+!!$           & ,makeParam(textHandler, '', '%', '', .false., positionFormatHandler) &
+!!$           & ,makeParam(positionFormatHandler, '', '{', '', .false., keywordFormatHandler) &
+!!$
+!!$           & ,makeParam(positionFormatHandler, '%i3', ' ', ' ', .true., textHandler) &
+!!$           & ,makeParam(positionFormatHandler, '%i3', ESCAPE, '', .true., textHandler) &
+!!$
+!!$           & ]
+!!$
+!!$   contains
+!!$      
+!!$      function makeParam(handlerIn, bufferIn, nextCharIn, &
+!!$           & bufferOut, startNewToken, handlerOut) result(param)
+!!$         type (TestParam) :: param
+!!$         
+!!$         procedure (HandlerInterface) :: handlerIn
+!!$         character(len=*) :: bufferIn
+!!$         character(len=1) :: nextCharIn
+!!$         character(len=*) :: bufferOut
+!!$         logical :: startNewToken
+!!$         procedure (HandlerInterface) :: handlerOut
+!!$
+!!$         param%handlerIn => handlerIn
+!!$         param%bufferIn = bufferIn
+!!$         param%nextCharIn = nextCharIn
+!!$         param%bufferOut = bufferOut
+!!$         param%startNewToken = startNewToken
+!!$         param%handlerOut => handlerOut
+!!$      end function makeParam
+!!$
+!!$   end function getParameters
+!!$
+!!$
+!!$   function toString(this) result(str)
+!!$      character(len=:), allocatable :: str
+!!$      class (TestParam), intent(in) :: this
+!!$      
+!!$      character(len=:), allocatable :: message
+!!$      message = 'bufferIn=<' // this%bufferIn // '>'
+!!$      message = message // '; char=<' // this%nextCharIn // '>'
+!!$      str = message
+!!$   end function toString
+!!$
+!!$
+!!$   function newTestCase(param) result(tstCase)
+!!$      type (HandlersTestCase) :: tstCase
+!!$      type (TestParam) :: param
+!!$
+!!$      tstCase%param = param
+!!$
+!!$   end function newTestCase
+!!$
+!!$
+!!$   subroutine setUp(this)
+!!$      class (HandlersTestCase), intent(inout) :: this
+!!$      
+!!$      this%parser = FormatParser()
+!!$      call this%parser%setHandler(this%param%handlerIn)
+!!$      call this%parser%setBuffer(this%param%bufferIn)
+!!$
+!!$   end subroutine setUp
+!!$
+!!$   subroutine tearDown(this)
+!!$      class (HandlersTestCase), intent(inout) :: this
+!!$   end subroutine tearDown
+!!$
+!!$
+!!$@test
+!!$   subroutine test_outBuffer(this)
+!!$      class (HandlersTestCase), intent(inout) :: this
+!!$
+!!$      character(len=:), pointer :: buffer
+!!$
+!!$      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+!!$
+!!$      call this%parser%getBuffer(buffer)
+!!$      @assertEqual(this%param%bufferOut, buffer, whiteSpace=KEEP_ALL)
+!!$
+!!$   end subroutine test_outBuffer
+!!$
+!!$
+!!$@test
+!!$   subroutine test_outHandler(this)
+!!$      class (HandlersTestCase), intent(inout) :: this
+!!$
+!!$      procedure (HandlerInterface), pointer :: procPtr
+!!$      procedure (HandlerInterface), pointer :: expectedPtr
+!!$
+!!$      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+!!$
+!!$      call this%parser%getHandler(procPtr)
+!!$      expectedPtr => this%param%handlerOut
+!!$      @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
+!!$
+!!$   end subroutine test_outHandler
+!!$
+!!$
+!!$@test
+!!$   subroutine test_startNewToken(this)
+!!$      class (HandlersTestCase), intent(inout) :: this
+!!$
+!!$      procedure (HandlerInterface), pointer :: procPtr
+!!$
+!!$      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+!!$
+!!$      if (this%param%startNewToken) then
+!!$         @assertEqual(1, this%parser%size())
+!!$      else
+!!$         @assertEqual(0, this%parser%size())
+!!$      end if
+!!$
+!!$   end subroutine test_startNewToken
+!!$
 
 end module Test_Handlers_mod

@@ -61,7 +61,7 @@ set_source_files_properties(
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
-   ${FTL}/mod
+   ${FTL}/include
    ${PFUNIT}/include
 )
 

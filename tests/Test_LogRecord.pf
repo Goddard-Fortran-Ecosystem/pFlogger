@@ -36,7 +36,8 @@ contains
    subroutine test_intRecord(this)
       class (Test_LogRecord), intent(inout) :: this
       
-      this%record = LogRecord('A', INFO, 'Hello')
+      call initLogRecord(this%record, 'A', INFO, 'Hello')
+!!$      this%record = LogRecord('A', INFO, 'Hello')
       @assertEqual('A', this%record%getName())
       @assertEqual(INFO, this%record%getLevel())
       @assertEqual('Hello', this%record%getMessage())
@@ -49,7 +50,8 @@ contains
       class (Test_LogRecord), intent(inout) :: this
       type (UnlimitedVector) :: args
       
-      this%record = LogRecord('A', INFO, 'Hello')
+      call initLogRecord(this%record, 'A', INFO, 'Hello')
+!!$      this%record = LogRecord('A', INFO, 'Hello')
       @assertEqual('A', this%record%getName())
       @assertEqual(INFO, this%record%getLevel())
       @assertEqual('Hello', this%record%getMessage())

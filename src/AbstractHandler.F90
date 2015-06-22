@@ -64,7 +64,7 @@ module ASTG_AbstractHandler_mod
          import AbstractHandler
          import LogRecord
          class (AbstractHandler), intent(inout) :: this
-         type (LogRecord) :: record
+         type (LogRecord), intent(in) :: record
       end subroutine emitMessage
 
       ! This version is intended to be implemented by subclasses
@@ -104,7 +104,7 @@ contains
    !---------------------------------------------------------------------------
    subroutine handle(this, record)
       class(AbstractHandler), intent(inout) :: this
-      type (LogRecord) :: record
+      type (LogRecord), intent(in) :: record
 
       integer :: level
 
@@ -125,7 +125,7 @@ contains
    !---------------------------------------------------------------------------
    function format(this, record) result(message)
       class(AbstractHandler), intent(in) :: this
-      type(LogRecord), intent(inout) :: record
+      type(LogRecord), intent(in) :: record
       character(len=:), allocatable :: message
       
       message = this%fmt%format(record)

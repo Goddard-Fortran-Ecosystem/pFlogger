@@ -39,13 +39,17 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
       )
    endif()
 
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -traceback -g -check uninit")
+
+
+
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
    if (CMAKE_SYSTEM_NAME MATCHES Linux)
       set (CPPFLAGS "${CPPFLAGS} -cpp")
    else()
-      set (CPPFLAGS "${CPPFLAGS}")
+      set (CPPFLAGS "${CPPFLAGS} -g -O0 -fbacktrace -fcheck=pointer")
    endif()
 
    set(F90FLAGS 
@@ -54,8 +58,13 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
    if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
       set(F90FLAGS 
-         "${F90FLAGS} -O0 -fbacktrace"
+         "${F90FLAGS} -g -O0 -fbacktrace -fcheck=pointer"
       )
+      set(FFLAGS 
+         "${FFLAGS} -g -O0 -fbacktrace -fcheck=pointer"
+      )
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -g")
+
    endif()
 
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)

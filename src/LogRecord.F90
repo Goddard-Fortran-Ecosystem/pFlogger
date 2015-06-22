@@ -20,9 +20,9 @@
 module ASTG_LogRecord_mod
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+!!$   use ASTG_CIStringUnlimitedMap_mod, only: newCIStringUnlimitedMap => newMap
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
-   use iso_fortran_env, only: int32, real32, int64, real64, real128
    implicit none
    private
 
@@ -47,6 +47,9 @@ module ASTG_LogRecord_mod
       procedure, nopass :: fillDateAndTime
    end type LogRecord
 
+
+   ! TODO: Unsafe with gfortran 4.9, 5.0 due to issue with
+   ! FINAL methods and the FTL Set container.
    interface LogRecord
       module procedure newLogRecord
    end interface LogRecord
@@ -63,7 +66,6 @@ contains
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
    function newLogRecord(name, level, message, args, extra) result(rec)
-      use FTL_String_mod
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
@@ -71,7 +73,6 @@ contains
       type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
-      type (String) :: wrapName
       character(len=:), allocatable :: levelName
       
       rec%name = name
@@ -85,26 +86,18 @@ contains
 
       if (present(extra)) then
          rec%extra = extra
-!!$      else
-!!$         rec%extra = CIStringXUMap()
+      else
+!!$         rec%extra = newCIStringUnlimitedMap()
       end if
 
       call rec%extra%insert('level', level)
-      ! workaround for ifort
-      wrapName = name
-      call rec%extra%insert('name', wrapName)
+      call rec%extra%insert('name', name)
 
       levelName = levelToString(level)
       ! Compiler workarounds
-#ifdef __INTEL_COMPILER
-      ! ifort
       call rec%extra%insert('levelName', levelName)
-#else
-      ! gfortran
-      call rec%extra%insert('levelName', String(levelName))
-#endif
       call fillDateAndTime(rec)
-      
+
    end function newLogRecord
 
    
@@ -128,6 +121,7 @@ contains
       call rec%extra%insert('MM', values(6))
       call rec%extra%insert('SS', values(7))
       call rec%extra%insert('MS', values(8))
+
    end subroutine fillDateAndTime
    
    
@@ -226,7 +220,6 @@ contains
    subroutine initLogRecord(rec, name, level, message, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      use FTL_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
@@ -234,7 +227,6 @@ contains
       type (UnlimitedVector), optional, intent(in) :: args
       type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
-      type (String) :: wrapName
       character(len=:), allocatable :: levelName
       
       rec%name = name
@@ -249,23 +241,14 @@ contains
       if (present(extra)) then
          rec%extra = extra
 !!$      else
-!!$         rec%extra = CIStringXUMap()
+!!$         rec%extra = newCIStringUnlimitedMap()
       end if
 
       call rec%extra%insert('level', level)
-      ! workaround for ifort
-      wrapName = name
-      call rec%extra%insert('name', wrapName)
-
+      call rec%extra%insert('name', name)
       levelName = levelToString(level)
-      ! Compiler workarounds
-#ifdef __INTEL_COMPILER
-      ! ifort
       call rec%extra%insert('levelName', levelName)
-#else
-      ! gfortran
-      call rec%extra%insert('levelName', String(levelName))
-#endif
+      
       call fillDateAndTime(rec)
       
    end subroutine initLogRecord

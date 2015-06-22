@@ -87,7 +87,7 @@ contains
    !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (StreamHandler), intent(inout) :: this
-      type(LogRecord) :: record
+      type(LogRecord), intent(in) :: record
 
       write(this%unit, '(a)') this%format(record)
       call this%flush()

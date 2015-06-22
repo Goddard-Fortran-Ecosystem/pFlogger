@@ -56,7 +56,7 @@ contains
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
 
-      this%rec = LogRecord('A', INFO, 'Goodbye')
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye')
       @assertEqual('Goodbye', this%f%format(this%rec))
       
    end subroutine test_formatDefault
@@ -71,7 +71,7 @@ contains
       
       args = UnlimitedVector()
       call args%push_back(1)
-      this%rec = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
 
       this%f = Formatter('Hello %(message::a)')
       @assertEqual('Hello Goodbye 1', this%f%format(this%rec))
@@ -82,22 +82,15 @@ contains
 @test
    subroutine test_datefmtMessage(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use FTL_String_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (CIStringUnlimitedMap) :: extra
-      type (String) :: wrapName
       character(len=20) :: date
 
       ! Create a LogRecord
       this%rec%name = 'someRec'
       this%rec%level = INFO
       this%rec%message = 'datefmt'
-      this%rec%extra = extra
-      ! workaround for ifort
-      wrapName = 'someRec'
-      call this%rec%extra%insert('name', wrapName)
-      call this%rec%extra%insert('level', INFO)
 
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
@@ -112,20 +105,17 @@ contains
 @test
    subroutine test_datefmt(this)
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      use FTL_String_mod
       class (Test_Formatter), intent(inout) :: this
       type (CIStringUnlimitedMap) :: extra
-      type (String) :: wrapName
       character(len=20) :: date
 
       ! Create a LogRecord
       this%rec%name = 'someRec'
       this%rec%level = INFO
       this%rec%message = 'datefmt'
-      this%rec%extra = extra
+
       ! workaround for ifort
-      wrapName = 'someRec'
-      call this%rec%extra%insert('name', wrapName)
+      call this%rec%extra%insert('name', 'someRec')
       call this%rec%extra%insert('level', INFO)
 
       ! record has name, level and message + opt args and/or extra
@@ -143,13 +133,12 @@ contains
    subroutine test_formatWithName(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
-
       type (UnlimitedVector) :: args
       
       args = UnlimitedVector()
       call args%push_back(1)
 
-      this%rec = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
       this%f = Formatter('%(name::a) %(message::a)')
       @assertEqual('A Goodbye 1', this%f%format(this%rec))
       

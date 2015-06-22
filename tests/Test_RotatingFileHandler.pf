@@ -57,7 +57,7 @@ contains
       type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      record = LogRecord('name', INFO, 'hello')
+      call initLogRecord(record, 'name', INFO, 'hello')
       call this%rotHandler0%handle(record)
       
       unit = this%rotHandler0%getUnit()
@@ -79,7 +79,7 @@ contains
       integer :: unit
       type (LogRecord) :: record
       
-      record = LogRecord('name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
+      call initLogRecord(record, 'name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
       ! Since maxBytes=30, rotHandler should rollOver after 3 records = 36 bytes
       call this%rotHandler1%handle(record)
       ! Not ready yet
@@ -103,8 +103,8 @@ subroutine test_doRollover(this)
       integer :: i
       logical :: created
       integer :: fSize
-      
-      record = LogRecord('name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
+
+      call initLogRecord(record, 'name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
       do i=1,8 ! Force at least two files (backupCount=2) to be created
          call this%rotHandler1%handle(record)
       end do      

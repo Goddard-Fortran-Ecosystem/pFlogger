@@ -38,6 +38,7 @@ module ASTG_Formatter_mod
 
    type, extends(Object) :: Formatter
       private
+      integer :: placeholder
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
    contains
@@ -95,7 +96,6 @@ contains
    !---------------------------------------------------------------------------
    function formatTime(this, record, datefmt) result(logMessage)
       use ASTG_FormatParser_mod
-      use FTL_String_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
 
       character(len=:), allocatable :: logMessage
@@ -106,7 +106,8 @@ contains
       type (FormatParser) :: parser
       type (CIStringUnlimitedMap) :: extra
       
-      extra = record%extra
+!!$      extra = record%extra
+      call extra%deepCopy(record%extra)
       if (present(datefmt)) then
          logMessage = parser%format(datefmt, extra=extra)
 !      else
@@ -131,8 +132,8 @@ contains
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use ASTG_FormatParser_mod
-      use FTL_String_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
 
       character(len=:), allocatable :: logMessage
       character(len=:), allocatable :: asctime
@@ -141,13 +142,16 @@ contains
 
       type (FormatParser) :: parser
       type (CIStringUnlimitedMap) :: extra
+      type (CIStringUnlimitedMapIterator) :: extraIter
+      character(len=:), allocatable :: msg
 
-      extra = record%extra
-
-      call extra%insert('message', String(record%getMessage()))
+      call extra%deepCopy(record%extra)
+!!$      extra = record%extra
+      msg = record%getMessage()
+      call extra%insert('message', msg)
       if(this%usesTime()) then
          asctime = this%formatTime(record, datefmt=this%datefmt)
-         call extra%insert('asctime', String(asctime))
+         call extra%insert('asctime', asctime)
       end if
       logMessage = parser%format(this%fmt, extra=extra)
     
@@ -175,7 +179,7 @@ contains
    ! This function operates on different input data types and returns a string.
    !---------------------------------------------------------------------------
    function toString_unlimitedPoly(this, arg) result(str)
-      use FTL_StringUtilities_mod
+      use ASTG_StringUtilities_mod
       use iso_fortran_env
       class (Formatter), intent(in) :: this
       class (*), intent(in) :: arg

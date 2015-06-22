@@ -98,7 +98,7 @@ contains
    !---------------------------------------------------------------------------  
    subroutine emitMessage(this, record)
       class (FileHandler), intent(inout) :: this
-      type(LogRecord) :: record
+      type(LogRecord), intent(in) :: record
       
       if (.not. this%isOpen()) call this%open()
       
@@ -154,6 +154,7 @@ contains
            & status='unknown', form='formatted', position='append')
       call this%setUnit(unit)
       this%isOpen_ = .true.
+
        
    end subroutine open
 

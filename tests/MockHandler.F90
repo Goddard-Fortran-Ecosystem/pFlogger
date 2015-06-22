@@ -44,7 +44,7 @@ contains
    
    subroutine emitMessage(this, record)
       class (MockHandler), intent(inout) :: this
-      type (LogRecord) :: record
+      type (LogRecord), intent(in) :: record
 
       this%buffer%buffer = record%getMessage()
       

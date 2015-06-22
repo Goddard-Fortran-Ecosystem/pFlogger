@@ -4,6 +4,7 @@ get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
 set(SRCS
+   StringUtilities.F90
    AbstractFilter.F90
    AbstractHandler.F90
    AbstractLogger.F90
@@ -43,26 +44,9 @@ list(APPEND SRCS
 )
 endif()
 
-set(FTL_SRCS
-#   CIStringXPair.F90
-#   CIStringXPairVec.F90
-#   CIStringXPairVecVec.F90
-#   CIStringXUMap.F90
-   StringVec.F90
-#   FormatTokenVec.F90
-)
-
-list(APPEND SRCS ${FTL_SRCS})
-
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
-add_custom_command (OUTPUT ${FTL_SRCS}
-  WORKING_DIRECTORY ${bin}
-  COMMAND ${FTL}/bin/driver.py ${src}/ftl.config ${src}/ftl.contractions
-)
-
-include_directories (${FTL}/mod)
 include_directories (${NEWFTL}/include)
 
 set_source_files_properties (

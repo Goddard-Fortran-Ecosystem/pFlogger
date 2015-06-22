@@ -49,10 +49,10 @@ contains
       type(LogRecord) :: record
       type (UnlimitedVector) :: args
       
-      record = this%basicLogger%makeRecord(INFO, 'hi')
+      call this%basicLogger%makeRecord(record, INFO, 'hi')
       @assertEqual('hi', record%getMessage())
       
-      record = this%basicLogger%makeRecord(INFO, 'hi', args=args)
+      call this%basicLogger%makeRecord(record, INFO, 'hi', args=args)
       @assertEqual('hi', record%getMessage())
 
    end subroutine test_makeRecord
@@ -273,7 +273,6 @@ contains
       mockHandler_ = MockHandler(bufferB, level=INFO)
       call lgr%addHandler(mockHandler_)
       mockHandler_ = MockHandler(bufferA, level=DEBUG)
-      print*,'begin'
       call lgr%removeHandler(mockHandler_)
 
       call lgr%info('Hello')

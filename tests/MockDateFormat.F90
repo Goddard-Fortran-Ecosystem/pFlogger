@@ -11,14 +11,14 @@ module MockDateFormat_mod
 
    type, extends (Formatter) :: MockDateFormat
       ! These components must be public for testing purposes
-      integer :: Y
-      integer :: M
-      integer :: D
-      integer :: HH
-      integer :: MM
-      integer :: SS
-      integer :: MS
       type (Formatter) :: f
+      integer :: Y = 0
+      integer :: M = 0
+      integer :: D = 0
+      integer :: HH = 0
+      integer :: MM = 0
+      integer :: SS = 0
+      integer :: MS = 0
    contains
       procedure :: fillDateAndTime
    end type MockDateFormat

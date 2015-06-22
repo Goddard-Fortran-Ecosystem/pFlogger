@@ -198,10 +198,10 @@ contains
    ! DESCRIPTION: 
    ! Create a logRecord
    !---------------------------------------------------------------------------
-   function makeRecord(this, level, message, args) result(record)
+   subroutine makeRecord(this, record, level, message, args)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      class (Logger), intent(inout) :: this
-      type (LogRecord) :: record
+      class (Logger), intent(in) :: this
+      type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type (UnlimitedVector), optional, intent(in) :: args
@@ -211,7 +211,7 @@ contains
       name = this%getName()
       call initLogRecord(record, name, level, message, args=args)
       
-   end function makeRecord
+   end subroutine makeRecord
 
 
    !---------------------------------------------------------------------------  
@@ -249,6 +249,7 @@ contains
       type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: handler
       type (UnlimitedVector) :: args
+      type (LogRecord) :: record
 
       args = makeArgVector(ARG_LIST)
       iter = this%handlers%begin()
@@ -256,7 +257,8 @@ contains
       ! to its Handlers
       do while (iter /= this%handlers%end())
          handler => iter%get()
-         call handler%handle(this%makeRecord(level, message, args))
+         call this%makeRecord(record,level, message, args)
+         call handler%handle(record)
          call iter%next()
       end do
 

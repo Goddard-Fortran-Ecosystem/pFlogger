@@ -285,9 +285,8 @@ contains
    ! Returns a vector of 'tokens' in a specified format descriptor.
    !---------------------------------------------------------------------------
    function getTokens(rawString) result(tokens)
-      use FTL_String_mod
-      use FTL_StringVec_mod
-      type(StringVec) :: tokens
+      use ASTG_StringVector_mod, only: StringVector => Vector
+      type(StringVector) :: tokens
       character(len=*), intent(in) :: rawString
       character(len=:), allocatable :: buffer
 
@@ -296,7 +295,7 @@ contains
 
       integer :: i, n
 
-      tokens = StringVec()
+      tokens = StringVector()
 
       buffer = rawString
       do
@@ -306,7 +305,7 @@ contains
          i = startOfNextToken(buffer) ! always > 0
 
          token = buffer(1:i-1)
-         call tokens%push_back(String(token))
+         call tokens%push_back(token)
 ! Workaround for gfortran
          s = buffer(i:n)
          buffer = s
@@ -327,11 +326,12 @@ contains
    !     INFO: myLog: Hello world!
    !---------------------------------------------------------------------------
    function format(fmt, args, unusable, arr1D_1, extra) result(rawString)
-      use FTL_String_mod
-      use FTL_StringVec_mod
+      use ASTG_StringVector_mod, only: StringVector => Vector
+      use ASTG_StringVector_mod, only: StringVectorIterator => VectorIterator
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_UnlimitedVector_mod, only: UnlimitedVectorIterator => VectorIterator
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
 
       character(len=:), allocatable :: rawString
       character(len=*), intent(in) :: fmt
@@ -340,19 +340,20 @@ contains
       class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringUnlimitedMap), optional :: extra
 
-      type (UnlimitedVector) :: args_
-      type (CIStringUnlimitedMap) :: extra_
+      type (UnlimitedVector), target :: args_
+      type (CIStringUnlimitedMap), target :: extra_
 
       character(len=:), allocatable :: tokenString
       character(len=:), allocatable :: key
       character(len=:), allocatable :: payload
       character(len=:), allocatable :: append
-      type (String), pointer :: token
-      type (StringVec), target :: tokens
+      character(len=:), pointer :: token
+      type (StringVector), target :: tokens
       class (*), pointer :: arg
 
-      type (StringVecIter) :: fmtIter
+      type (StringVectorIterator) :: fmtIter
       type (UnlimitedVectorIterator) :: argIter
+      type (CIStringUnlimitedMapIterator) :: extraIter
 
       if (present(args)) then
          args_ = args
@@ -361,10 +362,10 @@ contains
       end if
 
       if (present(extra)) then
-         extra_ = extra
-!!$      else
-!!$         extra_ = CIStringUnlimitedMap()
+!!$         extra_ = extra
+         call extra_%deepcopy(extra)
       end if
+
 
       rawString = ''
       tokens = getTokens(fmt)
@@ -374,19 +375,20 @@ contains
 
       do while (fmtIter /= tokens%end())
          token => fmtIter%get()
-         ! Todo:  "item" is now public in FTL as a workaround for compiler problems.
-         tokenString = token%item
+         tokenString = token
 
          payload = getPayload(tokenString)
          if (isFormat(tokenString)) then
             ! Does it contain a key?
             if (formatContainsKey(tokenString)) then
                key = getFormatKey(tokenString)
-               arg => extra_%at(key)
-               if (.not. associated(arg)) then
+               extraIter = extra_%find(key)
+               if (extraIter == extra_%end()) then
                   call throw('No such key: <' // key // '> in "extra".')
                   return
                end if
+!!$               call extraIter%getValue(arg)
+               arg => extraIter%value()
                append = handleScalar(arg, payload)
             else
                ! Is there another position value?
@@ -455,7 +457,6 @@ contains
    !---------------------------------------------------------------------------
    function handleScalar(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
-      use FTL_String_mod
       character(len=:), allocatable :: rawString
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: payload
@@ -500,12 +501,12 @@ contains
          else
             write(buffer,payload) arg
          end if
-      type is (String)
-         if (payload == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg%item
-         else
-            write(buffer,payload) arg%item
-         end if
+!!$      type is (String)
+!!$         if (payload == LIST_DIRECTED_FORMAT) then
+!!$            write(buffer,*) arg%item
+!!$         else
+!!$            write(buffer,payload) arg%item
+!!$         end if
       class default ! user defined
          buffer = 'unsupported'
       end select
@@ -525,7 +526,6 @@ contains
    !---------------------------------------------------------------------------
    function handleArray1D(arg, payload) result(rawString)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
-      use FTL_String_mod
       character(len=:), allocatable :: rawString
       class (*), intent(in) :: arg(:)
       character(len=*), intent(in) :: payload
@@ -572,16 +572,16 @@ contains
          else
             write(buffer,payload) arg
          end if
-      type is (String)
-         buffer = ''
-         do i = 1, size(arg)
-            if (payload == LIST_DIRECTED_FORMAT) then
-               write(item,*) arg(i)%item
-            else
-               write(item,payload) arg(i)%item
-            end if
-            buffer = trim(buffer) // item
-         end do
+!!$      type is (String)
+!!$         buffer = ''
+!!$         do i = 1, size(arg)
+!!$            if (payload == LIST_DIRECTED_FORMAT) then
+!!$               write(item,*) arg(i)%item
+!!$            else
+!!$               write(item,payload) arg(i)%item
+!!$            end if
+!!$            buffer = trim(buffer) // item
+!!$         end do
       class default ! user defined
          buffer = 'unsupported'
       end select

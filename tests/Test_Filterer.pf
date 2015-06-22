@@ -15,7 +15,8 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      record = LogRecord('A', INFO, 'message')
+      call initLogRecord(record, 'A', INFO, 'message')
+!!$      record = LogRecord('A', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
    end subroutine test_filterNoFilters
@@ -28,7 +29,8 @@ contains
 
       f = Filterer()
       call f%addFilter(Filter('A'))
-      record = LogRecord('B', INFO, 'message')
+      call initLogRecord(record, 'B', INFO, 'message')
+!!$      record = LogRecord('B', INFO, 'message')
      
       @assertFalse(f%doFilter(record))
 
@@ -42,7 +44,8 @@ contains
 
       f = Filterer()
       call f%addFilter(Filter('A'))
-      record = LogRecord('A', INFO, 'message')
+      call initLogRecord(record, 'A', INFO, 'message')
+!!$      record = LogRecord('A', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
    end subroutine test_filterMatch
@@ -56,10 +59,12 @@ contains
       call f%addFilter(Filter('A'))
       call f%addFilter(Filter('B'))
 
-      record = LogRecord('A', INFO, 'message')
+      call initLogRecord(record, 'A', INFO, 'message')
+!!$      record = LogRecord('A', INFO, 'message')
       @assertFalse(f%doFilter(record))
 
-      record = LogRecord('B', INFO, 'message')
+      call initLogRecord(record, 'B', INFO, 'message')
+!!$      record = LogRecord('B', INFO, 'message')
       @assertFalse(f%doFilter(record))
 
    end subroutine test_filterCombo
@@ -74,10 +79,12 @@ contains
       call f%addFilter(Filter('A'))
       call f%addFilter(Filter('AB'))
 
-      record = LogRecord('AB', INFO, 'message')
+      call initLogRecord(record, 'AB', INFO, 'message')
+!!$      record = LogRecord('AB', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
-      record = LogRecord('B', INFO, 'message')
+      call initLogRecord(record, 'B', INFO, 'message')
+!!$      record = LogRecord('B', INFO, 'message')
       @assertFalse(f%doFilter(record))
 
    end subroutine test_filterComboB
@@ -111,10 +118,12 @@ contains
       call f%removeFilter(Filter('A'))
 
       ! no filters left
-      record = LogRecord('A', INFO, 'message')
+      call initLogRecord(record, 'A', INFO, 'message')
+!!$      record = LogRecord('A', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
-      record = LogRecord('B', INFO, 'message')
+      call initLogRecord(record, 'B', INFO, 'message')
+!!$      record = LogRecord('B', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
    end subroutine test_removeFilter_simple
@@ -132,10 +141,12 @@ contains
       call f%removeFilter(Filter('A'))
       
       ! only 'B' left
-      record = LogRecord('A', INFO, 'message')
+      call initLogRecord(record, 'A', INFO, 'message')
+!!$      record = LogRecord('A', INFO, 'message')
       @assertFalse(f%doFilter(record))
 
-      record = LogRecord('B', INFO, 'message')
+      call initLogRecord(record, 'B', INFO, 'message')
+!!$      record = LogRecord('B', INFO, 'message')
       @assertTrue(f%doFilter(record))
 
    end subroutine test_removeFilter_nontrivial

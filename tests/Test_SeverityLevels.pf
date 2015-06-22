@@ -14,11 +14,21 @@ contains
       ! Level numeric values range from NOTSET=0 to CRITICAL=50
       @assertEqual('NOTSET', levelToString(NOTSET))
       @assertEqual('CRITICAL', levelToString(CRITICAL))
-      ! Therefore, the following should throw an exception:
-      print *, levelToString(70)
+
+   end subroutine test_levelToString
+
+
+   @test
+   subroutine test_levelToString_unnamedLevel()
+      
+      character(len=:), allocatable :: levelName
+
+      ! The following should throw an exception, because
+      ! it is a level that is not named.
+      levelName = levelToString(CRITICAL + 100)
       ! Catch it here:
       @assertExceptionRaised('Unknown level. Please use a valid level.')
       
-   end subroutine test_levelToString
+   end subroutine test_levelToString_unnamedLevel
 
 end module Test_SeverityLevels_mod

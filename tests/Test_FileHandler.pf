@@ -46,7 +46,8 @@ contains
       type (LogRecord) :: record
       character(len=32) :: foundMessage
 
-      record = LogRecord('logName', INFO, 'hello')
+      call initLogRecord(record, "logName", INFO, 'hello')
+!!$      record = LogRecord('logName', INFO, 'hello')
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -64,14 +65,15 @@ contains
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      type (LogRecord) :: record
+      type (LogRecord) :: record, r2
       character(len=32) :: foundMessage
       type (UnlimitedVector) :: args
       
       args = UnlimitedVector()
       call args%push_back(1)
 
-      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
+      call initLogRecord(record, 'Aname', INFO, 'Goodbye %i1.1', args=args)
+!!$      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -102,7 +104,8 @@ contains
 
       call this%handler%setFormatter(fmt)
 
-      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
+      call initLogRecord(record, "Aname", INFO, 'Goodbye %i1.1', args=args)
+!!$      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -124,7 +127,8 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('name', DEBUG, 'hello')
+      call initLogRecord(record, "name", DEBUG, 'hello')
+!!$      record = LogRecord('name', DEBUG, 'hello')
       call handler%setLevel(DEBUG)
       call this%handler%handle(record)
 
@@ -145,7 +149,8 @@ contains
       character(len=32) :: foundMessage
       integer :: iostatus
       
-      record = LogRecord('logName', ERROR, 'hello')
+      call initLogRecord(record, "logName", ERROR, 'hello')
+!!$      record = LogRecord('logName', ERROR, 'hello')
       call handler%setLevel(ERROR)
       call this%handler%handle(record)
 
@@ -157,7 +162,7 @@ contains
 
 
    ! Often it is desirable for the log file not to be created until/if
-   ! a message is sent.  The optional logical argument "delay" on the
+   ! a message is sent.  The optional logical argument 'delay' on the
    ! contstructor is used to indicate that configuration.
    @test
    subroutine test_delay(this)
@@ -175,7 +180,8 @@ contains
       inquire(file=FILE_NAME, exist=exist)
       @assertFalse(exist)
 
-      record = LogRecord('me', INFO, 'hello')
+      call initLogRecord(record, 'me', INFO, 'hello')
+!!$      record = LogRecord('me', INFO, 'hello')
       call handler%handle(record)
       inquire(file=FILE_NAME, exist=exist)
       @assertTrue(exist)

@@ -49,10 +49,13 @@ contains
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
+      type (LogRecord) :: rec
+
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%handle(LogRecord(name='SHname', message='hello', level=INFO))
+      call initLogRecord(rec, name='SHname', message='hello', level=INFO)
+      call handler%handle(rec)
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
@@ -81,7 +84,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setFormatter(fmt)
-      record = LogRecord('A', INFO, 'Goodbye %i1.1', args=args)
+      call initLogRecord(record, 'A', INFO, 'Goodbye %i1.1', args=args)
       call handler%handle(record)
       
       rewind(this%unit)
@@ -96,7 +99,6 @@ contains
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_Formatter_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      use FTL_String_mod
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
@@ -105,7 +107,7 @@ contains
       type(Formatter) :: fmt
       type (UnlimitedVector) :: args
       type (CIStringUnlimitedMap) :: extra
-      type (String) :: wrapName
+      character(len=:), allocatable :: levelName
       
       args = UnlimitedVector()
       call args%push_back(1)
@@ -114,12 +116,11 @@ contains
       record%name = 'someRec'
       record%level = INFO
       record%message = 'datefmt'
-      record%extra = extra
-      ! workaround for ifort
-      wrapName = 'someRec'
-      call record%extra%insert('name', wrapName)
+
+      call record%extra%insert('name', 'someRec')
       call record%extra%insert('level', INFO)
-      call record%extra%insert('levelName', String(levelToString(INFO)))
+      levelName = levelToString(INFO)
+      call record%extra%insert('levelName', levelName)
 
       call mockdf%fillDateAndTime(record)
       mockdf%f = Formatter(&
@@ -180,7 +181,6 @@ contains
    @test
    subroutine test_equal(this)
       class (Test_StreamHandler), intent(inout) :: this
-
 
       type (StreamHandler) :: a
       type (StreamHandler) :: b
