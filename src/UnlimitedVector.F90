@@ -3,6 +3,6 @@ module ASTG_UnlimitedVector_mod
 #define _type class (*)
 #define _polymorphic
 
-#include "templates/Vector.inc"
+#include "templates/vector.inc"
 
 end module ASTG_UnlimitedVector_mod
