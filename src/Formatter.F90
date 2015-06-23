@@ -106,12 +106,11 @@ contains
       type (FormatParser) :: parser
       type (CIStringUnlimitedMap) :: extra
       
-!!$      extra = record%extra
       call extra%deepCopy(record%extra)
       if (present(datefmt)) then
          logMessage = parser%format(datefmt, extra=extra)
-!      else
-!         logMessage = datefmt
+      else
+         logMessage = datefmt
       end if
 
    end function formatTime
@@ -146,7 +145,6 @@ contains
       character(len=:), allocatable :: msg
 
       call extra%deepCopy(record%extra)
-!!$      extra = record%extra
       msg = record%getMessage()
       call extra%insert('message', msg)
       if(this%usesTime()) then

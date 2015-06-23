@@ -362,7 +362,6 @@ contains
       end if
 
       if (present(extra)) then
-!!$         extra_ = extra
          call extra_%deepcopy(extra)
       end if
 
@@ -387,7 +386,6 @@ contains
                   call throw('No such key: <' // key // '> in "extra".')
                   return
                end if
-!!$               call extraIter%getValue(arg)
                arg => extraIter%value()
                append = handleScalar(arg, payload)
             else
@@ -501,12 +499,6 @@ contains
          else
             write(buffer,payload) arg
          end if
-!!$      type is (String)
-!!$         if (payload == LIST_DIRECTED_FORMAT) then
-!!$            write(buffer,*) arg%item
-!!$         else
-!!$            write(buffer,payload) arg%item
-!!$         end if
       class default ! user defined
          buffer = 'unsupported'
       end select
@@ -572,16 +564,6 @@ contains
          else
             write(buffer,payload) arg
          end if
-!!$      type is (String)
-!!$         buffer = ''
-!!$         do i = 1, size(arg)
-!!$            if (payload == LIST_DIRECTED_FORMAT) then
-!!$               write(item,*) arg(i)%item
-!!$            else
-!!$               write(item,payload) arg(i)%item
-!!$            end if
-!!$            buffer = trim(buffer) // item
-!!$         end do
       class default ! user defined
          buffer = 'unsupported'
       end select
