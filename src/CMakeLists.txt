@@ -37,7 +37,7 @@ set(SRCS
 FormatTokenVector.F90
 )
 
-if (TEST_MPI) 
+if (MPI) 
 list(APPEND SRCS
    MpiFilter.F90
    MpiFileHandler.F90

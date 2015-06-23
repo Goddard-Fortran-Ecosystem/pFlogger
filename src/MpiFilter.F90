@@ -18,7 +18,6 @@
 !------------------------------------------------------------------------------
 module ASTG_MpiFilter_mod
    use ASTG_AbstractFilter_mod
-   use FTL_CaseInsensitiveString_mod
    use ASTG_LogRecord_mod
    implicit none
    private
