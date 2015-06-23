@@ -1,6 +1,6 @@
 include_directories(${CMAKE_BINARY_DIR}/src)
-add_executable(basicLogging.x basicLogging.F90)
-target_link_libraries(basicLogging.x logger pfunit )
+#add_executable(basicLogging.x basicLogging.F90)
+#target_link_libraries(basicLogging.x logger pfunit )
 add_executable(loggingWithFormat.x loggingWithFormat.F90)
 target_link_libraries(loggingWithFormat.x logger pfunit )
 if (MPI)

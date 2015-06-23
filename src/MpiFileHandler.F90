@@ -132,7 +132,7 @@ end module ASTG_MpiFileHandler_mod
 function getSuffix(rank, suffixFormat) result(suffix)
    use ASTG_MpiFileHandler_mod
    use ASTG_FormatParser_mod
-   use ASTG_StringUtilities_mod
+   !use ASTG_StringUtilities_mod
    character(len=:), allocatable :: suffix
    integer, intent(in) :: rank
    character(len=*), optional, intent(in) :: suffixFormat
