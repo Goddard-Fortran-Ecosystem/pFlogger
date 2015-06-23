@@ -46,7 +46,6 @@ option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
 include(setCompilerFlags)
 
 set(FTL $ENV{FTL})
-set(NEWFTL $ENV{NEWFTL})
 
 add_subdirectory(src)
 if(WITH_PFUNIT MATCHES YES)
