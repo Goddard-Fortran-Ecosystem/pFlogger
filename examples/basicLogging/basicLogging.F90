@@ -43,7 +43,8 @@ program basicLogging
 
    call stdout%setLevel(ERROR)
 
-   call log%warning('You still see this. Handler')
+   call log%warning('You still see this ??')
+   call log%warning('should not display. should be seen in logfile')
    call log%error('Max number of iterations exceeded.')
    call log%critical('CFL criterion violated. Program will abort.')
  
