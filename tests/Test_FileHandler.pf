@@ -47,7 +47,6 @@ contains
       character(len=32) :: foundMessage
 
       call initLogRecord(record, "logName", INFO, 'hello')
-!!$      record = LogRecord('logName', INFO, 'hello')
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -73,7 +72,6 @@ contains
       call args%push_back(1)
 
       call initLogRecord(record, 'Aname', INFO, 'Goodbye %i1.1', args=args)
-!!$      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -105,7 +103,6 @@ contains
       call this%handler%setFormatter(fmt)
 
       call initLogRecord(record, "Aname", INFO, 'Goodbye %i1.1', args=args)
-!!$      record = LogRecord('Aname', INFO, 'Goodbye %i1.1', args=args)
       call this%handler%handle(record)
 
       unit = this%handler%getUnit()
@@ -128,7 +125,6 @@ contains
       integer :: iostatus
       
       call initLogRecord(record, "name", DEBUG, 'hello')
-!!$      record = LogRecord('name', DEBUG, 'hello')
       call handler%setLevel(DEBUG)
       call this%handler%handle(record)
 
@@ -150,7 +146,6 @@ contains
       integer :: iostatus
       
       call initLogRecord(record, "logName", ERROR, 'hello')
-!!$      record = LogRecord('logName', ERROR, 'hello')
       call handler%setLevel(ERROR)
       call this%handler%handle(record)
 
@@ -181,7 +176,6 @@ contains
       @assertFalse(exist)
 
       call initLogRecord(record, 'me', INFO, 'hello')
-!!$      record = LogRecord('me', INFO, 'hello')
       call handler%handle(record)
       inquire(file=FILE_NAME, exist=exist)
       @assertTrue(exist)

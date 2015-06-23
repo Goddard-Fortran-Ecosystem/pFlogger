@@ -5,6 +5,6 @@ module ASTG_AbstractFilterPolyVector_mod
 #define _polymorphic
 #define _equal_defined
 
-#include "templates/Vector.inc"
+#include "templates/vector.inc"
 
 end module ASTG_AbstractFilterPolyVector_mod

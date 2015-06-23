@@ -20,7 +20,6 @@
 module ASTG_LogRecord_mod
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-!!$   use ASTG_CIStringUnlimitedMap_mod, only: newCIStringUnlimitedMap => newMap
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
    implicit none
@@ -85,9 +84,7 @@ contains
       end if
 
       if (present(extra)) then
-         rec%extra = extra
-      else
-!!$         rec%extra = newCIStringUnlimitedMap()
+         call rec%extra%deepCopy(extra)
       end if
 
       call rec%extra%insert('level', level)
@@ -239,9 +236,7 @@ contains
       end if
 
       if (present(extra)) then
-         rec%extra = extra
-!!$      else
-!!$         rec%extra = newCIStringUnlimitedMap()
+         call rec%extra%deepCopy(extra)
       end if
 
       call rec%extra%insert('level', level)
