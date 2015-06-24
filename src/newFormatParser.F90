@@ -11,8 +11,8 @@ module ASTG_NewFormatParser_mod
    public :: ContextInterface
 
    public :: textContext
-   public :: positionFormatContext
-   public :: keywordFormatContext
+   public :: positionContext
+   public :: keywordContext
    public :: singleQuoteContext
    public :: doubleQuoteContext
 
@@ -148,7 +148,7 @@ contains
       case ('"')
          call this%setContext(doubleQuoteContext)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
-         call this%setContext(positionFormatContext)
+         call this%setContext(positionContext)
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
@@ -208,7 +208,7 @@ contains
    end subroutine doubleQuoteContext
 
 
-   subroutine positionFormatContext(this, char)
+   subroutine positionContext(this, char)
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
       use ASTG_FormatToken_mod
@@ -227,11 +227,11 @@ contains
            end if
         case (OPEN_CURLY_BRACE) ! {
            if (pos > 0) then
-              call throw('FormatParser::positionFormatContext() - ' // &
+              call throw('FormatParser::positionContext() - ' // &
                    & 'illegal start of keyword format: ' // this%buffer(1:pos))
               return
            end if
-           call this%setContext(keywordFormatContext)
+           call this%setContext(keywordContext)
            return ! do not retain char
         case default
          ! stay position format
@@ -242,10 +242,10 @@ contains
 
       end associate
 
-   end subroutine positionFormatContext
+   end subroutine positionContext
 
 
-   subroutine keywordFormatContext(this, char)
+   subroutine keywordContext(this, char)
       use ASTG_FormatToken_mod
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
@@ -256,7 +256,7 @@ contains
 
         select case (char)
         case (C_NULL_CHAR)
-           call throw('FormatParser::keywordFormatContext() - incomplete keyword format specifier.')
+           call throw('FormatParser::keywordContext() - incomplete keyword format specifier.')
         case (CLOSE_CURLY_BRACE)
            call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
@@ -273,6 +273,6 @@ contains
 
       end associate
 
-   end subroutine keywordFormatContext
+   end subroutine keywordContext
 
 end module ASTG_NewFormatParser_mod

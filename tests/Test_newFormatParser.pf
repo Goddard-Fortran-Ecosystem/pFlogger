@@ -73,7 +73,7 @@ contains
       call parser%parse('%{rank,i3') ! unterminated
       call parser%parseCharacter(C_NULL_CHAR)
 
-      @assertExceptionRaised('FormatParser::keywordFormatContext() - incomplete keyword format specifier.')
+      @assertExceptionRaised('FormatParser::keywordContext() - incomplete keyword format specifier.')
       @assertEqual(0, parser%size())
       
    end subroutine test_endOfString_keyword

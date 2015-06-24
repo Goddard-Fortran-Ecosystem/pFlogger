@@ -2,17 +2,19 @@ module Test_ParserContexts_mod
    use pFUnit_mod
    use ASTG_FormatToken_mod
    use ASTG_newFormatParser_mod
+   implicit none
 
    @testParameter(constructor=newTestParameter)
    type, extends(AbstractTestParameter) :: TestParam
       ! in
-      procedure (ContextInterface), nopass, pointer :: contextIn
-      character(len=:), allocatable :: bufferIn
+      procedure (ContextInterface), nopass, pointer :: inContext
+      character(len=:), allocatable :: inBuffer
       character(len=1) :: nextCharIn
       ! expected
-      character(len=:), allocatable :: bufferOut
+      character(len=:), allocatable :: outBuffer
+      procedure (ContextInterface), nopass, pointer :: outContext
       logical :: startNewToken
-      procedure (ContextInterface), nopass, pointer :: contextOut
+      type (FormatToken) :: token
    contains
       procedure :: toString
    end type TestParam
@@ -34,55 +36,86 @@ contains
       type (TestParam), allocatable :: params(:)
 
       type struct
-         procedure (ContextInterface), nopass, pointer :: contextIn
-         character(len=:), allocatable :: bufferIn
+         procedure (ContextInterface), nopass, pointer :: inContext
+         character(len=:), allocatable :: inBuffer
          character(len=1) :: char
-         character(len=:), allocatable :: bufferOut
+         character(len=:), allocatable :: outBuffer
          logical :: startNewToken
-         procedure (ContextInterface), nopass, pointer :: contextOut
+         procedure (ContextInterface), nopass, pointer :: outContext
       end type struct
 
       ! workaround for CPP "eating" backspaces
       character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
       character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
 
+      type (TestParam), allocatable :: textCases
+
+
+      ! Here we have a long list of cases that specify input state
+      ! (context, buffer) and expected output state (context, buffer,
+      ! new token) for a given input character.  E.g. if the parser
+      ! has the textContext then a regular character of text should
+      ! not change the context and should just append the character to
+      ! the buffer.
+
+      ! Generally, as problems with the parsing are found, additional
+      ! cases should be added below.
+
+      procedure (ContextInterface), pointer :: TXC
+      procedure (ContextInterface), pointer :: SQC
+      procedure (ContextInterface), pointer :: DQC
+      procedure (ContextInterface), pointer :: PSC
+      procedure (ContextInterface), pointer :: KYC
+
+      TXC => textContext
+      SQC => singleQuoteContext
+      DQC => doubleQuoteContext
+      PSC => positionContext
+      KYC => keywordContext
+
       params = [ &
-           & makeParam(textContext, '', 'a', 'a', .false., textContext) &
-           & ,makeParam(textContext, 'a', 'b', 'ab', .false., textContext) &
-           & ,makeParam(textContext, 'a', "'", "a'", .false., singleQuoteContext) &
-           & ,makeParam(textContext, 'a', '"', 'a"', .false., doubleQuoteContext) &
            
-           & ,makeParam(singleQuoteContext, "a'b", "'", "a'b'", .false., textContext) &
-           & ,makeParam(doubleQuoteContext, 'a"b', '"', 'a"b"', .false., textContext) &
-
-           & ,makeParam(textContext, '', '%', '', .false., positionFormatContext) &
-           & ,makeParam(positionFormatContext, '', '{', '', .false., keywordFormatContext) &
-
-           & ,makeParam(positionFormatContext, '%i3', ' ', ' ', .true., textContext) &
-           & ,makeParam(positionFormatContext, '%i3', ESCAPE, '', .true., textContext) &
+           &   p( TXC,  '',    'a',    TXC, 'a'  )                            &
+           & , p( TXC, 'a' ,   'b',    TXC, 'ab' )                            &
+           & , p( TXC, 'a',    "'",    SQC, "a'" )                            &
+           & , p( TXC, 'a',    '"',    DQC, 'a"' )                            &
+           & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'a') ) &
+           
+           & , p( SQC, "a'b",  "'",    TXC, "a'b'")                           &
+           & , p( DQC, 'a"b',  '"',    TXC, 'a"b"')                           &
+           
+           & , p( PSC, '',     '{',    KYC, '')                               &
+           & , p( PSC, '%i3',  ' ',    TXC, '',      FormatToken(POSITION, 'i3') ) &
+           & , p( PSC, '%i3', ESCAPE,  TXC, '',      FormatToken(POSITION, 'i3') ) &
 
            & ]
 
+
    contains
       
-      function makeParam(contextIn, bufferIn, nextCharIn, &
-           & bufferOut, startNewToken, contextOut) result(param)
-         type (TestParam) :: param
+      function p(inContext, inBuffer, inChar, outContext, outBuffer, token)
+         type (TestParam) :: p
          
-         procedure (ContextInterface) :: contextIn
-         character(len=*) :: bufferIn
-         character(len=1) :: nextCharIn
-         character(len=*) :: bufferOut
-         logical :: startNewToken
-         procedure (ContextInterface) :: contextOut
+         procedure (ContextInterface) :: inContext
+         character(len=*), intent(in) :: inBuffer
+         character(len=1), intent(in) :: inChar
+         procedure (ContextInterface) :: outContext
+         character(len=*) :: outBuffer
+         type (FormatToken), optional, intent(in) :: token
 
-         param%contextIn => contextIn
-         param%bufferIn = bufferIn
-         param%nextCharIn = nextCharIn
-         param%bufferOut = bufferOut
-         param%startNewToken = startNewToken
-         param%contextOut => contextOut
-      end function makeParam
+         p%inContext => inContext
+         p%inBuffer = inBuffer
+         p%nextCharIn = inChar
+         p%outBuffer = outBuffer
+         p%outContext => outContext
+
+         if (present(token)) then
+            p%startNewToken = .true.
+            p%token = token
+         else
+            p%startNewToken = .false.
+         end if
+      end function p
 
    end function getParameters
 
@@ -92,7 +125,7 @@ contains
       class (TestParam), intent(in) :: this
       
       character(len=:), allocatable :: message
-      message = 'bufferIn=<' // this%bufferIn // '>'
+      message = 'inBuffer=<' // this%inBuffer // '>'
       message = message // '; char=<' // this%nextCharIn // '>'
       str = message
    end function toString
@@ -110,8 +143,8 @@ contains
    subroutine setUp(this)
       class (ContextsTestCase), intent(inout) :: this
       
-      call this%parser%setContext(this%param%contextIn)
-      call this%parser%setBuffer(this%param%bufferIn)
+      call this%parser%setContext(this%param%inContext)
+      call this%parser%setBuffer(this%param%inBuffer)
 
    end subroutine setUp
 
@@ -120,20 +153,26 @@ contains
    end subroutine tearDown
 
 
+!----------------
+! Check that the output state of buffer is correct.
+!----------------
 @test
    subroutine test_outBuffer(this)
       class (ContextsTestCase), intent(inout) :: this
 
       character(len=:), pointer :: buffer
 
-      call this%param%contextIn(this%parser, this%param%nextCharIn)
+      call this%param%inContext(this%parser, this%param%nextCharIn)
 
       call this%parser%getBuffer(buffer)
-      @assertEqual(this%param%bufferOut, buffer, whiteSpace=KEEP_ALL)
+      @assertEqual(this%param%outBuffer, buffer, whiteSpace=KEEP_ALL)
 
    end subroutine test_outBuffer
 
 
+!----------------
+! Check that the output state of context is correct.
+!----------------
 @test
    subroutine test_outContext(this)
       class (ContextsTestCase), intent(inout) :: this
@@ -141,22 +180,25 @@ contains
       procedure (ContextInterface), pointer :: procPtr
       procedure (ContextInterface), pointer :: expectedPtr
 
-      call this%param%contextIn(this%parser, this%param%nextCharIn)
+      call this%param%inContext(this%parser, this%param%nextCharIn)
 
       call this%parser%getContext(procPtr)
-      expectedPtr => this%param%contextOut
+      expectedPtr => this%param%outContext
       @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
 
    end subroutine test_outContext
 
 
+!---------------------------------------------------------
+! Check that a new token is created only when appropriate.
+!---------------------------------------------------------
 @test
    subroutine test_startNewToken(this)
       class (ContextsTestCase), intent(inout) :: this
 
       procedure (ContextInterface), pointer :: procPtr
 
-      call this%param%contextIn(this%parser, this%param%nextCharIn)
+      call this%param%inContext(this%parser, this%param%nextCharIn)
 
       if (this%param%startNewToken) then
          @assertEqual(1, this%parser%size())
