@@ -1,37 +1,41 @@
+! Note that FormatParser exposes more methods than is desirable for
+! encapsulation.  E.g. get/set buffer.  But this exposure is extremely
+! useful for unit testing, which has a higher priority.
+
 module ASTG_NewFormatParser_mod
    use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
    implicit none
    private
 
    public :: FormatParser
-   public :: HandlerInterface
+   public :: ContextInterface
 
-   public :: textHandler
-   public :: positionFormatHandler
-   public :: keywordFormatHandler
-   public :: singleQuoteHandler
-   public :: doubleQuoteHandler
+   public :: textContext
+   public :: positionFormatContext
+   public :: keywordFormatContext
+   public :: singleQuoteContext
+   public :: doubleQuoteContext
 
    integer, parameter :: MAX_LEN_TOKEN=1000
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
    character(len=1), parameter :: OPEN_CURLY_BRACE = '{'
    character(len=1), parameter :: CLOSE_CURLY_BRACE = '}'
    character(len=1), parameter :: SPACE = ' '
-   ! Tricky to make a literal with backslash when using CPP 
-   ! as a preprocessor.
-   character(len=*), parameter :: CPP_SAFE_ESCAPE = '\\'
-   character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
+   character(len=1), parameter :: COMMA = ','
+   ! Tricky to make a literal with backslash when using FPP:
+   character(len=*), parameter :: FPP_SAFE_ESCAPE = '\\'
+   character(len=1), parameter :: ESCAPE = FPP_SAFE_ESCAPE(1:1)
 
    type, extends(FormatTokenVector) :: FormatParser
       private
       integer :: currentPosition = 0
       character(len=MAX_LEN_TOKEN) :: buffer
-      procedure (HandlerInterface), pointer :: handler
+      procedure (ContextInterface), pointer :: context
    contains
-      procedure :: setHandler
-      procedure :: getHandler
+      procedure :: setContext
+      procedure :: getContext
       procedure :: setBuffer ! for testing
-      procedure :: getBuffer
+      procedure :: getBuffer ! for testing
       procedure :: parseCharacter
       procedure :: parse
    end type FormatParser
@@ -43,11 +47,11 @@ module ASTG_NewFormatParser_mod
    !-----------------
 
    interface
-      subroutine HandlerInterface(this, char)
+      subroutine ContextInterface(this, char)
          import FormatParser
          class (FormatParser), intent(inout) :: this
          character(len=1), intent(in) :: char
-      end subroutine HandlerInterface
+      end subroutine ContextInterface
    end interface
 
    interface FormatParser
@@ -63,39 +67,39 @@ contains
       parser%buffer = ''
       parser%currentPosition = 0 ! buffer is empty
 
-      call parser%setHandler(textHandler) ! assume start with text (but confirm)
+      call parser%setContext(textContext) ! assume start with text (but confirm)
 
    end function newFormatParser
 
-   subroutine setHandler(this, handler)
+   subroutine setContext(this, context)
       class (FormatParser), intent(inout) :: this
-      procedure (HandlerInterface) :: handler
+      procedure (ContextInterface) :: context
 
-      this%handler => handler
+      this%context => context
 
-   end subroutine setHandler
+   end subroutine setContext
 
 
-   subroutine getHandler(this, handler)
+   subroutine getContext(this, context)
       class (FormatParser), intent(in) :: this
-      procedure (HandlerInterface), pointer :: handler
+      procedure (ContextInterface), pointer :: context
 
-      handler => this%handler
-   end subroutine getHandler
+      context => this%context
+
+   end subroutine getContext
 
 
-   ! Delegate to handler for current context
+   ! Delegate to context for current context
    subroutine parseCharacter(this, char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
-      call this%handler(char)
-
+      call this%context(char)
 
    end subroutine parseCharacter
 
 
-   ! Delegate to handler for current context
+   ! Delegate to context for current context
    subroutine parse(this, str)
       class (FormatParser), intent(inout) :: this
       character(len=*), intent(in) :: str
@@ -103,7 +107,7 @@ contains
       integer :: pos
 
       do pos = 1, len(str)
-         call this%handler(str(pos:pos))
+         call this%context(str(pos:pos))
       end do
 
    end subroutine parse
@@ -132,7 +136,7 @@ contains
 
 ! Various contexts:
 
-   subroutine textHandler(this, char)
+   subroutine textContext(this, char)
       use ASTG_FormatToken_mod
       use iso_c_binding, only: C_NULL_CHAR
       class (FormatParser), intent(inout) :: this
@@ -140,11 +144,11 @@ contains
 
       select case (char)
       case ("'")
-         call this%setHandler(singleQuoteHandler)
+         call this%setContext(singleQuoteContext)
       case ('"')
-         call this%setHandler(doubleQuoteHandler)
+         call this%setContext(doubleQuoteContext)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
-         call this%setHandler(positionFormatHandler)
+         call this%setContext(positionFormatContext)
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
@@ -159,12 +163,12 @@ contains
         this%buffer(pos:pos) = char
       end associate
 
-   end subroutine textHandler
+   end subroutine textContext
 
 
-   ! Single Quote handler treats other special characters as ordinary.
+   ! Single Quote context treats other special characters as ordinary.
    ! Returns to text context when matching close quote is found.
-   subroutine singleQuoteHandler(this, char)
+   subroutine singleQuoteContext(this, char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
@@ -175,17 +179,17 @@ contains
 
       select case (char)
       case ("'")
-         call this%setHandler(textHandler)
+         call this%setContext(textContext)
       case default
          ! stay single quote
       end select
 
-   end subroutine singleQuoteHandler
+   end subroutine singleQuoteContext
 
 
-   ! Double Quote handler treats other special characters as ordinary.
+   ! Double Quote context treats other special characters as ordinary.
    ! Returns to text context when matching close quote is found.
-   subroutine doubleQuoteHandler(this, char)
+   subroutine doubleQuoteContext(this, char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
@@ -196,15 +200,15 @@ contains
 
       select case (char)
       case ('"')
-         call this%setHandler(textHandler)
+         call this%setContext(textContext)
       case default
          ! stay double quote
       end select
 
-   end subroutine doubleQuoteHandler
+   end subroutine doubleQuoteContext
 
 
-   subroutine positionFormatHandler(this, char)
+   subroutine positionFormatContext(this, char)
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
       use ASTG_FormatToken_mod
@@ -215,7 +219,7 @@ contains
 
         select case (char)
         case (SPACE, ESCAPE, C_NULL_CHAR)
-         call this%setHandler(textHandler)
+         call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
@@ -223,11 +227,11 @@ contains
            end if
         case (OPEN_CURLY_BRACE) ! {
            if (pos > 0) then
-              call throw('FormatParser::positionFormatHandler() - ' // &
+              call throw('FormatParser::positionFormatContext() - ' // &
                    & 'illegal start of keyword format: ' // this%buffer(1:pos))
               return
            end if
-           call this%setHandler(keywordFormatHandler)
+           call this%setContext(keywordFormatContext)
            return ! do not retain char
         case default
          ! stay position format
@@ -238,10 +242,10 @@ contains
 
       end associate
 
-   end subroutine positionFormatHandler
+   end subroutine positionFormatContext
 
 
-   subroutine keywordFormatHandler(this, char)
+   subroutine keywordFormatContext(this, char)
       use ASTG_FormatToken_mod
       use iso_c_binding, only: C_NULL_CHAR
       use ASTG_Exception_mod, only: throw
@@ -252,9 +256,9 @@ contains
 
         select case (char)
         case (C_NULL_CHAR)
-           call throw('FormatParser::keywordFormatHandler() - incomplete keyword format specifier.')
+           call throw('FormatParser::keywordFormatContext() - incomplete keyword format specifier.')
         case (CLOSE_CURLY_BRACE)
-           call this%setHandler(textHandler)
+           call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0
@@ -269,6 +273,6 @@ contains
 
       end associate
 
-   end subroutine keywordFormatHandler
+   end subroutine keywordFormatContext
 
 end module ASTG_NewFormatParser_mod

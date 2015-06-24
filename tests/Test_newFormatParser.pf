@@ -5,31 +5,22 @@ module Test_newFormatParser_mod
    implicit none
 
 
-
 contains
-
-
-
-
-
-
-
-
 
 
 @test
    subroutine test_terminateKeywordFormat()
       type (FormatParser) :: parser
       type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
+      procedure (ContextInterface), pointer :: procPtr
       character(len=:), pointer :: buffer
       type (FormatToken), pointer :: t
 
       parser = FormatParser()
       call parser%parse('rank is %{rank,i3}')
 
-      call parser%getHandler(procPtr)
-      @assertTrue(associated(procPtr, textHandler), 'context changes back to text')
+      call parser%getContext(procPtr)
+      @assertTrue(associated(procPtr, textContext), 'context changes back to text')
 
       call parser%getBuffer(buffer)
       @assertEqual('', buffer, 'space should be retained')
@@ -47,13 +38,12 @@ contains
    end subroutine test_terminateKeywordFormat
 
 
-
 @test
    subroutine test_endOfString_pos()
       use iso_c_binding, only: C_NULL_CHAR
       type (FormatParser) :: parser
       type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
+      procedure (ContextInterface), pointer :: procPtr
       character(len=:), pointer :: buffer
       type (FormatToken), pointer :: t
 
@@ -75,7 +65,7 @@ contains
       use iso_c_binding, only: C_NULL_CHAR
       type (FormatParser) :: parser
       type (FormatToken) :: token
-      procedure (HandlerInterface), pointer :: procPtr
+      procedure (ContextInterface), pointer :: procPtr
       character(len=:), pointer :: buffer
       type (FormatToken), pointer :: t
 
@@ -83,7 +73,7 @@ contains
       call parser%parse('%{rank,i3') ! unterminated
       call parser%parseCharacter(C_NULL_CHAR)
 
-      @assertExceptionRaised('FormatParser::keywordFormatHandler() - incomplete keyword format specifier.')
+      @assertExceptionRaised('FormatParser::keywordFormatContext() - incomplete keyword format specifier.')
       @assertEqual(0, parser%size())
       
    end subroutine test_endOfString_keyword

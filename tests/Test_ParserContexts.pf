@@ -1,4 +1,4 @@
-module Test_Handlers_mod
+module Test_ParserContexts_mod
    use pFUnit_mod
    use ASTG_FormatToken_mod
    use ASTG_newFormatParser_mod
@@ -6,26 +6,26 @@ module Test_Handlers_mod
    @testParameter(constructor=newTestParameter)
    type, extends(AbstractTestParameter) :: TestParam
       ! in
-      procedure (HandlerInterface), nopass, pointer :: handlerIn
+      procedure (ContextInterface), nopass, pointer :: contextIn
       character(len=:), allocatable :: bufferIn
       character(len=1) :: nextCharIn
       ! expected
       character(len=:), allocatable :: bufferOut
       logical :: startNewToken
-      procedure (HandlerInterface), nopass, pointer :: handlerOut
+      procedure (ContextInterface), nopass, pointer :: contextOut
    contains
       procedure :: toString
    end type TestParam
       
 
    @TestCase(constructor=newTestCase, testParameters={getParameters()})
-   type, extends(ParameterizedTestCase) :: HandlersTestCase
+   type, extends(ParameterizedTestCase) :: ContextsTestCase
       type (FormatParser) :: parser
       type (TestParam) :: param
    contains
       procedure :: setUp
       procedure :: tearDown
-   end type HandlersTestCase
+   end type ContextsTestCase
 
 contains
 
@@ -34,12 +34,12 @@ contains
       type (TestParam), allocatable :: params(:)
 
       type struct
-         procedure (HandlerInterface), nopass, pointer :: handlerIn
+         procedure (ContextInterface), nopass, pointer :: contextIn
          character(len=:), allocatable :: bufferIn
          character(len=1) :: char
          character(len=:), allocatable :: bufferOut
          logical :: startNewToken
-         procedure (HandlerInterface), nopass, pointer :: handlerOut
+         procedure (ContextInterface), nopass, pointer :: contextOut
       end type struct
 
       ! workaround for CPP "eating" backspaces
@@ -47,41 +47,41 @@ contains
       character(len=1), parameter :: ESCAPE = CPP_SAFE_ESCAPE(1:1)
 
       params = [ &
-           & makeParam(textHandler, '', 'a', 'a', .false., textHandler) &
-           & ,makeParam(textHandler, 'a', 'b', 'ab', .false., textHandler) &
-           & ,makeParam(textHandler, 'a', "'", "a'", .false., singleQuoteHandler) &
-           & ,makeParam(textHandler, 'a', '"', 'a"', .false., doubleQuoteHandler) &
+           & makeParam(textContext, '', 'a', 'a', .false., textContext) &
+           & ,makeParam(textContext, 'a', 'b', 'ab', .false., textContext) &
+           & ,makeParam(textContext, 'a', "'", "a'", .false., singleQuoteContext) &
+           & ,makeParam(textContext, 'a', '"', 'a"', .false., doubleQuoteContext) &
            
-           & ,makeParam(singleQuoteHandler, "a'b", "'", "a'b'", .false., textHandler) &
-           & ,makeParam(doubleQuoteHandler, 'a"b', '"', 'a"b"', .false., textHandler) &
+           & ,makeParam(singleQuoteContext, "a'b", "'", "a'b'", .false., textContext) &
+           & ,makeParam(doubleQuoteContext, 'a"b', '"', 'a"b"', .false., textContext) &
 
-           & ,makeParam(textHandler, '', '%', '', .false., positionFormatHandler) &
-           & ,makeParam(positionFormatHandler, '', '{', '', .false., keywordFormatHandler) &
+           & ,makeParam(textContext, '', '%', '', .false., positionFormatContext) &
+           & ,makeParam(positionFormatContext, '', '{', '', .false., keywordFormatContext) &
 
-           & ,makeParam(positionFormatHandler, '%i3', ' ', ' ', .true., textHandler) &
-           & ,makeParam(positionFormatHandler, '%i3', ESCAPE, '', .true., textHandler) &
+           & ,makeParam(positionFormatContext, '%i3', ' ', ' ', .true., textContext) &
+           & ,makeParam(positionFormatContext, '%i3', ESCAPE, '', .true., textContext) &
 
            & ]
 
    contains
       
-      function makeParam(handlerIn, bufferIn, nextCharIn, &
-           & bufferOut, startNewToken, handlerOut) result(param)
+      function makeParam(contextIn, bufferIn, nextCharIn, &
+           & bufferOut, startNewToken, contextOut) result(param)
          type (TestParam) :: param
          
-         procedure (HandlerInterface) :: handlerIn
+         procedure (ContextInterface) :: contextIn
          character(len=*) :: bufferIn
          character(len=1) :: nextCharIn
          character(len=*) :: bufferOut
          logical :: startNewToken
-         procedure (HandlerInterface) :: handlerOut
+         procedure (ContextInterface) :: contextOut
 
-         param%handlerIn => handlerIn
+         param%contextIn => contextIn
          param%bufferIn = bufferIn
          param%nextCharIn = nextCharIn
          param%bufferOut = bufferOut
          param%startNewToken = startNewToken
-         param%handlerOut => handlerOut
+         param%contextOut => contextOut
       end function makeParam
 
    end function getParameters
@@ -99,7 +99,7 @@ contains
 
 
    function newTestCase(param) result(tstCase)
-      type (HandlersTestCase) :: tstCase
+      type (ContextsTestCase) :: tstCase
       type (TestParam) :: param
 
       tstCase%param = param
@@ -108,25 +108,25 @@ contains
 
 
    subroutine setUp(this)
-      class (HandlersTestCase), intent(inout) :: this
+      class (ContextsTestCase), intent(inout) :: this
       
-      call this%parser%setHandler(this%param%handlerIn)
+      call this%parser%setContext(this%param%contextIn)
       call this%parser%setBuffer(this%param%bufferIn)
 
    end subroutine setUp
 
    subroutine tearDown(this)
-      class (HandlersTestCase), intent(inout) :: this
+      class (ContextsTestCase), intent(inout) :: this
    end subroutine tearDown
 
 
 @test
    subroutine test_outBuffer(this)
-      class (HandlersTestCase), intent(inout) :: this
+      class (ContextsTestCase), intent(inout) :: this
 
       character(len=:), pointer :: buffer
 
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+      call this%param%contextIn(this%parser, this%param%nextCharIn)
 
       call this%parser%getBuffer(buffer)
       @assertEqual(this%param%bufferOut, buffer, whiteSpace=KEEP_ALL)
@@ -135,28 +135,28 @@ contains
 
 
 @test
-   subroutine test_outHandler(this)
-      class (HandlersTestCase), intent(inout) :: this
+   subroutine test_outContext(this)
+      class (ContextsTestCase), intent(inout) :: this
 
-      procedure (HandlerInterface), pointer :: procPtr
-      procedure (HandlerInterface), pointer :: expectedPtr
+      procedure (ContextInterface), pointer :: procPtr
+      procedure (ContextInterface), pointer :: expectedPtr
 
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+      call this%param%contextIn(this%parser, this%param%nextCharIn)
 
-      call this%parser%getHandler(procPtr)
-      expectedPtr => this%param%handlerOut
+      call this%parser%getContext(procPtr)
+      expectedPtr => this%param%contextOut
       @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
 
-   end subroutine test_outHandler
+   end subroutine test_outContext
 
 
 @test
    subroutine test_startNewToken(this)
-      class (HandlersTestCase), intent(inout) :: this
+      class (ContextsTestCase), intent(inout) :: this
 
-      procedure (HandlerInterface), pointer :: procPtr
+      procedure (ContextInterface), pointer :: procPtr
 
-      call this%param%handlerIn(this%parser, this%param%nextCharIn)
+      call this%param%contextIn(this%parser, this%param%nextCharIn)
 
       if (this%param%startNewToken) then
          @assertEqual(1, this%parser%size())
@@ -167,4 +167,4 @@ contains
    end subroutine test_startNewToken
 
 
-end module Test_Handlers_mod
+end module Test_ParserContexts_mod
