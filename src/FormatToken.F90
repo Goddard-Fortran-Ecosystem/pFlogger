@@ -14,9 +14,8 @@ module ASTG_FormatToken_mod
 
    type FormatToken
       integer :: type ! use enum
-      character(len=:), allocatable :: textString
+      character(len=:), allocatable :: text
       character(len=:), allocatable :: formatSpecifier
-      character(len=:), allocatable :: keywordString
    end type FormatToken
 
 
@@ -40,7 +39,7 @@ contains
       select case (type)
 
       case (TEXT)
-         token%textString = string
+         token%text = string
 
       case (POSITION)
          token%formatSpecifier = string
@@ -48,11 +47,11 @@ contains
       case (KEYWORD)
          idx = index(string, KEYWORD_SEPARATOR)
          if (idx == 1) then
-            token%keywordString = ''
+            token%text = ''
             call throw('FormatParser::keywordFormatHandler() - missing keyword in format specifier')
             return
          end if
-         token%keywordString = string(:idx-1)
+         token%text = string(:idx-1)
          token%formatSpecifier = string(idx+1:)
       end select
       

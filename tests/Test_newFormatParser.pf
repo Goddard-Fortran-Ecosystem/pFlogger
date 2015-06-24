@@ -28,12 +28,12 @@ contains
 
       t => parser%at(1)
       @assertEqual(TEXT, t%type)
-      @assertEqual('rank is ', t%textString)
+      @assertEqual('rank is ', t%text)
 
       t => parser%at(2)
       @assertEqual(KEYWORD, t%type)
       @assertEqual('i3', t%formatSpecifier)
-      @assertEqual('rank', t%keywordString)
+      @assertEqual('rank', t%text)
 
    end subroutine test_terminateKeywordFormat
 

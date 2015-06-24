@@ -9,7 +9,7 @@ module Test_ParserContexts_mod
       ! in
       procedure (ContextInterface), nopass, pointer :: inContext
       character(len=:), allocatable :: inBuffer
-      character(len=1) :: nextCharIn
+      character(len=1) :: nextChar
       ! expected
       character(len=:), allocatable :: outBuffer
       procedure (ContextInterface), nopass, pointer :: outContext
@@ -79,33 +79,33 @@ contains
            & , p( TXC, 'a' ,   'b',    TXC, 'ab' )                            &
            & , p( TXC, 'a',    "'",    SQC, "a'" )                            &
            & , p( TXC, 'a',    '"',    DQC, 'a"' )                            &
-           & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'a') ) &
+           & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'b') ) &
            
            & , p( SQC, "a'b",  "'",    TXC, "a'b'")                           &
            & , p( DQC, 'a"b',  '"',    TXC, 'a"b"')                           &
            
            & , p( PSC, '',     '{',    KYC, '')                               &
-           & , p( PSC, '%i3',  ' ',    TXC, '',      FormatToken(POSITION, 'i3') ) &
-           & , p( PSC, '%i3', ESCAPE,  TXC, '',      FormatToken(POSITION, 'i3') ) &
+           & , p( PSC, '%i3',  ' ',    TXC, '',      FormatToken(POSITION, '%i3') ) &
+           & , p( PSC, '%i3', ESCAPE,  TXC, '',      FormatToken(POSITION, '%i3') ) &
 
            & ]
 
 
    contains
       
-      function p(inContext, inBuffer, inChar, outContext, outBuffer, token)
+      function p(inContext, inBuffer, char, outContext, outBuffer, token)
          type (TestParam) :: p
          
          procedure (ContextInterface) :: inContext
          character(len=*), intent(in) :: inBuffer
-         character(len=1), intent(in) :: inChar
+         character(len=1), intent(in) :: char
          procedure (ContextInterface) :: outContext
          character(len=*) :: outBuffer
          type (FormatToken), optional, intent(in) :: token
 
          p%inContext => inContext
          p%inBuffer = inBuffer
-         p%nextCharIn = inChar
+         p%nextChar = char
          p%outBuffer = outBuffer
          p%outContext => outContext
 
@@ -126,7 +126,7 @@ contains
       
       character(len=:), allocatable :: message
       message = 'inBuffer=<' // this%inBuffer // '>'
-      message = message // '; char=<' // this%nextCharIn // '>'
+      message = message // '; char=<' // this%nextChar // '>'
       str = message
    end function toString
 
@@ -146,6 +146,8 @@ contains
       call this%parser%setContext(this%param%inContext)
       call this%parser%setBuffer(this%param%inBuffer)
 
+      call this%param%inContext(this%parser, this%param%nextChar)
+
    end subroutine setUp
 
    subroutine tearDown(this)
@@ -161,8 +163,6 @@ contains
       class (ContextsTestCase), intent(inout) :: this
 
       character(len=:), pointer :: buffer
-
-      call this%param%inContext(this%parser, this%param%nextCharIn)
 
       call this%parser%getBuffer(buffer)
       @assertEqual(this%param%outBuffer, buffer, whiteSpace=KEEP_ALL)
@@ -180,8 +180,6 @@ contains
       procedure (ContextInterface), pointer :: procPtr
       procedure (ContextInterface), pointer :: expectedPtr
 
-      call this%param%inContext(this%parser, this%param%nextCharIn)
-
       call this%parser%getContext(procPtr)
       expectedPtr => this%param%outContext
       @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
@@ -197,16 +195,29 @@ contains
       class (ContextsTestCase), intent(inout) :: this
 
       procedure (ContextInterface), pointer :: procPtr
-
-      call this%param%inContext(this%parser, this%param%nextCharIn)
+      type (FormatToken), pointer :: token
 
       if (this%param%startNewToken) then
          @assertEqual(1, this%parser%size())
+         token => this%parser%at(1)
+         @assertEqual(this%param%token%type, token%type, 'incorrect token type')
+
+         select case (this%param%token%type)
+         case (TEXT)
+            @assertEqual(this%param%token%text, token%text)
+         case (POSITION)
+            @assertEqual(this%param%token%formatSpecifier, token%formatSpecifier)
+         case (KEYWORD)
+            @assertEqual(this%param%token%text, token%text)
+            @assertEqual(this%param%token%text, token%text)
+         end select
+
       else
          @assertEqual(0, this%parser%size())
       end if
 
    end subroutine test_startNewToken
+
 
 
 end module Test_ParserContexts_mod
