@@ -1,7 +1,0 @@
-include_directories(${CMAKE_BINARY_DIR}/src)
-if (MPI)
-   add_executable(app.x app.F90)
-   target_link_libraries(app.x logger pfunit )
-   add_executable(mpiFileLogging.x mpiFileLogging.F90)
-   target_link_libraries(mpiFileLogging.x logger pfunit )
-endif()  
