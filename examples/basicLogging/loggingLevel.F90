@@ -21,18 +21,44 @@ program basicLogging
    call log%addHandler(stdout)
 
    ! Specify a handler for log file
-   logfile = FileHandler('basicLOG.txt')
+   logfile = FileHandler('basicLevel.log')
    call log%addHandler(logfile)
 
    ! Default log level is INFO. 
-   print *,'---WITH DEFAULT LEVEL---'
+   print *,'---WITH DEFAULT(INFO) LEVEL---'
    call log%debug('you should not see this message')
    call log%info('Starting MAIN program.')
    call log%warning('Time step is too large.')
    call log%error('Max number of iterations exceeded.')
    call log%critical('CFL criterion violated. Program will abort.')
 
-   ! To diagnose problems, change log level to DEBUG
+ 
+   print *,'---WITH ERROR LEVEL---'
+   call log%setLevel(ERROR)
+   call log%debug('You should not see this message. debug')   
+   call log%info('You should not see this message. info')
+   call log%warning('You should not see this message. warning')
+   call log%error('Max number of iterations exceeded.')
+   call log%critical('CFL criterion violated. Program will abort.')
+
+   ! To diagnose problems, change log level to lower level DEBUG
+   ! 1) remove the handlers
+   ! 2) create new ones to go lower level
+   ! 3) the first step can be ignored if there is no handlers in the que.
+
+   ! 1)
+   call log%removeHandler(stdout)
+   call log%removeHandler(logfile)
+   ! 2)
+   stdout = StreamHandler()
+   call stdout%setLevel(DEBUG)
+   call log%addHandler(stdout)
+
+   logfile = FileHandler('basicLevel.log')
+   call logfile%setLevel(DEBUG)
+   call log%addHandler(logfile)
+
+   ! Specify a handler for log file
    print *,'---WITH DEBUG LEVEL---'
    call log%setLevel(DEBUG)
    call log%debug('T at (140,35,10) is  273K.')   
@@ -41,14 +67,7 @@ program basicLogging
    call log%error('Max number of iterations exceeded.')
    call log%critical('CFL criterion violated. Program will abort.')
 
-   call stdout%setLevel(ERROR)
-
-   call log%warning('You still see this ??')
-   call log%warning('should not display. should be seen in logfile')
-   call log%error('Max number of iterations exceeded.')
-   call log%critical('CFL criterion violated. Program will abort.')
- 
-   print *,'---DONE---'
+   print*,"---DONE---"
 
 end program basicLogging
 
