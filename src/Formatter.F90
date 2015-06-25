@@ -144,12 +144,10 @@ contains
 
       call extra%deepCopy(record%extra)
       msg = record%getMessage()
-      write(6,*)__FILE__,__LINE__, msg; flush(6)
+
       call extra%insert('message', msg)
       if(this%usesTime()) then
          asctime = this%formatTime(record, datefmt=this%datefmt)
-         write(6,*)__FILE__,__LINE__, asctime; flush(6)
-
          call extra%insert('asctime', asctime)
       end if
       logMessage = formatArgs(this%fmt, extra=extra)

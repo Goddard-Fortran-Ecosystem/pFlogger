@@ -135,8 +135,6 @@ contains
       class (Test_Formatter), intent(inout) :: this
       type (UnlimitedVector) :: args
 
-      write(6,*)' '
-      write(6,*)__FILE__,__LINE__; flush(6)
       args = UnlimitedVector()
       call args%push_back(1)
 

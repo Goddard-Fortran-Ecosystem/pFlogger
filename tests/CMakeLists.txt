@@ -31,7 +31,6 @@ set(TEST_SRCS
    Test_LogRecord.F90
    Test_LoggerManager.F90
    Test_Formatter.F90
-   Test_FormatParser.F90
    Test_ParserContexts.F90
    Test_newFormatParser.F90
    Test_ArgListUtilities.F90

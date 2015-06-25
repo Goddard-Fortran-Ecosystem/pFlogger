@@ -477,7 +477,6 @@ contains
          case (TEXT)
             string = string // token%text
          case (POSITION)
-            write(6,*)__FILE__,__LINE__,fmt; flush(6)
             if (argIter == args%end()) then
                call throw('Not enough values for format string in FormatParser.')
                return

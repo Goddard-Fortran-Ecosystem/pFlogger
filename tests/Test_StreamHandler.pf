@@ -109,7 +109,6 @@ contains
       type (CIStringUnlimitedMap) :: extra
       character(len=:), allocatable :: levelName
       
-      write(6,*)__FILE__,__LINE__; flush(6)
       args = UnlimitedVector()
       call args%push_back(1)
 
