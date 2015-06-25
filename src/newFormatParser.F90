@@ -287,7 +287,7 @@ contains
         case (CLOSE_CURLY_BRACE)
            call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
-              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
+              call this%push_back(FormatToken(KEYWORD, trim(this%buffer)))
               pos = 0
               return ! do not retain the closing brace
            end if

@@ -28,9 +28,44 @@ contains
       @assertEqual(1, p%size())
 
       t => p%at(1)
+      @assertEqual(TEXT, t%type)
       @assertEqual('a', t%text)
 
    end subroutine test_simple
+
+
+@test
+   subroutine test_multipleTokens()
+      type (FormatParser) :: p
+      type (FormatToken), pointer :: t
+
+      p = FormatParser()
+      call p%parse('word %i3 %{key,a}\n other')
+      @assertEqual(5, p%size())
+
+      t => p%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('word ', t%text, whitespace=KEEP_ALL)
+
+      t => p%at(2)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('i3 ', t%editDescriptor, whitespace=KEEP_ALL)
+
+      t => p%at(3)
+      @assertEqual(TEXT, t%type)
+      @assertEqual(' ', t%text, whitespace=KEEP_ALL)
+
+      t => p%at(4)
+      @assertEqual(KEYWORD, t%type)
+      @assertEqual('key', t%text, whitespace=KEEP_ALL)
+      @assertEqual('a', t%editDescriptor, whitespace=KEEP_ALL)
+
+      t => p%at(5)
+      @assertEqual(TEXT, t%type)
+      @assertEqual(new_line('a') // ' other', t%text, whitespace=KEEP_ALL)
+
+   end subroutine test_multipleTokens
+   
 
 
 end module Test_newFormatParser_mod

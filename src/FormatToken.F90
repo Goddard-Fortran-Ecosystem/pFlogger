@@ -16,7 +16,7 @@ module ASTG_FormatToken_mod
    type FormatToken
       integer :: type ! use enum
       character(len=:), allocatable :: text
-      character(len=:), allocatable :: formatSpecifier
+      character(len=:), allocatable :: editDescriptor
    end type FormatToken
 
 
@@ -43,7 +43,7 @@ contains
          token%text = string
 
       case (POSITION)
-         token%formatSpecifier = string
+         token%editDescriptor = string
 
       case (KEYWORD)
          idx = index(string, KEYWORD_SEPARATOR)
@@ -53,7 +53,8 @@ contains
             return
          end if
          token%text = string(:idx-1)
-         token%formatSpecifier = string(idx+1:)
+         token%editDescriptor = string(idx+1:)
+
       end select
       
    end function newFormatToken

@@ -111,7 +111,8 @@ contains
            ! keyword context
            & , p( KYC,        '',  'v', KYC, 'v')                                 &
            & , p( KYC,     'var',  ',', KYC, 'var,')                              &
-           & , p( KYC,  'var,i3',  '}', TXC, '', FormatToken(KEYWORD, 'var', 'i3')) &
+           & , p( KYC,  'var,i3',  '}', TXC, '', FormatToken(KEYWORD, 'var,i3')) &
+           & , p( KYC,  'word,a',  '}', TXC, '', FormatToken(KEYWORD, 'word,a')) &
 
            ! Various checks on illegal formats
 
@@ -289,7 +290,7 @@ contains
          case (TEXT)
             @assertEqual(this%param%token%text, token%text)
          case (POSITION)
-            @assertEqual(this%param%token%formatSpecifier, token%formatSpecifier)
+            @assertEqual(this%param%token%editDescriptor, token%editDescriptor)
          case (KEYWORD)
             @assertEqual(this%param%token%text, token%text)
             @assertEqual(this%param%token%text, token%text)
