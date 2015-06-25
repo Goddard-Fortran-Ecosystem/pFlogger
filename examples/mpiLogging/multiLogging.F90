@@ -1,4 +1,4 @@
-program app
+program multiLogging
 
    use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
@@ -9,18 +9,18 @@ program app
    use ASTG_MpiFileHandler_mod
    use ASTG_Formatter_mod
    use ASTG_SeverityLevels_mod
-   use ASTG_SeverityLevels_mod
    use iso_fortran_env, only: OUTPUT_UNIT
    implicit none
 
    include 'mpif.h'
    integer :: ier
    type (MpiFilter) :: rootFilter
-   type (Filter) :: debugFilter
-   type (FileHandler) :: errFile
+   type (MpiFileHandler) :: errFile
    type (StreamHandler) :: prtFile
+   type (MpiFilter) :: debugFilter
    type (MpiFileHandler) :: debugFile
    type (LoggerManager) :: manager
+
    class (Logger), pointer :: loggerStd
    class (Logger), pointer :: loggerErr
    class (Logger), pointer :: loggerChem
@@ -32,34 +32,36 @@ program app
    rundeck = 'em20'
    
    manager = LoggerManager()
+   loggerStd => manager%getLogger('modelE')
    rootFilter = MpiFilter(MPI_COMM_WORLD)
-
+  
+   ! print on screen
    prtFile = StreamHandler(OUTPUT_UNIT, level=DEBUG)
    call prtFile%addFilter(rootFilter)
-   loggerStd => manager%getLogger('modelE')
    call loggerStd%addHandler(prtFile)
    call loggerStd%warning('Warning on screen!')
-   
-   errFile = FileHandler(rundeck // '.ERR', level=INFO)
+  
+   ! write error into  files
+   errFile = MpiFileHandler(rundeck // '.ERR', MPI_COMM_WORLD,level=INFO)
    call errFile%addFilter(rootFilter)
-   call errFile%setFormatter(Formatter('%(rank) %(level) %(line) %(file) %a'))
-   
-   loggerErr => manager%getLogger('modelE')
+   loggerErr => manager%getLogger('modelE.erro')
    call loggerErr%addHandler(errFile)
-   call loggerErr%info('Info on file!')
-   
-   debugFilter = Filter('chemistry')
-   debugFile = MpiFileHandler('debugChem', MPI_COMM_WORLD, &
+   call loggerErr%info('Info on a file!')
+
+   ! write debug file into different files
+   debugFilter = MpiFilter(MPI_COMM_WORLD)
+   debugFile = MpiFileHandler(rundeck//'.Chem', MPI_COMM_WORLD, &
         level=DEBUG, &
         suffixFormat='.%(i3.3)', &
         delay=.true.)
    call debugFile%addFilter(debugFilter)
-
    loggerChem => manager%getLogger('modelE.chemistry')
+   call loggerChem%setLevel(DEBUG)
    call loggerChem%addHandler(debugFile)
    call loggerChem%debug('Debug on mpi files!')
+   call loggerChem%info('Info on debug mpi files!')
 
    call mpi_finalize(ier)
 
 
-end program app
+end program multiLogging

@@ -1,12 +1,14 @@
-program loggingWithFormat
+program loggingFormat
    use ASTG_Logger_mod
    use ASTG_StreamHandler_mod
-   use ASTG_SeverityLevels_mod, only: DEBUG, WARNING
+   use ASTG_FileHandler_mod
+   use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
    use ASTG_Formatter_mod
    implicit none
    
    type (Logger) :: log
    type (StreamHandler) :: stdout
+   type (FileHandler) :: logfile
    integer :: i, j
    real(kind=8) :: T(15,10)
    
@@ -18,6 +20,8 @@ program loggingWithFormat
 
    ! Create handlers
    stdout = StreamHandler()
+
+   ! change default info level to debug level
    call stdout%setLevel(DEBUG)
    
    ! Change the output format. Now the output will simply display
@@ -29,27 +33,31 @@ program loggingWithFormat
    ! Change log level to DEBUG
    call log%setLevel(DEBUG)
    print *,'---MESSAGE ONLY---'
-   call log%info('Starting MAIN program.')
+   call log%info('Message only')
 
    ! Change the output format. Will use %(asctime::) attribute to set
    ! date format:
-   call log%removeHandler(stdout) ! removeHandler disassociates stdout with logger
+
+   ! removeHandler disassociates stdout with logger
+   call log%removeHandler(stdout) 
    call stdout%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
       datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2) %(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
    call log%addHandler(stdout)
 
    print *,'---DATE, TIME and MESSAGE---'
-   call log%info('Starting MAIN program')
+   call log%info('Date, time and message')
    
    ! Change the output format. Will use %(asctime::) attribute to set
    ! a new date format:
-   call log%removeHandler(stdout) ! removeHandler disassociates stdout with logger
+
+   ! removeHandler disassociates stdout with logger
+   call log%removeHandler(stdout)
    call stdout%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
                          datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
    call log%addHandler(stdout)
 
    print *,'---TIME and MESSAGE---'
-   call log%info('Starting MAIN program.')
+   call log%info('time and message')
 
    ! Change the output format. Print message and numbers.
    call log%removeHandler(stdout) ! removeHandler disassociates stdout with logger
@@ -67,6 +75,45 @@ program loggingWithFormat
         arg1=i,arg2=j,arg3=T(i,j)*100)
    
    print *,'---DONE---'
+   print *,'---START FILE LOGGING FORMAT---'
 
-end program loggingWithFormat
+   call log%removeHandler(stdout)
+
+   logfile = FileHandler('basicFormat.log')
+
+   ! change default info level to debug level
+   call logfile%setLevel(DEBUG)
+   call logfile%setFormatter(Formatter('%(message::a)'))
+   call log%addHandler(logfile)
+   
+   call log%setLevel(DEBUG)
+   call log%info('Message only')
+
+   call log%removeHandler(logfile) 
+   call logfile%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
+      datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2) %(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call log%addHandler(logfile)
+   call log%info('Date, time and message')
+   
+   call log%removeHandler(logfile)
+   call logfile%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
+                         datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call log%addHandler(logfile)
+   call log%info('time and message')
+
+   call log%removeHandler(logfile) 
+   call logfile%setFormatter(Formatter())
+   call log%addHandler(logfile)
+
+   call log%info('e is %(g20.11) and Pi is %(g20.14)', &
+        arg1=2.718281828459, arg2=4.d0*datan(1.d0))
+
+   i = 13; j = 7   
+   call random_number(T)
+   call log%info('Temperature at (%(i2),%(i1)) is %(f8.4)', &
+        arg1=i,arg2=j,arg3=T(i,j)*100)
+
+   print*, "---DONE WITH FILE LOGGING---"
+
+end program loggingFormat
 
