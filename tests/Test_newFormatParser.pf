@@ -105,4 +105,24 @@ contains
    end subroutine test_multipleTokensB
    
 
+@test
+   subroutine test_format()
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      type (FormatParser) :: p
+      type (FormatToken), pointer :: t
+
+      type (CIStringUnlimitedMap) :: extra
+
+      call extra%insert('i',1)
+      call extra%insert('x',1.234)
+      call extra%insert('f',.false.)
+      call extra%insert('s','word')
+
+      @assertEqual('x', format('x'))
+      @assertEqual('i 009', format('i %i3.3', 9))
+      @assertEqual('i= 1 f= F s=word x=  1.23', format('i=%{i,i2} f=%{f,*} s=%{s,a} x=%{x,f6.2}', extra=extra))
+
+   end subroutine test_format
+   
+
 end module Test_newFormatParser_mod

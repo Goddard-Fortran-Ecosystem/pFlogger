@@ -53,7 +53,7 @@ contains
             return
          end if
          token%text = string(:idx-1)
-         token%editDescriptor = string(idx+1:)
+         token%editDescriptor = string(idx+1:len_trim(string))
 
       end select
       
