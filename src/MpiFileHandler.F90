@@ -149,7 +149,7 @@ function getSuffix(rank, suffixFormat) result(suffix)
       fmt = DEFAULT_MPI_SUFFIX_FORMAT
    end if
 
-   suffix = parser%makeString(fmt, rank)
+   suffix = parser%formatArgs(fmt, rank)
 
 end function getSuffix
 
