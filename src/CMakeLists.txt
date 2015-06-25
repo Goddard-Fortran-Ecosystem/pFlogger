@@ -13,7 +13,7 @@ set(SRCS
    Filter.F90
    Filterer.F90
    FormatToken.F90
-   newFormatParser.F90
+   FormatParser.F90
    Formatter.F90
    LogRecord.F90
    Logger.F90

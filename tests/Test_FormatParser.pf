@@ -1,6 +1,6 @@
-module Test_newFormatParser_mod
+module Test_FormatParser_mod
    use pFUnit_mod
-   use ASTG_NewFormatParser_mod
+   use ASTG_FormatParser_mod
    use ASTG_FormatToken_mod
    implicit none
 
@@ -140,4 +140,4 @@ contains
    end subroutine test_format
    
 
-end module Test_newFormatParser_mod
+end module Test_FormatParser_mod

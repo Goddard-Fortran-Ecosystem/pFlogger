@@ -1,9 +1,0 @@
-module Test_FormatHandlers_mod
-   use pFUnit_mod
-   use ASTG_FormatToken_mod
-   use ASTG_NewFormatParser_mod
-
-
-contains
-
-end module Test_FormatHandlers_mod

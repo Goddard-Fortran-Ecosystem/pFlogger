@@ -2,7 +2,7 @@
 ! encapsulation.  E.g. get/set buffer.  But this exposure is extremely
 ! useful for unit testing, which has a higher priority.
 
-module ASTG_NewFormatParser_mod
+module ASTG_FormatParser_mod
    use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
    use ASTG_FormatToken_mod, only: FormatToken
    use ASTG_FormatToken_mod, only: KEYWORD_SEPARATOR
@@ -565,5 +565,4 @@ contains
    end function handleScalar
 
 
-
-end module ASTG_NewFormatParser_mod
+end module ASTG_FormatParser_mod

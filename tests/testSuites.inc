@@ -21,7 +21,7 @@ ADD_TEST_SUITE(Test_Formatter_mod_suite)
 
 ! Parser
 ADD_TEST_SUITE(Test_ParserContexts_mod_suite)
-ADD_TEST_SUITE(Test_newFormatParser_mod_suite)
+ADD_TEST_SUITE(Test_FormatParser_mod_suite)
 ADD_TEST_SUITE(Test_ArgListUtilities_mod_suite)
 
 ! Others

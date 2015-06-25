@@ -161,7 +161,7 @@ contains
    ! arguments associated with message.
    !---------------------------------------------------------------------------
    function getMessage(this) result(message)
-      use ASTG_newFormatParser_mod
+      use ASTG_FormatParser_mod
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       type (FormatParser) :: parser

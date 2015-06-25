@@ -95,7 +95,7 @@ contains
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
    function formatTime(this, record, datefmt) result(logMessage)
-      use ASTG_NewFormatParser_mod, only: formatArgs
+      use ASTG_FormatParser_mod, only: formatArgs
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
 
       character(len=:), allocatable :: logMessage
@@ -129,7 +129,7 @@ contains
    ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
-      use ASTG_NewFormatParser_mod, only: formatArgs
+      use ASTG_FormatParser_mod, only: formatArgs
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
 
