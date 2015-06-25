@@ -67,5 +67,42 @@ contains
    end subroutine test_multipleTokens
    
 
+@test
+   subroutine test_multipleTokensB()
+      type (FormatParser) :: p
+      type (FormatToken), pointer :: t
+
+      p = FormatParser()
+      call p%parse('word %i3 %f6.8\%{key,a}%{key2,a5}')
+      @assertEqual(6, p%size())
+
+      t => p%at(1)
+      @assertEqual(TEXT, t%type)
+      @assertEqual('word ', t%text, whitespace=KEEP_ALL)
+
+      t => p%at(2)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('i3 ', t%editDescriptor, whitespace=KEEP_ALL)
+
+      t => p%at(3)
+      @assertEqual(TEXT, t%type)
+      @assertEqual(' ', t%text, whitespace=KEEP_ALL)
+
+      t => p%at(4)
+      @assertEqual(POSITION, t%type)
+      @assertEqual('f6.8', t%editDescriptor, whitespace=KEEP_ALL)
+
+      t => p%at(5)
+      @assertEqual(KEYWORD, t%type)
+      @assertEqual('key', t%text, whitespace=KEEP_ALL)
+      @assertEqual('a', t%editDescriptor, whitespace=KEEP_ALL)
+
+      t => p%at(6)
+      @assertEqual(KEYWORD, t%type)
+      @assertEqual('key2', t%text, whitespace=KEEP_ALL)
+      @assertEqual('a5', t%editDescriptor, whitespace=KEEP_ALL)
+
+   end subroutine test_multipleTokensB
+   
 
 end module Test_newFormatParser_mod
