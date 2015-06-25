@@ -217,17 +217,21 @@ contains
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
+      select case (char)
+      case ('"')
+         call this%setContext(textContext)
+      case (C_NULL_CHAR)
+         call this%setContext(illegalContext)
+         call throw('FormatParser::doubleQuoteContext() - unclosed double quote')
+         return
+      case default
+         ! stay double quote
+      end select
+
       associate (pos => this%currentPosition)
         pos = pos + 1
         this%buffer(pos:pos) = char
       end associate
-
-      select case (char)
-      case ('"')
-         call this%setContext(textContext)
-      case default
-         ! stay double quote
-      end select
 
    end subroutine doubleQuoteContext
 
@@ -245,6 +249,10 @@ contains
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
               if (char == ESCAPE) return ! discard char
+           else
+              call this%setContext(illegalContext)
+              call throw('FormatParser::positionContext() - empty edit descriptor')
+              return
            end if
         case (OPEN_CURLY_BRACE) ! {
            if (pos > 0) then
@@ -276,9 +284,6 @@ contains
       associate ( pos => this%currentPosition )
 
         select case (char)
-        case (C_NULL_CHAR)
-              call this%setContext(illegalContext)
-           call throw('FormatParser::keywordContext() - incomplete keyword format specifier.')
         case (CLOSE_CURLY_BRACE)
            call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
@@ -293,11 +298,24 @@ contains
            end if
         case (ESCAPE)
            idx = index(this%buffer, KEYWORD_SEPARATOR)
-           if (idx < 2) then
+           if (idx <= 1) then
               call this%setContext(illegalContext)
               call throw('FormatParser::keywordContext() - no escape sequence permitted.')
               return
            end if
+        case (C_NULL_CHAR)
+           call this%setContext(illegalContext)
+           idx = index(this%buffer, KEYWORD_SEPARATOR)
+           if (pos == 0 .or. idx == 1) then
+              call throw('FormatParser::keywordContext() - missing keyword')
+           elseif (idx == 0) then
+              call throw('FormatParser::keywordContext() - missing edit descriptor')
+           elseif (idx == pos) then
+              call throw('FormatParser::keywordContext() - empty edit descriptor')
+           else
+              call throw('FormatParser::keywordContext() - missing "}"')
+           end if
+           return
         case default
            ! stay keyword format
         end select

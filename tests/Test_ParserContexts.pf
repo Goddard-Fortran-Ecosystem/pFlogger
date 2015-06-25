@@ -118,14 +118,16 @@ contains
            ! (1) illegal terminations
            & , p( SQC, "a'b",  C_NULL_CHAR,    illegalContext, "a'b", &
            &   errorMessage='FormatParser::singleQuoteContext() - unclosed single quote') &
-!!$           & , p( DQC, 'a"b',  C_NULL_CHAR,    illegalContext, 'a"b', &
-!!$           &   errorMessage='FormatParser::singleQuoteContext() - unclosed double quote') &
-!!$           & , p( DQC,   '',  C_NULL_CHAR,     illegalContext, 'a"b', &
-!!$           &   errorMessage='FormatParser::positionContext() - empty format descriptor') &
-!!$           & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'a"b', &
-!!$           &   errorMessage='FormatParser::keywordContext() - missing format descriptor') &
-!!$           & , p( KYC,   'abc,',  C_NULL_CHAR,     illegalContext, 'a"b', &
-!!$           &   errorMessage='FormatParser::keywordContext() - empty format descriptor') &
+           & , p( DQC, 'a"b',  C_NULL_CHAR,    illegalContext, 'a"b', &
+           &   errorMessage='FormatParser::doubleQuoteContext() - unclosed double quote') &
+           & , p( PSC,   '',  C_NULL_CHAR,     illegalContext, '', &
+           &   errorMessage='FormatParser::positionContext() - empty edit descriptor') &
+           & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'abc', &
+           &   errorMessage='FormatParser::keywordContext() - missing edit descriptor') &
+           & , p( KYC,   'abc,',  C_NULL_CHAR,     illegalContext, 'abc,', &
+           &   errorMessage='FormatParser::keywordContext() - empty edit descriptor') &
+           & , p( KYC,   'abc,i2',  C_NULL_CHAR,     illegalContext, 'abc,i2', &
+           &   errorMessage='FormatParser::keywordContext() - missing "}"') &
 
            ! Cannot switch to keyword once there is a format descriptor
            & , p( PSC, 'i3',     '{',    illegalContext, 'i3', &
@@ -198,7 +200,7 @@ contains
       elseif (associated(p, p4)) then
          message = message // 'positionContext' // new_line('a')
       elseif (associated(p, p5)) then
-         message = message // 'singleQuoteContext' // new_line('a')
+         message = message // 'keywordContext' // new_line('a')
       end if
 
       message = message // 'inBuffer=<' // this%inBuffer // '>'
