@@ -13,7 +13,8 @@ module ASTG_NewFormatParser_mod
    implicit none
    private
 
-   public :: format
+   public :: formatArgs
+   public :: formatArgVector
    public :: FormatParser
    public :: ContextInterface
 
@@ -255,7 +256,7 @@ contains
 
         select case (char)
         case (SPACE, ESCAPE, C_NULL_CHAR)
-         call this%setContext(textContext)
+           call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
@@ -376,18 +377,17 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! format
+   ! formatArgs
    !
-   ! DESCRIPTION:
-   ! Parses LogRecord 'message' attributes and returns a 'formatted message'.
-   ! For example, the default format for a Logger message is:
-   !     %(levelName::a): %(name::a): %(message::a)
-   ! Thus, a typical output (rawString) might be:
-   !     INFO: myLog: Hello world!
-   !---------------------------------------------------------------------------
+   ! DESCRIPTION: Parses a fmt string and fills position formats with
+   ! optional arguments and keyword formats from an optional
+   ! dictionary.  Note that arguments after the scalra require the use
+   ! of keyword argument association.  The duplicate notion of
+   ! 'keyword' in this description is unfortunate.
+   ! ---------------------------------------------------------------------------
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
-   function format(fmt, ARG_LIST, unusable, arr1D_1, extra) result(string)
+   function formatArgs(fmt, ARG_LIST, unusable, arr1D_1, extra) result(string)
       use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
       use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
@@ -422,6 +422,43 @@ contains
 
       args = makeArgVector(ARG_LIST)
 
+      string = formatArgVector(fmt, args, unusable, arr1D_1, extra)
+
+   end function formatArgs
+
+
+
+   function formatArgVector(fmt, args, unusable, arr1D_1, extra) result(string)
+      use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
+      use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVectorIterator => VectorIterator
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
+      use ASTG_ArgListUtilities_mod
+
+      character(len=:), allocatable :: string
+      character(len=*), intent(in) :: fmt
+      type (UnlimitedVector), intent(in) :: args
+      type (UnusableArgument), optional :: unusable
+      class (*), optional, intent(in) :: arr1D_1(:)
+      type (CIStringUnlimitedMap), optional :: extra
+
+      type (CIStringUnlimitedMap), target :: extra_
+
+      character(len=:), allocatable :: tokenString
+      character(len=:), allocatable :: key
+      character(len=:), allocatable :: payload
+      character(len=:), allocatable :: append
+      type (FormatToken), pointer :: token
+      class (*), pointer :: arg
+
+      type (TokenVectorIterator) :: tokenIter
+      type (UnlimitedVectorIterator) :: argIter
+      type (CIStringUnlimitedMapIterator) :: extraIter
+
+      type (FormatParser) :: p
+
       if (present(extra)) then
          call extra_%deepcopy(extra)
       end if
@@ -440,6 +477,7 @@ contains
          case (TEXT)
             string = string // token%text
          case (POSITION)
+            write(6,*)__FILE__,__LINE__,fmt; flush(6)
             if (argIter == args%end()) then
                call throw('Not enough values for format string in FormatParser.')
                return
@@ -461,7 +499,7 @@ contains
 
       end do
 
-   end function format
+   end function formatArgVector
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 

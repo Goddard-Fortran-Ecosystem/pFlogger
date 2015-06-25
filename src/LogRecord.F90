@@ -32,7 +32,7 @@ module ASTG_LogRecord_mod
 !      private
       integer :: level
       character(len=:), allocatable :: name
-      character(len=:), allocatable :: message
+      character(len=:), allocatable :: messageFormat
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (UnlimitedVector) :: args
@@ -64,10 +64,10 @@ contains
    ! DESCRIPTION:
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
-   function newLogRecord(name, level, message, args, extra) result(rec)
+   function newLogRecord(name, level, messageFormat, args, extra) result(rec)
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
-      character(len=*), intent(in) :: message
+      character(len=*), intent(in) :: messageFormat
       type (UnlimitedVector), optional, intent(in) :: args
       type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
@@ -76,7 +76,7 @@ contains
       
       rec%name = name
       rec%level = level
-      rec%message = message
+      rec%messageFormat = messageFormat
       if (present(args)) then
          rec%args = args
       else
@@ -161,12 +161,12 @@ contains
    ! arguments associated with message.
    !---------------------------------------------------------------------------
    function getMessage(this) result(message)
-      use ASTG_FormatParser_mod
+      use ASTG_newFormatParser_mod
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       type (FormatParser) :: parser
       
-      message = parser%format(this%message, this%args)
+      message = formatArgVector(this%messageFormat, this%args)
       
    end function getMessage
 
@@ -177,12 +177,12 @@ contains
       character(len=:), allocatable :: str
       integer :: eos
 
-      eos = index(this%message, ' ')
+      eos = index(this%messageFormat, ' ')
       if (eos>0) then
         allocate(character(len=eos-1)::str)
-        str = this%message(1:eos-1)
+        str = this%messageFormat(1:eos-1)
       else
-        str = this%message
+        str = this%messageFormat
       end if
       
    end function getStr
@@ -194,12 +194,12 @@ contains
       character(len=:), allocatable :: fmt
       integer :: eos, newLen, msgLen
 
-      eos = index(this%message, '%')
+      eos = index(this%messageFormat, '%')
       if (eos>0) then
-        msgLen = len(this%message)
-        newLen = len(this%message)-eos
+        msgLen = len(this%messageFormat)
+        newLen = len(this%messageFormat)-eos
         allocate(character(len=newLen)::fmt)
-        fmt = this%message(eos+1:msgLen)
+        fmt = this%messageFormat(eos+1:msgLen)
       else
         fmt = ''
       end if
@@ -214,13 +214,13 @@ contains
    ! DESCRIPTION:
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
-   subroutine initLogRecord(rec, name, level, message, args, extra)
+   subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
-      character(len=*), intent(in) :: message
+      character(len=*), intent(in) :: messageFormat
       type (UnlimitedVector), optional, intent(in) :: args
       type (CIStringUnlimitedMap), optional, intent(in) :: extra
 
@@ -228,7 +228,7 @@ contains
       
       rec%name = name
       rec%level = level
-      rec%message = message
+      rec%messageFormat = messageFormat
       if (present(args)) then
          rec%args = args
       else

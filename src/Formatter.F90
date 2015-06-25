@@ -18,11 +18,11 @@
 !> preformatted into a LogRecord's message attribute. Currently, the useful
 !> attributes in a LogRecord are described by:
 !>
-!> %(name)s            Name of the logger
-!> %(levelname)s       Text logging level for the message ("DEBUG", "INFO",
+!> %{name)s            Name of the logger
+!> %{levelname}s       Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
-!> %(asctime)s         Textual time when the LogRecord was created
-!> %(message)s         The result of record.getMessage(), computed just as
+!> %{asctime}s         Textual time when the LogRecord was created
+!> %{message}s         The result of record.getMessage(), computed just as
 !>                        the record is emitted
 !
 ! REVISION HISTORY:
@@ -75,7 +75,7 @@ contains
       if (present(fmt)) then
          f%fmt = fmt
       else
-         f%fmt = '%(message::a)'
+         f%fmt = '%{message,a}'
       end if
        
       if (present(datefmt)) then
@@ -95,7 +95,7 @@ contains
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
    function formatTime(this, record, datefmt) result(logMessage)
-      use ASTG_FormatParser_mod
+      use ASTG_NewFormatParser_mod, only: formatArgs
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
 
       character(len=:), allocatable :: logMessage
@@ -103,12 +103,11 @@ contains
       class (LogRecord), intent(in) :: record
       character(len=*), optional, intent(in) :: datefmt
 
-      type (FormatParser) :: parser
       type (CIStringUnlimitedMap) :: extra
       
       call extra%deepCopy(record%extra)
       if (present(datefmt)) then
-         logMessage = parser%format(datefmt, extra=extra)
+         logMessage = formatArgs(datefmt, extra=extra)
       else
          logMessage = datefmt
       end if
@@ -130,7 +129,7 @@ contains
    ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
-      use ASTG_FormatParser_mod
+      use ASTG_NewFormatParser_mod, only: formatArgs
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
 
@@ -139,19 +138,21 @@ contains
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
 
-      type (FormatParser) :: parser
       type (CIStringUnlimitedMap) :: extra
       type (CIStringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
 
       call extra%deepCopy(record%extra)
       msg = record%getMessage()
+      write(6,*)__FILE__,__LINE__, msg; flush(6)
       call extra%insert('message', msg)
       if(this%usesTime()) then
          asctime = this%formatTime(record, datefmt=this%datefmt)
+         write(6,*)__FILE__,__LINE__, asctime; flush(6)
+
          call extra%insert('asctime', asctime)
       end if
-      logMessage = parser%format(this%fmt, extra=extra)
+      logMessage = formatArgs(this%fmt, extra=extra)
     
    end function format
 
@@ -165,7 +166,7 @@ contains
    !---------------------------------------------------------------------------
    logical function usesTime(this)
       class (Formatter), intent(in) :: this
-      usesTime = (index(this%fmt,'%(asctime') > 0)
+      usesTime = (index(this%fmt,'%{asctime') > 0)
    end function usesTime
 
    

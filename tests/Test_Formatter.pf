@@ -73,7 +73,7 @@ contains
       call args%push_back(1)
       call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
 
-      this%f = Formatter('Hello %(message::a)')
+      this%f = Formatter('Hello %{message,a}')
       @assertEqual('Hello Goodbye 1', this%f%format(this%rec))
       
    end subroutine test_formatint32
@@ -90,12 +90,12 @@ contains
       ! Create a LogRecord
       this%rec%name = 'someRec'
       this%rec%level = INFO
-      this%rec%message = 'datefmt'
+      this%rec%messageFormat = 'datefmt'
 
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter(fmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2)')
+      mockdf%f = Formatter(fmt='%{Y,i4.4}-%{M,i2.2}-%{D,i2.2}')
       write(date,'(i4.4,a,i2.2,a,i2.2)') mockdf%Y,'-',mockdf%M,'-',mockdf%D
       @assertEqual(date, mockdf%f%format(this%rec))
 
@@ -112,7 +112,7 @@ contains
       ! Create a LogRecord
       this%rec%name = 'someRec'
       this%rec%level = INFO
-      this%rec%message = 'datefmt'
+      this%rec%messageFormat = 'datefmt'
 
       ! workaround for ifort
       call this%rec%extra%insert('name', 'someRec')
@@ -121,8 +121,8 @@ contains
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter(fmt='%(asctime::a)', &
-                         datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)')
+      mockdf%f = Formatter(fmt='%{asctime,a}', &
+                         datefmt='%{HH,i2.2}-%{MM,i2.2}-%{SS,i2.2}')
       write(date,'(i2.2,a,i2.2,a,i2.2)') mockdf%HH,'-',mockdf%MM,'-',mockdf%SS
       @assertEqual(date, mockdf%f%format(this%rec))
 
@@ -134,12 +134,14 @@ contains
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (UnlimitedVector) :: args
-      
+
+      write(6,*)' '
+      write(6,*)__FILE__,__LINE__; flush(6)
       args = UnlimitedVector()
       call args%push_back(1)
 
       call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
-      this%f = Formatter('%(name::a) %(message::a)')
+      this%f = Formatter('%{name,a} %{message,a}')
       @assertEqual('A Goodbye 1', this%f%format(this%rec))
       
    end subroutine test_formatWithName

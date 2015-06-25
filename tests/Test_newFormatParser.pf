@@ -112,15 +112,30 @@ contains
       type (FormatToken), pointer :: t
 
       type (CIStringUnlimitedMap) :: extra
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
 
       call extra%insert('i',1)
       call extra%insert('x',1.234)
       call extra%insert('f',.false.)
       call extra%insert('s','word')
 
-      @assertEqual('x', format('x'))
-      @assertEqual('i 009', format('i %i3.3', 9))
-      @assertEqual('i= 1 f= F s=word x=  1.23', format('i=%{i,i2} f=%{f,*} s=%{s,a} x=%{x,f6.2}', extra=extra))
+      found = formatArgs('x')
+      expected = 'x'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+      found = formatArgs('i %i3.3', 9)
+      expected = 'i 009'
+      @assertEqual(expected, found)
+
+      found = formatArgs('x=%f4.2\.', 1.23)
+      expected ='x=1.23.'
+      @assertEqual(expected, found)
+
+      found = formatArgs('i=%{i,i2} f=%{f,*} s=%{s,a} x=%{x,f6.2}', extra=extra)
+      expected = 'i= 1 f= F s=word x=  1.23'
+      @assertEqual(expected, found)
+
 
    end subroutine test_format
    
