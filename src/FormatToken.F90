@@ -4,6 +4,7 @@ module ASTG_FormatToken_mod
    private
    
    public :: FormatToken
+   public :: KEYWORD_SEPARATOR
    public :: TEXT, POSITION, KEYWORD
 
    enum, bind(c)

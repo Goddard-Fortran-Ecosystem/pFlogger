@@ -4,79 +4,33 @@ module Test_newFormatParser_mod
    use ASTG_FormatToken_mod
    implicit none
 
-
 contains
 
 
 @test
-   subroutine test_terminateKeywordFormat()
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (ContextInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
+   subroutine test_trivial()
+      type (FormatParser) :: p
 
-      parser = FormatParser()
-      call parser%parse('rank is %{rank,i3}')
+      p = FormatParser()
+      call p%parse('')
+      @assertEqual(0, p%size())
 
-      call parser%getContext(procPtr)
-      @assertTrue(associated(procPtr, textContext), 'context changes back to text')
 
-      call parser%getBuffer(buffer)
-      @assertEqual('', buffer, 'space should be retained')
-      @assertEqual(2, parser%size())
-
-      t => parser%at(1)
-      @assertEqual(TEXT, t%type)
-      @assertEqual('rank is ', t%text)
-
-      t => parser%at(2)
-      @assertEqual(KEYWORD, t%type)
-      @assertEqual('i3', t%formatSpecifier)
-      @assertEqual('rank', t%text)
-
-   end subroutine test_terminateKeywordFormat
-
+   end subroutine test_trivial
 
 @test
-   subroutine test_endOfString_pos()
-      use iso_c_binding, only: C_NULL_CHAR
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (ContextInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
+   subroutine test_simple()
+      type (FormatParser) :: p
       type (FormatToken), pointer :: t
 
-      parser = FormatParser()
-      call parser%parse('%f10.3')
-      call parser%parseCharacter(C_NULL_CHAR)
+      p = FormatParser()
+      call p%parse('a')
+      @assertEqual(1, p%size())
 
-      @assertEqual(1, parser%size())
-      t => parser%at(1)
-      @assertEqual(POSITION, t%type)
-      @assertEqual('f10.3', t%formatSpecifier)
-      
-   end subroutine test_endOfString_pos
+      t => p%at(1)
+      @assertEqual('a', t%text)
 
-
-! Keyword format specifiers must be terminated
-@test
-   subroutine test_endOfString_keyword()
-      use iso_c_binding, only: C_NULL_CHAR
-      type (FormatParser) :: parser
-      type (FormatToken) :: token
-      procedure (ContextInterface), pointer :: procPtr
-      character(len=:), pointer :: buffer
-      type (FormatToken), pointer :: t
-
-      parser = FormatParser()
-      call parser%parse('%{rank,i3') ! unterminated
-      call parser%parseCharacter(C_NULL_CHAR)
-
-      @assertExceptionRaised('FormatParser::keywordContext() - incomplete keyword format specifier.')
-      @assertEqual(0, parser%size())
-      
-   end subroutine test_endOfString_keyword
+   end subroutine test_simple
 
 
 end module Test_newFormatParser_mod

@@ -2,19 +2,23 @@ module Test_ParserContexts_mod
    use pFUnit_mod
    use ASTG_FormatToken_mod
    use ASTG_newFormatParser_mod
+   use iso_c_binding, only: C_NULL_CHAR
    implicit none
 
    @testParameter(constructor=newTestParameter)
    type, extends(AbstractTestParameter) :: TestParam
+
       ! in
       procedure (ContextInterface), nopass, pointer :: inContext
       character(len=:), allocatable :: inBuffer
       character(len=1) :: nextChar
+
       ! expected
       character(len=:), allocatable :: outBuffer
       procedure (ContextInterface), nopass, pointer :: outContext
       logical :: startNewToken
       type (FormatToken) :: token
+      character(len=:), allocatable :: errorMessage
    contains
       procedure :: toString
    end type TestParam
@@ -66,12 +70,14 @@ contains
       procedure (ContextInterface), pointer :: DQC
       procedure (ContextInterface), pointer :: PSC
       procedure (ContextInterface), pointer :: KYC
+      procedure (ContextInterface), pointer :: ESC
 
       TXC => textContext
       SQC => singleQuoteContext
       DQC => doubleQuoteContext
       PSC => positionContext
       KYC => keywordContext
+      ESC => escapeContext
 
       params = [ &
            
@@ -80,20 +86,63 @@ contains
            & , p( TXC, 'a',    "'",    SQC, "a'" )                            &
            & , p( TXC, 'a',    '"',    DQC, 'a"' )                            &
            & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'b') ) &
+           ! escape sequence
+           & , p( TXC, 'b',    ESCAPE, ESC, 'b'  )                            &
+
+           ! newline
+           & , p( ESC, 'b',    'n',    TXC, 'b' // new_line('a') ) &
            
+           ! quote contexts
+           & , p( SQC, "a'b",  "x",    SQC, "a'bx")                           &
            & , p( SQC, "a'b",  "'",    TXC, "a'b'")                           &
+           & , p( SQC, "a'b",  '"',    SQC, "a'b" // '"' )                    &
+
+           & , p( DQC, 'a"b',  'x',    DQC, 'a"bx')                           &
            & , p( DQC, 'a"b',  '"',    TXC, 'a"b"')                           &
+           & , p( DQC, 'a"b',  "'",    DQC, 'a"b' // "'" )                    &
            
-           & , p( PSC, '',     '{',    KYC, '')                               &
-           & , p( PSC, '%i3',  ' ',    TXC, '',      FormatToken(POSITION, '%i3') ) &
-           & , p( PSC, '%i3', ESCAPE,  TXC, '',      FormatToken(POSITION, '%i3') ) &
+           ! position context
+           & , p( PSC,  'i',  '3',   PSC, 'i3')                              &
+           & , p( PSC, 'i3',  ' ',    TXC, '',      FormatToken(POSITION, 'i3') ) &
+           & , p( PSC, 'i3', ESCAPE,  TXC, '',      FormatToken(POSITION, 'i3') ) &
+           ! looks like position but turns out to be a keyword
+           & , p( PSC,   '',     '{',    KYC, '')                               & !
+
+           ! keyword context
+           & , p( KYC,        '',  'v', KYC, 'v')                                 &
+           & , p( KYC,     'var',  ',', KYC, 'var,')                              &
+           & , p( KYC,  'var,i3',  '}', TXC, '', FormatToken(KEYWORD, 'var', 'i3')) &
+
+           ! Various checks on illegal formats
+
+           ! (1) illegal terminations
+           & , p( SQC, "a'b",  C_NULL_CHAR,    illegalContext, "a'b", &
+           &   errorMessage='FormatParser::singleQuoteContext() - unclosed single quote') &
+!!$           & , p( DQC, 'a"b',  C_NULL_CHAR,    illegalContext, 'a"b', &
+!!$           &   errorMessage='FormatParser::singleQuoteContext() - unclosed double quote') &
+!!$           & , p( DQC,   '',  C_NULL_CHAR,     illegalContext, 'a"b', &
+!!$           &   errorMessage='FormatParser::positionContext() - empty format descriptor') &
+!!$           & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'a"b', &
+!!$           &   errorMessage='FormatParser::keywordContext() - missing format descriptor') &
+!!$           & , p( KYC,   'abc,',  C_NULL_CHAR,     illegalContext, 'a"b', &
+!!$           &   errorMessage='FormatParser::keywordContext() - empty format descriptor') &
+
+           ! Cannot switch to keyword once there is a format descriptor
+           & , p( PSC, 'i3',     '{',    illegalContext, 'i3', &
+           &      errorMessage='FormatParser::positionContext() - illegal start of keyword format: "i3{"') & !
+           & , p( KYC,        '',  ',', illegalContext, ',',  &
+           &  errorMessage='FormatParser::keywordContext() - missing keyword?') &
+           ! Backslash is a permitted Fortran format specifier
+           & , p( KYC,  'var,i3,', ESCAPE,   KYC, 'var,i3,'//ESCAPE) &
+           & , p( KYC,  'va', ESCAPE,   illegalContext, 'va', &
+           &      errorMessage='FormatParser::keywordContext() - no escape sequence permitted.') &
 
            & ]
 
 
    contains
       
-      function p(inContext, inBuffer, char, outContext, outBuffer, token)
+      function p(inContext, inBuffer, char, outContext, outBuffer, token, errorMessage)
          type (TestParam) :: p
          
          procedure (ContextInterface) :: inContext
@@ -102,6 +151,7 @@ contains
          procedure (ContextInterface) :: outContext
          character(len=*) :: outBuffer
          type (FormatToken), optional, intent(in) :: token
+         character(len=*), optional, intent(in) :: errorMessage
 
          p%inContext => inContext
          p%inBuffer = inBuffer
@@ -115,6 +165,10 @@ contains
          else
             p%startNewToken = .false.
          end if
+
+         if (present(errormessage)) then
+            p%errorMessage = errorMessage
+         end if
       end function p
 
    end function getParameters
@@ -125,9 +179,33 @@ contains
       class (TestParam), intent(in) :: this
       
       character(len=:), allocatable :: message
-      message = 'inBuffer=<' // this%inBuffer // '>'
+      procedure(ContextInterface), pointer :: p1, p2, p3, p4, p5, p
+
+      message = 'in context='
+      p1 => textContext
+      p2 => singleQuoteContext
+      p3 => doubleQuoteContext
+      p4 => positionContext
+      p5 => keywordContext
+
+      p => this%inContext
+      if (associated(p, p1)) then
+         message = message // 'textContext' // new_line('a')
+      elseif (associated(p, p2)) then
+            message = message // 'singleQuoteContext' // new_line('a')
+      elseif (associated(p, p3)) then
+            message = message // 'doubleQuoteContext' // new_line('a')
+      elseif (associated(p, p4)) then
+         message = message // 'positionContext' // new_line('a')
+      elseif (associated(p, p5)) then
+         message = message // 'singleQuoteContext' // new_line('a')
+      end if
+
+      message = message // 'inBuffer=<' // this%inBuffer // '>'
       message = message // '; char=<' // this%nextChar // '>'
+
       str = message
+
    end function toString
 
 
@@ -147,6 +225,9 @@ contains
       call this%parser%setBuffer(this%param%inBuffer)
 
       call this%param%inContext(this%parser, this%param%nextChar)
+      if (allocated(this%param%errorMessage)) then
+         @assertExceptionRaised(this%param%errorMessage)
+      end if
 
    end subroutine setUp
 
@@ -217,7 +298,6 @@ contains
       end if
 
    end subroutine test_startNewToken
-
 
 
 end module Test_ParserContexts_mod

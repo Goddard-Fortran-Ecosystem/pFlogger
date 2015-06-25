@@ -4,6 +4,12 @@
 
 module ASTG_NewFormatParser_mod
    use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
+   use ASTG_FormatToken_mod, only: FormatToken
+   use ASTG_FormatToken_mod, only: KEYWORD_SEPARATOR
+   use ASTG_FormatToken_mod, only: TEXT, POSITION, KEYWORD
+   use iso_c_binding, only: C_NULL_CHAR
+   use ASTG_Exception_mod, only: throw
+
    implicit none
    private
 
@@ -15,13 +21,14 @@ module ASTG_NewFormatParser_mod
    public :: keywordContext
    public :: singleQuoteContext
    public :: doubleQuoteContext
+   public :: escapeContext
+   public :: illegalContext
 
    integer, parameter :: MAX_LEN_TOKEN=1000
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
    character(len=1), parameter :: OPEN_CURLY_BRACE = '{'
    character(len=1), parameter :: CLOSE_CURLY_BRACE = '}'
    character(len=1), parameter :: SPACE = ' '
-   character(len=1), parameter :: COMMA = ','
    ! Tricky to make a literal with backslash when using FPP:
    character(len=*), parameter :: FPP_SAFE_ESCAPE = '\\'
    character(len=1), parameter :: ESCAPE = FPP_SAFE_ESCAPE(1:1)
@@ -107,8 +114,10 @@ contains
       integer :: pos
 
       do pos = 1, len(str)
-         call this%context(str(pos:pos))
+         call this%parseCharacter(str(pos:pos))
       end do
+
+      call this%parseCharacter(C_NULL_CHAR)
 
    end subroutine parse
 
@@ -137,16 +146,18 @@ contains
 ! Various contexts:
 
    subroutine textContext(this, char)
-      use ASTG_FormatToken_mod
-      use iso_c_binding, only: C_NULL_CHAR
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
       select case (char)
       case ("'")
          call this%setContext(singleQuoteContext)
+         call pushChar(char)
       case ('"')
          call this%setContext(doubleQuoteContext)
+         call pushChar(char)
+      case (ESCAPE)
+         call this%setContext(escapeContext)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
          call this%setContext(positionContext)
          associate (pos => this%currentPosition)
@@ -156,12 +167,21 @@ contains
            end if
          end associate
          return ! char should not be put in buffer
+      case default
+         call pushChar(char)
       end select
 
-      associate (pos => this%currentPosition)
-        pos = pos + 1
-        this%buffer(pos:pos) = char
-      end associate
+   contains
+      
+      subroutine pushChar(char)
+         character(len=1), intent(in) :: char
+
+         associate (pos => this%currentPosition)
+           pos = pos + 1
+           this%buffer(pos:pos) = char
+         end associate
+
+      end subroutine pushChar
 
    end subroutine textContext
 
@@ -172,17 +192,21 @@ contains
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
+      select case (char)
+      case ("'")
+         call this%setContext(textContext)
+      case (C_NULL_CHAR)
+         call this%setContext(illegalContext)
+         call throw('FormatParser::singleQuoteContext() - unclosed single quote')
+         return
+      case default
+         ! stay single quote
+      end select
+
       associate (pos => this%currentPosition)
         pos = pos + 1
         this%buffer(pos:pos) = char
       end associate
-
-      select case (char)
-      case ("'")
-         call this%setContext(textContext)
-      case default
-         ! stay single quote
-      end select
 
    end subroutine singleQuoteContext
 
@@ -209,9 +233,6 @@ contains
 
 
    subroutine positionContext(this, char)
-      use iso_c_binding, only: C_NULL_CHAR
-      use ASTG_Exception_mod, only: throw
-      use ASTG_FormatToken_mod
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
@@ -227,8 +248,9 @@ contains
            end if
         case (OPEN_CURLY_BRACE) ! {
            if (pos > 0) then
+              call this%setContext(illegalContext)
               call throw('FormatParser::positionContext() - ' // &
-                   & 'illegal start of keyword format: ' // this%buffer(1:pos))
+                   & 'illegal start of keyword format: "' // this%buffer(1:pos) // '{"')
               return
            end if
            call this%setContext(keywordContext)
@@ -246,16 +268,16 @@ contains
 
 
    subroutine keywordContext(this, char)
-      use ASTG_FormatToken_mod
-      use iso_c_binding, only: C_NULL_CHAR
-      use ASTG_Exception_mod, only: throw
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+
+      integer :: idx
 
       associate ( pos => this%currentPosition )
 
         select case (char)
         case (C_NULL_CHAR)
+              call this%setContext(illegalContext)
            call throw('FormatParser::keywordContext() - incomplete keyword format specifier.')
         case (CLOSE_CURLY_BRACE)
            call this%setContext(textContext)
@@ -263,6 +285,18 @@ contains
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0
               return ! do not retain the closing brace
+           end if
+        case (KEYWORD_SEPARATOR)
+           if (pos == 0) then
+              call this%setContext(illegalContext)
+              call throw('FormatParser::keywordContext() - missing keyword?')
+           end if
+        case (ESCAPE)
+           idx = index(this%buffer, KEYWORD_SEPARATOR)
+           if (idx < 2) then
+              call this%setContext(illegalContext)
+              call throw('FormatParser::keywordContext() - no escape sequence permitted.')
+              return
            end if
         case default
            ! stay keyword format
@@ -274,5 +308,41 @@ contains
       end associate
 
    end subroutine keywordContext
+
+
+   subroutine escapeContext(this, char)
+      class (FormatParser), intent(inout) :: this
+      character(len=1), intent(in) :: char
+
+      associate ( pos => this%currentPosition )
+
+        select case (char)
+        case ('n','N') ! newline
+           pos = pos + 1
+           this%buffer(pos:pos) = new_line('a')
+           call this%setContext(textContext)
+        case default
+           call this%setContext(illegalContext)
+           call throw('FormatParser::escapeContext() - ' // &
+                & 'no such escape sequence: ' // ESCAPE // this%buffer(1:pos))
+        end select
+
+
+      end associate
+
+   end subroutine escapeContext
+
+
+   subroutine illegalContext(this, char)
+      class (FormatParser), intent(inout) :: this
+      character(len=1), intent(in) :: char
+
+      associate ( pos => this%currentPosition )
+        call throw('FormatParser - illegal format specification <' // &
+             & this%buffer(1:pos) // '>')
+      end associate
+
+   end subroutine illegalContext
+
 
 end module ASTG_NewFormatParser_mod
