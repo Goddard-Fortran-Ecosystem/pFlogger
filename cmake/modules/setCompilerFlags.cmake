@@ -1,12 +1,3 @@
-if(MPI MATCHES YES)
-  set(TEST_MPI YES)
-   # Add CPP flags for MPI=YES
-   add_definitions(-DLOGGER_USE_MPI)
-   find_package(MPI REQUIRED)
-   include_directories(${MPI_INCLUDE_PATH})
-   set (CMAKE_Fortran_COMPILER mpif90)
-endif()
-
 # Add flags for PFUNIT
 if(EXISTS $ENV{PFUNIT})
    include_directories($ENV{PFUNIT}/mod)

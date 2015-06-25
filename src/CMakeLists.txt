@@ -36,12 +36,12 @@ set(SRCS
 FormatTokenVector.F90
 )
 
-if (TEST_MPI) 
-list(APPEND SRCS
-   MpiFilter.F90
-   MpiFileHandler.F90
-)
-endif()
+if (MPI) 
+  list (APPEND SRCS
+    MpiFilter.F90
+    MpiFileHandler.F90
+    )
+endif ()
 
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )

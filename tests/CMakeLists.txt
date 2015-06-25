@@ -37,7 +37,7 @@ set(TEST_SRCS
    Test_SeverityLevels.F90
 )
 
-if (TEST_MPI) 
+if (MPI) 
   list(APPEND SRCS
     MockMpi.F90
     )
