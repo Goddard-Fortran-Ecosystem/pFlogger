@@ -83,6 +83,6 @@ add_custom_target(tests
    COMMAND ${EXE} 
    DEPENDS ${EXE} 
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-   COMMENT "Run SERIAL ${EXE}"
+   COMMENT "Run ${EXE}"
 )
 add_dependencies(tests ${THIS})
