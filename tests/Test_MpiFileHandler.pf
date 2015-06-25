@@ -92,7 +92,7 @@ contains
       inquire(file=FILE_NAME, exist=exist)
       @assertFalse(exist)
 
-      record = LogRecord('me', INFO, 'hello')
+      call initLogRecord(record, 'me', INFO, 'hello')
       call handler%handle(record)
       inquire(file=FILE_NAME, exist=exist)
       @assertTrue(exist)

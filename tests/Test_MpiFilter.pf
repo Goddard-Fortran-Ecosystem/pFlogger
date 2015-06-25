@@ -15,11 +15,11 @@ contains
       type (MpiFilter) :: f
       type (LogRecord) :: record
       integer :: rank, ier
-      
+
       comm = 12345
       call setMpiRank(0)
       f = MpiFilter(comm)
-      record = LogRecord('A', INFO, 'some message')
+      call initLogRecord(record,'A', INFO, 'some message')
       @assertTrue(f%dofilter(record))
       
       call setMpiRank(1)
@@ -35,7 +35,7 @@ contains
       type (MpiFilter) :: f
       type (LogRecord) :: record
       
-      record = LogRecord('A', INFO, 'some message')
+      call initLogRecord(record, 'A', INFO, 'some message')
 
       call setMpiRank(0)
       
