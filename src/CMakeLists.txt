@@ -25,6 +25,7 @@ set(SRCS
    SeverityLevels.F90
    StreamHandler.F90
    ArgListUtilities.F90
+   WrapArray.F90
 # FTL containers
    CIStringAbstractLoggerPolyMap.F90
    AbstractHandlerPolyVector.F90

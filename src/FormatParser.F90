@@ -9,11 +9,14 @@ module ASTG_FormatParser_mod
    use ASTG_FormatToken_mod, only: TEXT, POSITION, KEYWORD
    use iso_c_binding, only: C_NULL_CHAR
    use ASTG_Exception_mod, only: throw
+   use ASTG_WrapArray_mod
 
    implicit none
    private
 
    public :: formatArgs
+   public :: wrapArray
+
    public :: formatArgVector
    public :: FormatParser
    public :: ContextInterface
@@ -34,7 +37,7 @@ module ASTG_FormatParser_mod
    ! Tricky to make a literal with backslash when using FPP:
    character(len=*), parameter :: FPP_SAFE_ESCAPE = '\\'
    character(len=1), parameter :: ESCAPE = FPP_SAFE_ESCAPE(1:1)
-   character(len=*), parameter :: LIST_DIRECTED_FORMAT = '(*)'
+   character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
 
    type, extends(FormatTokenVector) :: FormatParser
       private
@@ -387,7 +390,7 @@ contains
    ! ---------------------------------------------------------------------------
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
-   function formatArgs(fmt, ARG_LIST, unusable, arr1D_1, extra) result(string)
+   function formatArgs(fmt, ARG_LIST, unusable, extra) result(string)
       use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
       use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
@@ -401,7 +404,6 @@ contains
       include 'recordOptArgs.inc'    
 
       type (UnusableArgument), optional :: unusable
-      class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringUnlimitedMap), optional :: extra
 
       type (UnlimitedVector) :: args
@@ -422,13 +424,13 @@ contains
 
       args = makeArgVector(ARG_LIST)
 
-      string = formatArgVector(fmt, args, unusable, arr1D_1, extra)
+      string = formatArgVector(fmt, args, extra=extra)
 
    end function formatArgs
 
 
 
-   function formatArgVector(fmt, args, unusable, arr1D_1, extra) result(string)
+   function formatArgVector(fmt, args, unusable, extra) result(string)
       use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
       use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
@@ -441,7 +443,6 @@ contains
       character(len=*), intent(in) :: fmt
       type (UnlimitedVector), intent(in) :: args
       type (UnusableArgument), optional :: unusable
-      class (*), optional, intent(in) :: arr1D_1(:)
       type (CIStringUnlimitedMap), optional :: extra
 
       type (CIStringUnlimitedMap), target :: extra_
@@ -478,12 +479,14 @@ contains
             string = string // token%text
          case (POSITION)
             if (argIter == args%end()) then
+               ! check other ranks
                call throw('Not enough values for format string in FormatParser.')
                return
+            else
+               arg => argIter%get()
+               string = string // handleScalar(arg, token%editDescriptor)
+               call argIter%next()
             end if
-            arg => argIter%get()
-            string = string // handleScalar(arg, token%editDescriptor)
-            call argIter%next()
          case (KEYWORD)
             extraIter = extra_%find(token%text)
             if (extraIter == extra_%end()) then
@@ -508,53 +511,138 @@ contains
    ! This function is used by format to deal with all unlimited polymorphic
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
-   function handleScalar(arg, editDescriptor) result(string)
+   function handleScalar(arg, fmt) result(string)
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg
-      character(len=*), intent(in) :: editDescriptor
+      character(len=*), intent(in) :: fmt
       character(len=800) :: buffer
-      character(len=:), allocatable :: fmt
+      character(len=:), allocatable :: fmt_
 
       string = ''
-      fmt = '(' // trim(editDescriptor) // ')'
+      if (fmt /= LIST_DIRECTED_FORMAT) then
+         fmt_ = '(' // trim(fmt) // ')'
+      else
+         fmt_ = fmt
+      end if
       
       select type (arg)
       type is (integer(int32))
-         if (editDescriptor == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
          end if
       type is (integer(int64))
-         if (fmt == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
          end if
       type is (real(real32))
-         if (fmt == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
          end if
       type is (real(real64))
-         if (fmt == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
          end if
       type is (logical)
-         if (fmt == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
          end if
       type is (character(len=*))
-         if (fmt == LIST_DIRECTED_FORMAT) then
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
             write(buffer,*) arg
          else
-            write(buffer,fmt) arg
+            write(buffer,fmt_) arg
+         end if
+      type is (WrapArray1D)
+         block
+           character(:), allocatable :: buf
+           buf = handleArray1D(arg%array, fmt)
+           buffer = buf
+         end block
+      type is (WrapArray2D)
+         block
+           character(:), allocatable :: buf
+           buf = handleArray2D(arg%array, fmt)
+           buffer = buf
+         end block
+      class default ! user defined
+         buffer = 'FormatParser::handleScalar() :: unsupported type'
+      end select
+
+      string = string // trim(buffer)
+
+   end function handleScalar
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray1D
+   !
+   ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 1D vector variables passed to it.
+   !---------------------------------------------------------------------------
+   function handleArray1D(arg, fmt) result(string)
+      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      character(len=:), allocatable :: string
+      class (*), intent(in) :: arg(:)
+      character(len=*), intent(in) :: fmt
+      character(len=10000) :: buffer  ! very large to be safe for arrays
+      character(len=:), allocatable :: fmt_
+      integer :: i
+
+      string = ''
+      if (fmt /= LIST_DIRECTED_FORMAT) then
+         fmt_ = '(' // trim(fmt) // ')'
+      else
+         fmt_ = fmt
+      end if
+      
+      select type (arg)
+      type is (integer(int32))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (integer(int64))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (real(real32))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (real(real64))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (logical)
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (character(len=*))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
          end if
       class default ! user defined
          buffer = 'unsupported'
@@ -562,7 +650,76 @@ contains
 
       string = string // trim(buffer)
 
-   end function handleScalar
+   end function handleArray1D
 
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray2D
+   !
+   ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 2D vector variables passed to it.
+   !---------------------------------------------------------------------------
+   function handleArray2D(arg, fmt) result(string)
+      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      character(len=:), allocatable :: string
+      class (*), intent(in) :: arg(:,:)
+      character(len=*), intent(in) :: fmt
+      character(len=10000) :: buffer  ! very large to be safe for arrays
+      character(len=:), allocatable :: fmt_
+      integer :: i
+
+      string = ''
+      if (fmt /= LIST_DIRECTED_FORMAT) then
+         fmt_ = '(' // trim(fmt) // ')'
+      else
+         fmt_ = fmt
+      end if
+      
+      select type (arg)
+      type is (integer(int32))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (integer(int64))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (real(real32))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (real(real64))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (logical)
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      type is (character(len=*))
+         if (fmt_ == LIST_DIRECTED_FORMAT) then
+            write(buffer,*) arg
+         else
+            write(buffer,fmt_) arg
+         end if
+      class default ! user defined
+         buffer = 'unsupported'
+      end select
+
+      string = string // trim(buffer)
+
+   end function handleArray2D
 
 end module ASTG_FormatParser_mod
