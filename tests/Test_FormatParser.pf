@@ -175,9 +175,7 @@ contains
 
       arr = reshape([1.2,2.3,3.4,4.5], [2,2])
 
-      associate (w => wrapArray)
-        found = formatArgs('%(4(f3.1,:,1x))', w(arr))
-      end associate
+      found = formatArgs('%(4(f3.1,:,1x))', wrapArray(arr))
       expected = '1.2 2.3 3.4 4.5'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
