@@ -566,6 +566,7 @@ contains
       type is (WrapArray1D)
          block
            character(:), allocatable :: buf
+
            buf = handleArray1D(arg%array, fmt)
            buffer = buf
          end block

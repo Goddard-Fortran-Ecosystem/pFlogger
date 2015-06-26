@@ -1,3 +1,11 @@
+!---------------------------------------------------------------------
+! This module enables the encapsulation of arrays as scalars for
+! processing with Formatters.
+!
+! NOTE: that with Gfortran 5.1, incorrect results will be obtained
+! if a literal (as opposed to a variable) is passed to wrapArray()
+!---------------------------------------------------------------------
+
 module ASTG_WrapArray_mod
    implicit none
    private
@@ -21,6 +29,7 @@ module ASTG_WrapArray_mod
 
 contains
 
+
    function wrap1d(array) result(wrapper)
       type (WrapArray1d) :: wrapper
       class (*), intent(in) :: array(:)
@@ -28,45 +37,6 @@ contains
       allocate(wrapper%array, source=array)
 #else
       allocate(wrapper%array(size(array,1)), source=array)
-
-      block
-        use iso_fortran_env, only: int32, real32, int64, real64, real128
-        select type (p => wrapper%array)
-        type is (integer(int32))
-           select type (q => array)
-           type is (integer(int32))
-              p = q
-           end select
-        type is (integer(int64))
-           select type (q => array)
-           type is (integer(int64))
-              p = q
-           end select
-        type is (real(real32))
-           select type (q => array)
-           type is (real(real32))
-              p = q
-           end select
-        type is (real(real64))
-           select type (q => array)
-           type is (real(real64))
-              p = q
-           end select
-        type is (logical)
-           select type (q => array)
-           type is (logical)
-              p = q
-           end select
-        type is (character(len=*))
-           select type (q => array)
-           type is (character(len=*))
-              p = q
-           end select
-           class default ! user defined
-        end select
-      end block
-
-      
 #endif
    end function wrap1d
 
