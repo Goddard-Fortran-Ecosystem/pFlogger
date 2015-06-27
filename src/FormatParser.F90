@@ -473,7 +473,6 @@ contains
 
       do while (tokenIter /= p%end())
          token => tokenIter%get()
-
          select case (token%type)
          case (TEXT)
             string = string // token%text
@@ -512,12 +511,17 @@ contains
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
    function handleScalar(arg, fmt) result(string)
-      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use ASTG_DynamicBuffer_mod
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
-      character(len=800) :: buffer
       character(len=:), allocatable :: fmt_
+      type (DynamicBuffer) :: buffer
+      integer :: iostat
+
+      iostat = -1
+      call buffer%allocate()
 
       string = ''
       if (fmt /= LIST_DIRECTED_FORMAT) then
@@ -526,61 +530,29 @@ contains
          fmt_ = fmt
       end if
       
-      select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (WrapArray1D)
-         block
-           character(:), allocatable :: buf
+      iostat = -1
+      call buffer%allocate()
+      
+      do while (iostat /= 0)
 
-           buf = handleArray1D(arg%array, fmt)
-           buffer = buf
-         end block
-      type is (WrapArray2D)
-         block
-           character(:), allocatable :: buf
-           buf = handleArray2D(arg%array, fmt)
-           buffer = buf
-         end block
-      class default ! user defined
-         buffer = 'FormatParser::handleScalar() :: unsupported type'
-      end select
+         select type (arg)
+            include 'TypeIsIntrinsic.for'
+         type is (WrapArray1D)
+            call handleArray1D(arg%array, fmt, buffer, iostat=iostat)
+         type is (WrapArray2D)
+            call handleArray2D(arg%array, fmt, buffer, iostat=iostat)
+         class default ! user defined
+            buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+            iostat = 0
+         end select
 
-      string = string // trim(buffer)
+         if (iostat == 0) exit
+         if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
+         if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
+
+      end do
+
+      string = buffer%concatenate()
 
    end function handleScalar
 
@@ -592,16 +564,17 @@ contains
    ! This function is used by format to deal with all unlimited polymorphic
    ! 1D vector variables passed to it.
    !---------------------------------------------------------------------------
-   function handleArray1D(arg, fmt) result(string)
+   subroutine handleArray1D(arg, fmt, buffer, iostat)
       use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:)
       character(len=*), intent(in) :: fmt
+      type (DynamicBuffer), intent(inout) :: buffer
+      integer, intent(inout) :: iostat
 
       character(len=:), allocatable :: fmt_
-      integer :: i, iostat
-      type (DynamicBuffer) :: buffer
 
       if (fmt /= LIST_DIRECTED_FORMAT) then
          fmt_ = '(' // trim(fmt) // ')'
@@ -609,61 +582,14 @@ contains
          fmt_ = fmt
       end if
 
-      iostat = -1
-      call buffer%allocate()
+      select type (arg)
+         include 'TypeIsIntrinsic.for'
+      class default ! user defined
+         buffer%buffer(1) = 'unsupported'
+         iostat = 0
+      end select
 
-      do while (iostat /= 0)
-      
-         select type (arg)
-         type is (integer(int32))
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         type is (integer(int64))
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         type is (real(real32))
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         type is (real(real64))
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         type is (logical)
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         type is (character(len=*))
-            if (fmt_ == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg
-            else
-               write(buffer%buffer,fmt_,iostat=iostat) arg
-            end if
-         class default ! user defined
-            buffer%buffer(1) = 'unsupported'
-         end select
-
-         if (iostat == 0) exit
-         if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
-         if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
-
-      end do
-
-      string = buffer%concatenate()
-
-   end function handleArray1D
+   end subroutine handleArray1D
 
 
    !---------------------------------------------------------------------------  
@@ -674,14 +600,16 @@ contains
    ! This function is used by format to deal with all unlimited polymorphic
    ! 2D vector variables passed to it.
    !---------------------------------------------------------------------------
-   function handleArray2D(arg, fmt) result(string)
-      use iso_fortran_env, only: int32, real32, int64, real64, real128
+   subroutine handleArray2D(arg, fmt, buffer, iostat)
+      use ASTG_DynamicBuffer_mod
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:,:)
       character(len=*), intent(in) :: fmt
-      character(len=10000) :: buffer  ! very large to be safe for arrays
+      type (DynamicBuffer), intent(inout) :: buffer
+      integer, intent(inout) :: iostat
+
       character(len=:), allocatable :: fmt_
-      integer :: i
 
       string = ''
       if (fmt /= LIST_DIRECTED_FORMAT) then
@@ -691,48 +619,12 @@ contains
       end if
       
       select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
+         include 'TypeIsIntrinsic.for'
       class default ! user defined
-         buffer = 'unsupported'
+         buffer%buffer(1) = 'unsupported'
+         iostat = 0
       end select
 
-      string = string // trim(buffer)
-
-   end function handleArray2D
+   end subroutine handleArray2D
 
 end module ASTG_FormatParser_mod
