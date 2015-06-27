@@ -519,9 +519,7 @@ contains
       character(len=:), allocatable :: fmt_
       type (DynamicBuffer) :: buffer
       integer :: iostat
-
-      iostat = -1
-      call buffer%allocate()
+      logical :: intrinsic
 
       string = ''
       if (fmt /= LIST_DIRECTED_FORMAT) then
@@ -535,21 +533,25 @@ contains
       
       do while (iostat /= 0)
 
-         select type (arg)
-            include 'TypeIsIntrinsic.for'
-         type is (WrapArray1D)
-            call handleArray1D(arg%array, fmt, buffer, iostat=iostat)
-         type is (WrapArray2D)
-            call handleArray2D(arg%array, fmt, buffer, iostat=iostat)
-         class default ! user defined
-            buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
-            iostat = 0
-         end select
+         include 'write_if_intrinsic.inc'
 
-         if (iostat == 0) exit
-         if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
-         if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
+         if (.not. intrinsic) then ! try wrapped array
+            select type (arg)
+            type is (WrapArray1D)
+               call handleArray1D(arg%array, fmt, buffer, iostat=iostat)
+            type is (WrapArray2D)
+               call handleArray2D(arg%array, fmt, buffer, iostat=iostat)
+            class default ! other
+               buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+               iostat = 0
+            end select
 
+            if (iostat == 0) exit
+            if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
+            if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
+
+         end if
+            
       end do
 
       string = buffer%concatenate()
@@ -575,6 +577,7 @@ contains
       integer, intent(inout) :: iostat
 
       character(len=:), allocatable :: fmt_
+      logical :: intrinsic
 
       if (fmt /= LIST_DIRECTED_FORMAT) then
          fmt_ = '(' // trim(fmt) // ')'
@@ -582,12 +585,12 @@ contains
          fmt_ = fmt
       end if
 
-      select type (arg)
-         include 'TypeIsIntrinsic.for'
-      class default ! user defined
-         buffer%buffer(1) = 'unsupported'
+      include 'write_if_intrinsic.inc'
+      
+      if (.not. intrinsic) then
+         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
-      end select
+      end if
 
    end subroutine handleArray1D
 
@@ -610,6 +613,8 @@ contains
       integer, intent(inout) :: iostat
 
       character(len=:), allocatable :: fmt_
+      logical :: intrinsic
+
 
       string = ''
       if (fmt /= LIST_DIRECTED_FORMAT) then
@@ -617,13 +622,13 @@ contains
       else
          fmt_ = fmt
       end if
-      
-      select type (arg)
-         include 'TypeIsIntrinsic.for'
-      class default ! user defined
-         buffer%buffer(1) = 'unsupported'
+
+      include 'write_if_intrinsic.inc'
+
+      if (.not. intrinsic) then
+         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
-      end select
+      end if
 
    end subroutine handleArray2D
 
