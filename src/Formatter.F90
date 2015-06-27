@@ -186,6 +186,10 @@ contains
        
       select type (p => arg)
 
+      type is (integer(int8))
+         str = toString(p)
+      type is (integer(int16))
+         str = toString(p)
       type is (integer(int32))
          str = toString(p)
       type is (integer(int64))
@@ -195,10 +199,14 @@ contains
          str = toString(p)
       type is (real(real64))
          str = toString(p)
+      type is (real(real128))
+         str = toString(p)
 
       type is (complex(real32))
          str = toString(p)
       type is (complex(real64))
+         str = toString(p)
+      type is (complex(real128))
          str = toString(p)
 
       type is (character(len=*))

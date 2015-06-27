@@ -512,12 +512,13 @@ contains
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
    function handleScalar(arg, fmt) result(string)
-      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
       character(len=800) :: buffer
       character(len=:), allocatable :: fmt_
+      character(:), allocatable :: buf
 
       string = ''
       if (fmt /= LIST_DIRECTED_FORMAT) then
@@ -527,55 +528,19 @@ contains
       end if
       
       select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
+      include 'TypeIsIntrinsic.for'
       type is (WrapArray1D)
-         block
-           character(:), allocatable :: buf
-
+         !block
+          ! character(:), allocatable :: buf
            buf = handleArray1D(arg%array, fmt)
            buffer = buf
-         end block
+         !end block
       type is (WrapArray2D)
-         block
-           character(:), allocatable :: buf
+         !block
+          ! character(:), allocatable :: buf
            buf = handleArray2D(arg%array, fmt)
            buffer = buf
-         end block
+         !end block
       class default ! user defined
          buffer = 'FormatParser::handleScalar() :: unsupported type'
       end select
@@ -593,7 +558,7 @@ contains
    ! 1D vector variables passed to it.
    !---------------------------------------------------------------------------
    function handleArray1D(arg, fmt) result(string)
-      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:)
       character(len=*), intent(in) :: fmt
@@ -609,42 +574,7 @@ contains
       end if
       
       select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
+      include 'TypeIsIntrinsic.for'
       class default ! user defined
          buffer = 'unsupported'
       end select
@@ -663,7 +593,7 @@ contains
    ! 2D vector variables passed to it.
    !---------------------------------------------------------------------------
    function handleArray2D(arg, fmt) result(string)
-      use iso_fortran_env, only: int32, real32, int64, real64, real128
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:,:)
       character(len=*), intent(in) :: fmt
@@ -679,42 +609,7 @@ contains
       end if
       
       select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
+      include 'TypeIsIntrinsic.for'
       class default ! user defined
          buffer = 'unsupported'
       end select

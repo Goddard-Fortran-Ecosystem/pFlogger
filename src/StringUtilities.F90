@@ -11,12 +11,16 @@ module ASTG_StringUtilities_mod
    integer, parameter :: UPPER_LOWER_DELTA = iachar('A') - iachar('a')
 
    interface toString
+      module procedure toString_int8
+      module procedure toString_int16
       module procedure toString_int32
       module procedure toString_int64
       module procedure toString_real32
       module procedure toString_real64
+      module procedure toString_real128
       module procedure toString_cmplx64
       module procedure toString_cmplx128
+      module procedure toString_cmplx256
       module procedure toString_string
       module procedure toString_logical
    end interface toString
@@ -103,6 +107,27 @@ contains
 
    end function isLowerCase
 
+   pure function toString_int8(i) result(string)
+      character(:), allocatable :: string
+      integer(kind=int8), intent(in) :: i
+      
+      character(24) :: buf
+
+      write(buf,'(i0)') i
+      string = trim(buf)
+      
+   end function toString_int8
+
+   pure function toString_int16(i) result(string)
+      character(:), allocatable :: string
+      integer(kind=int16), intent(in) :: i
+      
+      character(24) :: buf
+
+      write(buf,'(i0)') i
+      string = trim(buf)
+      
+   end function toString_int16
 
    pure function toString_int32(i) result(string)
       character(:), allocatable :: string
@@ -115,7 +140,6 @@ contains
       
    end function toString_int32
 
-
    pure function toString_int64(i) result(string)
       character(:), allocatable :: string
       integer(kind=int64), intent(in) :: i
@@ -126,7 +150,6 @@ contains
       string = trim(buf)
       
    end function toString_int64
-
 
    pure function toString_real32(x) result(string)
       use iso_fortran_env, only: REAL32
@@ -140,7 +163,6 @@ contains
       
    end function toString_real32
 
-
    pure function toString_real64(x) result(string)
       use iso_fortran_env, only: REAL64
       character(:), allocatable :: string
@@ -153,6 +175,16 @@ contains
 
    end function toString_real64
 
+   pure function toString_real128(x) result(string)
+      use iso_fortran_env, only: REAL128
+      character(:), allocatable :: string
+      real(kind=REAL128), intent(in) :: x
+      character(45) :: buf
+
+      write(buf,'(g40.31)') x
+      string = trim(adjustl(buf))
+
+   end function toString_real128
 
    pure function toString_cmplx64(x) result(string)
       use iso_fortran_env, only: REAL32
@@ -175,6 +207,15 @@ contains
       
    end function toString_cmplx128
 
+   pure function toString_cmplx256(x) result(string)
+      use iso_fortran_env, only: REAL128
+      character(:), allocatable :: string
+      complex(kind=REAL128), intent(in) :: x
+      
+      string = '(' // toString_real128(real(x,kind=REAL128)) // ',' &
+           & // toString_real128(aimag(x)) // ')'
+      
+   end function toString_cmplx256
 
    pure function toString_string(inString) result(string)
       character(:), allocatable :: string
