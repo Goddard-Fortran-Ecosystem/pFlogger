@@ -26,6 +26,7 @@ set(SRCS
    StreamHandler.F90
    ArgListUtilities.F90
    WrapArray.F90
+   DynamicBuffer.F90
 # FTL containers
    CIStringAbstractLoggerPolyMap.F90
    AbstractHandlerPolyVector.F90

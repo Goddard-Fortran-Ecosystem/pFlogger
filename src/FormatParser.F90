@@ -593,63 +593,75 @@ contains
    ! 1D vector variables passed to it.
    !---------------------------------------------------------------------------
    function handleArray1D(arg, fmt) result(string)
+      use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:)
       character(len=*), intent(in) :: fmt
-      character(len=10000) :: buffer  ! very large to be safe for arrays
-      character(len=:), allocatable :: fmt_
-      integer :: i
 
-      string = ''
+      character(len=:), allocatable :: fmt_
+      integer :: i, iostat
+      type (DynamicBuffer) :: buffer
+
       if (fmt /= LIST_DIRECTED_FORMAT) then
          fmt_ = '(' // trim(fmt) // ')'
       else
          fmt_ = fmt
       end if
-      
-      select type (arg)
-      type is (integer(int32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (integer(int64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real32))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (real(real64))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (logical)
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      type is (character(len=*))
-         if (fmt_ == LIST_DIRECTED_FORMAT) then
-            write(buffer,*) arg
-         else
-            write(buffer,fmt_) arg
-         end if
-      class default ! user defined
-         buffer = 'unsupported'
-      end select
 
-      string = string // trim(buffer)
+      iostat = -1
+      call buffer%allocate()
+
+      do while (iostat /= 0)
+      
+         select type (arg)
+         type is (integer(int32))
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         type is (integer(int64))
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         type is (real(real32))
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         type is (real(real64))
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         type is (logical)
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         type is (character(len=*))
+            if (fmt_ == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg
+            else
+               write(buffer%buffer,fmt_,iostat=iostat) arg
+            end if
+         class default ! user defined
+            buffer%buffer(1) = 'unsupported'
+         end select
+
+         if (iostat == 0) exit
+         if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
+         if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
+
+      end do
+
+      string = buffer%concatenate()
 
    end function handleArray1D
 

@@ -162,8 +162,8 @@ contains
         expected = '1.2 2.3 3.4 '
         @assertEqual(expected, found, whitespace=KEEP_ALL)
 
-        found = formatArgs('%1x,5(I3.3,:,1x),/ ', wrapArray(m))
-        expected = ' 001 002 003'
+        found = formatArgs('%5(I3.3:/)', wrapArray(m))
+        expected = '001' // new_line('a') // '002' // new_line('a') // '003'
         @assertEqual(expected, found, whitespace=KEEP_ALL)
 
    end subroutine test_formatArray
