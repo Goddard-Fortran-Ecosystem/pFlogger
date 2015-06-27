@@ -516,18 +516,11 @@ contains
       character(len=:), allocatable :: string
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
-      character(len=:), allocatable :: fmt_
+
       type (DynamicBuffer) :: buffer
       integer :: iostat
       logical :: intrinsic
 
-      string = ''
-      if (fmt /= LIST_DIRECTED_FORMAT) then
-         fmt_ = '(' // trim(fmt) // ')'
-      else
-         fmt_ = fmt
-      end if
-      
       iostat = -1
       call buffer%allocate()
       
@@ -570,20 +563,13 @@ contains
       use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
-      character(len=:), allocatable :: string
+
       class (*), intent(in) :: arg(:)
       character(len=*), intent(in) :: fmt
       type (DynamicBuffer), intent(inout) :: buffer
       integer, intent(inout) :: iostat
 
-      character(len=:), allocatable :: fmt_
       logical :: intrinsic
-
-      if (fmt /= LIST_DIRECTED_FORMAT) then
-         fmt_ = '(' // trim(fmt) // ')'
-      else
-         fmt_ = fmt
-      end if
 
       include 'write_if_intrinsic.inc'
       
@@ -606,22 +592,12 @@ contains
    subroutine handleArray2D(arg, fmt, buffer, iostat)
       use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
-      character(len=:), allocatable :: string
       class (*), intent(in) :: arg(:,:)
       character(len=*), intent(in) :: fmt
       type (DynamicBuffer), intent(inout) :: buffer
       integer, intent(inout) :: iostat
 
-      character(len=:), allocatable :: fmt_
       logical :: intrinsic
-
-
-      string = ''
-      if (fmt /= LIST_DIRECTED_FORMAT) then
-         fmt_ = '(' // trim(fmt) // ')'
-      else
-         fmt_ = fmt
-      end if
 
       include 'write_if_intrinsic.inc'
 
