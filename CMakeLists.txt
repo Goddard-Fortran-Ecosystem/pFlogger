@@ -2,19 +2,17 @@
 # ASTG Logger top level CmakeLists.txt
 #
 # Usage:
-#   cmake -DMPI=YES -DCOMPILE_WITH_DEBUG=NO
+#   cmake -DMPI=YES ..
 #
-# Default is MPI=NO, COMPILE_WITH_DEBUG=YES
+# Default is MPI=NO.
 #
 # Note that tests use a Mock MPI mechanism and thus do not run under a real
 # MPI. However, applications must link with a real MPI library if MPI=YES is 
 # used.
 #
 # ------------------------------------------------------------------------ #
-INCLUDE(CMakeForceCompiler)
 cmake_minimum_required (VERSION 2.8)
 project (logger Fortran)
-#set (CMAKE_VERBOSE_MAKEFILE 1)
 
 set(CMAKE_MODULE_PATH
    ${CMAKE_SOURCE_DIR}/cmake/modules
@@ -26,30 +24,26 @@ include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 
-if ( DEFINED ENV{PFUNIT} )
-#    message( FATAL_ERROR "You can not do this at all, CMake will exit." $ENV{PFUNIT} )
-    OPTION(PFUNIT "Use PFUNIT for development" YES)
-else ()
-    OPTION(PFUNIT "Use PFUNIT for development" NO)
-endif ()
-
-if ( PFUNIT )
+if (PFUNIT)
     add_definitions(-DUSE_PFUNIT)
 endif()
 
-if(MPI MATCHES YES)
+if (MPI MATCHES YES)
   add_definitions(-DLOGGER_USE_MPI)
 endif()
 
-option(COMPILE_WITH_DEBUG "Compile with debug flags" YES)
+if (DEFINED ENV{FTL})
+    message(STATUS "FTL is set to $ENV{FTL}")
+else ()
+    message(FATAL_ERROR "Please set FTL installation path. For example: export FTL=/mylibraries/FTL")
+endif ()
+set(FTL $ENV{FTL})
 
 # Compiler flags
 include(setCompilerFlags)
 
-set(FTL $ENV{FTL})
-
 add_subdirectory(src)
-if(WITH_PFUNIT MATCHES YES)
+if (WITH_PFUNIT MATCHES YES)
    add_subdirectory(tests)
 endif()
 add_subdirectory(examples)

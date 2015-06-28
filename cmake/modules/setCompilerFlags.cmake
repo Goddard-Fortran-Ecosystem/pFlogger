@@ -1,11 +1,14 @@
 # Add flags for PFUNIT
-if(EXISTS $ENV{PFUNIT})
+if (DEFINED ENV{PFUNIT})
    include_directories($ENV{PFUNIT}/mod)
    include_directories($ENV{PFUNIT}/include)
    link_directories($ENV{PFUNIT}/lib)
    set(CPPFLAGS -DUSE_PFUNIT)
    set(WITH_PFUNIT YES)
    set(PFUNIT $ENV{PFUNIT})
+   message(STATUS "PFUNIT is set to $ENV{PFUNIT}") 
+else()
+   message(WARNING "PFUNIT is NOT set!")
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
@@ -20,60 +23,34 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
       set(CPPFLAGS "${CPPFLAGS} -DINTEL_14 -cpp")
    endif()
 
-   set(F90FLAGS 
-      "${CPPFLAGS} ${FFLAGS_RELEASE} -free -assume realloc_lhs -stand f08 -g -O2"
-   )
+   set(F90FLAGS "${CPPFLAGS} -free -assume realloc_lhs -stand f08")
 
-   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "${F90FLAGS} -O0 -traceback"
-      )
+   if (CMAKE_BUILD_TYPE MATCHES Debug)
+      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -traceback -g -check uninit")
    endif()
-
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -traceback -g -check uninit")
-
-
 
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
-   if (CMAKE_SYSTEM_NAME MATCHES Linux)
-      set (CPPFLAGS "${CPPFLAGS} -cpp")
-   else()
-      set (CPPFLAGS "${CPPFLAGS} -g -O0 -fbacktrace -fcheck=pointer")
+   set(F90FLAGS "${CPPFLAGS} -cpp -ffree-line-length-none")
+
+   if (CMAKE_BUILD_TYPE MATCHES Debug)
+      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -g")
    endif()
 
-   set(F90FLAGS 
-      "${CPPFLAGS} -cpp -O2 -ffree-line-length-none"
-   )
-
-   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -fbacktrace -fcheck=pointer"
-      )
-      set(FFLAGS 
-         "${FFLAGS} -g -O0 -fbacktrace -fcheck=pointer"
-      )
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0 -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -g")
-
-   endif()
-
+# NAG compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
    set (CPPFLAGS "${CPPFLAGS} -fpp -D__NAG__")
  
-  set(F90FLAGS 
-      "${CPPFLAGS}"
-   )
+  set(F90FLAGS  "${CPPFLAGS}" )
 
-   if (COMPILE_WITH_DEBUG MATCHES YES OR WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "${F90FLAGS} -O0"
-      )
+   if (CMAKE_BUILD_TYPE MATCHES Debug)
+      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0")
    endif()
 
 else()
 
-   message( FATAL_ERROR "Unrecognized compiler ${CMAKE_Fortran_COMPILER_ID}. Please use ifort or gfortran" )
+   message( FATAL_ERROR "Unrecognized compiler ${CMAKE_Fortran_COMPILER_ID}. Valid vendors are INTEL, GNU or NAG" )
 
 endif()
 
