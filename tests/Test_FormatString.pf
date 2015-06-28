@@ -1,0 +1,96 @@
+module Test_FormatString_mod
+   use pFUnit_mod
+   use ASTG_FormatString_mod
+   use ASTG_ArgListUtilities_mod
+   use ASTG_UnlimitedVector_mod
+   implicit none
+
+contains
+
+
+@test
+   subroutine test_formatVector()
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      found = FormatString('x',  makeArgVector())
+      expected = 'x'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+      found = formatString('i %i3.3', makeArgVector(9))
+      expected = 'i 009'
+      @assertEqual(expected, found)
+
+      found = formatString('x=%f4.2\.', makeArgVector(1.23))
+      expected ='x=1.23.'
+      @assertEqual(expected, found)
+
+   end subroutine test_formatVector
+
+@test
+   subroutine test_formatMap()
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      type (CIStringUnlimitedMap) :: extra
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      call extra%insert('i',1)
+      call extra%insert('x',1.234)
+      call extra%insert('f',.false.)
+      call extra%insert('s','word')
+
+      found = formatString('i=%{i,i2} f=%{f,*} s=%{s,a} x=%{x,f6.2}', extra)
+      expected = 'i= 1 f= F s=word x=  1.23'
+      @assertEqual(expected, found)
+
+   end subroutine test_formatMap
+
+
+@test
+   subroutine test_defaultFormat()
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      found = formatString('%*', makeArgVector(1))
+      expected = '1'
+      @assertEqual(expected, found)
+
+   end subroutine test_defaultFormat
+   
+
+@test
+   subroutine test_formatArray()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      integer :: m(3) = [1,2,3]
+      real :: x(3) = [1.2,2.3,3.4]
+
+      found = formatString('%(4(f3.1,1x))', makeArgVector(wrapArray(x)))
+      expected = '1.2 2.3 3.4 '
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+      
+      found = formatString('%5(I3.3:/)', makeArgVector(wrapArray(m)))
+      expected = '001' // new_line('a') // '002' // new_line('a') // '003'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+   end subroutine test_formatArray
+
+@test
+   subroutine test_formatArray2d()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      real :: arr(2,2)
+
+      arr = reshape([1.2,2.3,3.4,4.5], [2,2])
+
+      found = formatString('%(4(f3.1,:,1x))', makeArgVector(wrapArray(arr)))
+      expected = '1.2 2.3 3.4 4.5'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+   end subroutine test_formatArray2d
+
+end module Test_FormatString_mod

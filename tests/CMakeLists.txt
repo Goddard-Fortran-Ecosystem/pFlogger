@@ -33,6 +33,7 @@ set(TEST_SRCS
    Test_Formatter.F90
    Test_ParserContexts.F90
    Test_FormatParser.F90
+   Test_FormatString.F90
    Test_ArgListUtilities.F90
    Test_SeverityLevels.F90
 )

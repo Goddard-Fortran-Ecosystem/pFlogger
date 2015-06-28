@@ -20,7 +20,6 @@ module ASTG_MpiFileHandler_mod
    use ASTG_LogRecord_mod
    
    implicit none
-
    private
 
    public :: MpiFileHandler
@@ -131,13 +130,12 @@ end module ASTG_MpiFileHandler_mod
 !---------------------------------------------------------------------------  
 function getSuffix(rank, suffixFormat) result(suffix)
    use ASTG_MpiFileHandler_mod
-   use ASTG_FormatParser_mod
-   !use ASTG_StringUtilities_mod
+   use ASTG_FormatString_mod
+   use ASTG_UnlimitedVector_mod, only: Vector
+   use ASTG_ArgListUtilities_mod
    character(len=:), allocatable :: suffix
    integer, intent(in) :: rank
    character(len=*), optional, intent(in) :: suffixFormat
-
-   type (FormatParser) :: parser
 
    character(len=:), allocatable :: fmt
 
@@ -149,7 +147,7 @@ function getSuffix(rank, suffixFormat) result(suffix)
       fmt = DEFAULT_MPI_SUFFIX_FORMAT
    end if
 
-   suffix = formatArgs(fmt, rank)
+   suffix = formatString(fmt, makeArgVector(rank))
 
 end function getSuffix
 

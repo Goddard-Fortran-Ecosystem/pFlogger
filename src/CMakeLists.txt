@@ -14,6 +14,7 @@ set(SRCS
    Filterer.F90
    FormatToken.F90
    FormatParser.F90
+   FormatString.F90
    Formatter.F90
    LogRecord.F90
    Logger.F90

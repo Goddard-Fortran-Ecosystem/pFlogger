@@ -161,12 +161,11 @@ contains
    ! arguments associated with message.
    !---------------------------------------------------------------------------
    function getMessage(this) result(message)
-      use ASTG_FormatParser_mod
+      use ASTG_FormatString_mod, only: formatString
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
-      type (FormatParser) :: parser
       
-      message = formatArgVector(this%messageFormat, this%args)
+      message = formatString(this%messageFormat,  this%args)
       
    end function getMessage
 
