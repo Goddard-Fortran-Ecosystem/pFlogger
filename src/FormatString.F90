@@ -72,7 +72,7 @@ contains
          case (KEYWORD)
             dictionaryIter = dictionary%find(token%text)
             if (dictionaryIter == dictionary%end()) then
-               call throw('No such keyword: <' // token%text // '> in "extra".')
+               call throw('FormatString::formatMap() - no such keyword: <' // token%text // '> in "extra".')
                return
             end if
             arg => dictionaryIter%value()
@@ -129,7 +129,7 @@ contains
          case (POSITION)
             if (argIter == args%end()) then
                ! check other ranks
-               call throw('Not enough values for format string in FormatParser.')
+               call throw('FormatString::formatVector() - not enough values for format string.')
                return
             else
                arg => argIter%get()
@@ -145,6 +145,10 @@ contains
          call tokenIter%next()
 
       end do
+
+      if (argIter /= args%end()) then
+         call throw('FormatString::formatVector() - not all arguments converted during string formatting.')
+      end if
 
    end function formatVector
 

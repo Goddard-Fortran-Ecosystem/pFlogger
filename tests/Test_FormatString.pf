@@ -27,6 +27,27 @@ contains
 
    end subroutine test_formatVector
 
+
+@test
+   subroutine test_formatVector_tooFewArgs()
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      found = formatString('i %i3.3 %i2.2', makeArgVector(1))
+      @assertExceptionRaised('FormatString::formatVector() - not enough values for format string.')
+
+   end subroutine test_formatVector_tooFewArgs
+
+@test
+   subroutine test_formatVector_tooManyArgs()
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      found = formatString('i %i3.3', makeArgVector(1,2))
+      @assertExceptionRaised('FormatString::formatVector() - not all arguments converted during string formatting.')
+      
+   end subroutine test_formatVector_tooManyArgs
+
 @test
    subroutine test_formatMap()
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
@@ -44,6 +65,34 @@ contains
       @assertEqual(expected, found)
 
    end subroutine test_formatMap
+
+@test
+   subroutine test_formatMap_missingKey()
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      type (CIStringUnlimitedMap) :: extra
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      call extra%insert('i',1)
+
+      found = formatString('i=%{i,i2} f=%{f,*}', extra)
+      @assertExceptionRaised('FormatString::formatMap() - no such keyword: <f> in "extra".')
+
+   end subroutine test_formatMap_missingKey
+
+@test
+   subroutine test_formatMap_illegalPositionToken()
+      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      type (CIStringUnlimitedMap) :: extra
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      call extra%insert('i',1)
+
+      found = formatString('i=%{i,i2} %(i)', extra)
+      @assertExceptionRaised('FormatString::formatMap() - position arguments not allowed.')
+
+   end subroutine test_formatMap_illegalPositionToken
 
 
 @test
