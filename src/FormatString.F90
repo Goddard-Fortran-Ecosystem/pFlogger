@@ -181,6 +181,12 @@ contains
                call handleArray1D(arg%array, fmt, buffer, iostat=iostat)
             type is (WrapArray2D)
                call handleArray2D(arg%array, fmt, buffer, iostat=iostat)
+            type is (WrapArray3D)
+               call handleArray3D(arg%array, fmt, buffer, iostat=iostat)
+            type is (WrapArray4D)
+               call handleArray4D(arg%array, fmt, buffer, iostat=iostat)
+            type is (WrapArray5D)
+               call handleArray5D(arg%array, fmt, buffer, iostat=iostat)
             class default ! other
                buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
                iostat = 0
@@ -254,5 +260,90 @@ contains
       end if
 
    end subroutine handleArray2D
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray3D
+   !
+   ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 3D vector variables passed to it.
+   !---------------------------------------------------------------------------
+   subroutine handleArray3D(arg, fmt, buffer, iostat)
+      use ASTG_DynamicBuffer_mod
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
+      class (*), intent(in) :: arg(:,:,:)
+      character(len=*), intent(in) :: fmt
+      type (DynamicBuffer), intent(inout) :: buffer
+      integer, intent(inout) :: iostat
+
+      logical :: intrinsic
+
+      include 'write_if_intrinsic.inc'
+
+      if (.not. intrinsic) then
+         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         iostat = 0
+      end if
+
+   end subroutine handleArray3D
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray4D
+   !
+   ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 4D vector variables passed to it.
+   !---------------------------------------------------------------------------
+   subroutine handleArray4D(arg, fmt, buffer, iostat)
+      use ASTG_DynamicBuffer_mod
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
+      class (*), intent(in) :: arg(:,:,:,:)
+      character(len=*), intent(in) :: fmt
+      type (DynamicBuffer), intent(inout) :: buffer
+      integer, intent(inout) :: iostat
+
+      logical :: intrinsic
+
+      include 'write_if_intrinsic.inc'
+
+      if (.not. intrinsic) then
+         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         iostat = 0
+      end if
+
+   end subroutine handleArray4D
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! handleArray5D
+   !
+   ! DESCRIPTION: 
+   ! This function is used by format to deal with all unlimited polymorphic
+   ! 5D vector variables passed to it.
+   !---------------------------------------------------------------------------
+   subroutine handleArray5D(arg, fmt, buffer, iostat)
+      use ASTG_DynamicBuffer_mod
+      use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
+      class (*), intent(in) :: arg(:,:,:,:,:)
+      character(len=*), intent(in) :: fmt
+      type (DynamicBuffer), intent(inout) :: buffer
+      integer, intent(inout) :: iostat
+
+      logical :: intrinsic
+
+      include 'write_if_intrinsic.inc'
+
+      if (.not. intrinsic) then
+         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         iostat = 0
+      end if
+
+   end subroutine handleArray5D
+
 
 end module ASTG_FormatString_mod
