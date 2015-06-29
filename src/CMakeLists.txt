@@ -41,9 +41,9 @@ FormatTokenVector.F90
 
 if (MPI) 
   list (APPEND SRCS
-    MpiFilter.F90
-    MpiFileHandler.F90
-    )
+     MpiFilter.F90
+     MpiFileHandler.F90
+  )
 endif ()
 
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
@@ -54,9 +54,7 @@ include_directories (${FTL}/include)
 set_source_files_properties (
    ${SRCS}
    PROPERTIES COMPILE_FLAGS 
-   "${CMAKE_Fortran_FLAGS} ${F90FLAGS}"
+   "${CMAKE_Fortran_FLAGS}"
 )
-
 add_library (${THIS} STATIC ${SRCS})
-
 
