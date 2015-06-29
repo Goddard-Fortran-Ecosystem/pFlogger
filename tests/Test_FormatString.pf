@@ -93,4 +93,60 @@ contains
 
    end subroutine test_formatArray2d
 
+
+@test
+   subroutine test_formatArray3d()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      integer, allocatable :: arr(:,:,:)
+      integer :: i
+
+      arr = reshape([(i,i=1,6)],[2,1,3])
+
+      found = formatString('%(3i3)', makeArgVector(wrapArray(arr)))
+      expected = '  1  2  3' // new_line('a') // '  4  5  6'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+   end subroutine test_formatArray3d
+
+
+@test
+   subroutine test_formatArray4d()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      integer, allocatable :: arr(:,:,:,:)
+      integer :: i
+
+      arr = reshape([(i,i=1,12)],[2,1,3,2])
+
+      found = formatString('%(6i3)', makeArgVector(wrapArray(arr)))
+      expected = '  1  2  3  4  5  6' // new_line('a') // &
+           &  '  7  8  9 10 11 12'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+   end subroutine test_formatArray4d
+
+
+@test
+   subroutine test_formatArray5d()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      integer, allocatable :: arr(:,:,:,:,:)
+      integer :: i
+
+      arr = reshape([(i,i=1,12)],[2,1,3,2,1])
+
+      found = formatString('%(6i3)', makeArgVector(wrapArray(arr)))
+      expected = '  1  2  3  4  5  6' // new_line('a') // &
+           &  '  7  8  9 10 11 12'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+
+   end subroutine test_formatArray5d
+
 end module Test_FormatString_mod
