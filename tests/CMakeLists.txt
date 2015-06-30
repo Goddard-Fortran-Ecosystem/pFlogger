@@ -40,22 +40,22 @@ set(TEST_SRCS
 
 if (MPI) 
   list(APPEND SRCS
-    MockMpi.F90
-    )
+     MockMpi.F90
+  )
 
   list(APPEND TEST_SRCS
-    Test_MpiFileHandler.F90
-    Test_MpiFilter.F90
-    )
+     Test_MpiFileHandler.F90
+     Test_MpiFilter.F90
+  )
 endif()
 
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 
 set_source_files_properties(
-    ${TEST_SRCS}
-    PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS} ${F90FLAGS}"
-    GENERATED TRUE
+   ${TEST_SRCS}
+   PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
+   GENERATED TRUE
 )
 
 include_directories(
@@ -67,9 +67,7 @@ include_directories(
 
 # Targets:
 
-add_library(${THIS} STATIC ${ALL_SRCS}
-)
-
+add_library(${THIS} STATIC ${ALL_SRCS})
 
 target_link_libraries(${THIS}
    logger
