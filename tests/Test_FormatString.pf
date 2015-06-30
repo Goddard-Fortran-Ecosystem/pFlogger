@@ -211,4 +211,18 @@ contains
 
    end subroutine test_badFormat
 
+@test
+   subroutine test_formatArray_withQuote()
+      use ASTG_WrapArray_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      integer :: m(5) = [1,2,3,4,5]
+
+      found = formatString('%5(i1.1,:,"-")', makeArgVector(wrapArray(m)))
+      expected = '1-2-3-4-5'
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+      
+   end subroutine test_formatArray_withQuote
+
 end module Test_FormatString_mod
