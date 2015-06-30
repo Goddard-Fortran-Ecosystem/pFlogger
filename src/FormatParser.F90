@@ -45,13 +45,15 @@ module ASTG_FormatParser_mod
       procedure (ContextInterface), pointer :: context => null()
       procedure (ContextInterface), pointer :: previousContext => null()
    contains
+      procedure :: parse
+      procedure :: parseCharacter
       procedure :: setContext
       procedure :: getContext
       procedure :: setBuffer ! for testing
       procedure :: getBuffer ! for testing
-      procedure :: parseCharacter
-      procedure :: parse
+      procedure :: pushContext
       procedure :: popContext
+      procedure :: pushChar
    end type FormatParser
 
    !-----------------
@@ -117,6 +119,12 @@ contains
 
    end subroutine popContext
 
+   subroutine pushContext(this)
+      class (FormatParser), intent(inout) :: this
+      this%previousContext => this%context
+   end subroutine pushContext
+
+
    ! Delegate to context for current context
    subroutine parseCharacter(this, char)
       class (FormatParser), intent(inout) :: this
@@ -176,11 +184,13 @@ contains
 
       select case (char)
       case ("'")
+         call this%pushContext()
          call this%setContext(singleQuoteContext)
-         call pushChar(char)
+         call this%pushChar(char)
       case ('"')
+         call this%pushContext()
          call this%setContext(doubleQuoteContext)
-         call pushChar(char)
+         call this%pushChar(char)
       case (ESCAPE)
          call this%setContext(escapeContext)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
@@ -193,22 +203,22 @@ contains
          end associate
          return ! char should not be put in buffer
       case default
-         call pushChar(char)
+         call this%pushChar(char)
       end select
 
-   contains
-      
-      subroutine pushChar(char)
-         character(len=1), intent(in) :: char
-
-         associate (pos => this%currentPosition)
-           pos = pos + 1
-           this%buffer(pos:pos) = char
-         end associate
-
-      end subroutine pushChar
-
    end subroutine textContext
+
+
+   subroutine pushChar(this,char)
+      class (FormatParser), intent(inout) :: this
+      character(len=1), intent(in) :: char
+      
+      associate (pos => this%currentPosition)
+        pos = pos + 1
+        this%buffer(pos:pos) = char
+      end associate
+      
+   end subroutine pushChar
 
 
    ! Single Quote context treats other special characters as ordinary.
@@ -219,7 +229,7 @@ contains
 
       select case (char)
       case ("'")
-         call this%setContext(textContext)
+         call this%popContext()
       case (C_NULL_CHAR)
          call this%setContext(illegalContext)
          call throw('FormatParser::singleQuoteContext() - unclosed single quote')
@@ -244,7 +254,7 @@ contains
 
       select case (char)
       case ('"')
-         call this%setContext(textContext)
+         call this%popContext()
       case (C_NULL_CHAR)
          call this%setContext(illegalContext)
          call throw('FormatParser::doubleQuoteContext() - unclosed double quote')
@@ -279,6 +289,12 @@ contains
               call throw('FormatParser::positionContext() - empty edit descriptor')
               return
            end if
+        case ("'")
+           call this%pushContext()
+           call this%setContext(singleQuoteContext)
+        case ('"')
+           call this%pushContext()
+           call this%setContext(doubleQuoteContext)
         case (OPEN_PARENTHESES) ! (
            if (pos == 0) then
               call this%setContext(keywordContext)
@@ -288,8 +304,7 @@ contains
          ! stay position format
         end select
 
-        pos = pos + 1
-        this%buffer(pos:pos) = char
+        call this%pushChar(char)
 
       end associate
 
@@ -348,9 +363,6 @@ contains
       end associate
 
    end subroutine keywordContext
-
-
-
 
 
    subroutine escapeContext(this, char)

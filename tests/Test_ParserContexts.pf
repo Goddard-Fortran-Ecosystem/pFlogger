@@ -19,6 +19,8 @@ module Test_ParserContexts_mod
       logical :: startNewToken
       type (FormatToken) :: token
       character(len=:), allocatable :: errorMessage
+
+      procedure (ContextInterface), nopass, pointer :: prevContext
    contains
       procedure :: toString
    end type TestParam
@@ -98,19 +100,26 @@ contains
            
            ! quote contexts
            & , p( SQC, "a'b",  "x",    SQC, "a'bx")                           &
-           & , p( SQC, "a'b",  "'",    TXC, "a'b'")                           &
+           & , p( SQC, "a'b",  "'",    TXC, "a'b'", prevContext=TXC)          &
            & , p( SQC, "a'b",  '"',    SQC, "a'b" // '"' )                    &
+           & , p( SQC, "i3'b",  "'",   PSC, "i3'b'", prevContext=PSC )        &
 
            & , p( DQC, 'a"b',  'x',    DQC, 'a"bx')                           &
-           & , p( DQC, 'a"b',  '"',    TXC, 'a"b"')                           &
+           & , p( DQC, 'a"b',  '"',    TXC, 'a"b"', prevContext=TXC)                           &
            & , p( DQC, 'a"b',  "'",    DQC, 'a"b' // "'" )                    &
+           & , p( DQC, 'i3"b',  '"',   PSC, 'i3"b"', prevContext=PSC )        &
+
+           & , p( SQC, "word)i3'b",  "'",   KYC, "word)i3'b'", prevContext=KYC )        &
+           & , p( DQC, 'word)i3"b',  '"',   KYC, 'word)i3"b"', prevContext=KYC )        &
            
            ! position context
-           & , p( PSC,  'i',  '3',   PSC, 'i3')                              &
+           & , p( PSC,  'i',  '3',   PSC, 'i3')                               &
            & , p( PSC, 'i3',  ' ',    TXC, ' ',      FormatToken(POSITION, 'i3') ) &
            & , p( PSC, 'i3', '~',  TXC, '',      FormatToken(POSITION, 'i3') ) &
            ! looks like position but turns out to be a keyword
            & , p( PSC,   '',     '(',    KYC, '')                            & !
+           & , p( PSC,   'i3',     "'",    SQC, "i3'")                       & !
+           & , p( PSC,   'i3',     '"',    DQC, 'i3"')                       & !
 
            ! keyword context
            & , p( KYC,        '',  'v', KYC, 'v')                                 &
@@ -142,10 +151,10 @@ contains
 
            & ]
 
-
    contains
+
       
-      function p(inContext, inBuffer, char, outContext, outBuffer, token, errorMessage)
+      function p(inContext, inBuffer, char, outContext, outBuffer, token, errorMessage, prevContext)
          type (TestParam) :: p
          
          procedure (ContextInterface) :: inContext
@@ -155,6 +164,7 @@ contains
          character(len=*) :: outBuffer
          type (FormatToken), optional, intent(in) :: token
          character(len=*), optional, intent(in) :: errorMessage
+         procedure (ContextInterface), optional :: prevContext
 
          p%inContext => inContext
          p%inBuffer = inBuffer
@@ -172,7 +182,13 @@ contains
          if (present(errormessage)) then
             p%errorMessage = errorMessage
          end if
+
+         if (present(prevContext)) then
+            p%prevContext => prevContext
+         end if
+
       end function p
+
 
    end function getParameters
 
@@ -223,14 +239,20 @@ contains
 
    subroutine setUp(this)
       class (ContextsTestCase), intent(inout) :: this
-      
+
+      if (associated(this%param%prevContext)) then
+         call this%parser%setContext(this%param%prevContext)
+         call this%parser%pushContext()
+      end if
       call this%parser%setContext(this%param%inContext)
+
       call this%parser%setBuffer(this%param%inBuffer)
 
       call this%param%inContext(this%parser, this%param%nextChar)
       if (allocated(this%param%errorMessage)) then
          @assertExceptionRaised(this%param%errorMessage)
       end if
+
 
    end subroutine setUp
 
