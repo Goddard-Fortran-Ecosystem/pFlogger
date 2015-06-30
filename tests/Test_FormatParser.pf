@@ -40,7 +40,7 @@ contains
       type (FormatToken), pointer :: t
 
       p = FormatParser()
-      call p%parse('word %i3 %{key,a}\n other')
+      call p%parse('word %i3 %(key)a~\n other')
       @assertEqual(5, p%size())
 
       t => p%at(1)
@@ -73,7 +73,7 @@ contains
       type (FormatToken), pointer :: t
 
       p = FormatParser()
-      call p%parse('word %i3 %f6.8\%{key,a}%{key2,a5}')
+      call p%parse('word %i3 %f6.8~%(key)a~%(key2)a5')
       @assertEqual(6, p%size())
 
       t => p%at(1)

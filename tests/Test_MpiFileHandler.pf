@@ -39,8 +39,8 @@ contains
 
       comm = 12345 ! fake
 
-      @assertEqual('.000000', getSuffix(rank=0, suffixFormat= '.%(i6.6)'))
-      @assertEqual('.000123', getSuffix(rank=123, suffixFormat= '.%(i6.6)'))
+      @assertEqual('.000000', getSuffix(rank=0, suffixFormat= '.%i6.6'))
+      @assertEqual('.000123', getSuffix(rank=123, suffixFormat= '.%i6.6'))
 
    end subroutine test_customSuffix
    

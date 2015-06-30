@@ -11,7 +11,7 @@ module ASTG_FormatToken_mod
       enumerator :: TEXT, POSITION, KEYWORD
    end enum
 
-   character(len=1), parameter :: KEYWORD_SEPARATOR = ','
+   character(len=1), parameter :: KEYWORD_SEPARATOR = ')'
 
    type FormatToken
       integer :: type ! use enum

@@ -83,13 +83,17 @@ contains
            
            &   p( TXC,  '',    'a',    TXC, 'a'  )                            &
            & , p( TXC, 'a' ,   'b',    TXC, 'ab' )                            &
-           & , p( TXC, 'a',    "'",    SQC, "a'" )                            &
-           & , p( TXC, 'a',    '"',    DQC, 'a"' )                            &
-           & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'b') ) &
-           ! escape sequence
-           & , p( TXC, 'b',    ESCAPE, ESC, 'b'  )                            &
 
-           ! newline
+           ! TXC transitions
+           ! TXC -> SQC
+           & , p( TXC, 'a',    "'",    SQC, "a'" )                            &
+           ! TXC -> DQC
+           & , p( TXC, 'a',    '"',    DQC, 'a"' )                            &
+           ! TXC -> PSC
+           & , p( TXC, 'b',    '%',    PSC, '',      FormatToken(TEXT, 'b') ) &
+
+           ! TXC -> ESC
+           & , p( TXC, 'b',    ESCAPE, ESC, 'b'  )                            &
            & , p( ESC, 'b',    'n',    TXC, 'b' // new_line('a') ) &
            
            ! quote contexts
@@ -103,42 +107,38 @@ contains
            
            ! position context
            & , p( PSC,  'i',  '3',   PSC, 'i3')                              &
-           & , p( PSC, 'i3',  ' ',    TXC, '',      FormatToken(POSITION, 'i3') ) &
-           & , p( PSC, 'i3', ESCAPE,  TXC, '',      FormatToken(POSITION, 'i3') ) &
+           & , p( PSC, 'i3',  ' ',    TXC, ' ',      FormatToken(POSITION, 'i3') ) &
+           & , p( PSC, 'i3', '~',  TXC, '',      FormatToken(POSITION, 'i3') ) &
            ! looks like position but turns out to be a keyword
-           & , p( PSC,   '',     '{',    KYC, '')                               & !
+           & , p( PSC,   '',     '(',    KYC, '')                            & !
 
            ! keyword context
            & , p( KYC,        '',  'v', KYC, 'v')                                 &
-           & , p( KYC,     'var',  ',', KYC, 'var,')                              &
-           & , p( KYC,  'var,i3',  '}', TXC, '', FormatToken(KEYWORD, 'var,i3')) &
-           & , p( KYC,  'word,a',  '}', TXC, '', FormatToken(KEYWORD, 'word,a')) &
+           & , p( KYC,  'var',  ')', KYC, 'var)')                                &
+           & , p( KYC,  'word)a',  ' ', TXC, ' ', FormatToken(KEYWORD, 'word)a')) &
+           & , p( KYC,  'word)a',  C_NULL_CHAR, TXC, '', FormatToken(KEYWORD, 'word)a')) &
+           & , p( KYC,  'word)i3',  '~', TXC, '', FormatToken(KEYWORD, 'word)i3')) &
 
            ! Various checks on illegal formats
-
            ! (1) illegal terminations
+           & , p( ESC, '',  '.',   illegalContext, '', &
+           &   errorMessage='FormatParser::escapeContext() - no such escape sequence: \.') &
            & , p( SQC, "a'b",  C_NULL_CHAR,    illegalContext, "a'b", &
            &   errorMessage='FormatParser::singleQuoteContext() - unclosed single quote') &
            & , p( DQC, 'a"b',  C_NULL_CHAR,    illegalContext, 'a"b', &
            &   errorMessage='FormatParser::doubleQuoteContext() - unclosed double quote') &
+
            & , p( PSC,   '',  C_NULL_CHAR,     illegalContext, '', &
            &   errorMessage='FormatParser::positionContext() - empty edit descriptor') &
            & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'abc', &
+           &   errorMessage='FormatParser::keywordContext() - missing ")"')  &
+           & , p( KYC,   'abc)',  C_NULL_CHAR,     illegalContext, 'abc)', &
            &   errorMessage='FormatParser::keywordContext() - missing edit descriptor') &
-           & , p( KYC,   'abc,',  C_NULL_CHAR,     illegalContext, 'abc,', &
-           &   errorMessage='FormatParser::keywordContext() - empty edit descriptor') &
-           & , p( KYC,   'abc,i2',  C_NULL_CHAR,     illegalContext, 'abc,i2', &
-           &   errorMessage='FormatParser::keywordContext() - missing "}"') &
 
            ! Cannot switch to keyword once there is a format descriptor
-           & , p( PSC, 'i3',     '{',    illegalContext, 'i3', &
-           &      errorMessage='FormatParser::positionContext() - illegal start of keyword format: "i3{"') & !
-           & , p( KYC,        '',  ',', illegalContext, ',',  &
+           & , p( PSC, 'i3',     '(',    PSC, 'i3(') &
+           & , p( KYC,        '',  ')', illegalContext, ')',  &
            &  errorMessage='FormatParser::keywordContext() - missing keyword?') &
-           ! Backslash is a permitted Fortran format specifier
-           & , p( KYC,  'var,i3,', ESCAPE,   KYC, 'var,i3,'//ESCAPE) &
-           & , p( KYC,  'va', ESCAPE,   illegalContext, 'va', &
-           &      errorMessage='FormatParser::keywordContext() - no escape sequence permitted.') &
 
            & ]
 

@@ -36,7 +36,7 @@ module ASTG_FormatString_mod
 #endif
 
    character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
-   
+
 contains
 
 
@@ -63,7 +63,6 @@ contains
 
       do while (tokenIter /= p%end())
          token => tokenIter%get()
-
          select case (token%type)
 
          case (TEXT)
@@ -174,7 +173,6 @@ contains
 
       iostat = -1
       call buffer%allocate()
-      
       do while (iostat /= 0)
 
          include 'write_if_intrinsic.inc'
@@ -195,13 +193,23 @@ contains
                buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
                iostat = 0
             end select
-
-            if (iostat == 0) exit
-            if (iostat == INTERNAL_FILE_EOR) call buffer%growRecordSize()
-            if (iostat == INTERNAL_FILE_EOF) call buffer%growNumRecords()
-
          end if
-            
+         
+         if (iostat == 0) exit
+         if (iostat == INTERNAL_FILE_EOR) then
+            call buffer%growRecordSize()
+            cycle
+         end if
+         if (iostat == INTERNAL_FILE_EOF) then
+            call buffer%growNumRecords()
+            cycle
+         end if
+         
+         ! unrecoverable iostat
+         call throw('FormatString::format*() - bad format "'//fmt//'"')
+         string=''
+         return
+         
       end do
 
       string = buffer%concatenate()

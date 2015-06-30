@@ -98,7 +98,7 @@ contains
       call args%push_back(1)
 
       ! Create a logging format
-      fmt = Formatter('%{levelName,a}- %{name,a}- %{message,a}')
+      fmt = Formatter('%(levelName)a~- %(name)a~- %(message)a')
 
       call this%handler%setFormatter(fmt)
 

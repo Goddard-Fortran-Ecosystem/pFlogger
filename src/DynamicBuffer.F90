@@ -31,11 +31,17 @@ module ASTG_DynamicBuffer_mod
    integer, protected :: INTERNAL_FILE_EOR
    integer, protected :: INTERNAL_FILE_EOF
 
+   integer, parameter :: MAX_BUFFER_SIZE = 2**20 ! 1 MB
+   
 contains
 
    subroutine growRecordSize(this)
       class (DynamicBuffer), intent(inout) :: this
 
+      if (this%recordSize * this%numRecords > MAX_BUFFER_SIZE/2) then
+         call throw('DynamicBuffer::growRecordSize() - exceeded maximum permitted buffer size.')
+         return
+      end if
       this%recordSize = this%recordSize * 2
       call this%allocate()
 
@@ -48,6 +54,11 @@ contains
 
    subroutine growNumRecords(this)
       class (DynamicBuffer), intent(inout) :: this
+
+      if (this%recordSize * this%numRecords > MAX_BUFFER_SIZE/2) then
+         call throw('DynamicBuffer::growNumRecords() - exceeded maximum permitted buffer size.')
+         return
+      end if
 
       this%numRecords = this%numRecords * 2
       call this%allocate()

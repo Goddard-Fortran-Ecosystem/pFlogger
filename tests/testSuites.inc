@@ -1,3 +1,8 @@
+!!$! Parser
+ADD_TEST_SUITE(Test_ParserContexts_mod_suite)
+ADD_TEST_SUITE(Test_FormatParser_mod_suite)
+ADD_TEST_SUITE(Test_FormatString_mod_suite)
+
 ! Filter and Filterer
 ADD_TEST_SUITE(Test_Filter_mod_suite)
 ADD_TEST_SUITE(Test_Filterer_mod_suite)
@@ -19,10 +24,6 @@ ADD_TEST_SUITE(Test_LogRecord_mod_suite)
 ! Formatter
 ADD_TEST_SUITE(Test_Formatter_mod_suite)
 
-! Parser
-ADD_TEST_SUITE(Test_ParserContexts_mod_suite)
-ADD_TEST_SUITE(Test_FormatParser_mod_suite)
-ADD_TEST_SUITE(Test_FormatString_mod_suite)
 ADD_TEST_SUITE(Test_ArgListUtilities_mod_suite)
 
 ! Others

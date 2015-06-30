@@ -90,7 +90,7 @@ module ASTG_AbstractHandler_mod
    end interface
 
    character(len=*), parameter :: BASIC_FORMAT = &
-        '%{levelName,a}: %{name,a}: %{message,a}'
+        '%(levelName)a~: %(name)a~: %(message)a'
    
 contains
 

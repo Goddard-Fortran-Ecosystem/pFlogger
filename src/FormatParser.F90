@@ -29,7 +29,10 @@ module ASTG_FormatParser_mod
    character(len=1), parameter :: FORMAT_DELIMITER = '%'
    character(len=1), parameter :: OPEN_CURLY_BRACE = '{'
    character(len=1), parameter :: CLOSE_CURLY_BRACE = '}'
+   character(len=1), parameter :: OPEN_PARENTHESES = '('
+   character(len=1), parameter :: CLOSE_PARENTHESES = '('
    character(len=1), parameter :: SPACE = ' '
+   character(len=1), parameter :: TERMINATOR = '~'
    ! Tricky to make a literal with backslash when using FPP:
    character(len=*), parameter :: FPP_SAFE_ESCAPE = '\\'
    character(len=1), parameter :: ESCAPE = FPP_SAFE_ESCAPE(1:1)
@@ -40,6 +43,7 @@ module ASTG_FormatParser_mod
       integer :: currentPosition = 0
       character(len=MAX_LEN_TOKEN) :: buffer
       procedure (ContextInterface), pointer :: context => null()
+      procedure (ContextInterface), pointer :: previousContext => null()
    contains
       procedure :: setContext
       procedure :: getContext
@@ -47,6 +51,7 @@ module ASTG_FormatParser_mod
       procedure :: getBuffer ! for testing
       procedure :: parseCharacter
       procedure :: parse
+      procedure :: popContext
    end type FormatParser
 
    !-----------------
@@ -85,6 +90,7 @@ contains
 
    end function newFormatParser
 
+
    subroutine setContext(this, context)
       class (FormatParser), intent(inout) :: this
       procedure (ContextInterface) :: context
@@ -102,6 +108,14 @@ contains
 
    end subroutine getContext
 
+
+   subroutine popContext(this)
+      class (FormatParser), intent(inout) :: this
+
+      this%context => this%previousContext
+      nullify(this%previousContext)
+
+   end subroutine popContext
 
    ! Delegate to context for current context
    subroutine parseCharacter(this, char)
@@ -254,26 +268,22 @@ contains
       associate (pos => this%currentPosition)
 
         select case (char)
-        case (SPACE, ESCAPE, C_NULL_CHAR)
+        case (SPACE, TERMINATOR, C_NULL_CHAR)
            call this%setContext(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
-              if (char == ESCAPE) return ! discard char
+              if (char == TERMINATOR) return ! discard char
            else
               call this%setContext(illegalContext)
               call throw('FormatParser::positionContext() - empty edit descriptor')
               return
            end if
-        case (OPEN_CURLY_BRACE) ! {
-           if (pos > 0) then
-              call this%setContext(illegalContext)
-              call throw('FormatParser::positionContext() - ' // &
-                   & 'illegal start of keyword format: "' // this%buffer(1:pos) // '{"')
-              return
+        case (OPEN_PARENTHESES) ! (
+           if (pos == 0) then
+              call this%setContext(keywordContext)
+              return ! do not retain char
            end if
-           call this%setContext(keywordContext)
-           return ! do not retain char
         case default
          ! stay position format
         end select
@@ -295,38 +305,39 @@ contains
       associate ( pos => this%currentPosition )
 
         select case (char)
-        case (CLOSE_CURLY_BRACE)
-           call this%setContext(textContext)
-           if (pos > 0) then ! send buffer to new token
-              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
-              pos = 0
-              return ! do not retain the closing brace
-           end if
         case (KEYWORD_SEPARATOR)
            if (pos == 0) then
               call this%setContext(illegalContext)
               call throw('FormatParser::keywordContext() - missing keyword?')
            end if
-        case (ESCAPE)
-           idx = index(this%buffer, KEYWORD_SEPARATOR)
-           if (idx <= 1) then
-              call this%setContext(illegalContext)
-              call throw('FormatParser::keywordContext() - no escape sequence permitted.')
-              return
-           end if
         case (C_NULL_CHAR)
            call this%setContext(illegalContext)
            idx = index(this%buffer, KEYWORD_SEPARATOR)
-           if (pos == 0 .or. idx == 1) then
+           if (pos == 0) then
               call throw('FormatParser::keywordContext() - missing keyword')
            elseif (idx == 0) then
-              call throw('FormatParser::keywordContext() - missing edit descriptor')
+              call throw('FormatParser::keywordContext() - missing ")"')
+           elseif (idx == 1) then
+              call throw('FormatParser::keywordContext() - missing keyword?')
            elseif (idx == pos) then
-              call throw('FormatParser::keywordContext() - empty edit descriptor')
+              call throw('FormatParser::keywordContext() - missing edit descriptor')
            else
-              call throw('FormatParser::keywordContext() - missing "}"')
+              call this%setContext(textContext)
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
+              pos = 0
            end if
            return
+        case (SPACE, TERMINATOR)
+           call this%setContext(textContext)
+           if (pos > 0) then ! send buffer to new token
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
+              pos = 0
+              if (char == TERMINATOR) return ! discard char
+           else
+              call this%setContext(illegalContext)
+              call throw('FormatParser::keywordContext() - empty edit descriptor')
+              return
+           end if
         case default
            ! stay keyword format
         end select
@@ -337,6 +348,9 @@ contains
       end associate
 
    end subroutine keywordContext
+
+
+
 
 
    subroutine escapeContext(this, char)
@@ -353,7 +367,7 @@ contains
         case default
            call this%setContext(illegalContext)
            call throw('FormatParser::escapeContext() - ' // &
-                & 'no such escape sequence: ' // ESCAPE // this%buffer(1:pos))
+                & 'no such escape sequence: ' // ESCAPE // char)
         end select
 
 

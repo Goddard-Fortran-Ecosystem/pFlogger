@@ -18,11 +18,11 @@
 !> preformatted into a LogRecord's message attribute. Currently, the useful
 !> attributes in a LogRecord are described by:
 !>
-!> %{name)s            Name of the logger
-!> %{levelname}s       Text logging level for the message ("DEBUG", "INFO",
+!> %(name)a            Name of the logger
+!> %(levelname)a       Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
-!> %{asctime}s         Textual time when the LogRecord was created
-!> %{message}s         The result of record.getMessage(), computed just as
+!> %(asctime)a         Textual time when the LogRecord was created
+!> %(message)a         The result of record.getMessage(), computed just as
 !>                        the record is emitted
 !
 ! REVISION HISTORY:
@@ -75,7 +75,7 @@ contains
       if (present(fmt)) then
          f%fmt = fmt
       else
-         f%fmt = '%{message,a}'
+         f%fmt = '%(message)a'
       end if
        
       if (present(datefmt)) then
@@ -164,7 +164,7 @@ contains
    !---------------------------------------------------------------------------
    logical function usesTime(this)
       class (Formatter), intent(in) :: this
-      usesTime = (index(this%fmt,'%{asctime') > 0)
+      usesTime = (index(this%fmt,'%(asctime)') > 0)
    end function usesTime
 
    
