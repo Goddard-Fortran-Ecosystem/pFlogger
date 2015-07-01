@@ -80,8 +80,6 @@ contains
        
       if (present(datefmt)) then
          f%datefmt = datefmt
-      else
-         f%datefmt = ''
       end if
       
    end function newFormatter
@@ -104,13 +102,16 @@ contains
       character(len=*), optional, intent(in) :: datefmt
 
       type (CIStringUnlimitedMap) :: extra
-      
-      call extra%deepCopy(record%extra)
+      character(len=:), allocatable :: datefmt_
+
       if (present(datefmt)) then
-         logMessage = FormatString(dateFmt, extra)
+         dateFmt_ = datefmt
       else
-         logMessage = datefmt
+         dateFmt_ = '%(Y)i4.4~-%(M)i2.2~-%(D)i2.2 ' // &
+              & '%(HH)i2.2~:%(MM)i2.2~:%(SS)i2.2~.%(MS)i3.3'
       end if
+         
+      logMessage = FormatString(dateFmt_, record%extra)
 
    end function formatTime
 
@@ -147,7 +148,11 @@ contains
 
       call extra%insert('message', msg)
       if(this%usesTime()) then
-         asctime = this%formatTime(record, datefmt=this%datefmt)
+         if (allocated(this%datefmt)) then
+            asctime = this%formatTime(record, datefmt=this%datefmt)
+         else
+            asctime = this%formatTime(record)
+         end if
          call extra%insert('asctime', asctime)
       end if
       logMessage = FormatString(this%fmt, extra)
