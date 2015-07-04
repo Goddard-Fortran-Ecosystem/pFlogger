@@ -300,6 +300,10 @@ contains
               call this%setContext(keywordContext)
               return ! do not retain char
            end if
+        case (FORMAT_DELIMITER) ! repeated delimeter should be interpreted as text
+           if (pos == 0) then
+              call this%setContext(textContext)
+           end if
         case default
          ! stay position format
         end select

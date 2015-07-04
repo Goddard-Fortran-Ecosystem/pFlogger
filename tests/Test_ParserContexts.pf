@@ -117,9 +117,10 @@ contains
            & , p( PSC, 'i3',  ' ',    TXC, ' ',      FormatToken(POSITION, 'i3') ) &
            & , p( PSC, 'i3', '~',  TXC, '',      FormatToken(POSITION, 'i3') ) &
            ! looks like position but turns out to be a keyword
-           & , p( PSC,   '',     '(',    KYC, '')                            & !
-           & , p( PSC,   'i3',     "'",    SQC, "i3'")                       & !
-           & , p( PSC,   'i3',     '"',    DQC, 'i3"')                       & !
+           & , p( PSC,   '',     '(',    KYC, '')                            & 
+           & , p( PSC,   'i3',     "'",    SQC, "i3'")                       & 
+           & , p( PSC,   'i3',     '"',    DQC, 'i3"')                       & 
+           & , p( PSC,   '',     '%',    TXC, '%')                           & 
 
            ! keyword context
            & , p( KYC,        '',  'v', KYC, 'v')                                 &

@@ -49,7 +49,7 @@ contains
 
       t => p%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3 ', t%editDescriptor, whitespace=KEEP_ALL)
+      @assertEqual('i3', t%editDescriptor, whitespace=KEEP_ALL)
 
       t => p%at(3)
       @assertEqual(TEXT, t%type)
@@ -82,7 +82,7 @@ contains
 
       t => p%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3 ', t%editDescriptor, whitespace=KEEP_ALL)
+      @assertEqual('i3', t%editDescriptor, whitespace=KEEP_ALL)
 
       t => p%at(3)
       @assertEqual(TEXT, t%type)

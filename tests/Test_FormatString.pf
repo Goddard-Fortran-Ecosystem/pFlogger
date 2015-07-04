@@ -117,7 +117,7 @@ contains
       real :: x(3) = [1.2,2.3,3.4]
 
       found = formatString('%4(f3.1,1x)', makeArgVector(wrapArray(x)))
-      expected = '1.2 2.3 3.4 '
+      expected = '1.2 2.3 3.4'  ! note never has a trailing space
       @assertEqual(expected, found, whitespace=KEEP_ALL)
       
       found = formatString('%5(I3.3:/)', makeArgVector(wrapArray(m)))
@@ -225,4 +225,6 @@ contains
       
    end subroutine test_formatArray_withQuote
 
+
 end module Test_FormatString_mod
+
