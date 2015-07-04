@@ -54,8 +54,7 @@ set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 
 set_source_files_properties(
    ${TEST_SRCS}
-   PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
-   GENERATED TRUE
+   PROPERTIES GENERATED TRUE
 )
 
 include_directories(
