@@ -1,7 +1,8 @@
+!-----------------------------------------------------------------------
 ! Note that FormatParser exposes more methods than is desirable for
 ! encapsulation.  E.g. get/set buffer.  But this exposure is extremely
 ! useful for unit testing, which has a higher priority.
-
+!-----------------------------------------------------------------------
 module ASTG_FormatParser_mod
    use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
    use ASTG_FormatToken_mod, only: FormatToken
