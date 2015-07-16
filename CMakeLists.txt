@@ -44,9 +44,10 @@ set(FTL $ENV{FTL})
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_Fortran_INCLUDE_PATH})
-  message( STATUS "MPI enabled")
+   add_definitions(-DLOGGER_USE_MPI)
+   find_package(MPI REQUIRED)
+   include_directories(${MPI_Fortran_INCLUDE_PATH})
+   message( STATUS "MPI enabled")
 endif()
 
 # Compiler flags
