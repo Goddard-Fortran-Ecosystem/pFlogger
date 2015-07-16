@@ -52,6 +52,7 @@ endif()
 # Compiler flags
 include(setCompilerFlags)
 
+add_subdirectory(doc)
 add_subdirectory(src)
 if (PFUNIT)
    add_subdirectory(tests)
