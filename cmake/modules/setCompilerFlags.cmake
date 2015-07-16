@@ -5,9 +5,11 @@ if (DEFINED ENV{PFUNIT})
    link_directories($ENV{PFUNIT}/lib)
    set(CPPFLAGS -DUSE_PFUNIT)
    set(PFUNIT $ENV{PFUNIT})
-   message(STATUS "PFUNIT is set to $ENV{PFUNIT}") 
+   message(STATUS " +++ PFUNIT is set to $ENV{PFUNIT}") 
 else()
-   message(WARNING "PFUNIT is NOT set!")
+   message(STATUS " +++ PFUNIT is NOT set. PFUNIT is needed for code development.")
+   message(STATUS " +++ Example: export PFUNIT=/myLibraries/pFUnit")
+
 endif()
 
 # Intel compiler flags
