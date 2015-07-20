@@ -2,20 +2,16 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_MpiFilter_mod
+!*MODULE: ASTG_MpiFilter_mod
 !
-!> @author 
-!> ASTG staff
-!
-! DESCRIPTION:
-!> @brief
-!> Perform arbitrary filtering of LogRecords.
+!> @brief Perform arbitrary filtering of LogRecords.
+!> @details
 !> MpiFilter class only allows records which are below a certain point in the
 !> logger hierarchy. 
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
-!------------------------------------------------------------------------------
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
+!---------------------------------------------------------------------------
 module ASTG_MpiFilter_mod
    use ASTG_AbstractFilter_mod
    use ASTG_LogRecord_mod

@@ -2,18 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_RootLogger_mod
+!*MODULE: ASTG_RootLogger_mod
 !
-!> @author 
-!> ASTG staff
-!
-! DESCRIPTION:
-!> @brief
+!> @brief Defines ROOT logger.
+!> @details
 !> Defines a unique -ROOT- logger in the logger hierarchy. It _MUST_ have a
 !> level and is named 'root'.
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_RootLogger_mod
    use ASTG_Logger_mod

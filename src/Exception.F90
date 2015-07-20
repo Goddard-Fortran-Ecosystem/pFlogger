@@ -2,17 +2,13 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_Exception_mod
+!*MODULE: ASTG_Exception_mod
 !
-!> @author
-!> ASTG staff
-!
-! DESCRIPTION:
 !> @brief
 !> This module contains a simple method to handle exceptions (runtime errors).
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Exception_mod
    implicit none
@@ -22,14 +18,11 @@ module ASTG_Exception_mod
 
 contains
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! throw
-   !
-   ! DESCRIPTION: 
-   ! Throws exception with explanation for the error.
-   !---------------------------------------------------------------------------
-
+!---------------------------------------------------------------------------  
+!*ROUTINE: throw
+!
+!> @brief Throws exception with explanation for the error.
+!---------------------------------------------------------------------------
 #ifdef USE_PFUNIT
 
    subroutine throw(message)

@@ -2,20 +2,17 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_LogRecord_mod
+!*MODULE: ASTG_LogRecord_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief A LogRecord instance represents an event being logged. 
+!> @details
+!> LogRecord instances are created every time something is logged. They contain 
+!> all the information pertinent to the event being logged. The  main information 
+!> passed in is in message and optional arguments which are combined to create 
+!> the message field of the record.
 !
-! DESCRIPTION: 
-!> @brief
-!> A LogRecord instance represents an event being logged. Its instances are created
-!> every time something is logged. They contain all the information pertinent to
-!> the event being logged. The  main information passed in is in message and optional
-!> arguments which are combined to create the message field of the record.
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector

@@ -4,9 +4,7 @@
 !
 !*MODULE: ASTG_Logger_mod
 !
-! DESCRIPTION:
 !> @brief Logger classes and functions.
-!>
 !> @details
 !> A logger instance represents a logging channel, i.e. a medium thorugh
 !> which information (logging events) about an application is conveyed.
@@ -16,9 +14,7 @@
 !> message and ignores it if the message level is less severe than its own
 !> level (default is INFO).
 !
-!> @author 
-!> ASTG staff
-!
+!> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Logger_mod

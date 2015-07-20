@@ -4,16 +4,11 @@
 !
 ! MODULE: ASTG_LoggerManager_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief A manager instance that holds the hierarchy of loggers. 
 !
-! DESCRIPTION: 
-!> @brief
-!> A manager instance that holds the hierarchy of loggers. 
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
-!------------------------------------------------------------------------------
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
+!---------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
    use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMap => Map
    use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMapIterator => MapIterator

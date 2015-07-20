@@ -2,20 +2,17 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_Object_mod
+!*MODULE: ASTG_Object_mod
 !
-!> @author
-!> ASTG staff
-!
-! DESCRIPTION:
-!> @brief
+!> @brief Parent class of all other classes.
+!> @details
 !> An "object" is the "class" that you inherit from to make a class. So:
 !>     a class is-a object.
-!> Note however that not all logger framework classes inherit from Object.
+!> @note However, not all logger framework classes inherit from Object.
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
-!------------------------------------------------------------------------------
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
+!---------------------------------------------------------------------------
 module ASTG_Object_mod
    implicit none
    private
