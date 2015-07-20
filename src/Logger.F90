@@ -2,13 +2,12 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_Logger_mod
+!*MODULE: ASTG_Logger_mod
 !
-!> @author 
-!> ASTG staff
-!
-! DESCRIPTION: 
-!> @brief
+! DESCRIPTION:
+!> @brief Logger classes and functions.
+!>
+!> @details
 !> A logger instance represents a logging channel, i.e. a medium thorugh
 !> which information (logging events) about an application is conveyed.
 !> Associated with a logger instance is a set of handlers which dispatch
@@ -17,8 +16,10 @@
 !> message and ignores it if the message level is less severe than its own
 !> level (default is INFO).
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author 
+!> ASTG staff
+!
+!> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_Logger_mod
    use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
@@ -73,15 +74,16 @@ module ASTG_Logger_mod
 contains
 
    
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! newLogger
-   !
-   ! DESCRIPTION: 
-   ! This constructor instantiates a logger with a name and an optional level
-   ! (default is INFO). Logger instance also has an (empty) vector of handlers
-   ! associated with it.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: newLogger
+!
+!> @brief Logger constructor
+
+!> @details
+!! This constructor instantiates a logger with a name and an optional level
+!! (default is INFO). Logger instance also has an (empty) vector of handlers
+!! associated with it.
+!---------------------------------------------------------------------------
    function newLogger(name, level) result(alog)
       type (Logger) :: alog
       character(len=*), intent(in) :: name
@@ -108,13 +110,11 @@ contains
    end function newLogger
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! setName
-   !
-   ! DESCRIPTION: 
-   ! Set the name for this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: setName
+!
+!> @brief Set the name for this logger.
+!---------------------------------------------------------------------------
    subroutine setName(this, name)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: name
@@ -124,13 +124,11 @@ contains
    end subroutine setName
 
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getName
-   !
-   ! DESCRIPTION: 
-   ! Get the name for this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: getName
+!
+!> @brief Get the name for this logger.
+!---------------------------------------------------------------------------
    function getName(this) result(name)
       character(len=:), allocatable :: name
       class (Logger), intent(in) :: this
@@ -140,13 +138,11 @@ contains
    end function getName
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! addHandler
-   !
-   ! DESCRIPTION: 
-   ! Add the specified handler to this logger and increment handlers vector.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: addHandler
+!
+!> @brief Add the specified handler to this logger and increment handlers vector.
+!---------------------------------------------------------------------------
    subroutine addHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
@@ -167,13 +163,11 @@ contains
    end subroutine addHandler
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! removeHandler
-   !
-   ! DESCRIPTION: 
-   ! Remove the specified handler to this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: removeHandler
+!
+!> @brief Remove the specified handler to this logger.
+!---------------------------------------------------------------------------
    subroutine removeHandler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
@@ -191,13 +185,11 @@ contains
    end subroutine removeHandler
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! makeRecord
-   !
-   ! DESCRIPTION: 
-   ! Create a logRecord
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: makeRecord
+!
+!> @brief Create a logRecord
+!---------------------------------------------------------------------------
    subroutine makeRecord(this, record, level, message, args)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
@@ -214,13 +206,11 @@ contains
    end subroutine makeRecord
 
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! isEnabledFor
-   !
-   ! DESCRIPTION: 
-   ! Is this logger enabled for level 'level'?
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: isEnabledFornewLogger
+!
+!> @brief Is this logger enabled for level 'level'?
+!---------------------------------------------------------------------------
    logical function isEnabledFor(this, level)
       class (Logger), intent(in) :: this
       integer, intent(in) :: level
@@ -229,15 +219,16 @@ contains
       
    end function isEnabledFor
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! log_
-   !
-   ! DESCRIPTION: 
-   ! Low level logging routine which creates a LogRecord and then calls the
-   ! appropriate handler of this logger to handle the record.
-   ! The log method needs two parameters - a message and the severity level
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: log_
+!
+!> @brief Low level logging routine.
+!   
+!> @details
+!! Low level logging routine which creates a LogRecord and then calls the
+!! appropriate handler of this logger to handle the record.
+!! The log method needs two parameters - a message and the severity level
+!---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_ArgListUtilities_mod
@@ -265,14 +256,19 @@ contains
    end subroutine log_
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! log
-   !
-   ! DESCRIPTION: 
-   ! Log a message with default severity level or altenatively as specified
-   ! in optional input argument 'level'.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: log
+!
+!> @brief Default logging routine.
+!   
+!> @details
+!! Log a message with default severity level or altenatively as specified
+!! in optional input argument 'level'.
+!> @note
+!! Convenience methods: debug, info, warning, error, critical
+!! These methods are identical to the log method except that you don’t have
+!! to specify the level, because the level is implicit in the name.  
+!---------------------------------------------------------------------------
    subroutine log(this, level, message, ARG_LIST)
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
@@ -294,17 +290,11 @@ contains
    end subroutine log
 
 
-   ! Convenience methods follow - debug, info, warning, error, critical
-   ! These methods are identical to the log method except that you don’t have
-   ! to specify the level, because the level is implicit in the name.
-   
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! debug
-   !
-   ! DESCRIPTION: 
-   ! Log a message with severity level DEBUG.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: debug
+!
+!> @brief Log a message with severity level DEBUG.
+!---------------------------------------------------------------------------
    subroutine debug(this, message, ARG_LIST)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
@@ -317,13 +307,11 @@ contains
    end subroutine debug
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! info
-   !
-   ! DESCRIPTION: 
-   ! Log a message with severity level INFO.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: info
+!
+!> @brief Log a message with severity level INFO.
+!---------------------------------------------------------------------------
    subroutine info(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -335,13 +323,11 @@ contains
    end subroutine info
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! warning
-   !
-   ! DESCRIPTION: 
-   ! Log a message with severity level WARNING.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: warning
+!
+!> @brief Log a message with severity level WARNING.
+!---------------------------------------------------------------------------
    subroutine warning(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -353,13 +339,11 @@ contains
    end subroutine warning
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! error
-   !
-   ! DESCRIPTION: 
-   ! Log a message with severity level ERROR.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: error
+!
+!> @brief Log a message with severity level ERROR.
+!---------------------------------------------------------------------------
    subroutine error(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -371,13 +355,11 @@ contains
    end subroutine error
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! critical
-   !
-   ! DESCRIPTION: 
-   ! Log a message with severity level CRITICAL.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: critical
+!
+!> @brief Log a message with severity level CRITICAL.
+!---------------------------------------------------------------------------
    subroutine critical(this, message, ARG_LIST)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -389,13 +371,11 @@ contains
    end subroutine critical
 
    
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! getHandlers
-   !
-   ! DESCRIPTION: 
-   ! Get handlers pointer associated with this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: getHandlers
+!
+!> @brief Get handlers pointer associated with this logger.
+!---------------------------------------------------------------------------
    function getHandlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
       type (HandlerVector), pointer :: handlers
@@ -405,13 +385,11 @@ contains
    end function getHandlers
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! setLevel
-   !
-   ! DESCRIPTION: 
-   ! Set the logging level of this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: setLevel
+!
+!> @brief Set the logging level of this logger.
+!---------------------------------------------------------------------------
    subroutine setLevel(this, level)
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level      
@@ -421,13 +399,11 @@ contains
    end subroutine setLevel
 
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getLevel
-   !
-   ! DESCRIPTION: 
-   ! Get the logging level of this logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: getLevel
+!
+!> @brief Get the logging level of this logger.
+!---------------------------------------------------------------------------
    function getLevel(this) result(level)
       class (Logger), intent(inout) :: this
       integer :: level
