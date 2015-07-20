@@ -50,7 +50,7 @@ contains
    ! newStreamHandler
    !
    ! DESCRIPTION: 
-   ! Instatiate a stream handler. If uit is not specified use OUTPUT_UNIT.
+   ! Instantiate a stream handler. If unit is not specified use OUTPUT_UNIT.
    ! OUTPUT_UNIT is defined by iso_fortran_env to be STDOUT (unit=6).
    !---------------------------------------------------------------------------
    function newStreamHandler(unit, level) result(handler)
