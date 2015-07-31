@@ -24,6 +24,6 @@
       include 'write_to_buffer.inc'
    type is (character(len=*))
       include 'write_to_buffer.inc'
-      class default
+   class default
       intrinsic = .false.
    end select

@@ -5,6 +5,7 @@ set(THIS logger)
 
 set(SRCS
    StringUtilities.F90
+   String.F90
    AbstractFilter.F90
    AbstractHandler.F90
    AbstractLogger.F90

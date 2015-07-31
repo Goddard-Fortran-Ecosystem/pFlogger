@@ -169,10 +169,11 @@ contains
    ! This function is used by format to deal with all unlimited polymorphic
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
-   function handleScalar(arg, fmt) result(string)
+   function handleScalar(arg, fmt) result(str)
       use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
-      character(len=:), allocatable :: string
+      use ASTG_String_mod
+      character(len=:), allocatable :: str
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
 
@@ -184,7 +185,17 @@ contains
       call buffer%allocate()
       do while (iostat /= 0)
 
-         include 'write_if_intrinsic.inc'
+         select type (arg)
+         type is (String)
+            if (fmt == LIST_DIRECTED_FORMAT) then
+               write(buffer%buffer,*,iostat=iostat) arg%str
+            else
+               write(buffer%buffer,'(' // fmt // ')',iostat=iostat) arg%str
+            end if
+            intrinsic = .true.
+         class default
+            include 'write_if_intrinsic.inc'
+         end select
 
          if (.not. intrinsic) then ! try wrapped array
             select type (arg)
@@ -216,12 +227,12 @@ contains
          
          ! unrecoverable iostat
          call throw('FormatString::format*() - bad format "'//fmt//'"')
-         string=''
+         str=''
          return
          
       end do
 
-      string = buffer%concatenate()
+      str = buffer%concatenate()
 
    end function handleScalar
 

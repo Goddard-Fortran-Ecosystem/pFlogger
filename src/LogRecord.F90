@@ -19,6 +19,7 @@ module ASTG_LogRecord_mod
    use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
+   use ASTG_String_mod
    implicit none
    private
 
@@ -85,11 +86,19 @@ contains
       end if
 
       call rec%extra%insert('level', level)
+#ifdef __GFORTRAN__
+      call rec%extra%insert('name', String(name))
+#else
       call rec%extra%insert('name', name)
+#endif
 
       levelName = levelToString(level)
       ! Compiler workarounds
+#ifdef __GFORTRAN__
+      call rec%extra%insert('levelName', String(levelName))
+#else
       call rec%extra%insert('levelName', levelName)
+#endif
       call fillDateAndTime(rec)
 
    end function newLogRecord
@@ -213,6 +222,7 @@ contains
    subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
@@ -236,9 +246,17 @@ contains
       end if
 
       call rec%extra%insert('level', level)
+#ifdef __GFORTRAN__
+      call rec%extra%insert('name', String(name))
+#else
       call rec%extra%insert('name', name)
+#endif
       levelName = levelToString(level)
+#ifdef __GFORTRAN__
+      call rec%extra%insert('levelName', String(levelName))
+#else
       call rec%extra%insert('levelName', levelName)
+#endif
       
       call fillDateAndTime(rec)
       

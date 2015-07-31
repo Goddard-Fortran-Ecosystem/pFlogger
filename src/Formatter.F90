@@ -133,6 +133,7 @@ contains
       use ASTG_FormatString_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
+      use ASTG_String_mod
 
       character(len=:), allocatable :: logMessage
       character(len=:), allocatable :: asctime
@@ -146,7 +147,11 @@ contains
       call extra%deepCopy(record%extra)
       msg = record%getMessage()
 
+#ifdef __GFORTRAN__
+      call extra%insert('message', String(msg))
+#else
       call extra%insert('message', msg)
+#endif
       if(this%usesTime()) then
          if (allocated(this%datefmt)) then
             asctime = this%formatTime(record, datefmt=this%datefmt)
