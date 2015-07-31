@@ -1,7 +1,7 @@
 # CMakeLists.txt for logger tests
 
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS loggerTests)
+set(THIS logger_tests)
 
 # Pre-process pf files
 file(GLOB pfSources "*.pf")
@@ -54,8 +54,7 @@ set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 
 set_source_files_properties(
    ${TEST_SRCS}
-   PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
-   GENERATED TRUE
+   PROPERTIES GENERATED TRUE
 )
 
 include_directories(
@@ -74,7 +73,7 @@ target_link_libraries(${THIS}
    pfunit
 )
 
-set(EXE ${THIS}.x)
+set(EXE tests.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
 target_link_libraries(${EXE} ${THIS} logger pfunit)
 

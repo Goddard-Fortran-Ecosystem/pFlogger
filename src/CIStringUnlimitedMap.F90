@@ -1,3 +1,14 @@
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+!*MODULE: ASTG_CIStringUnlimitedMap_mod
+!
+!> @brief Case insensitive unlimited polymorphic map.
+!
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
+!------------------------------------------------------------------------------
 module  ASTG_CIStringUnlimitedMap_mod
 #define _key_string_deferred
 #define _key_equal_defined

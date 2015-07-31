@@ -2,17 +2,12 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_AbstractLogger_mod
+!*MODULE: ASTG_AbstractLogger_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief AbstractLogger class provides common code to use in Logger class.
 !
-! DESCRIPTION:
-!> @brief
-!> AbstractLogger class provides common code to use in Logger class.
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_AbstractLogger_mod
    use ASTG_Filterer_mod
@@ -33,13 +28,11 @@ module ASTG_AbstractLogger_mod
 contains
 
 
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! setParent
-   !
-   ! DESCRIPTION: 
-   ! Set parent for 'this' logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*ROUTINE: setParent
+!
+!> @brief Set parent for 'this' logger.
+!---------------------------------------------------------------------------
    subroutine setParent(this, parent)
       class (AbstractLogger), intent(inout) :: this
       class (AbstractLogger), target, intent(in) :: parent
@@ -49,13 +42,11 @@ contains
    end subroutine setParent
 
    
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getParent
-   !
-   ! DESCRIPTION: 
-   ! Get parent of "this" logger.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: getParent
+!
+!> @brief Get parent of "this" logger.
+!---------------------------------------------------------------------------
    function getParent(this) result(parent)
       class (AbstractLogger), pointer :: parent
       class (AbstractLogger), intent(in) :: this

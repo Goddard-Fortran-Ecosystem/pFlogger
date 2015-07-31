@@ -1,8 +1,17 @@
-!-----------------------------------------------------------------------
-! Note that FormatParser exposes more methods than is desirable for
-! encapsulation.  E.g. get/set buffer.  But this exposure is extremely
-! useful for unit testing, which has a higher priority.
-!-----------------------------------------------------------------------
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
+!
+!*MODULE: ASTG_FormatParser_mod
+!
+!> @brief Format parser classes and functions.
+!> @note  FormatParser exposes more methods than is desirable for
+!! encapsulation.  E.g. get/set buffer.  But this exposure is extremely
+!! useful for unit testing, which has a higher priority.
+!
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
+!------------------------------------------------------------------------------
 module ASTG_FormatParser_mod
    use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
    use ASTG_FormatToken_mod, only: FormatToken

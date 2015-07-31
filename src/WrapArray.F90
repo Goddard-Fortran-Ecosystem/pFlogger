@@ -1,16 +1,23 @@
 !---------------------------------------------------------------------
-! This module enables the encapsulation of arrays as scalars for
-! processing with Formatters.
+!*MODULE: ASTG_WrapArray_mod
 !
-! NOTE: that with Gfortran 5.1, incorrect results will be obtained
-! if a literal (as opposed to a variable) is passed to wrapArray()
+!> @brief Encapsulation of arrays as scalars.
+!> @details
+!! This module enables the encapsulation of arrays as scalars for
+!! processing with Formatters.
+!!
+!! NOTE: that with Gfortran 5.1, incorrect results will be obtained
+!! if a literal (as opposed to a variable) is passed to wrapArray()
+!!
+!! Also note: the 2003 standard permits a much cleaner implementation
+!! here, by reshaping all arrays to 1D.  This would eliminate a
+!! significant amount of code in FormatString.  Unfortunately,
+!! GFortran 5.1 has compiletime and runtime issues with all variants of
+!! this concept.  Thus, we are left with a separate type for each array
+!! rank
 !
-! Also note: the 2003 standard permits a much cleaner implementation
-! here, by reshaping all arrays to 1D.  This would eliminate a
-! significant amount of code in FormatString.  Unfortunately,
-! GFortran 5.1 has compiletime and runtime issues with all variants of
-! this concept.  Thus, we are left with a separate type for each array
-! rank
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
 ! ---------------------------------------------------------------------
 
 module ASTG_WrapArray_mod

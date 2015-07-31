@@ -2,17 +2,12 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_SeverityLevels_mod
+!*MODULE: ASTG_SeverityLevels_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief Specify severity levels used to logging messages.
 !
-! DESCRIPTION:
-!> @brief
-!> Specify severity levels used to logging messages.
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
    use ASTG_Exception_mod

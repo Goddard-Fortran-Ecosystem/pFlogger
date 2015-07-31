@@ -2,19 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_PlaceHolder_mod
+!*MODULE: ASTG_PlaceHolder_mod
 !
-!> @author 
-!> ASTG staff
-!
-! DESCRIPTION:
-!> @brief
+!> @details
 !> Instances of this class are used to take the place of 'nodes' for which
 !> no logger has been defined.
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
-! TODO: Is this class necessary?
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
+!> @todo Is this class necessary?
 !------------------------------------------------------------------------------
 module ASTG_Placeholder_mod
    use ASTG_CIStringAbstractLoggerPolyMap_mod, only: LoggerMap => Map

@@ -2,17 +2,12 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_FileHandler_mod
+!*MODULE: ASTG_FileHandler_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief A handler class which writes logging events to disk files
 !
-! DESCRIPTION:
-!> @brief
-!> A handler class which writes logging events to disk files
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO

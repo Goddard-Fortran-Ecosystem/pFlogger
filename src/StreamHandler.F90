@@ -2,18 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_StreamHandler_mod
+!*MODULE: ASTG_StreamHandler_mod
 !
-!> @author 
-!> ASTG staff
-!
-! DESCRIPTION:
-!> @brief
+!> @brief Write logging event to a stream.
+!> @details
 !> A handler class which writes logging events to a stream, e.g. STDOUT
 !> Note that this class does not close the stream.
 !
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_StreamHandler_mod
    use iso_fortran_env, only: OUTPUT_UNIT
@@ -50,7 +47,7 @@ contains
    ! newStreamHandler
    !
    ! DESCRIPTION: 
-   ! Instatiate a stream handler. If uit is not specified use OUTPUT_UNIT.
+   ! Instantiate a stream handler. If unit is not specified use OUTPUT_UNIT.
    ! OUTPUT_UNIT is defined by iso_fortran_env to be STDOUT (unit=6).
    !---------------------------------------------------------------------------
    function newStreamHandler(unit, level) result(handler)

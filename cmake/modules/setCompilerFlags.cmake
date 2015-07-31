@@ -5,9 +5,11 @@ if (DEFINED ENV{PFUNIT})
    link_directories($ENV{PFUNIT}/lib)
    set(CPPFLAGS -DUSE_PFUNIT)
    set(PFUNIT $ENV{PFUNIT})
-   message(STATUS "PFUNIT is set to $ENV{PFUNIT}") 
+   message(STATUS " +++ PFUNIT is set to $ENV{PFUNIT}") 
 else()
-   message(WARNING "PFUNIT is NOT set!")
+   message(STATUS " +++ PFUNIT is NOT set. PFUNIT is needed for code development.")
+   message(STATUS " +++ Example: export PFUNIT=/myLibraries/pFUnit")
+
 endif()
 
 # Intel compiler flags
@@ -19,33 +21,28 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
    string(REGEX REPLACE "^.*[ ]([0-9]+)\\.[0-9].*$" "\\1" IFORT_MAJOR "${ver}")
    if (${IFORT_MAJOR} MATCHES 14)
       set(CPPFLAGS "${CPPFLAGS} -DINTEL_14 -cpp")
+   else()
+      set(CPPFLAGS "${CPPFLAGS} -cpp")
    endif()
 
-   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CPPFLAGS} \
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3 \
       -free -assume realloc_lhs -stand f08")
-   if (CMAKE_BUILD_TYPE MATCHES Debug)
-      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} \
-         -O0 -traceback -g -check uninit")
-   endif()
+   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -g -traceback \
+      -check uninit -free -assume realloc_lhs -stand f08")
 
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
-   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${CPPFLAGS} \
-      -cpp -ffree-line-length-none")
-   if (CMAKE_BUILD_TYPE MATCHES Debug)
-      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} \
-         -O0 -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -g")
-   endif()
+   set(CPPFLAGS "${CPPFLAGS} -cpp")
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
+   set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -ffpe-trap=invalid,zero,overflow -finit-real=snan")
 
 # NAG compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
 
-   set (CPPFLAGS "${CPPFLAGS} -fpp -D__NAG__")
-   set(CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} ${CPPFLAGS}" )
-   if (CMAKE_BUILD_TYPE MATCHES Debug)
-      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O0")
-   endif()
+   set (CPPFLAGS "${CPPFLAGS} -fpp")
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
+   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline")
 
 else()
 

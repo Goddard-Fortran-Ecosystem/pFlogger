@@ -50,11 +50,5 @@ set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 include_directories (${FTL}/include)
-
-set_source_files_properties (
-   ${SRCS}
-   PROPERTIES COMPILE_FLAGS 
-   "${CMAKE_Fortran_FLAGS}"
-)
 add_library (${THIS} STATIC ${SRCS})
 

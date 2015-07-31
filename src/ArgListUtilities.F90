@@ -2,17 +2,12 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_ArgListUtilities_mod
+!*MODULE: ASTG_ArgListUtilities_mod
 !
-!> @author 
-!> ASTG staff
+!> @brief Utilities used to deal with unlimited polymorphic entities.
 !
-! DESCRIPTION:
-!> @brief
-!> Utilities used to deal with unlimited polymorphic entities.
-!
-! REVISION HISTORY:
-! 01 Jan 2015 - Initial Version
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module ASTG_ArgListUtilities_mod
    implicit none
@@ -24,14 +19,14 @@ module ASTG_ArgListUtilities_mod
 
 contains
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! makeArgVector
-   !
-   ! DESCRIPTION: 
-   ! This function bundles alist of optional arguments into a vector container
-   ! of unlimited polymorphic entities.
-   !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------  
+!*FUNCTION: makeArgVector
+!
+!> @brief Budle optional arguments into a vector.   
+!> @details
+!> This function bundles a list of optional arguments into a vector container
+!> of unlimited polymorphic entities.
+!---------------------------------------------------------------------------
    function makeArgVector(ARG_LIST) result(args)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       type (UnlimitedVector) :: args

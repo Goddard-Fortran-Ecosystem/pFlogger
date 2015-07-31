@@ -1,2 +1,4 @@
-add_subdirectory(basicLogging)
-add_subdirectory(mpiLogging)
+add_subdirectory(serial)
+if (MPI)
+   add_subdirectory(mpi)
+endif()

@@ -1,15 +1,24 @@
-!---------------------------------------------------------------------------
-! This module imitates the Python "%" operator for formatting strings.
-! There are two cases:
+!------------------------------------------------------------------------------
+! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
+!------------------------------------------------------------------------------
 !
-!    str = fmtSpec  .fmt.    <map>
+!*MODULE: ASTG_FormatString_mod
 !
-!  and
+!> @brief Format strings specified by formatter.
+!> @details
+!! This module imitates the Python "%" operator for formatting strings.
+!! There are two cases:
+!!
+!!    str = fmtSpec  .fmt.    <map>
+!!
+!!  and
+!!
+!!    str = fmtSpec  .fmt.    <vector>
+!!
+!!  The former uses keywords, and the latter uses position arguments.
 !
-!    str = fmtSpec  .fmt.    <vector>
-!
-!  The former uses keywords, and the latter uses position arguments.
-!  
+!> @author ASTG staff
+!> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
 module ASTG_FormatString_mod
    use ASTG_FormatParser_mod
