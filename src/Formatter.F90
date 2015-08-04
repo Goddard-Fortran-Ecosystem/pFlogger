@@ -158,11 +158,16 @@ contains
          else
             asctime = this%formatTime(record)
          end if
+#ifdef __GFORTRAN__
+         call extra%insert('asctime', String(asctime))
+#else
          call extra%insert('asctime', asctime)
+#endif
       end if
       logMessage = FormatString(this%fmt, extra)
     
    end function format
+
 
 
    !---------------------------------------------------------------------------  
