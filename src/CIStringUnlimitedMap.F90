@@ -18,7 +18,7 @@ module  ASTG_CIStringUnlimitedMap_mod
 #define _value_polymorphic
 #define _value_equal_defined
 
-
+#define _alt
 #include "templates/map.inc"
 
    logical function caseInsensitiveLessThan(x,y) result(less)
