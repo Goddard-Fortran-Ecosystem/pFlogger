@@ -18,6 +18,10 @@ contains
       manager = LoggerManager()
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('B')
+      ! might invalidate loggerA, as the underlying vector resizes()
+
+      loggerA => manager%getLogger('A')
+      loggerB => manager%getLogger('B')
 
       @assertEqual('A', loggerA%getName())
       @assertEqual('B', loggerB%getName())
