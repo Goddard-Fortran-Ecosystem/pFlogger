@@ -14,7 +14,7 @@
 #  export PFUNIT=/mypath/pFUnit_serial
 #
 #  cmake -DMPI=NO ..  : build/run serial tests ONLY
-#  cmake -DMPI=YES .. : build/run mpi tests ONLY
+#  cmake -DMPI=YES .. : build/run serial and mpi tests
 #
 #  unset PFUNIT 
 #  
