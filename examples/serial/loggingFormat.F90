@@ -26,7 +26,7 @@ program loggingFormat
    
    ! Change the output format. Now the output will simply display
    ! <MESSAGE> rather than <LEVEL: NAME: MESSAGE>.
-   call stdout%setFormatter(Formatter('%(message::a)'))
+   call stdout%setFormatter(Formatter('%(message)a'))
    ! addHandler associates (creates a copy) stdout with logger
    call log%addHandler(stdout)
    
@@ -40,20 +40,20 @@ program loggingFormat
 
    ! removeHandler disassociates stdout with logger
    call log%removeHandler(stdout) 
-   call stdout%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
-      datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2) %(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call stdout%setFormatter(Formatter(fmt='%(asctime)a %(message)a', &
+      datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2~ %(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2'))
    call log%addHandler(stdout)
 
    print *,'---DATE, TIME and MESSAGE---'
    call log%info('Date, time and message')
    
-   ! Change the output format. Will use %(asctime::) attribute to set
+   ! Change the output format. Will use %(asctime)) attribute to set
    ! a new date format:
 
    ! removeHandler disassociates stdout with logger
    call log%removeHandler(stdout)
-   call stdout%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
-                         datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call stdout%setFormatter(Formatter(fmt='%(asctime)a %(message)a', &
+                         datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2'))
    call log%addHandler(stdout)
 
    print *,'---TIME and MESSAGE---'
@@ -65,13 +65,13 @@ program loggingFormat
    call log%addHandler(stdout)
 
    print *,'---MESSAGE and real numbers ---'
-   call log%info('e is %(g20.11) and Pi is %(g20.14)', &
+   call log%info('e is %g20.11 and Pi is %g20.14', &
         arg1=2.718281828459, arg2=4.d0*datan(1.d0))
 
    i = 13; j = 7   
    call random_number(T)
    print *,'---MESSAGE combining integers and reals---'
-   call log%info('Temperature at (%(i2),%(i1)) is %(f8.4)', &
+   call log%info('Temperature at (%i2~,%i1~) is %f8.4', &
         arg1=i,arg2=j,arg3=T(i,j)*100)
    
    print *,'---DONE---'
@@ -83,21 +83,21 @@ program loggingFormat
 
    ! change default info level to debug level
    call logfile%setLevel(DEBUG)
-   call logfile%setFormatter(Formatter('%(message::a)'))
+   call logfile%setFormatter(Formatter('%(message)a'))
    call log%addHandler(logfile)
    
    call log%setLevel(DEBUG)
    call log%info('Message only')
 
    call log%removeHandler(logfile) 
-   call logfile%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
-      datefmt='%(Y::i4.4)-%(M::i2.2)-%(D::i2.2) %(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call logfile%setFormatter(Formatter(fmt='%(asctime)a %(message)a', &
+      datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2~ %(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2'))
    call log%addHandler(logfile)
    call log%info('Date, time and message')
    
    call log%removeHandler(logfile)
-   call logfile%setFormatter(Formatter(fmt='%(asctime::a) %(message::a)', &
-                         datefmt='%(HH::i2.2)-%(MM::i2.2)-%(SS::i2.2)'))
+   call logfile%setFormatter(Formatter(fmt='%(asctime)a %(message)a', &
+                         datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2'))
    call log%addHandler(logfile)
    call log%info('time and message')
 
@@ -105,12 +105,12 @@ program loggingFormat
    call logfile%setFormatter(Formatter())
    call log%addHandler(logfile)
 
-   call log%info('e is %(g20.11) and Pi is %(g20.14)', &
+   call log%info('e is %g20.11 and Pi is %g20.14', &
         arg1=2.718281828459, arg2=4.d0*datan(1.d0))
 
    i = 13; j = 7   
    call random_number(T)
-   call log%info('Temperature at (%(i2),%(i1)) is %(f8.4)', &
+   call log%info('Temperature at (%i2~,%i1~) is %f8.4', &
         arg1=i,arg2=j,arg3=T(i,j)*100)
 
    print*, "---DONE WITH FILE LOGGING---"
