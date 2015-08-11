@@ -42,11 +42,12 @@ program basicLogging
    call log%critical('CFL criterion violated. Program will abort.')
 
    ! To diagnose problems, change log level to lower level DEBUG
-   ! 1) remove the handlers
+   ! 1) remove the handlers and close the open logfiles
    ! 2) create new ones to go lower level
    ! 3) the first step can be ignored if there is no handlers in the que.
 
    ! 1)
+   call logfile%close()
    call log%removeHandler(stdout)
    call log%removeHandler(logfile)
    ! 2)
