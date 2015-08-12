@@ -55,9 +55,6 @@ include(setCompilerFlags)
 
 add_subdirectory(doc)
 add_subdirectory(src)
-if (PFUNIT)
-   add_subdirectory(tests)
-else()
-   add_subdirectory(examples)
-endif()
+add_subdirectory(tests)
+add_subdirectory(examples)
 
