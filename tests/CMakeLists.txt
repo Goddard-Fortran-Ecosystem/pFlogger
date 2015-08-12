@@ -17,6 +17,7 @@ foreach(file ${pfSources})
 endforeach()
 
 set (SRCS
+   initTests.F90
    MockHandler.F90
    MockDateFormat.F90
 )
@@ -72,6 +73,11 @@ target_link_libraries(${THIS}
    logger
    pfunit
 )
+
+add_definitions (-DPFUNIT_EXTRA_INITIALIZE=initTests)
+
+#set_target_properties (${EXE}
+#  PROPERTIES DEFINE_SYMBOL -DPFUNIT_EXTRA_INITIALIZE=initTests )
 
 set(EXE tests.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)

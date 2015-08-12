@@ -15,35 +15,42 @@ module ASTG_Exception_mod
    private
 
    public :: throw
+   public :: setThrowFunPtr
+
+   procedure(throw), pointer :: throwFunPtr => null()
 
 contains
+
 
 !---------------------------------------------------------------------------  
 !*ROUTINE: throw
 !
 !> @brief Throws exception with explanation for the error.
 !---------------------------------------------------------------------------
-#ifdef USE_PFUNIT
 
    subroutine throw(message)
-      use pFUnit_mod, only: pf_throw => throw
       character(len=*), intent(in) :: message
 
-      call pf_throw(message)
+      if (.not. associated(throwFunPtr)) then
+         throwFunPtr => printAndStop
+      end if
+
+      call throwFunPtr(message)
       
    end subroutine throw
 
-#else
-
-   subroutine throw(message)
+   subroutine printAndStop(message)
       use iso_fortran_env, only: OUTPUT_UNIT
       character(len=*), intent(in) :: message
 
       write(OUTPUT_UNIT,*) message
-      stop
+      stop 1
       
-   end subroutine throw
+   end subroutine printAndStop
 
-#endif
+   subroutine setThrowFunPtr(ptr)
+      procedure(throw) :: ptr
+      throwFunPtr => ptr
+   end subroutine setThrowFunPtr
 
 end module ASTG_Exception_mod
