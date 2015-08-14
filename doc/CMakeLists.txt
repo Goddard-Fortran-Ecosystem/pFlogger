@@ -10,9 +10,11 @@ find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
 
 # Temporary for DISCOVER.
-if (LINUX)
-   set(DOXYGEN_EXECUTABLE /usr/local/other/SLES11.3/doxygen/1.8.9.1/gcc-4.6.3-sp3/bin/doxygen)
-   set(DOXYGEN_FOUND TRUE)
+if(NOT DOXYGEN_FOUND)
+    if (LINUX)
+        set(DOXYGEN_EXECUTABLE /usr/local/other/SLES11.3/doxygen/1.8.9.1/gcc-4.6.3-sp3/bin/doxygen)
+        set(DOXYGEN_FOUND TRUE)
+    endif()
 endif()
 
 if(BUILD_DOCUMENTATION)
@@ -25,7 +27,7 @@ if(BUILD_DOCUMENTATION)
 
     configure_file(${doxyfile_in} ${doxyfile} @ONLY)
 
-    add_custom_target(doc
+    add_custom_target(doc ALL
         COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
