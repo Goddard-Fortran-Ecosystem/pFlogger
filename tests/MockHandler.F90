@@ -32,11 +32,13 @@ module MockHandler_mod
 contains
 
    function newMockHandler(buffer, level) result(handler)
+      use ASTG_Formatter_mod
       type (MockHandler) :: handler
       type (MockBuffer), target, intent(in) :: buffer
       integer, optional, intent(in) :: level
 
       handler%buffer => buffer
+      call handler%setFormatter(Formatter('%(message)a'))
       if (present(level)) call handler%setLevel(level)
 
    end function newMockHandler
@@ -46,7 +48,7 @@ contains
       class (MockHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
 
-      this%buffer%buffer = record%getMessage()
+      this%buffer%buffer = this%format(record)
       
    end subroutine emitMessage
 

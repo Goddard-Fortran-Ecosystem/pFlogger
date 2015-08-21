@@ -235,6 +235,7 @@ contains
       rec%name = name
       rec%level = level
       rec%messageFormat = messageFormat
+      if (present(extra)) print*,'extra '
       if (present(args)) then
          rec%args = args
       else

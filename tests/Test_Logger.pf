@@ -321,7 +321,7 @@ contains
 
    end subroutine test_doFilter_off
 
-
+   @test
    subroutine test_doFilter_on(this)
       use iso_fortran_env, only: IOSTAT_END
       use ConfigurableFilter_mod
@@ -330,9 +330,30 @@ contains
       call this%basicLogger%addFilter(ConfigurableFilter(.true.))
       call this%basicLogger%warning('hello')
 
-      @assertEqual('', this%mockBuffer%buffer)
+      @assertEqual('hello', this%mockBuffer%buffer)
 
    end subroutine test_doFilter_on
+
+   @test
+   subroutine test_extra(this)
+      use ASTG_Formatter_mod
+      use ASTG_CIStringUnlimitedMap_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (map) :: extra
+      type (Logger) :: lgr
+      type (MockHandler) :: h
+
+      call extra%insert('option', 1)
+
+      lgr = Logger('A')
+      h = MockHandler(this%mockBuffer)
+      call h%setFormatter(Formatter('%(option)i1.1'))
+      call lgr%addHandler(h)
+      call lgr%info('test_info', extra=extra)
+      @assertEqual('1', this%mockBuffer%buffer)
+
+   end subroutine test_extra
 
 
 

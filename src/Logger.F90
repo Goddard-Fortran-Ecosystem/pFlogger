@@ -30,6 +30,7 @@ module ASTG_Logger_mod
    use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use ASTG_LogRecord_mod
+   use ASTG_CIStringUnlimitedMap_mod
    implicit none
    private
 
@@ -68,6 +69,9 @@ module ASTG_Logger_mod
 
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
+
+   type Unusable
+   end type Unusable
 contains
 
    
@@ -187,18 +191,20 @@ contains
 !
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
-   subroutine makeRecord(this, record, level, message, args)
+   subroutine makeRecord(this, record, level, message, unused, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
+      type(Unusable), optional, intent(in) :: unused
       type (UnlimitedVector), optional, intent(in) :: args
+      type (map), optional, intent(in) :: extra
 
       character(len=:), allocatable :: name
 
       name = this%getName()
-      call initLogRecord(record, name, level, message, args=args)
+      call initLogRecord(record, name, level, message, args=args, extra=extra)
       
    end subroutine makeRecord
 
@@ -226,19 +232,21 @@ contains
 !! appropriate handler of this logger to handle the record.
 !! The log method needs two parameters - a message and the severity level
 !---------------------------------------------------------------------------
-   subroutine log_(this, level, message, ARG_LIST)
+   subroutine log_(this, level, message, ARG_LIST, unused, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
       
       type (UnlimitedVector) :: args
       type (LogRecord) :: record
 
       args = makeArgVector(ARG_LIST)
-      call this%makeRecord(record, level, message, args)
+      call this%makeRecord(record, level, message, args=args, extra=extra)
 
       if (this%doFilter(record)) then
          call this%emit(record)
@@ -277,12 +285,14 @@ contains
 !! These methods are identical to the log method except that you don’t have
 !! to specify the level, because the level is implicit in the name.  
 !---------------------------------------------------------------------------
-   subroutine log(this, level, message, ARG_LIST)
+   subroutine log(this, level, message, ARG_LIST, unused, extra)
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, optional, intent(in) :: level     
       include 'recordOptArgs.inc'
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
       
       integer :: level_
 
@@ -303,14 +313,16 @@ contains
 !
 !> @brief Log a message with severity level DEBUG.
 !---------------------------------------------------------------------------
-   subroutine debug(this, message, ARG_LIST)
+   subroutine debug(this, message, ARG_LIST, unused, extra)
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
 
       if (this%isEnabledFor(DEBUG_LEVEL)) &
-         call this%log_(DEBUG_LEVEL, message, ARG_LIST)
+         call this%log_(DEBUG_LEVEL, message, ARG_LIST, extra=extra)
 
    end subroutine debug
 
@@ -320,13 +332,15 @@ contains
 !
 !> @brief Log a message with severity level INFO.
 !---------------------------------------------------------------------------
-   subroutine info(this, message, ARG_LIST)
+   subroutine info(this, message, ARG_LIST, unused, extra)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
 
       if (this%isEnabledFor(INFO_LEVEL)) &
-           call this%log_(INFO_LEVEL, message, ARG_LIST)
+           call this%log_(INFO_LEVEL, message, ARG_LIST, extra=extra)
 
    end subroutine info
 
@@ -336,13 +350,15 @@ contains
 !
 !> @brief Log a message with severity level WARNING.
 !---------------------------------------------------------------------------
-   subroutine warning(this, message, ARG_LIST)
+   subroutine warning(this, message, ARG_LIST, unused, extra)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
       
       if (this%isEnabledFor(WARNING_LEVEL)) &
-           call this%log_(WARNING_LEVEL, message, ARG_LIST)
+           call this%log_(WARNING_LEVEL, message, ARG_LIST, extra=extra)
 
    end subroutine warning
 
@@ -352,13 +368,15 @@ contains
 !
 !> @brief Log a message with severity level ERROR.
 !---------------------------------------------------------------------------
-   subroutine error(this, message, ARG_LIST)
+   subroutine error(this, message, ARG_LIST, unused, extra)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
       
       if (this%isEnabledFor(ERROR_LEVEL)) &
-           call this%log_(ERROR_LEVEL, message, ARG_LIST)
+           call this%log_(ERROR_LEVEL, message, ARG_LIST, extra=extra)
 
    end subroutine error
 
@@ -368,13 +386,15 @@ contains
 !
 !> @brief Log a message with severity level CRITICAL.
 !---------------------------------------------------------------------------
-   subroutine critical(this, message, ARG_LIST)
+   subroutine critical(this, message, ARG_LIST, unused, extra)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
+      type(Unusable), optional, intent(in) :: unused
+      type (map), optional, intent(in) :: extra
       
       if (this%isEnabledFor(CRITICAL_LEVEL)) &
-           call this%log_(CRITICAL_LEVEL, message, ARG_LIST)
+           call this%log_(CRITICAL_LEVEL, message, ARG_LIST, extra=extra)
 
    end subroutine critical
 
