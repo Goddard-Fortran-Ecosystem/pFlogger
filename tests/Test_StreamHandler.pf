@@ -5,6 +5,7 @@ module Test_StreamHandler_mod
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod
    use MockDateFormat_mod
+   use ASTG_AbstractFilter_mod
    implicit none
 
 @TestCase
@@ -15,6 +16,14 @@ module Test_StreamHandler_mod
       procedure :: setUp   
       procedure :: tearDown 
    end type Test_StreamHandler
+
+
+   type, extends(AbstractFilter) :: LocalFilter
+      logical :: filterOn = .false.
+   contains
+      procedure :: doFilter
+      procedure :: equal
+   end type LocalFilter
 
 contains
 
@@ -130,13 +139,18 @@ contains
       handler = StreamHandler(unit=this%unit)
       call handler%setFormatter(mockdf%f)
       call handler%handle(record)
-!!$      
-!!$      rewind(this%unit)
-!!$      read(this%unit,'(a)') foundMessage
-!!$      @assertEqual('03-04-05 INFO: someRec: '//record%getMessage(), foundMessage)
+      
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      @assertEqual('03-04-05 INFO: someRec: '//record%getMessage(), foundMessage)
       
    end subroutine test_emitBasicWithFormatAndDate
 
+   
+! The python implementation only checks the handler level at
+! within Logger.   Seems that it is better to check in Handler,
+! with possibly a very small bit of overhead.  SHould only matter
+! if there are many handlers and only a few actually emit.
    
 @Test
    subroutine test_handleBelowThreshold(this)
@@ -146,10 +160,12 @@ contains
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
       integer :: iostatus
+      type (LogRecord) :: record
       
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%handle(LogRecord('name', DEBUG, 'hello'))
+      record = LogRecord('name', DEBUG, 'hello')
+      call handler%handle(record)
 
       rewind(this%unit)
       read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
@@ -165,10 +181,12 @@ contains
 
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
+      type (LogRecord) :: record
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      call handler%handle(LogRecord('name', CRITICAL, 'hello'))
+      record = LogRecord('name', CRITICAL, 'hello')
+      call handler%handle(record)
 
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
@@ -229,5 +247,51 @@ contains
 
    end subroutine test_equalDifferentUnit
 
+   ! This next test is to ensure that filtering beyond level checking
+   ! is working in the handler hierarchy.
+   @test
+   subroutine test_doFilter_off(this)
+      use iso_fortran_env, only: IOSTAT_END
+      class (Test_StreamHandler), intent(inout) :: this
+
+      integer :: iostatus
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+      type (LocalFilter) :: f
+      type (LogRecord) :: record
+      
+      handler = StreamHandler(unit=this%unit)
+      call handler%setLevel(INFO)
+      f%filterOn = .false.
+      call handler%addFilter(f)
+      record = LogRecord('name', INFO, 'hello')
+      call handler%handle(record)
+
+      rewind(this%unit)
+      read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_doFilter_off
+
+
+   logical function doFilter(this, record)
+      class (LocalFilter), intent(in) :: this
+      type (LogRecord), intent(inout) :: record
+
+      doFilter = this%filterOn
+   end function doFilter
+
+   logical function equal(a, b)
+      use iso_fortran_env, only: IOSTAT_END
+      class (LocalFilter), intent(in) :: a
+      class (AbstractFilter), intent(in) :: b
+
+      select type (b)
+      class is (LocalFilter)
+         equal = (a%filterOn .eqv. b%filterOn)
+      class default
+         equal = .false.
+      end select
+   end function equal
 
 end module Test_StreamHandler_mod

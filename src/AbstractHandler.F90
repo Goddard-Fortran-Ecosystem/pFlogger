@@ -101,13 +101,15 @@ contains
    !---------------------------------------------------------------------------
    subroutine handle(this, record)
       class(AbstractHandler), intent(inout) :: this
-      type (LogRecord), intent(in) :: record
+      type (LogRecord), intent(inout) :: record
 
       integer :: level
 
       level = record%getLevel()
       if (level >= this%getLevel()) then
-        call this%emitMessage(record)
+         if (this%doFilter(record)) then
+            call this%emitMessage(record)
+         end if
       end if
       
    end subroutine handle

@@ -191,7 +191,6 @@ contains
       open(newunit=unit, file=FILE_NAME, status='unknown')
       close(unit, status='delete')
 
-
    end subroutine test_delay
 
 end module Test_FileHandler_mod
