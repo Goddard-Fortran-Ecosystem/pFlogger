@@ -74,6 +74,7 @@ contains
       unit = h%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
+      close(unit)
 
       @assertEqual('INFO: name: A', foundMessage)
 
