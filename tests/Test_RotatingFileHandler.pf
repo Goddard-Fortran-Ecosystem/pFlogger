@@ -70,9 +70,9 @@ contains
 
       h = RotatingFileHandler('logFile')
       call h%handle(this%record_0)
+      call h%close()
       
-      unit = h%getUnit()
-      rewind(unit)
+      open(newunit=unit, file='logFile', status='old', form='formatted')
       read(unit, '(a)') foundMessage
       close(unit)
 

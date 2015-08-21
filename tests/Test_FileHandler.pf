@@ -8,18 +8,29 @@ module Test_FileHandler_mod
 
 @TestCase
    type, extends(TestCase) :: Test_FileHandler
-      type (FileHandler) :: handler
+      type (LogRecord) :: record
+      type (LogRecord) :: record2
    contains
       procedure :: setUp   
       procedure :: tearDown 
    end type Test_FileHandler
 
+   character(len=*), parameter :: LOG_FILE = 'log.txt'
+
 contains
 
    
    subroutine setUp(this)
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this
-      this%handler = FileHandler('logFile')
+      type (UnlimitedVector) :: args
+
+      call initLogRecord(this%record, "logName", INFO, 'hello')
+
+      args = UnlimitedVector()
+      call args%push_back(1)
+      call initLogRecord(this%record2, "Aname", INFO, 'Goodbye %i1.1', args=args)
+
    end subroutine setUp
 
    
@@ -28,12 +39,9 @@ contains
 
       integer :: unit
 
-      call this%handler%close()
-
       ! delete file
-      open(newunit=unit, file='logFile', status='old')
+      open(newunit=unit, file=LOG_FILE, status='unknown')
       close(unit, status='delete')
-
 
    end subroutine tearDown
 
@@ -43,17 +51,18 @@ contains
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      type (LogRecord) :: record
       character(len=32) :: foundMessage
+      type (FileHandler) :: h
 
-      call initLogRecord(record, "logName", INFO, 'hello')
-      call this%handler%handle(record)
+      h = FileHandler(LOG_FILE)
+      call h%handle(this%record)
+      call h%close()
 
-      unit = this%handler%getUnit()
-      rewind(unit)
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
       read(unit, '(a)') foundMessage
+      close(unit)
 
-      @assertEqual('INFO: logName: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: logName: '//this%record%getMessage(), foundMessage)
 
    end subroutine test_emitBasic
 
@@ -64,52 +73,44 @@ contains
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      type (LogRecord) :: record, r2
       character(len=32) :: foundMessage
-      type (UnlimitedVector) :: args
+      type (FileHandler) :: h
       
-      args = UnlimitedVector()
-      call args%push_back(1)
+      h = FileHandler(LOG_FILE)
+      call h%handle(this%record2)
+      call h%close()
 
-      call initLogRecord(record, 'Aname', INFO, 'Goodbye %i1.1', args=args)
-      call this%handler%handle(record)
-
-      unit = this%handler%getUnit()
-      rewind(unit)
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
       read(unit, '(a)') foundMessage
+      close(unit)
 
-      @assertEqual('INFO: Aname: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: Aname: '//this%record2%getMessage(), foundMessage)
 
    end subroutine test_emitBasicWithFormat
 
 
 @Test
    subroutine test_emitBasicWithFormatter(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
-      type (LogRecord) :: record
       type(Formatter) :: fmt
       character(len=32) :: foundMessage
-      type (UnlimitedVector) :: args
+      type (FileHandler) :: h
       
-      args = UnlimitedVector()
-      call args%push_back(1)
-
       ! Create a logging format
       fmt = Formatter('%(levelName)a~- %(name)a~- %(message)a')
 
-      call this%handler%setFormatter(fmt)
+      h = FileHandler(LOG_FILE)
+      call h%setFormatter(fmt)
+      call h%handle(this%record2)
+      call h%close()
 
-      call initLogRecord(record, "Aname", INFO, 'Goodbye %i1.1', args=args)
-      call this%handler%handle(record)
-
-      unit = this%handler%getUnit()
-      rewind(unit)
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
       read(unit, '(a)') foundMessage
+      close(unit)
 
-      @assertEqual('INFO- Aname- '//record%getMessage(), foundMessage)
+      @assertEqual('INFO- Aname- '//this%record2%getMessage(), foundMessage)
 
    end subroutine test_emitBasicWithFormatter
 
@@ -119,17 +120,20 @@ contains
       use iso_fortran_env, only: IOSTAT_END
       class (Test_FileHandler), intent(inout) :: this
 
-      type (FileHandler) :: handler
-      type (LogRecord) :: record
       character(len=32) :: foundMessage
       integer :: iostatus
+      type (FileHandler) :: h
+      integer :: unit
       
-      call initLogRecord(record, "name", DEBUG, 'hello')
-      call handler%setLevel(DEBUG)
-      call this%handler%handle(record)
 
-      rewind(this%handler%getUnit())
-      read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
+      h = FileHandler(LOG_FILE)
+      call h%setLevel(ERROR)
+      call h%handle(this%record)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)', IOSTAT=iostatus) foundMessage
+      close(unit)
 
       @assertEqual(IOSTAT_END, iostatus)
 
@@ -140,18 +144,21 @@ contains
    subroutine test_emitAboveThreshold(this)
       class (Test_FileHandler), intent(inout) :: this
 
-      type (FileHandler) :: handler
-      type (LogRecord) :: record
+      type (FileHandler) :: h
       character(len=32) :: foundMessage
       integer :: iostatus
+      integer :: unit
       
-      call initLogRecord(record, "logName", ERROR, 'hello')
-      call handler%setLevel(ERROR)
-      call this%handler%handle(record)
+      h = FileHandler(LOG_FILE)
+      call h%setLevel(DEBUG)
+      call h%handle(this%record)
+      call h%close()
 
-      rewind(this%handler%getUnit())
-      read(this%handler%getUnit(),'(a)', IOSTAT=iostatus) foundMessage      
-      @assertEqual('ERROR: logName: '//record%getMessage(), foundMessage)
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)', IOSTAT=iostatus) foundMessage
+      close(unit)
+
+      @assertEqual('INFO: logName: '//this%record%getMessage(), foundMessage)
 
    end subroutine test_emitAboveThreshold
 
@@ -175,14 +182,15 @@ contains
       inquire(file=FILE_NAME, exist=exist)
       @assertFalse(exist)
 
-      call initLogRecord(record, 'me', INFO, 'hello')
-      call handler%handle(record)
+      call handler%handle(this%record)
       inquire(file=FILE_NAME, exist=exist)
       @assertTrue(exist)
       
       call handler%close()
-      open(newunit=unit, file=FILE_NAME, status='old')
+      ! delete file
+      open(newunit=unit, file=FILE_NAME, status='unknown')
       close(unit, status='delete')
+
 
    end subroutine test_delay
 
