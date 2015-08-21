@@ -13,7 +13,7 @@
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_StreamHandler_mod
-   use iso_fortran_env, only: OUTPUT_UNIT
+   use iso_fortran_env, only: ERROR_UNIT
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
    use ASTG_LogRecord_mod
@@ -26,7 +26,7 @@ module ASTG_StreamHandler_mod
 
    type, extends(AbstractHandler) :: StreamHandler
       private
-      integer :: unit = output_unit ! stdout
+      integer :: unit = ERROR_UNIT ! stdout
    contains
       procedure :: emitMessage
       procedure :: close ! noop
@@ -47,29 +47,19 @@ contains
    ! newStreamHandler
    !
    ! DESCRIPTION: 
-   ! Instantiate a stream handler. If unit is not specified use OUTPUT_UNIT.
-   ! OUTPUT_UNIT is defined by iso_fortran_env to be STDOUT (unit=6).
+   ! Instantiate a stream handler. If unit is not specified use ERROR_UNIT.
+   ! ERROR_UNIT is defined by iso_fortran_env.
    !---------------------------------------------------------------------------
-   function newStreamHandler(unit, level) result(handler)
+   function newStreamHandler(unit) result(handler)
       type (StreamHandler) :: handler
       integer, optional, intent(in) :: unit
-      integer, optional, intent(in) :: level
      
-      integer :: level_
-
       if (present(unit)) then
          handler%unit = unit
       else
-         handler%unit = OUTPUT_UNIT
+         handler%unit = ERROR_UNIT
       end if
 
-      if (present (level)) then
-        level_ = level
-      else
-        level_ = INFO
-      end if
-
-      call handler%setLevel(level_)
       call handler%setFormatter(Formatter(BASIC_FORMAT))
       
    end function newStreamHandler

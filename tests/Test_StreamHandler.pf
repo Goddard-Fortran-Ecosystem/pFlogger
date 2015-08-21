@@ -185,8 +185,8 @@ contains
       type (StreamHandler) :: a
       type (StreamHandler) :: b
 
-      a = StreamHandler(unit=this%unit, level=INFO)
-      b = StreamHandler(unit=this%unit, level=INFO)
+      a = StreamHandler(unit=this%unit)
+      b = StreamHandler(unit=this%unit)
 
       @assertTrue(a == b)
       @assertFalse(a /= b)
@@ -202,8 +202,10 @@ contains
       type (StreamHandler) :: a
       type (StreamHandler) :: b
 
-      a = StreamHandler(unit=this%unit, level=INFO)
-      b = StreamHandler(unit=this%unit, level=DEBUG)
+      a = StreamHandler(unit=this%unit)
+      call a%setLevel(INFO)
+      b = StreamHandler(unit=this%unit)
+      call b%setLevel(DEBUG)
 
       @assertFalse(a == b)
       @assertTrue(a /= b)

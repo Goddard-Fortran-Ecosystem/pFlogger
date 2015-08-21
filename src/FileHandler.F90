@@ -14,21 +14,20 @@ module ASTG_FileHandler_mod
    use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod
+   use ASTG_StreamHandler_mod
    implicit none
    private
 
    public :: FileHandler
 
-   type, extends(AbstractHandler) :: FileHandler
+   type, extends(StreamHandler) :: FileHandler
       private
       logical :: isOpen_ = .false.
-      integer :: unit
       character(len=:), allocatable :: fileName
    contains
       procedure :: isOpen
       procedure :: open
       procedure :: close
-      procedure :: flush => flushUnit
       procedure :: setFileName
       procedure :: getFileName
       procedure :: emitMessage
@@ -52,31 +51,23 @@ contains
    ! set a level and a delay. If a delay is set to true then we
    ! don't open the stream.
    !---------------------------------------------------------------------------
-   function newFileHandler(fileName, level, delay) result(handler)
+   function newFileHandler(fileName, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      integer, optional, intent(in) :: level
       logical, optional, intent(in) :: delay
 
-      integer :: level_
       logical :: delay_
       
-      if (present(level)) then
-        level_ = level
-      else
-        level_ = INFO
-      end if
-
       if (present(delay)) then
          delay_ = delay
       else
          delay_ = .false. ! backward compatibility
       end if
 
+      call handler%setFormatter(Formatter(BASIC_FORMAT))
+
       call handler%setFileName(fileName)
       if (.not. delay_) call handler%open()
-      call handler%setLevel(level_)
-      call handler%setFormatter(Formatter(BASIC_FORMAT))
      
    end function newFileHandler
 
@@ -93,8 +84,8 @@ contains
       type(LogRecord), intent(in) :: record
       
       if (.not. this%isOpen()) call this%open()
-      
-      write(this%unit,'(a)') this%format(record)
+
+      call this%StreamHandler%emitMessage(record)
        
    end subroutine emitMessage
 
@@ -117,21 +108,6 @@ contains
 
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! flushUnit
-   !
-   ! DESCRIPTION: 
-   ! Flushes unit currently open for output.
-   !---------------------------------------------------------------------------  
-   subroutine flushUnit(this)
-      class (FileHandler), intent(in) :: this
-      
-      flush(this%unit)
-      
-   end subroutine flushUnit
-
-   
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
    ! open
    !
    ! DESCRIPTION: 
@@ -142,10 +118,13 @@ contains
       integer :: unit
       
       if (this%isOpen()) return
-      open(newunit=this%unit, file=this%getFileName(), &
+
+      open(newunit=unit, file=this%getFileName(), &
            & status='unknown', form='formatted', position='append')
+
       this%isOpen_ = .true.
 
+      this%StreamHandler = StreamHandler(unit)
        
    end subroutine open
 
@@ -161,7 +140,7 @@ contains
       class (FileHandler), intent(inout) :: this
 
       call this%flush()
-      close(this%unit)
+      call this%StreamHandler%close()
       this%isOpen_ = .false.
 
    end subroutine close
@@ -212,8 +191,7 @@ contains
 
       select type (b)
       class is (FileHandler)
-         equal = (a%unit == b%unit) .and. (a%fileName == b%fileName) .and. &
-              & (a%getLevel() == b%getLevel())
+         equal = (a%StreamHandler == b%StreamHandler) .and. (a%fileName == b%fileName)
       class default
          equal = .false.
       end select

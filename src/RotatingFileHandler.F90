@@ -30,9 +30,9 @@ module ASTG_RotatingFileHandler_mod
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
-      integer(int64) :: maxBytes
-      integer :: backupCount
-      logical :: delay
+      integer(int64) :: maxBytes = HUGE(1)
+      integer :: backupCount = 0
+      logical :: delay = .false.
    contains
       procedure :: doRollover
       procedure :: shouldRollover
@@ -42,8 +42,6 @@ module ASTG_RotatingFileHandler_mod
    interface RotatingFileHandler
       module procedure newRotatingFileHandler
    end interface
-
-   integer, save :: fileCount
 
    
 contains
@@ -58,25 +56,17 @@ contains
    ! set maxBytes, backupcount and level. Note maxBytes can be specified
    ! in kb, mb or gb. E.g. maxBytes=100mb.
    !---------------------------------------------------------------------------
-   function newRotatingFileHandler(fileName, maxBytes, backupCount, level, delay) &
+   function newRotatingFileHandler(fileName, maxBytes, backupCount, delay) &
         result(handler)
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       character(len=*), intent(in), optional :: maxBytes
       integer, intent(in), optional :: backupCount
-      integer, intent(in), optional :: level
       logical, intent(in), optional :: delay
       
-      integer :: level_
       integer :: backupCount_
       integer(int64) :: maxBytes_
       logical :: delay_
-
-      if (present(level)) then
-         level_ = level
-      else
-         level_ = INFO
-      end if
 
       if (present(maxBytes)) then
          maxBytes_ = convertNumBytes_(maxBytes)
@@ -94,14 +84,13 @@ contains
       else
          delay_ = .false.
       end if
-      
-      call handler%setFileName(fileName)
-      call handler%open()
-      call handler%setLevel(level_)
+
+      handler%FileHandler = FileHandler(fileName, delay)
+
       handler%maxBytes = maxBytes_
       handler%backupCount = backupCount_
       handler%delay = delay_
-      fileCount = 0
+
       call handler%setFormatter(Formatter(BASIC_FORMAT))
       
    end function newRotatingFileHandler
