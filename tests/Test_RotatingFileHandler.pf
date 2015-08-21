@@ -8,11 +8,16 @@ module Test_RotatingFileHandler_mod
 
 @TestCase
    type, extends(TestCase) :: Test_RotatingFileHandler
-      type (RotatingFileHandler) :: rotHandler0
-      type (RotatingFileHandler) :: rotHandler1
+
+      type (LogRecord) :: record_0
+      type (LogRecord) :: record_1
+      type (LogRecord) :: record_2
+
    contains
+
       procedure :: setUp   
       procedure :: tearDown 
+
    end type Test_RotatingFileHandler
 
 contains
@@ -20,9 +25,11 @@ contains
    
    subroutine setUp(this)
       class (Test_RotatingFileHandler), intent(inout) :: this
-      this%rotHandler0 = RotatingFileHandler('logFile0')
-      this%rotHandler1  = RotatingFileHandler('logFile1',  &
-           maxBytes='30', backupCount=2)
+
+      call initLogRecord(this%record_0, 'name', INFO, 'A')
+      call initLogRecord(this%record_1, 'name', INFO, 'B')
+      call initLogRecord(this%record_2, 'name', INFO, 'C')
+
    end subroutine setUp
 
    
@@ -31,18 +38,22 @@ contains
 
       integer :: unit
 
-      call this%rotHandler0%close()
-      call this%rotHandler1%close()
+      call delete('logFile')
+      call delete('logFile.1')
+      call delete('logFile.2')
+      call delete('logFile')
 
-      ! delete files
-      open(newunit=unit, file='logFile1', status='old')
-      close(unit, status='delete')
-      open(newunit=unit, file='logFile1.1', status='unknown')
-      close(unit, status='delete')
-      open(newunit=unit, file='logFile1.2', status='unknown')
-      close(unit, status='delete')
-      open(newunit=unit, file='logFile0', status='old')
-      close(unit, status='delete')
+   contains
+
+      subroutine delete(name)
+         character(len=*), intent(in) :: name
+
+         integer :: unit
+
+         open(newunit=unit, file=name, status='unknown')
+         close(unit, status='delete')
+
+      end subroutine delete
 
    end subroutine tearDown
 
@@ -54,17 +65,17 @@ contains
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
-      type (LogRecord) :: record
       character(len=32) :: foundMessage
+      type (RotatingFileHandler) :: h
 
-      call initLogRecord(record, 'name', INFO, 'hello')
-      call this%rotHandler0%handle(record)
+      h = RotatingFileHandler('logFile')
+      call h%handle(this%record_0)
       
-      unit = this%rotHandler0%getUnit()
+      unit = h%getUnit()
       rewind(unit)
       read(unit, '(a)') foundMessage
 
-      @assertEqual('INFO: name: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: name: A', foundMessage)
 
    end subroutine test_emitBasic
 
@@ -76,43 +87,94 @@ contains
       ! has been exceeded
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
+      type (RotatingFileHandler) :: h
       integer :: unit
-      type (LogRecord) :: record
-      
-      call initLogRecord(record, 'name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
-      ! Since maxBytes=30, rotHandler should rollOver after 3 records = 36 bytes
-      call this%rotHandler1%handle(record)
-      ! Not ready yet
-      @assertFalse(this%rotHandler1%shouldRollover())
-      call this%rotHandler1%handle(record)
-      call this%rotHandler1%handle(record)
-      ! Ready
-      @assertTrue(this%rotHandler1%shouldRollover())
+
+      h = RotatingFileHandler('logFile', maxBytes='30', backupCount=2)
+      ! Each record is 14 bytes, and default 
+      ! Since maxBytes=30, h should rollOver after 3 records = 42 bytes
+
+      @assertFalse(h%shouldRollover())
+
+      call h%handle(this%record_0)
+      @assertFalse(h%shouldRollover())
+
+      call h%handle(this%record_0)
+      @assertFalse(h%shouldRollover())
+
+      ! This one should trip the threshold...
+      call h%handle(this%record_0)
+      @assertTrue(h%shouldRollover())
 
    end subroutine test_shouldRollover
 
    
 @Test
-subroutine test_doRollover(this)
+   subroutine test_doRollover(this)
       ! The RFH should roll over every time 'maxBytes' is exceeded and should
       ! create a maximum of 'backupCount' files
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
+      type (RotatingFileHandler) :: h
       integer :: unit
-      type (LogRecord) :: record
-      integer :: i
-      logical :: created
       integer :: fSize
+      logical :: exists
+      character(len=32) :: foundMessage
 
-      call initLogRecord(record, 'name', INFO, 'hello') ! 'INFO: hello' = 12 bytes
-      do i=1,8 ! Force at least two files (backupCount=2) to be created
-         call this%rotHandler1%handle(record)
-      end do      
+      h = RotatingFileHandler('logFile', maxBytes='30', backupCount=2)
 
-      inquire(FILE='logFile1.1', SIZE=fSize)
-      @assertEqual(36, fSize)
-      inquire(FILE='logFile1.2', SIZE=fSize)
-      @assertEqual(36, fSize)
+      ! First set
+      call h%handle(this%record_0)
+      call h%handle(this%record_0)
+      call h%handle(this%record_0)
+
+      ! Second set
+      call h%handle(this%record_1)
+      call h%handle(this%record_1)
+      call h%handle(this%record_1)
+
+      ! Third set
+      call h%handle(this%record_2)
+      call h%handle(this%record_2)
+      call h%close()
+
+      inquire(FILE='logFile', exist=exists)
+      @assertTrue(exists)
+      inquire(FILE='logFile.1', exist=exists, size=fSize)
+      @assertTrue(exists)
+      @assertEqual(42, fSize)
+      inquire(FILE='logFile.2', exist=exists, size=fSize)
+      @assertTrue(exists)
+      @assertEqual(42, fSize)
+      
+      ! First set should be in 'logFile.2'
+      open(file='logFile.2',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      close(unit)
+
+      ! Second set should be in 'logFile.1'
+      open(file='logFile.1',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      close(unit)
+      
+      ! Third set should be in 'logFile'
+      open(file='logFile',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: C', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: C', foundMessage)
+      close(unit)
+      
       
    end subroutine test_doRollover
 

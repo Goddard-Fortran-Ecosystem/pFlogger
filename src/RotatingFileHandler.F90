@@ -30,8 +30,9 @@ module ASTG_RotatingFileHandler_mod
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
-      integer(int64) :: numBytes
+      integer(int64) :: maxBytes
       integer :: backupCount
+      logical :: delay
    contains
       procedure :: doRollover
       procedure :: shouldRollover
@@ -57,23 +58,26 @@ contains
    ! set maxBytes, backupcount and level. Note maxBytes can be specified
    ! in kb, mb or gb. E.g. maxBytes=100mb.
    !---------------------------------------------------------------------------
-   function newRotatingFileHandler(fileName, maxBytes, backupCount, level) &
+   function newRotatingFileHandler(fileName, maxBytes, backupCount, level, delay) &
         result(handler)
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       character(len=*), intent(in), optional :: maxBytes
       integer, intent(in), optional :: backupCount
       integer, intent(in), optional :: level
+      logical, intent(in), optional :: delay
       
       integer :: level_
       integer :: backupCount_
       integer(int64) :: maxBytes_
+      logical :: delay_
 
       if (present(level)) then
          level_ = level
       else
          level_ = INFO
       end if
+
       if (present(maxBytes)) then
          maxBytes_ = convertNumBytes_(maxBytes)
       else
@@ -84,12 +88,19 @@ contains
       else
          backupCount_ = 0
       end if
+
+      if (present(delay)) then
+         delay_ = delay
+      else
+         delay_ = .false.
+      end if
       
       call handler%setFileName(fileName)
       call handler%open()
       call handler%setLevel(level_)
-      handler%numBytes = maxBytes_
+      handler%maxBytes = maxBytes_
       handler%backupCount = backupCount_
+      handler%delay = delay_
       fileCount = 0
       call handler%setFormatter(Formatter(BASIC_FORMAT))
       
@@ -159,10 +170,9 @@ contains
 
       if (this%shouldRollover()) then
          call this%doRollover()
-      else
-         write(this%getUnit(), '(a)') this%format(record)
-         inquire(this%getUnit(), size=fileSize)
       end if
+
+      write(this%getUnit(), '(a)') this%format(record)
     
    end subroutine emitMessage
 
@@ -183,7 +193,7 @@ contains
       flush(this%getUnit())
       inquire(this%getUnit(), size=fileSize)
 
-      if (fileSize > this%numBytes) then
+      if (fileSize > this%maxBytes) then
          rollOver = .true.
       end if
       
@@ -207,42 +217,63 @@ contains
    ! respectively.
    !---------------------------------------------------------------------------  
    subroutine doRollover(this)
+      use ASTG_FormatString_mod
       class (RotatingFileHandler), intent(inout) :: this
       
-      character(len=64) :: suffix
-      character(len=128) :: cmd
-      character(len=6) :: fmt
-      logical :: is
+      character(len=:), allocatable :: srcFile
+      character(len=:), allocatable :: dstFile
+
+      character(len=24) :: suffix
+      logical :: exists
+      integer :: i
 
       if (this%isOpen()) then
          call this%close()
       end if
 
-      if (fileCount < this%backupCount) then
-         fileCount = fileCount + 1
-         select case (fileCount)
-         case (:9)
-           fmt = '(i1.1)'
-         case (10:99)
-           fmt = '(i2.2)'
-         case (100:999)
-           fmt = '(i3.3)'
-         case (1000:9999)
-           fmt = '(i4.4)'
-         end select
-         write(suffix, fmt) fileCount
-         ! sanity check
-         inquire(FILE=this%getFileName(), EXIST=is)
-         if (is) then ! rename file
-            cmd = 'mv '//this%getFileName()//' '//this%getFileName()//'.'//trim(suffix)
-#ifdef INTEL_14
-            call system(cmd)
-#else
-            call execute_command_line(cmd)
-#endif
+      if (this%backupCount > 0) then
+
+         do i = this%backupCount, 1, -1
+
+            write(suffix,'(i0)') i
+            srcFile = this%getFileName()//'.'//trim(suffix)
+            write(suffix,'(i0)') i+1
+            dstFile = this%getFileName()//'.'//trim(suffix)
+
+            inquire(FILE=srcFile, EXIST=exists)
+            if (exists) then
+               call delete_if_exists(dstFile)
+               call execute_command_line('mv ' // srcFile // ' ' // dstFile)
+            end if
+
+         end do
+
+         dstFile = srcFile
+         srcFile = this%getFileName()
+         call delete_if_exists(dstFile)
+
+         call execute_command_line('mv ' // srcFile // ' ' // dstFile)
+
+      end if
+
+      if (.not. this%delay) call this%open()
+
+   contains
+
+      subroutine delete_if_exists(fileName)
+         character(len=*), intent(in) :: fileName
+
+         logical :: exists
+         integer :: unit
+
+         inquire(FILE=fileName, EXIST=exists)
+
+         if (exists) then
+            open (file=fileName, newunit=unit)
+            close(unit, status='delete')
          end if
-         if (.not. this%isOpen()) call this%open()
-       end if
+
+      end subroutine delete_if_exists
       
    end subroutine doRollover
 
