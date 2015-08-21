@@ -20,6 +20,7 @@ set (SRCS
    initTests.F90
    MockHandler.F90
    MockDateFormat.F90
+   ConfigurableFilter.F90
 )
 
 set(TEST_SRCS 

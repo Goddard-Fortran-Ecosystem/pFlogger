@@ -18,13 +18,6 @@ module Test_StreamHandler_mod
    end type Test_StreamHandler
 
 
-   type, extends(AbstractFilter) :: LocalFilter
-      logical :: filterOn = .false.
-   contains
-      procedure :: doFilter
-      procedure :: equal
-   end type LocalFilter
-
 contains
 
    
@@ -252,17 +245,18 @@ contains
    @test
    subroutine test_doFilter_off(this)
       use iso_fortran_env, only: IOSTAT_END
+      use ConfigurableFilter_mod
       class (Test_StreamHandler), intent(inout) :: this
 
       integer :: iostatus
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
-      type (LocalFilter) :: f
+      type (ConfigurableFilter) :: f
       type (LogRecord) :: record
       
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      f%filterOn = .false.
+      f = ConfigurableFilter(.false.)
       call handler%addFilter(f)
       record = LogRecord('name', INFO, 'hello')
       call handler%handle(record)
@@ -273,25 +267,5 @@ contains
 
    end subroutine test_doFilter_off
 
-
-   logical function doFilter(this, record)
-      class (LocalFilter), intent(in) :: this
-      type (LogRecord), intent(inout) :: record
-
-      doFilter = this%filterOn
-   end function doFilter
-
-   logical function equal(a, b)
-      use iso_fortran_env, only: IOSTAT_END
-      class (LocalFilter), intent(in) :: a
-      class (AbstractFilter), intent(in) :: b
-
-      select type (b)
-      class is (LocalFilter)
-         equal = (a%filterOn .eqv. b%filterOn)
-      class default
-         equal = .false.
-      end select
-   end function equal
 
 end module Test_StreamHandler_mod

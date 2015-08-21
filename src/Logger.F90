@@ -58,6 +58,7 @@ module ASTG_Logger_mod
       procedure :: setLevel
       procedure :: getLevel
       procedure :: log_
+      procedure :: emit
       procedure :: makeRecord
    end type Logger
 
@@ -233,23 +234,34 @@ contains
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
       
-      type (HandlerVectorIterator) :: iter
-      class (AbstractHandler), pointer :: handler
       type (UnlimitedVector) :: args
       type (LogRecord) :: record
 
       args = makeArgVector(ARG_LIST)
-      iter = this%handlers%begin()
-      ! Create LogRecord object from the message string and pass the LogRecord
-      ! to its Handlers
-      do while (iter /= this%handlers%end())
-         handler => iter%get()
-         call this%makeRecord(record,level, message, args)
-         call handler%handle(record)
-         call iter%next()
-      end do
+      call this%makeRecord(record, level, message, args)
+
+      if (this%doFilter(record)) then
+         call this%emit(record)
+      end if
 
    end subroutine log_
+
+   subroutine emit(this, record)
+      class (Logger), intent(in) :: this
+      type (LogRecord), intent(inout) :: record
+
+      type (HandlerVectorIterator) :: iter
+      class (AbstractHandler), pointer :: h
+
+      iter = this%handlers%begin()
+
+      do while (iter /= this%handlers%end())
+         h => iter%get()
+         call h%handle(record)
+         call iter%next()
+      end do
+      
+   end subroutine emit
 
    
 !---------------------------------------------------------------------------  
