@@ -14,7 +14,6 @@ module ASTG_FileHandler_mod
    use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod
-   
    implicit none
    private
 
@@ -26,8 +25,6 @@ module ASTG_FileHandler_mod
       integer :: unit
       character(len=:), allocatable :: fileName
    contains
-      procedure :: setUnit
-      procedure :: getUnit
       procedure :: isOpen
       procedure :: open
       procedure :: close
@@ -126,9 +123,9 @@ contains
    ! Flushes unit currently open for output.
    !---------------------------------------------------------------------------  
    subroutine flushUnit(this)
-      class (FileHandler), intent(inout) :: this
+      class (FileHandler), intent(in) :: this
       
-      flush(this%getUnit())
+      flush(this%unit)
       
    end subroutine flushUnit
 
@@ -145,9 +142,8 @@ contains
       integer :: unit
       
       if (this%isOpen()) return
-      open(newunit=unit, file=this%getFileName(), &
+      open(newunit=this%unit, file=this%getFileName(), &
            & status='unknown', form='formatted', position='append')
-      call this%setUnit(unit)
       this%isOpen_ = .true.
 
        
@@ -165,41 +161,10 @@ contains
       class (FileHandler), intent(inout) :: this
 
       call this%flush()
-      close(this%getUnit())
+      close(this%unit)
       this%isOpen_ = .false.
 
    end subroutine close
-
-
-   !---------------------------------------------------------------------------  
-   ! ROUTINE: 
-   ! setUnit
-   !
-   ! DESCRIPTION: 
-   ! Set the fortran unit number for this handler.
-   !---------------------------------------------------------------------------  
-   subroutine setUnit(this, unit)
-      class (FileHandler), intent(inout) :: this
-      integer, intent(in) :: unit
-
-      this%unit = unit
-
-   end subroutine setUnit
-
-
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getUnit
-   !
-   ! DESCRIPTION: 
-   ! Get the fortran unit number for this handler.
-   !---------------------------------------------------------------------------  
-   integer function getUnit(this) result(unit)
-      class (FileHandler), intent(in) :: this
-
-      unit = this%unit
-
-   end function getUnit
 
 
    !---------------------------------------------------------------------------  

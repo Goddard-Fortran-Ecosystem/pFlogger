@@ -73,7 +73,7 @@ module ASTG_AbstractHandler_mod
       subroutine flush(this)
          ! Flushes Fortran unit currently open for output.
          import AbstractHandler
-         class(AbstractHandler), intent(inout) :: this
+         class(AbstractHandler), intent(in) :: this
       end subroutine flush
 
       logical function equal(a, b)

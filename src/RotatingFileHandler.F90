@@ -172,7 +172,7 @@ contains
          call this%doRollover()
       end if
 
-      write(this%getUnit(), '(a)') this%format(record)
+      call this%FileHandler%emitMessage(record)
     
    end subroutine emitMessage
 
@@ -190,8 +190,8 @@ contains
       integer :: fileSize
       
       rollOver = .false.
-      flush(this%getUnit())
-      inquire(this%getUnit(), size=fileSize)
+      call this%FileHandler%flush()
+      inquire(file=this%getFileName(), size=fileSize)
 
       if (fileSize > this%maxBytes) then
          rollOver = .true.

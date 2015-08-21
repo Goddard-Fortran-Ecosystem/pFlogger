@@ -100,7 +100,7 @@ contains
    ! Flushes unit currently open for output.
    !---------------------------------------------------------------------------  
    subroutine flushUnit(this)
-      class (StreamHandler), intent(inout) :: this
+      class (StreamHandler), intent(in) :: this
       
       flush(this%unit)
       

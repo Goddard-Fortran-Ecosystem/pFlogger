@@ -52,7 +52,7 @@ contains
 
 
    subroutine flushUnit(this)
-      class (MockHandler), intent(inout) :: this
+      class (MockHandler), intent(in) :: this
    end subroutine flushUnit
 
 
