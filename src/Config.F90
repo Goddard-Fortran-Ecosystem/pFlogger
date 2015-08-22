@@ -27,7 +27,7 @@ contains
          class is (Map)
             iter = p%begin()
             do while (iter /= p%end())
-               call addLogger(iter%key(), iter%value(), dict)
+               call addLogger(iter%key(), toMap(iter%value()), dict)
                call iter%next()
             end do
          class default
@@ -55,7 +55,7 @@ contains
       if (iter /= args%end()) then
          p => iter%value()
          select type (p)
-         class is (character(len=*))
+         type is (character(len=*))
             level = nameToLevel(p)
          class default
             call throw('Config::dictConfig() - logger level must be of type integer.')
@@ -68,7 +68,7 @@ contains
    subroutine check_schema_version(dict)
       type (Map), intent(in) :: dict
 
-      integer, pointer :: schema_version
+      class(*), pointer :: schema_version
       type (MapIterator) :: iter
       
       iter = dict%find('schema_version')
@@ -77,12 +77,27 @@ contains
          return
       else
          schema_version => iter%value()
-         if (schema_version /= 1) then
-            call throw('Config::dictConfig() - unsupported schema version. Must be 1.')
-            return
-         end if
+         select type (schema_version)
+         type is (integer)
+            if (schema_version /= 1) then
+               call throw('Config::dictConfig() - unsupported schema version. Must be 1.')
+               return
+            end if
+         class default
+            call throw('Config::dictConfig() - incorrect type for schema_version.')
+            end select
       end if
 
    end subroutine check_schema_version
+
+   function toMap(anything) result(m)
+      type (Map), pointer :: m
+      class (*), target, intent(in) :: anything
+      select type (anything)
+      type is (map)
+         m => anything
+      class default
+      end select
+   end function toMap
 
 end module ASTG_Config_mod

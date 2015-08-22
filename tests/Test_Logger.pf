@@ -317,7 +317,7 @@ contains
       call this%basicLogger%addFilter(ConfigurableFilter(.false.))
       call this%basicLogger%warning('hello')
 
-      @assertEqual('', this%mockBuffer%buffer)
+      @assertFalse(allocated(this%mockbuffer%buffer))
 
    end subroutine test_doFilter_off
 

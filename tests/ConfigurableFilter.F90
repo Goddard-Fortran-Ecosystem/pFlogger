@@ -18,9 +18,10 @@ contains
    logical function doFilter(this, record)
       use ASTG_LogRecord_mod
       class (ConfigurableFilter), intent(in) :: this
-      type (LogRecord), intent(inout) :: record
+      class (LogRecord), intent(inout) :: record
 
       doFilter = this%filterOn
+
    end function doFilter
 
    logical function equal(a, b)

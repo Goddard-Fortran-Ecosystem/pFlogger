@@ -35,7 +35,7 @@ module ASTG_LoggerManager_mod
       module procedure newLoggerManager
    end interface LoggerManager
 
-   type (LoggerManager), protected, save :: logging
+   type (LoggerManager), save :: logging
 
 
 contains

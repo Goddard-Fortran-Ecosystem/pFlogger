@@ -138,9 +138,12 @@ contains
    !---------------------------------------------------------------------------  
    subroutine close(this)
       class (FileHandler), intent(inout) :: this
+      integer :: unit
 
       call this%flush()
       call this%StreamHandler%close()
+      inquire(file=this%getFileName(), number=unit)
+      close(unit)
       this%isOpen_ = .false.
 
    end subroutine close
