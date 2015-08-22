@@ -20,6 +20,7 @@ module ASTG_LoggerManager_mod
    private
 
    public :: LoggerManager
+   public :: logging ! singleton instance
 
    type, extends(Object) :: LoggerManager
       private
@@ -33,6 +34,8 @@ module ASTG_LoggerManager_mod
    interface LoggerManager
       module procedure newLoggerManager
    end interface LoggerManager
+
+   type (LoggerManager), protected, save :: logging
 
 
 contains

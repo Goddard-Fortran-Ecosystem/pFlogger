@@ -121,7 +121,7 @@ contains
 
       call record%extra%insert('name', 'someRec')
       call record%extra%insert('level', INFO)
-      levelName = levelToString(INFO)
+      levelName = levelToName(INFO)
       call record%extra%insert('levelName', levelName)
 
       call mockdf%fillDateAndTime(record)

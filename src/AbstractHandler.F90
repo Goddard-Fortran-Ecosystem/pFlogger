@@ -23,7 +23,6 @@
 !------------------------------------------------------------------------------
 module ASTG_AbstractHandler_mod
    use ASTG_Filterer_mod
-   use ASTG_SeverityLevels_mod, only: levelToString
    use ASTG_SeverityLevels_mod, only: NOTSET
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod

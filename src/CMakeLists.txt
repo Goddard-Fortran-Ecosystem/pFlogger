@@ -4,11 +4,12 @@ get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(THIS logger)
 
 set(SRCS
-   StringUtilities.F90
-   String.F90
+   ArgListUtilities.F90
    AbstractFilter.F90
    AbstractHandler.F90
    AbstractLogger.F90
+   Config.F90
+   DynamicBuffer.F90
    Exception.F90
    FileHandler.F90
    Filter.F90
@@ -26,9 +27,9 @@ set(SRCS
    RotatingFileHandler.F90
    SeverityLevels.F90
    StreamHandler.F90
-   ArgListUtilities.F90
+   StringUtilities.F90
+   String.F90
    WrapArray.F90
-   DynamicBuffer.F90
 # FTL containers
    CIStringAbstractLoggerPolyMap.F90
    AbstractHandlerPolyVector.F90
@@ -37,7 +38,6 @@ set(SRCS
    CIStringUnlimitedMap.F90
    FormatTokenVector.F90
    StringVector.F90
-FormatTokenVector.F90
 )
 
 if (MPI) 

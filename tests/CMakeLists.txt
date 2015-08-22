@@ -38,6 +38,7 @@ set(TEST_SRCS
    Test_FormatString.F90
    Test_ArgListUtilities.F90
    Test_SeverityLevels.F90
+   Test_Config.F90
 )
 
 if (MPI) 

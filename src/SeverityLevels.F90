@@ -21,7 +21,8 @@ module ASTG_SeverityLevels_mod
    public :: ERROR
    public :: CRITICAL
 
-   public :: levelToString
+   public :: levelToName
+   public :: nameToLevel
    
    enum, bind(c)
       enumerator :: &
@@ -38,33 +39,65 @@ contains
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! levelToString
+   ! levelToName
    !
    ! DESCRIPTION:
    ! Convert a numeric severity level to string identifier.
    !---------------------------------------------------------------------------
-   function levelToString(level) result(string)
-      character(len=:), allocatable :: string
+   function levelToName(level) result(name)
+      character(len=:), allocatable :: name
       integer, intent(in) :: level
 
       select case (level)
       case (NOTSET)
-         string = 'NOTSET'
+         name = 'NOTSET'
       case (DEBUG)
-         string = 'DEBUG'
+         name = 'DEBUG'
       case (INFO)
-         string = 'INFO'
+         name = 'INFO'
       case (WARNING)
-         string = 'WARNING'
+         name = 'WARNING'
       case (ERROR)
-         string = 'ERROR'
+         name = 'ERROR'
       case (CRITICAL)
-         string = 'CRITICAL'
+         name = 'CRITICAL'
       case default
-         string=''
+         name=''
          call throw('Unknown level. Please use a valid level.')
       end select
       
-   end function levelToString
+   end function levelToName
+    
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! nameToLevel
+   !
+   ! DESCRIPTION:
+   ! Convert a level name to a numeric severity level
+   !---------------------------------------------------------------------------
+   function nameToLevel(name) result(level)
+      integer :: level
+      character(len=*), intent(in) :: name
+
+      select case (name)
+      case ('NOTSET')
+         level = NOTSET
+      case ('DEBUG')
+         level = DEBUG
+      case ('INFO')
+         level = INFO
+      case ('WARNING')
+         level = WARNING
+      case ('ERROR')
+         level = ERROR
+      case ('CRITICAL')
+         level = CRITICAL
+      case default
+         level = NOTSET
+         call throw('Unknown level name. Please use a valid name.')
+      end select
+      
+   end function nameToLevel
     
 end module ASTG_SeverityLevels_mod

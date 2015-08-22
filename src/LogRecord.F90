@@ -92,7 +92,7 @@ contains
       call rec%extra%insert('name', name)
 #endif
 
-      levelName = levelToString(level)
+      levelName = levelToName(level)
       ! Compiler workarounds
 #ifdef __GFORTRAN__
       call rec%extra%insert('levelName', String(levelName))
@@ -235,7 +235,7 @@ contains
       rec%name = name
       rec%level = level
       rec%messageFormat = messageFormat
-      if (present(extra)) print*,'extra '
+
       if (present(args)) then
          rec%args = args
       else
@@ -252,7 +252,7 @@ contains
 #else
       call rec%extra%insert('name', name)
 #endif
-      levelName = levelToString(level)
+      levelName = levelToName(level)
 #ifdef __GFORTRAN__
       call rec%extra%insert('levelName', String(levelName))
 #else

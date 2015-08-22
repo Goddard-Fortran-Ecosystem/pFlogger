@@ -9,26 +9,26 @@ contains
 
    
    @test
-   subroutine test_levelToString()
+   subroutine test_levelToName()
       
       ! Level numeric values range from NOTSET=0 to CRITICAL=50
-      @assertEqual('NOTSET', levelToString(NOTSET))
-      @assertEqual('CRITICAL', levelToString(CRITICAL))
+      @assertEqual('NOTSET', levelToName(NOTSET))
+      @assertEqual('CRITICAL', levelToName(CRITICAL))
 
-   end subroutine test_levelToString
+   end subroutine test_levelToName
 
 
    @test
-   subroutine test_levelToString_unnamedLevel()
+   subroutine test_levelToName_unnamedLevel()
       
       character(len=:), allocatable :: levelName
 
       ! The following should throw an exception, because
       ! it is a level that is not named.
-      levelName = levelToString(CRITICAL + 100)
+      levelName = levelToName(CRITICAL + 100)
       ! Catch it here:
       @assertExceptionRaised('Unknown level. Please use a valid level.')
       
-   end subroutine test_levelToString_unnamedLevel
+   end subroutine test_levelToName_unnamedLevel
 
 end module Test_SeverityLevels_mod
