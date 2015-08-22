@@ -33,6 +33,7 @@ set(SRCS
 # FTL containers
    CIStringAbstractLoggerPolyMap.F90
    CIStringFormatterMap.F90
+   CIStringFilterMap.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
    UnlimitedVector.F90

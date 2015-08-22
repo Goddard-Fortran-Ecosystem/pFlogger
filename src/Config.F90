@@ -6,6 +6,7 @@ module ASTG_Config_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
 
+   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
    use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
 
    implicit none
@@ -14,6 +15,8 @@ module ASTG_Config_mod
    public :: dictConfig
    public :: build_formatters
    public :: build_formatter
+   public :: build_filters
+   public :: build_filter
 
 contains
 
@@ -49,6 +52,7 @@ contains
 
    end function build_formatters
 
+
    function build_formatter(dict) result(fmtr)
       use ASTG_Formatter_mod
       type (Formatter) :: fmtr
@@ -70,6 +74,37 @@ contains
       end if
 
    end function build_formatter
+
+
+   function build_filters(filtersDict) result(filters)
+      type (FilterMap) :: filters
+      type (Map), intent(in) :: filtersDict
+
+      type (MapIterator) :: iter
+      type (Map), pointer :: cfg
+
+      iter = filtersDict%begin()
+      do while (iter /= filtersDict%end())
+         cfg => toMap(filtersDict, iter%key())
+         call filters%insert(iter%key(), build_filter(cfg))
+         call iter%next()
+      end do
+
+   end function build_filters
+
+
+   function build_filter(dict) result(f)
+      use ASTG_Filter_mod
+      type (Filter) :: f
+      type (Map), intent(in) :: dict
+      character(len=:), pointer :: name
+
+      name => toString(dict, 'name', require=.true.)
+      if (associated(name)) then
+         f = Filter(name)
+      end if
+
+   end function build_filter
 
 
    subroutine create_loggers(dict)

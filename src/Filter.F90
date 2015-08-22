@@ -32,8 +32,6 @@ module ASTG_Filter_mod
 
    type, extends(AbstractFilter) :: Filter
       private
-      ! 'allocatable' below is a workaround for ifort 15.0.1
-      ! Of course it then breaks gfortrn 4.9.1.  sigh.
       character(len=:), allocatable :: name
    contains
       procedure :: doFilter

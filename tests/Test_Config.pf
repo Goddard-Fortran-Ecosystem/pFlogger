@@ -9,9 +9,11 @@ module Test_Config_mod
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
+   use ASTG_String_mod
 
    use ASTG_CIStringUnlimitedMap_mod
    use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
    implicit none
 
 #define P(x,y) pair(x,y)
@@ -64,7 +66,7 @@ contains
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = map([P('fmt','---')])
+      cfg = map([P('fmt',String('---'))])
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -77,7 +79,6 @@ contains
    subroutine test_build_formatter_withDateFmt()
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
-      use ASTG_String_mod
       type (map) :: cfg
       type (Formatter) :: fmtr
       type (LogRecord) :: record
@@ -99,14 +100,45 @@ contains
 
       formattersDict = &
            & map([ &
-           &       P('A', map([P('fmt','---')]) ), &
-           &       P('B', map([P('fmt','---'), P('datefmt','hello')])) &
+           &       P('A', map([P('fmt',String('---'))]) ), &
+           &       P('B', map([P('fmt',String('---')), P('datefmt',String('hello'))])) &
            &     ])
 
       formatters = build_formatters(formattersDict)
       @assertEqual(2, formatters%size())
 
    end subroutine test_build_formatters
+
+   @test
+   subroutine test_build_filter()
+      use ASTG_Filter_mod
+      type (map) :: cfg
+      type (Filter) :: f
+      character(len=:), allocatable :: logMessage
+
+      cfg = map([P('name',String('A'))])
+      f = build_filter(cfg)
+
+      @assertEqual('A', f%getName())
+
+   end subroutine test_build_filter
+
+   @test
+   subroutine test_build_filters()
+      type (map) :: filtersDict
+      type (FilterMap) :: filters
+
+      filtersDict = &
+           & map([ &
+           &       P('A', map([P('name',String('A'))])), &
+           &       P('B', map([P('name',String('B'))])) &
+           &     ])
+
+      filters = build_filters(filtersDict)
+      @assertEqual(2, filters%size())
+
+   end subroutine test_build_filters
+   
 
    @test
    subroutine test_basic_loggers_invalid_dict()
