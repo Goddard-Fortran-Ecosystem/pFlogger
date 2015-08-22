@@ -1,13 +1,20 @@
+!
+! Note that at the time this module was created, gfortran 5.1 did not correctly
+! retain lengths of strings when treated as unlimited polymorphic entities.
+! Hence, character in such maps must be quoted inside a String object.
+!
 module Test_Config_mod
    use ASTG_Config_mod
    use pfunit_mod
-   use ASTG_CIStringUnlimitedMap_mod
    use ASTG_Logger_mod
-
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
+
+   use ASTG_CIStringUnlimitedMap_mod
+   use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
    implicit none
-   
+
+#define P(x,y) pair(x,y)
 
 contains
 
@@ -16,7 +23,7 @@ contains
       type (map) :: dict
 
       call dictConfig(dict)
-      @assertExceptionRaised('Config::dictConfig() - No version specified for schema.')
+      @assertExceptionRaised("Config::dictConfig() - 'schema_version' not found.")
 
    end subroutine test_check_schema_specified
 
@@ -30,13 +37,81 @@ contains
 
    end subroutine test_check_schema_version
 
+   @test
+   subroutine test_build_formatter_noargs()
+      use ASTG_Formatter_mod
+      use ASTG_LogRecord_mod
+      type (map) :: cfg
+      type (Formatter) :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      cfg = map()
+      fmtr = build_formatter(cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('hello', logMessage)
+
+   end subroutine test_build_formatter_noargs
+
+   @test
+   subroutine test_build_formatter_withFmt()
+      use ASTG_Formatter_mod
+      use ASTG_LogRecord_mod
+      type (map) :: cfg
+      type (Formatter) :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      cfg = map([P('fmt','---')])
+      fmtr = build_formatter(cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('---', logMessage)
+
+   end subroutine test_build_formatter_withFmt
+
+   @test
+   subroutine test_build_formatter_withDateFmt()
+      use ASTG_Formatter_mod
+      use ASTG_LogRecord_mod
+      use ASTG_String_mod
+      type (map) :: cfg
+      type (Formatter) :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      cfg = map([P('fmt',String('%(asctime)a %(message)a')), P('datefmt',String('date'))])
+      fmtr = build_formatter(cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('date hello', logMessage)
+
+   end subroutine test_build_formatter_withDateFmt
+
+   @test
+   subroutine test_build_formatters()
+      type (map) :: formattersDict
+      type (FormatterMap) :: formatters
+
+      formattersDict = &
+           & map([ &
+           &       P('A', map([P('fmt','---')]) ), &
+           &       P('B', map([P('fmt','---'), P('datefmt','hello')])) &
+           &     ])
+
+      formatters = build_formatters(formattersDict)
+      @assertEqual(2, formatters%size())
+
+   end subroutine test_build_formatters
 
    @test
    subroutine test_basic_loggers_invalid_dict()
       type (map) :: dict
       type (map) :: loggers
-
-#define P(x,y) mapPair(x,y)
 
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
@@ -58,8 +133,6 @@ contains
    subroutine test_basic_loggers()
       type (map) :: dict
       type (map) :: loggers
-
-#define P(x,y) mapPair(x,y)
 
       class (Logger), pointer :: lgr
 

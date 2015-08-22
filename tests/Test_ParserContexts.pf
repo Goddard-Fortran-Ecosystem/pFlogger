@@ -128,6 +128,7 @@ contains
            & , p( KYC,  'word)a',  ' ', TXC, ' ', FormatToken(KEYWORD, 'word)a')) &
            & , p( KYC,  'word)a',  C_NULL_CHAR, TXC, '', FormatToken(KEYWORD, 'word)a')) &
            & , p( KYC,  'word)i3',  '~', TXC, '', FormatToken(KEYWORD, 'word)i3')) &
+           & , p( KYC,   'abc)',  C_NULL_CHAR, TXC, '', FormatToken(KEYWORD, 'abc)*')) &
 
            ! Various checks on illegal formats
            ! (1) illegal terminations
@@ -142,8 +143,6 @@ contains
            &   errorMessage='FormatParser::positionContext() - empty edit descriptor') &
            & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'abc', &
            &   errorMessage='FormatParser::keywordContext() - missing ")"')  &
-           & , p( KYC,   'abc)',  C_NULL_CHAR,     illegalContext, 'abc)', &
-           &   errorMessage='FormatParser::keywordContext() - missing edit descriptor') &
 
            ! Cannot switch to keyword once there is a format descriptor
            & , p( PSC, 'i3',     '(',    PSC, 'i3(') &

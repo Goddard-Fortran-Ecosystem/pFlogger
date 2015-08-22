@@ -349,7 +349,9 @@ contains
            elseif (idx == 1) then
               call throw('FormatParser::keywordContext() - missing keyword?')
            elseif (idx == pos) then
-              call throw('FormatParser::keywordContext() - missing edit descriptor')
+              call this%setContext(textContext)
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos) // '*'))
+              pos = 0
            else
               call this%setContext(textContext)
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))

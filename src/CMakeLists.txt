@@ -32,6 +32,7 @@ set(SRCS
    WrapArray.F90
 # FTL containers
    CIStringAbstractLoggerPolyMap.F90
+   CIStringFormatterMap.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
    UnlimitedVector.F90

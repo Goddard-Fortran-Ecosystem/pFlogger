@@ -64,7 +64,11 @@ contains
             return
          end if
          token%text = string(:idx-1)
-         token%editDescriptor = string(idx+1:len_trim(string))
+         if (idx == len_trim(string)) then
+            token%editDescriptor = '*'
+         else
+            token%editDescriptor = string(idx+1:len_trim(string))
+         end if
 
       end select
       

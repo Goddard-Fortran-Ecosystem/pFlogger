@@ -106,6 +106,24 @@ contains
 
    end subroutine test_defaultFormat
    
+   ! Use default '*' format when format is not provide
+   ! with keyword
+@test
+   subroutine test_defaultFormat_keyword()
+      use ASTG_CIStringUnlimitedMap_mod
+      character(len=:), allocatable :: expected
+      character(len=:), allocatable :: found
+
+      type (Map) :: extra
+
+      extra = map([pair('dog','fido'), pair('cat','tabby')])
+
+      found = formatString('%(dog) %(cat)', extra)
+      expected = ' fido  tabby'
+      @assertEqual(expected, found)
+
+   end subroutine test_defaultFormat_keyword
+   
 
 @test
    subroutine test_formatArray()

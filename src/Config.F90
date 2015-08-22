@@ -5,21 +5,78 @@ module ASTG_Config_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
+
+   use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+
    implicit none
    private
 
    public :: dictConfig
+   public :: build_formatters
+   public :: build_formatter
 
 contains
 
    subroutine dictConfig(dict)
       type (Map), intent(in) :: dict
 
-      type (Map), pointer :: mPtr1, mPtr2
-      type (MapIterator) :: iter
-      class(*), pointer :: p
+      type (FormatterMap) :: formatters
 
       call check_schema_version(dict)
+
+!!$      formatters = build_formatters(dict)
+!!$      loggers = build_loggers(dict)
+!!$      call add_loggers(dict)
+
+      call create_loggers(dict)
+
+   end subroutine dictConfig
+
+
+   function build_formatters(formattersDict) result(formatters)
+      type (FormatterMap) :: formatters
+      type (Map), intent(in) :: formattersDict
+
+      type (MapIterator) :: iter
+      type (Map), pointer :: cfg
+
+      iter = formattersDict%begin()
+      do while (iter /= formattersDict%end())
+         cfg => toMap(formattersDict, iter%key())
+         call formatters%insert(iter%key(), build_formatter(cfg))
+         call iter%next()
+      end do
+
+   end function build_formatters
+
+   function build_formatter(dict) result(fmtr)
+      use ASTG_Formatter_mod
+      type (Formatter) :: fmtr
+      type (Map), intent(in) :: dict
+      character(len=:), pointer :: fmt
+      character(len=:), pointer :: datefmt
+
+      fmt => toString(dict, 'fmt')
+      datefmt => toString(dict, 'datefmt')
+      
+      if (associated(fmt)) then
+         if (associated(datefmt)) then
+            fmtr = Formatter(fmt, datefmt)
+         else
+            fmtr = Formatter(fmt)
+         end if
+      else
+         fmtr = Formatter()
+      end if
+
+   end function build_formatter
+
+
+   subroutine create_loggers(dict)
+      type (Map), intent(in) :: dict
+
+      type (MapIterator) :: iter
+      type (Map), pointer :: mPtr1, mPtr2
 
       iter = dict%find('loggers')
       if (iter /= dict%end()) then
@@ -33,10 +90,8 @@ contains
                call iter%next()
             end do
          end if
-
       end if
-
-   end subroutine dictConfig
+   end subroutine create_loggers
 
 
    subroutine addLogger(name, args, dict)
@@ -58,34 +113,36 @@ contains
       type (Map), intent(in) :: dict
 
       integer, pointer :: schema_version
-      type (MapIterator) :: iter
-      
-      iter = dict%find('schema_version')
-      if (iter == dict%end()) then
-         call throw('Config::dictConfig() - No version specified for schema.')
-         return
-      end if
 
-      schema_version => toInteger(dict, 'schema_version')
-      if (schema_version /= 1) then
-         call throw('Config::dictConfig() - unsupported schema version. Must be 1.')
-         return
+      schema_version => toInteger(dict, 'schema_version', require=.true.)
+      if (associated(schema_version)) then
+         if (schema_version /= 1) then
+            call throw('Config::dictConfig() - unsupported schema version. Must be 1.')
+            return
+         end if
       end if
 
    end subroutine check_schema_version
 
-   function toInteger(m, key) result(i)
+   function toInteger(m, key, require) result(i)
       integer, pointer :: i
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
+      logical, optional, intent(in)  :: require
 
       type (MapIterator) :: iter
       class (*), pointer :: ptr
+      logical :: require_
+
+      require_ = .false.
+      if (present(require)) require_ = require
 
       iter = m%find(key)
       if (iter == m%end()) then
          i => null()
-         call throw("Config::dictConfig() - '"//key//"' not found.")
+         if (require_) then
+            call throw("Config::dictConfig() - '"//key//"' not found.")
+         end if
          return
       end if
 
@@ -112,18 +169,25 @@ contains
    end function toInteger
 
 
-   function toString(m, key) result(str)
+   function toString(m, key, require) result(str)
       character(len=:), pointer :: str
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
+      logical, optional, intent(in)  :: require
 
       type (MapIterator) :: iter
       class (*), pointer :: ptr
+      logical :: require_
+
+      require_ = .false.
+      if (present(require)) require_ = require
 
       iter = m%find(key)
       if (iter == m%end()) then
          str => null()
-         call throw("Config::dictConfig() - '"//key//"' not found.")
+         if (require_) then
+            call throw("Config::dictConfig() - '"//key//"' not found.")
+         end if
          return
       end if
 
@@ -133,12 +197,15 @@ contains
    contains
 
       function cast(anything) result(str)
+         use ASTG_String_mod
          character(len=:), pointer :: str
          class (*), target, intent(in) :: anything
 
          select type (anything)
          type is (character(len=*))
             str => anything
+         type is (String)
+            str => anything%str
          class default
             call throw("Config::dictConfig() - cannot cast '"//key//"' as character.")
             return
@@ -149,13 +216,19 @@ contains
    end function toString
 
 
-   function toMap(m, key) result(mPtr)
+   function toMap(m, key, require) result(mPtr)
       type (Map), pointer :: mPtr
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
+      logical, optional, intent(in) :: require
 
       type (MapIterator) :: iter
       class (*), pointer :: ptr
+      logical :: require_
+
+      require_ = .false.
+      if (present(require)) require_ = require
+
 
       iter = m%find(key)
       if (iter == m%end()) then
