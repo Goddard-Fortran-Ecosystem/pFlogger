@@ -157,7 +157,7 @@ contains
       
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      record = LogRecord('name', DEBUG, 'hello')
+      call initLogRecord(record, 'name', DEBUG, 'hello')
       call handler%handle(record)
 
       rewind(this%unit)
@@ -178,7 +178,7 @@ contains
 
       handler = StreamHandler(unit=this%unit)
       call handler%setLevel(INFO)
-      record = LogRecord('name', CRITICAL, 'hello')
+      call initLogRecord(record, 'name', CRITICAL, 'hello')
       call handler%handle(record)
 
       rewind(this%unit)
@@ -258,7 +258,7 @@ contains
       call handler%setLevel(INFO)
       f = ConfigurableFilter(.false.)
       call handler%addFilter(f)
-      record = LogRecord('name', INFO, 'hello')
+      call initLogRecord(record, 'name', INFO, 'hello')
       call handler%handle(record)
 
       rewind(this%unit)

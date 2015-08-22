@@ -53,8 +53,10 @@ contains
       integer :: unit
       character(len=32) :: foundMessage
       type (FileHandler) :: h
+      logical :: opened
 
       h = FileHandler(LOG_FILE)
+      inquire(file=h%getFileName(), opened=opened)
       call h%handle(this%record)
       call h%close()
 

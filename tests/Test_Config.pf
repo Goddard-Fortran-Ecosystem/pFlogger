@@ -40,16 +40,16 @@ contains
 
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
+
       dict = map([ &
            &      P('schema_version', 1), &
            &      P('loggers', 1) &
            &     ])
 
       call dictConfig(dict)
-      lgr => logging%getLogger('A')
 
-      expectedMessage = "Config::dictConfig() - invalid value for 'loggers'. "// &
-           & "Should be class Map."
+      lgr => logging%getLogger('A')
+      expectedMessage = "Config::dictConfig() - cannot cast 'loggers' as Map."
       @assertExceptionRaised(expectedMessage)
 
    end subroutine test_basic_loggers_invalid_dict

@@ -57,6 +57,7 @@ contains
       logical, optional, intent(in) :: delay
 
       logical :: delay_
+      logical :: opened
       
       if (present(delay)) then
          delay_ = delay
@@ -68,7 +69,7 @@ contains
 
       call handler%setFileName(fileName)
       if (.not. delay_) call handler%open()
-     
+
    end function newFileHandler
 
     
@@ -82,11 +83,13 @@ contains
    subroutine emitMessage(this, record)
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
-      
+
+      logical :: opened
+
       if (.not. this%isOpen()) call this%open()
 
       call this%StreamHandler%emitMessage(record)
-       
+
    end subroutine emitMessage
 
     
@@ -100,8 +103,7 @@ contains
    logical function isOpen(this)
       class (FileHandler), intent(in) :: this
        
-      isOpen = .false.
-      if (this%isOpen_) isOpen=.true.
+      isOpen = this%isOpen_
 
    end function isOpen
 
@@ -116,7 +118,8 @@ contains
    subroutine open(this)
       class (FileHandler), intent(inout) :: this
       integer :: unit
-      
+      logical :: opened
+
       if (this%isOpen()) return
 
       open(newunit=unit, file=this%getFileName(), &
@@ -142,7 +145,9 @@ contains
 
       call this%flush()
       call this%StreamHandler%close()
-      inquire(file=this%getFileName(), number=unit)
+      ! workaround for NAG 6.0
+!!$      inquire(file=this%getFileName(), number=unit)
+      unit = this%StreamHandler%getUnit()
       close(unit)
       this%isOpen_ = .false.
 

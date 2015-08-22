@@ -24,10 +24,15 @@ module ASTG_StreamHandler_mod
 
    public :: StreamHandler
 
+   ! Fortran requires that INQUIRE return -1 for files that are
+   ! not connected, but there is no name given to this value
+   integer, parameter :: UNCONNECTED = -1
+
    type, extends(AbstractHandler) :: StreamHandler
       private
-      integer :: unit = ERROR_UNIT ! stdout
+      integer :: unit = UNCONNECTED
    contains
+      procedure :: getUnit
       procedure :: emitMessage
       procedure :: close ! noop
       procedure :: flush => flushUnit
@@ -65,6 +70,22 @@ contains
    end function newStreamHandler
 
    
+   !---------------------------------------------------------------------------  
+   ! ROUTINE: 
+   ! getUnit
+   !
+   ! DESCRIPTION: 
+   ! Return the io unit in use.  
+   ! Forced to use this due to a bug in NAG 6.0 for INQUIRE combined with 
+   ! NEWUNIT.
+   !---------------------------------------------------------------------------  
+   integer function getUnit(this) result(unit)
+      class (StreamHandler), intent(in) :: this
+
+      unit = this%unit
+     
+   end function getUnit
+
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
    ! emitMessage

@@ -180,7 +180,9 @@ contains
       
       rollOver = .false.
       call this%FileHandler%flush()
-      inquire(file=this%getFileName(), size=fileSize)
+      ! workaround for NAG
+!!$      inquire(file=this%getFileName(), size=fileSize)
+      inquire(unit=this%getUnit(), size=fileSize)
 
       if (fileSize > this%maxBytes) then
          rollOver = .true.
