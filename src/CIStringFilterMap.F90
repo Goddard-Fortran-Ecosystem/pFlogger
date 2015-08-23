@@ -15,8 +15,8 @@ module  ASTG_CIStringFilterMap_mod
 #define _key_equal_defined
 #define _KEY_LESS_THAN(x,y) caseInsensitiveLessThan(x,y)
 
-#define _value type (Filter)
-#define _polymorphic
+#define _value class(Filter)
+#define _value_polymorphic
 
 #define _alt
 #include "templates/map.inc"

@@ -68,7 +68,11 @@ contains
 #ifndef __GFORTRAN__
       allocate(wrapper%array, source=array)
 #else
-      allocate(wrapper%array(size(array,1)), source=array)
+      block
+        integer :: n
+        n = size(array,1)
+        allocate(wrapper%array(n), source=array(1:n))
+      end block
 #endif
    end function wrap1d
 

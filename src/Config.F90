@@ -18,6 +18,9 @@ module ASTG_Config_mod
    public :: build_filters
    public :: build_filter
 
+   public :: build_streamhandler
+   public :: build_handler
+
 contains
 
    subroutine dictConfig(dict)
@@ -77,12 +80,13 @@ contains
 
 
    function build_filters(filtersDict) result(filters)
+      use ASTG_Filter_mod
       type (FilterMap) :: filters
       type (Map), intent(in) :: filtersDict
 
       type (MapIterator) :: iter
       type (Map), pointer :: cfg
-
+      type (Filter) :: f
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
          cfg => toMap(filtersDict, iter%key())
@@ -91,7 +95,6 @@ contains
       end do
 
    end function build_filters
-
 
    function build_filter(dict) result(f)
       use ASTG_Filter_mod
@@ -105,6 +108,116 @@ contains
       end if
 
    end function build_filter
+
+   
+   function build_handler(handlerDict, formatters, filters) result(h)
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map, FormatterMapIterator => mapIterator
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
+      use ASTG_AbstractHandler_mod
+      use ASTG_StringUtilities_mod, only: toLowerCase
+      class (AbstractHandler), allocatable :: h
+      type (Map), intent(in) :: handlerDict
+      type (FormatterMap), intent(in) :: formatters
+      type (FilterMap), intent(in) :: filters
+
+      character(len=:), pointer :: classNamePtr
+      character(len=:), pointer :: formatterNamePtr
+      type (FormatterMapIterator) :: fIter
+
+      character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
+      character(len=:), allocatable :: name
+      type (FilterMapIterator) :: fltrIter
+      integer :: i, j, n
+
+      classNamePtr => toString(handlerDict, 'class', require=.true.)
+      if (associated(classNamePtr)) then
+         select case (toLowerCase(classNamePtr))
+         case ('streamhandler')
+            allocate(h, source=build_streamhandler(handlerDict, formatters, filters))
+         case default
+            call throw("Config::build_handler() - unsupported class: '" // classNamePtr //"'.")
+         end select
+      end if
+
+      formatterNamePtr => toString(handlerDict, 'formatter')
+      if (associated(formatterNamePtr)) then
+         fIter = formatters%find(formatterNamePtr)
+         if (fIter /= formatters%end()) then
+            call h%setFormatter(fIter%value())
+         end if
+      end if
+
+      filterNamesList => toString(handlerDict, 'formats')
+      if (associated(filterNamesList)) then
+         n = len_trim(filterNamesList)
+         print*,'names: <',filterNamesList,'>'
+         if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
+            call throw("Config::build_handler() - filters is not of the form '[a,b,...,c]'")
+            return
+         end if
+
+         i = 2
+         do while (i < n)
+            j = index(filterNamesList(i:n-1),',')
+            if (j == 0) then
+               if (i < n-1) then
+                  name = filterNamesList(i:n-1)
+                  i = n
+               end if
+            else
+               name = filterNamesList(i:j-1)
+               i = j + 1
+            end if
+            fltrIter = filters%find(name)
+            if (fltrIter /= filters%end()) then
+               call h%addFilter(fltrIter%value())
+            else
+               call throw("Config::build_handler() - unknown filter'"//name//"'.")
+            end if
+         end do
+      end if
+
+   end function build_handler
+
+
+   function build_streamhandler(handlerDict, formatters, filters) result(h)
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StreamHandler_mod
+      use ASTG_StringUtilities_mod, only: toLowerCase
+      use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
+      type (StreamHandler) :: h
+      type (Map), intent(in) :: handlerDict
+      type (FormatterMap), intent(in) :: formatters
+      type (FilterMap), intent(in) :: filters
+
+      integer, pointer :: unitPtr
+      integer :: unit
+      character(len=:), pointer :: unitNamePtr
+      
+      unitNamePtr => toString(handlerDict, 'unit')
+      if (associated(unitNamePTr)) then
+         select case (toLowerCase(unitNamePtr))
+         case ('output_unit')
+            unit = OUTPUT_UNIT
+         case ('error_unit')
+            unit = ERROR_UNIT
+         case default
+            call throw("Config::build_streamhandler() - unknown value for unit '"//unitNamePtr//"'.")
+            return
+         end select
+         h = StreamHandler(unit)
+      else
+         unitPtr => toInteger(handlerDict, 'unit')
+         if (associated(unitPtr)) then
+            h = StreamHandler(unit)
+         else
+            h = StreamHandler()
+         end if
+      end if
+
+   end function build_streamhandler
+
 
 
    subroutine create_loggers(dict)
@@ -249,6 +362,53 @@ contains
       end function cast
 
    end function toString
+
+   function toStringArray(m, key, require) result(str)
+      character(len=:), pointer :: str(:)
+      type (Map), target, intent(in) :: m
+      character(len=*), intent(in) :: key
+      logical, optional, intent(in)  :: require
+
+      type (MapIterator) :: iter
+      class (*), pointer :: ptr
+      logical :: require_
+
+      require_ = .false.
+      if (present(require)) require_ = require
+
+      iter = m%find(key)
+      if (iter == m%end()) then
+         str => null()
+         if (require_) then
+            call throw("Config::dictConfig() - '"//key//"' not found.")
+         end if
+         return
+      end if
+
+      ptr => iter%value()
+      str => cast(ptr)
+
+   contains
+
+      function cast(anything) result(str)
+         use ASTG_WrapArray_mod
+         character(len=:), pointer :: str(:)
+         class (*), target, intent(in) :: anything
+
+         select type (anything)
+         type is (WrapArray1D)
+            select type (p => anything%array)
+            type is (character(len=*))
+               str => p
+            end select
+         class default
+            call throw("Config::dictConfig() - cannot cast '"//key//"' as an array.")
+            return
+         end select
+
+      end function cast
+
+   end function toStringArray
 
 
    function toMap(m, key, require) result(mPtr)

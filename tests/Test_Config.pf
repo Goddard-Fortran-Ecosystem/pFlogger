@@ -134,11 +134,73 @@ contains
            &       P('B', map([P('name',String('B'))])) &
            &     ])
 
+!!$      call build_filters(filters, filtersDict)
       filters = build_filters(filtersDict)
       @assertEqual(2, filters%size())
 
    end subroutine test_build_filters
-   
+
+
+   @test
+   subroutine test_build_streamhandler()
+      use ASTG_StreamHandler_mod
+      use ASTG_Filter_mod
+      use ASTG_Formatter_mod
+      type (map) :: handler_cfg
+      type (FilterMap) :: filters
+      type (FormatterMap) :: formatters
+      type (StreamHandler) :: h
+
+
+      call filters%insert('filterA',Filter('A'))
+      call filters%insert('filterB',Filter('B'))
+
+      call formatters%insert('handlerA', Formatter('%(message)'))
+      call formatters%insert('handlerB,', Formatter('%(levelname)'))
+
+      handler_cfg = map([ &
+           & P('class', String('StreamHandler')), &
+           & P('unit', String('OUTPUT_UNIT')), &
+           & P('formatter', String('handlerB')), &
+           & P('filters', String('[filterA]')) &
+           & ])
+
+      ! TODO
+      ! With F2008, this can become an assignment statement
+      h = build_streamhandler(handler_cfg, formatters, filters)
+
+   end subroutine test_build_streamhandler
+
+   @test
+   subroutine test_build_handler()
+      use ASTG_StreamHandler_mod
+      use ASTG_Filter_mod
+      use ASTG_Formatter_mod
+      use ASTG_AbstractHandler_mod
+      type (map) :: handler_cfg
+      class (AbstractHandler), allocatable :: h
+
+      type (FilterMap) :: filters
+      type (FormatterMap) :: formatters
+
+
+      call filters%insert('filterA',Filter('A'))
+      call filters%insert('filterB',Filter('B'))
+
+      call formatters%insert('handlerA', Formatter('%(message)'))
+      call formatters%insert('handlerB,', Formatter('%(levelname)'))
+
+      handler_cfg = map([ &
+           & P('class', String('StreamHandler')), &
+           & P('unit', String('OUTPUT_UNIT')), &
+           & P('formatter', String('handlerB')), &
+           & P('filters', String('[filterA]')) &
+           & ])
+
+      allocate(h, source=build_handler(handler_cfg, formatters, filters))
+
+   end subroutine test_build_handler
+
 
    @test
    subroutine test_basic_loggers_invalid_dict()
