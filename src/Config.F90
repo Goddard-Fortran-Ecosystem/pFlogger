@@ -129,6 +129,10 @@ contains
       type (FilterMapIterator) :: fltrIter
       integer :: i, j, n
 
+      character(len=:), pointer :: levelNamePtr
+      integer, pointer :: levelPtr
+      integer :: level
+
       classNamePtr => toString(handlerDict, 'class', require=.true.)
       if (associated(classNamePtr)) then
          select case (toLowerCase(classNamePtr))
@@ -139,6 +143,31 @@ contains
          end select
       end if
 
+      levelNamePtr => toString(handlerDict, 'level')
+      if (associated(levelNamePtr)) then
+         select case (toLowerCase(levelNamePtr))
+         case ('debug')
+            level = DEBUG
+         case ('info')
+            level = INFO
+         case ('warning')
+            level = WARNING
+         case ('error')
+            level = ERROR
+         case ('critical')
+            level = CRITICAL
+         case default
+            call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
+            return
+         end select
+         call h%setLevel(level)
+      else
+         levelPtr => toInteger(handlerDict, 'level')
+         if (associated(levelPtr)) then
+            call h%setLevel(levelPtr)
+         end if
+      end if
+      
       formatterNamePtr => toString(handlerDict, 'formatter')
       if (associated(formatterNamePtr)) then
          fIter = formatters%find(formatterNamePtr)
@@ -175,6 +204,7 @@ contains
                call throw("Config::build_handler() - unknown filter'"//name//"'.")
             end if
          end do
+
       end if
 
    end function build_handler
@@ -217,7 +247,6 @@ contains
       end if
 
    end function build_streamhandler
-
 
 
    subroutine create_loggers(dict)
