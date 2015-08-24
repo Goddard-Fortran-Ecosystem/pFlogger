@@ -1,11 +1,10 @@
 ! Singleton pattern for now
 module ASTG_Config_mod
-   use ASTG_CIStringUnlimitedMap_mod
    use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
-
+   use ASTG_CIStringUnlimitedMap_mod
    use ASTG_CIStringFilterMap_mod, only: FilterMap => map
    use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
 
@@ -40,6 +39,7 @@ contains
 
 
    function build_formatters(formattersDict) result(formatters)
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       type (FormatterMap) :: formatters
       type (Map), intent(in) :: formattersDict
 
@@ -81,6 +81,7 @@ contains
 
    function build_filters(filtersDict) result(filters)
       use ASTG_Filter_mod
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       type (FilterMap) :: filters
       type (Map), intent(in) :: filtersDict
 
@@ -160,29 +161,18 @@ contains
          character(len=:), pointer :: levelNamePtr
          integer :: level
          integer :: iostat
+
          levelNamePtr => toString(handlerDict, 'level')
          if (associated(levelNamePtr)) then
-            select case (toLowerCase(levelNamePtr))
-            case ('debug')
-               level = DEBUG
-            case ('info')
-               level = INFO
-            case ('warning')
-               level = WARNING
-            case ('error')
-               level = ERROR
-            case ('critical')
-               level = critical
-            case default
-               ! Maybe it is an integer literal
-               read(levelNamePtr,*, iostat=iostat) level
-               if (iostat /= 0) then
-                  call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
-                  return
-               end if
-            end select
+            ! Try as integer
+            read(levelNamePtr,*, iostat=iostat) level
+            if (iostat /= 0) then
+               level = nameToLevel(levelNamePtr)
+            end if
+
             call h%setLevel(level)
          end if
+
       end subroutine set_handler_level
       
 
@@ -292,6 +282,7 @@ contains
 
 
    subroutine create_loggers(dict)
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       type (Map), intent(in) :: dict
 
       type (MapIterator) :: iter
@@ -320,10 +311,20 @@ contains
 
       class (Logger), pointer :: lgr
       integer :: level
+      integer :: iostat
+      character(len=:), pointer :: levelNamePtr
 
       lgr => logging%getLogger(name)
-      level = nameToLevel(toString(args, 'level'))
-      call lgr%setLevel(level)
+
+      levelNamePtr => toString(args, 'level')
+      if (associated(levelNamePtr)) then
+         ! Try as integer
+         read(levelNamePtr,*, iostat=iostat) level
+         if (iostat /= 0) then
+            level = nameToLevel(levelNamePtr)
+         end if
+         call lgr%setLevel(level)
+      end if
 
    end subroutine addLogger
 
@@ -345,6 +346,7 @@ contains
 
 
    function toInteger(m, key, require) result(i)
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       integer, pointer :: i
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
@@ -389,6 +391,7 @@ contains
 
 
    function toString(m, key, require) result(str)
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       character(len=:), pointer :: str
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
@@ -437,6 +440,7 @@ contains
 
 
    function toMap(m, key, require) result(mPtr)
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       type (Map), pointer :: mPtr
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key

@@ -4,16 +4,15 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config_mod
-   use ASTG_Config_mod
+   use ASTG_CIStringUnlimitedMap_mod
    use pfunit_mod
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
    use ASTG_String_mod
 
-   use ASTG_CIStringUnlimitedMap_mod
-   use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+   use ASTG_Config_mod
+
    implicit none
 
 #define P(x,y) pair(x,y)
@@ -95,6 +94,7 @@ contains
 
    @test
    subroutine test_build_formatters()
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
       type (map) :: formattersDict
       type (FormatterMap) :: formatters
 
@@ -125,6 +125,7 @@ contains
 
    @test
    subroutine test_build_filters()
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
       type (map) :: filtersDict
       type (FilterMap) :: filters
 
@@ -142,6 +143,8 @@ contains
 
    @test
    subroutine test_build_streamhandler()
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -173,6 +176,8 @@ contains
 
    @test
    subroutine test_build_handler()
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod

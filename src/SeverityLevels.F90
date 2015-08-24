@@ -11,6 +11,8 @@
 !------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
    use ASTG_Exception_mod
+   use ASTG_CIStringIntegerMap_mod, only: CIStringIntegerMap => map
+   use ASTG_IntegerStringMap_mod, only: IntegerStringMap => map
    implicit none
    private
 
@@ -23,7 +25,10 @@ module ASTG_SeverityLevels_mod
 
    public :: levelToName
    public :: nameToLevel
-   
+
+   public :: initialize_severity_levels
+   public :: finalize_severity_levels
+
    enum, bind(c)
       enumerator :: &
            & NOTSET   =  0, &
@@ -33,6 +38,10 @@ module ASTG_SeverityLevels_mod
            & ERROR    = 40, &
            & CRITICAL = 50
    end enum
+
+   ! (Harmless?) Singletons?
+   type (CIStringIntegerMap), save :: name_to_level_
+   type (IntegerStringMap), save :: level_to_name_
 
 contains
 
@@ -45,26 +54,20 @@ contains
    ! Convert a numeric severity level to string identifier.
    !---------------------------------------------------------------------------
    function levelToName(level) result(name)
+      use ASTG_IntegerStringMap_mod, only: mapIterator
       character(len=:), allocatable :: name
       integer, intent(in) :: level
 
-      select case (level)
-      case (NOTSET)
-         name = 'NOTSET'
-      case (DEBUG)
-         name = 'DEBUG'
-      case (INFO)
-         name = 'INFO'
-      case (WARNING)
-         name = 'WARNING'
-      case (ERROR)
-         name = 'ERROR'
-      case (CRITICAL)
-         name = 'CRITICAL'
-      case default
-         name=''
+      type (mapIterator) :: iter
+
+      iter = level_to_name_%find(level)
+      if (iter == level_to_name_%end()) then
+         name = ''
          call throw('Unknown level. Please use a valid level.')
-      end select
+         return
+      end if
+
+      name = iter%value()
       
    end function levelToName
     
@@ -77,27 +80,43 @@ contains
    ! Convert a level name to a numeric severity level
    !---------------------------------------------------------------------------
    function nameToLevel(name) result(level)
+      use ASTG_CIStringIntegerMap_mod, only: mapiterator
       integer :: level
       character(len=*), intent(in) :: name
 
-      select case (name)
-      case ('NOTSET')
-         level = NOTSET
-      case ('DEBUG')
-         level = DEBUG
-      case ('INFO')
-         level = INFO
-      case ('WARNING')
-         level = WARNING
-      case ('ERROR')
-         level = ERROR
-      case ('CRITICAL')
-         level = CRITICAL
-      case default
+      type (mapiterator) :: iter
+
+      iter = name_to_level_%find(name)
+      if (iter == name_to_level_%end()) then
          level = NOTSET
          call throw('Unknown level name. Please use a valid name.')
-      end select
-      
+         return
+      end if
+
+      level = iter%value()
+
    end function nameToLevel
-    
+
+   subroutine initialize_severity_levels()
+      call level_to_name_%insert(NOTSET, 'NOTSET')
+      call level_to_name_%insert(DEBUG, 'DEBUG')
+      call level_to_name_%insert(INFO, 'INFO')
+      call level_to_name_%insert(WARNING, 'WARNING')
+      call level_to_name_%insert(ERROR, 'ERROR')
+      call level_to_name_%insert(CRITICAL, 'CRITICAL')
+
+      call name_to_level_%insert('NOTSET', NOTSET)
+      call name_to_level_%insert('INFO', INFO)
+      call name_to_level_%insert('DEBUG', DEBUG)
+      call name_to_level_%insert('WARNING', WARNING)
+      call name_to_level_%insert('ERROR', ERROR)
+      call name_to_level_%insert('CRITICAL', CRITICAL)
+
+   end subroutine initialize_severity_levels
+
+   subroutine finalize_severity_levels()
+      call level_to_name_%clear()
+      call name_to_level_%clear()
+   end subroutine finalize_severity_levels
+
 end module ASTG_SeverityLevels_mod

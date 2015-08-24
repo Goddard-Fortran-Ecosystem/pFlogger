@@ -22,6 +22,7 @@ set(SRCS
    Logger.F90
    LoggerManager.F90
    Object.F90
+   pflogger.F90
    Placeholder.F90
    RootLogger.F90
    RotatingFileHandler.F90
@@ -31,6 +32,8 @@ set(SRCS
    String.F90
    WrapArray.F90
 # FTL containers
+   CIStringIntegerMap.F90
+   IntegerStringMap.F90
    CIStringAbstractLoggerPolyMap.F90
    CIStringFormatterMap.F90
    CIStringFilterMap.F90

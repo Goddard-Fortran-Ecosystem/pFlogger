@@ -8,10 +8,12 @@ subroutine pfunit_throw(message)
 end subroutine pfunit_throw
 
 subroutine initTests()
+   use pflogger_mod
    use ASTG_Exception_mod, only: setThrowFunPtr
    implicit none
    external :: pfunit_throw
 
+   call initialize()
    call setThrowFunPtr(pfunit_throw)
 
 end subroutine initTests

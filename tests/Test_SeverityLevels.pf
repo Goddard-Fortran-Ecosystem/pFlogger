@@ -17,6 +17,16 @@ contains
 
    end subroutine test_levelToName
 
+   @test
+   subroutine test_nameToLevel()
+      
+      ! Level numeric values range from NOTSET=0 to CRITICAL=50
+      @assertEqual(NOTSET, nameToLevel('NOTSET'))
+      @assertEqual(DEBUG, nameToLevel('DEBUG'))
+      @assertEqual(CRITICAL, nameToLevel('CRITICAL'))
+
+   end subroutine test_nameToLevel
+
 
    @test
    subroutine test_levelToName_unnamedLevel()
