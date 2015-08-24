@@ -6,16 +6,6 @@ module Test_MpiFileHandler_mod
    use pfunit_mod
    implicit none
 
-
-   interface
-      function getSuffix(rank, suffixFormat) result(rawString)
-         character(len=:), allocatable :: rawString
-         integer, intent(in) :: rank
-         character(len=*), optional, intent(in) :: suffixFormat
-      end function getSuffix
-   end interface
-
-
 contains
 
 @test
@@ -25,9 +15,9 @@ contains
 
       comm = 12345 ! fake
 
-      @assertEqual('.pe=0', getSuffix(rank=0))
-      @assertEqual('.pe=1', getSuffix(rank=1))
-      @assertEqual('.pe=123', getSuffix(rank=123))
+      @assertEqual('.pe=0', handler%getSuffix(rank=0))
+      @assertEqual('.pe=1', handler%getSuffix(rank=1))
+      @assertEqual('.pe=123', handler%getSuffix(rank=123))
 
    end subroutine test_suffix
 
@@ -39,8 +29,8 @@ contains
 
       comm = 12345 ! fake
 
-      @assertEqual('.000000', getSuffix(rank=0, suffixFormat= '.%i6.6'))
-      @assertEqual('.000123', getSuffix(rank=123, suffixFormat= '.%i6.6'))
+      @assertEqual('.000000', handler%getSuffix(rank=0, suffixFormat= '.%i6.6'))
+      @assertEqual('.000123', handler%getSuffix(rank=123, suffixFormat= '.%i6.6'))
 
    end subroutine test_customSuffix
    
@@ -63,7 +53,7 @@ contains
       close(unit, status='delete')
 
       call setMpiRank(47)
-      handler = MpiFileHandler('logFile', comm, level=CRITICAL, suffixFormat='_%i3.3')
+      handler = MpiFileHandler('logFile', comm, suffixFormat='_%i3.3')
       @assertEqual('logFile_047', handler%getFileName())
       call handler%close()
 
@@ -88,7 +78,7 @@ contains
 
       call setMpiRank(0)
       comm = 12345
-      handler = MpiFileHandler(PREFIX, comm, level=DEBUG, delay=.true.)
+      handler = MpiFileHandler(PREFIX, comm, delay=.true.)
       inquire(file=FILE_NAME, exist=exist)
       @assertFalse(exist)
 

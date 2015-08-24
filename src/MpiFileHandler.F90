@@ -11,8 +11,8 @@
 !---------------------------------------------------------------------------
 module ASTG_MpiFileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
-   use ASTG_FileHandler_mod
    use ASTG_LogRecord_mod
+   use ASTG_FileHandler_mod
    
    implicit none
    private
@@ -26,7 +26,7 @@ module ASTG_MpiFileHandler_mod
    contains
 ! TODO: Dreadful workaround for gfortran 4.9.1 and 4.9.2.  Made
 ! getSuffix() an external procedure.
-!!$      procedure :: getSuffix
+      procedure :: getSuffix
    end type MpiFileHandler
 
    interface MpiFileHandler
@@ -52,58 +52,62 @@ contains
    ! don't open the stream.
    !---------------------------------------------------------------------------
    function newMpiFileHandler(fileNamePrefix, mpiCommunicator, unused, &
-        & level, suffixformat, delay) result(handler)
+        & suffixformat, delay) result(handler)
       type (MpiFileHandler) :: handler
       character(len=*), intent(in) :: fileNamePrefix
       integer, intent(in) :: mpiCommunicator
       type (UnusableArg), optional, intent(in) :: unused
-      integer, optional, intent(in) :: level
       character(len=*), optional, intent(in) :: suffixFormat
       logical, optional, intent(in) :: delay
 
       character(len=:), allocatable :: suffix
       integer :: rank, ier
 
-      ! Interface needed for external function
-      interface
-         function getSuffix(rank, suffixFormat) result(rawString)
-            character(len=:), allocatable :: rawString
-            integer, intent(in) :: rank
-            character(len=*), optional, intent(in) :: suffixFormat
-         end function getSuffix
-      end interface
+!!$      ! Interface needed for external function
+!!$      interface
+!!$         function getSuffix(rank, suffixFormat) result(rawString)
+!!$            character(len=:), allocatable :: rawString
+!!$            integer, intent(in) :: rank
+!!$            character(len=*), optional, intent(in) :: suffixFormat
+!!$         end function getSuffix
+!!$      end interface
 
       call MPI_Comm_rank(mpiCommunicator, rank, ier)
 
-      suffix = getSuffix(rank, suffixFormat)
-      handler%FileHandler = FileHandler(fileNamePrefix // suffix, level, delay=delay)
+      suffix = handler%getSuffix(rank, suffixFormat)
+      handler%FileHandler = FileHandler(fileNamePrefix // suffix, delay=delay)
+
       
    end function newMpiFileHandler
 
     
-!!$   function getSuffix(this, rank, suffixFormat) result(suffix)
-!!$      use ASTG_FormatParser_mod
-!!$      use FTL_StringUtilities_mod
-!!$      character(len=:), allocatable :: suffix
-!!$      class (MpiFileHandler), intent(in) :: this
-!!$      integer, intent(in) :: rank
-!!$      character(len=*), optional, intent(in) :: suffixFormat
-!!$
-!!$      type (FormatParser) :: parser
-!!$
-!!$      character(len=:), allocatable :: fmt
-!!$
-!!$      if (present(suffixFormat)) then
-!!$         fmt = suffixFormat
-!!$      elseif (allocated(defaultMpiSuffixFormat)) then
-!!$         fmt = defaultMpiSuffixFormat
-!!$      else
-!!$         fmt = DEFAULT_MPI_SUFFIX_FORMAT
-!!$      end if
-!!$
-!!$      suffix = parser%makeString(fmt, rank)
-!!$
-!!$   end function getSuffix
+   function getSuffix(this, rank, suffixFormat) result(suffix)
+      use ASTG_FormatParser_mod
+      use ASTG_FormatString_mod
+      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => vector
+      character(len=:), allocatable :: suffix
+      class (MpiFileHandler), intent(in) :: this
+      integer, intent(in) :: rank
+      character(len=*), optional, intent(in) :: suffixFormat
+
+      type (FormatParser) :: parser
+
+      character(len=:), allocatable :: fmt
+      type (UnlimitedVector) :: v
+
+      call v%push_back(rank)
+
+      if (present(suffixFormat)) then
+         fmt = suffixFormat
+      elseif (allocated(defaultMpiSuffixFormat)) then
+         fmt = defaultMpiSuffixFormat
+      else
+         fmt = DEFAULT_MPI_SUFFIX_FORMAT
+      end if
+
+      suffix = formatString(fmt, v)
+
+   end function getSuffix
 
 
    subroutine setDefaultMpiSuffixFormat(suffixFormat)
@@ -113,39 +117,4 @@ contains
 
 
 end module ASTG_MpiFileHandler_mod
-
-! Workaround for gfortran 4.9.1 and 4.9.2
-!---------------------------------------------------------------------------  
-! FUNCTION: 
-! getSuffix
-!
-! DESCRIPTION: 
-! Returns a suffix format to append to files created under parallel
-! runs. If suffixFormat is not specified use DEFAULT_MPI_SUFFIX_FORMAT.
-!---------------------------------------------------------------------------  
-function getSuffix(rank, suffixFormat) result(suffix)
-   use ASTG_MpiFileHandler_mod
-   use ASTG_FormatString_mod
-   use ASTG_UnlimitedVector_mod, only: Vector
-   use ASTG_ArgListUtilities_mod
-   character(len=:), allocatable :: suffix
-   integer, intent(in) :: rank
-   character(len=*), optional, intent(in) :: suffixFormat
-
-   character(len=:), allocatable :: fmt
-
-   if (present(suffixFormat)) then
-      fmt = suffixFormat
-   elseif (allocated(defaultMpiSuffixFormat)) then
-      fmt = defaultMpiSuffixFormat
-   else
-      fmt = DEFAULT_MPI_SUFFIX_FORMAT
-   end if
-
-   suffix = formatString(fmt, makeArgVector(rank))
-
-end function getSuffix
-
-
-
 
