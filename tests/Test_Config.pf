@@ -134,7 +134,6 @@ contains
            &       P('B', map([P('name',String('B'))])) &
            &     ])
 
-!!$      call build_filters(filters, filtersDict)
       filters = build_filters(filtersDict)
       @assertEqual(2, filters%size())
 
@@ -155,14 +154,15 @@ contains
       call filters%insert('filterA',Filter('A'))
       call filters%insert('filterB',Filter('B'))
 
-      call formatters%insert('handlerA', Formatter('%(message)'))
-      call formatters%insert('handlerB,', Formatter('%(levelname)'))
+      call formatters%insert('formatterA', Formatter('%(message)'))
+      call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
       handler_cfg = map([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('handlerB')), &
-           & P('filters', String('[filterA]')) &
+           & P('filters', String('[filterA]')), &
+           & P('level', String('DEBUG')) &
            & ])
 
       ! TODO
@@ -194,10 +194,12 @@ contains
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('handlerB')), &
-           & P('filters', String('[filterA]')) &
+           & P('filters', String('[filterA]')), &
+           & P('level', String('DEBUG')) &
            & ])
 
       allocate(h, source=build_handler(handler_cfg, formatters, filters))
+      @assertEqual(DEBUG, h%getLevel())
 
    end subroutine test_build_handler
 

@@ -130,8 +130,8 @@ contains
       integer :: i, j, n
 
       character(len=:), pointer :: levelNamePtr
-      integer, pointer :: levelPtr
       integer :: level
+      integer :: iostat
 
       classNamePtr => toString(handlerDict, 'class', require=.true.)
       if (associated(classNamePtr)) then
@@ -157,15 +157,14 @@ contains
          case ('critical')
             level = CRITICAL
          case default
-            call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
-            return
+            ! Maybe it is an integer literal
+            read(levelNamePtr,*, iostat=iostat) level
+            if (iostat /= 0) then
+               call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
+               return
+            end if
          end select
          call h%setLevel(level)
-      else
-         levelPtr => toInteger(handlerDict, 'level')
-         if (associated(levelPtr)) then
-            call h%setLevel(levelPtr)
-         end if
       end if
       
       formatterNamePtr => toString(handlerDict, 'formatter')
@@ -176,10 +175,10 @@ contains
          end if
       end if
 
-      filterNamesList => toString(handlerDict, 'formats')
+      filterNamesList => toString(handlerDict, 'filters')
       if (associated(filterNamesList)) then
+
          n = len_trim(filterNamesList)
-         print*,'names: <',filterNamesList,'>'
          if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
             call throw("Config::build_handler() - filters is not of the form '[a,b,...,c]'")
             return
@@ -301,6 +300,7 @@ contains
 
    end subroutine check_schema_version
 
+
    function toInteger(m, key, require) result(i)
       integer, pointer :: i
       type (Map), target, intent(in) :: m
@@ -338,7 +338,6 @@ contains
          class default
             i => null()
             call throw("Config::dictConfig() - cannot cast '"//key//"' as integer.")
-            return
          end select
 
       end function cast
@@ -384,6 +383,7 @@ contains
          type is (String)
             str => anything%str
          class default
+            str => null()
             call throw("Config::dictConfig() - cannot cast '"//key//"' as character.")
             return
          end select
@@ -391,53 +391,6 @@ contains
       end function cast
 
    end function toString
-
-   function toStringArray(m, key, require) result(str)
-      character(len=:), pointer :: str(:)
-      type (Map), target, intent(in) :: m
-      character(len=*), intent(in) :: key
-      logical, optional, intent(in)  :: require
-
-      type (MapIterator) :: iter
-      class (*), pointer :: ptr
-      logical :: require_
-
-      require_ = .false.
-      if (present(require)) require_ = require
-
-      iter = m%find(key)
-      if (iter == m%end()) then
-         str => null()
-         if (require_) then
-            call throw("Config::dictConfig() - '"//key//"' not found.")
-         end if
-         return
-      end if
-
-      ptr => iter%value()
-      str => cast(ptr)
-
-   contains
-
-      function cast(anything) result(str)
-         use ASTG_WrapArray_mod
-         character(len=:), pointer :: str(:)
-         class (*), target, intent(in) :: anything
-
-         select type (anything)
-         type is (WrapArray1D)
-            select type (p => anything%array)
-            type is (character(len=*))
-               str => p
-            end select
-         class default
-            call throw("Config::dictConfig() - cannot cast '"//key//"' as an array.")
-            return
-         end select
-
-      end function cast
-
-   end function toStringArray
 
 
    function toMap(m, key, require) result(mPtr)
@@ -476,7 +429,6 @@ contains
          class default
             m => null()
             call throw("Config::dictConfig() - cannot cast '"//key//"' as Map.")
-            return
          end select
 
       end function cast
