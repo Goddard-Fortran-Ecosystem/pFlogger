@@ -120,91 +120,134 @@ contains
       type (FormatterMap), intent(in) :: formatters
       type (FilterMap), intent(in) :: filters
 
-      character(len=:), pointer :: classNamePtr
-      character(len=:), pointer :: formatterNamePtr
-      type (FormatterMapIterator) :: fIter
 
-      character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
-      character(len=:), allocatable :: name
-      type (FilterMapIterator) :: fltrIter
-      integer :: i, j, n
 
-      character(len=:), pointer :: levelNamePtr
-      integer :: level
-      integer :: iostat
 
-      classNamePtr => toString(handlerDict, 'class', require=.true.)
-      if (associated(classNamePtr)) then
-         select case (toLowerCase(classNamePtr))
-         case ('streamhandler')
-            allocate(h, source=build_streamhandler(handlerDict, formatters, filters))
-         case default
-            call throw("Config::build_handler() - unsupported class: '" // classNamePtr //"'.")
-         end select
-      end if
+      call allocate_concrete_handler(h, handlerDict)
+      if (.not. allocated(h)) return
 
-      levelNamePtr => toString(handlerDict, 'level')
-      if (associated(levelNamePtr)) then
-         select case (toLowerCase(levelNamePtr))
-         case ('debug')
-            level = DEBUG
-         case ('info')
-            level = INFO
-         case ('warning')
-            level = WARNING
-         case ('error')
-            level = ERROR
-         case ('critical')
-            level = CRITICAL
-         case default
-            ! Maybe it is an integer literal
-            read(levelNamePtr,*, iostat=iostat) level
-            if (iostat /= 0) then
-               call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
+      call set_handler_level(h, handlerDict)
+
+      call set_handler_formatter(h, handlerDict, formatters)
+
+      call set_handler_filters(h, handlerDict, filters)
+
+
+   contains
+
+      subroutine allocate_concrete_handler(h, handlerDict)
+         class (AbstractHandler), allocatable, intent(out) :: h
+         type (Map), intent(in) :: handlerDict
+
+         character(len=:), pointer :: classNamePtr
+
+         classNamePtr => toString(handlerDict, 'class', require=.true.)
+         if (associated(classNamePtr)) then
+            select case (toLowerCase(classNamePtr))
+            case ('streamhandler')
+               allocate(h, source=build_streamhandler(handlerDict, formatters, filters))
+            case default
+               call throw("Config::build_handler() - unsupported class: '" // classNamePtr //"'.")
+            end select
+         end if
+
+      end subroutine allocate_concrete_handler
+
+      subroutine set_handler_level(h, handlerDict)
+         class (AbstractHandler), intent(inout) :: h
+         type (Map), intent(in) :: handlerDict
+
+         character(len=:), pointer :: levelNamePtr
+         integer :: level
+         integer :: iostat
+         levelNamePtr => toString(handlerDict, 'level')
+         if (associated(levelNamePtr)) then
+            select case (toLowerCase(levelNamePtr))
+            case ('debug')
+               level = DEBUG
+            case ('info')
+               level = INFO
+            case ('warning')
+               level = WARNING
+            case ('error')
+               level = ERROR
+            case ('critical')
+               level = critical
+            case default
+               ! Maybe it is an integer literal
+               read(levelNamePtr,*, iostat=iostat) level
+               if (iostat /= 0) then
+                  call throw("Config::build_streamhandler() - unknown value for level '"//levelNamePtr//"'.")
+                  return
+               end if
+            end select
+            call h%setLevel(level)
+         end if
+      end subroutine set_handler_level
+      
+
+      subroutine set_handler_formatter(h, handlerDict, formatters)
+         class (AbstractHandler), intent(inout) :: h
+         type (Map), intent(in) :: handlerDict
+         type (FormatterMap), intent(in) :: formatters
+
+         character(len=:), pointer :: formatterNamePtr
+         type (FormatterMapIterator) :: iter
+
+         formatternameptr => toString(handlerDict, 'formatter')
+         if (associated(formatterNamePtr)) then
+            iter = formatters%find(formatterNamePtr)
+            if (iter /= formatters%end()) then
+               call h%setFormatter(iter%value())
+            end if
+         end if
+
+      end subroutine set_handler_formatter
+
+
+      subroutine set_handler_filters(h, handlerDict, filters)
+         class (AbstractHandler), intent(inout) :: h
+         type (Map), intent(in) :: handlerDict
+         type (FilterMap), intent(in) :: filters
+
+         character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: name
+         type (FilterMapIterator) :: iter
+         integer :: i, j, n
+
+         filterNamesList => toString(handlerDict, 'filters')
+         if (associated(filterNamesList)) then
+
+            n = len_trim(filterNamesList)
+            if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
+               call throw("Config::build_handler() - filters is not of the form '[a,b,...,c]'")
                return
             end if
-         end select
-         call h%setLevel(level)
-      end if
-      
-      formatterNamePtr => toString(handlerDict, 'formatter')
-      if (associated(formatterNamePtr)) then
-         fIter = formatters%find(formatterNamePtr)
-         if (fIter /= formatters%end()) then
-            call h%setFormatter(fIter%value())
-         end if
-      end if
 
-      filterNamesList => toString(handlerDict, 'filters')
-      if (associated(filterNamesList)) then
-
-         n = len_trim(filterNamesList)
-         if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-            call throw("Config::build_handler() - filters is not of the form '[a,b,...,c]'")
-            return
-         end if
-
-         i = 2
-         do while (i < n)
-            j = index(filterNamesList(i:n-1),',')
-            if (j == 0) then
-               if (i < n-1) then
-                  name = filterNamesList(i:n-1)
-                  i = n
+            i = 2
+            do while (i < n)
+               j = index(filterNamesList(i:n-1),',')
+               if (j == 0) then
+                  if (i < n-1) then
+                     name = filterNamesList(i:n-1)
+                     i = n
+                  end if
+               else
+                  name = filterNamesList(i:j-1)
+                  i = j + 1
                end if
-            else
-               name = filterNamesList(i:j-1)
-               i = j + 1
-            end if
-            fltrIter = filters%find(name)
-            if (fltrIter /= filters%end()) then
-               call h%addFilter(fltrIter%value())
-            else
-               call throw("Config::build_handler() - unknown filter'"//name//"'.")
-            end if
-         end do
+               iter = filters%find(name)
+               if (iter /= filters%end()) then
+                  call h%addFilter(iter%value())
+               else
+                  call throw("Config::build_handler() - unknown filter'"//name//"'.")
+               end if
+            end do
+            
+         end if
 
-      end if
+      end subroutine set_handler_filters
+
 
    end function build_handler
 
