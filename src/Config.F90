@@ -5,8 +5,9 @@ module ASTG_Config_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
    use ASTG_CIStringUnlimitedMap_mod
-   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
    use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+   use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
 
    implicit none
    private
@@ -19,7 +20,9 @@ module ASTG_Config_mod
 
    public :: build_streamhandler
    public :: build_handler
+   public :: build_handlers
 
+   public :: build_logger
 contains
 
    subroutine dictConfig(dict)
@@ -110,6 +113,26 @@ contains
 
    end function build_filter
 
+   function build_handlers(handlersDict, formatters, filters) result(handlers)
+      use ASTG_CIStringUnlimitedMap_mod, only: mapIterator
+      use ASTG_AbstractHandler_mod
+      type (HandlerMap) :: handlers
+      type (Map), intent(in) :: handlersDict
+      type (FormatterMap), intent(in) :: formatters
+      type (FilterMap), intent(in) :: filters
+
+      type (MapIterator) :: iter
+      type (Map), pointer :: cfg
+      class (AbstractHandler), allocatable :: h
+
+      iter = handlersDict%begin()
+      do while (iter /= handlersDict%end())
+         cfg => toMap(handlersDict, iter%key())
+         call handlers%insert(iter%key(), build_handler(cfg, formatters, filters))
+         call iter%next()
+      end do
+
+   end function build_handlers
    
    function build_handler(handlerDict, formatters, filters) result(h)
       use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map, FormatterMapIterator => mapIterator
@@ -122,8 +145,6 @@ contains
       type (FilterMap), intent(in) :: filters
 
 
-
-
       call allocate_concrete_handler(h, handlerDict)
       if (.not. allocated(h)) return
 
@@ -132,7 +153,6 @@ contains
       call set_handler_formatter(h, handlerDict, formatters)
 
       call set_handler_filters(h, handlerDict, filters)
-
 
    contains
 
@@ -219,12 +239,12 @@ contains
                j = index(filterNamesList(i:n-1),',')
                if (j == 0) then
                   if (i < n-1) then
-                     name = filterNamesList(i:n-1)
+                     name = adjustl(trim(filterNamesList(i:n-1)))
                      i = n
                   end if
                else
-                  name = filterNamesList(i:j-1)
-                  i = j + 1
+                  name = adjustl(trim(filterNamesList(i:i + j-2)))
+                  i = i + j
                end if
                iter = filters%find(name)
                if (iter /= filters%end()) then
@@ -279,6 +299,141 @@ contains
       end if
 
    end function build_streamhandler
+
+
+   subroutine build_logger(name, loggerDict, filters, handlers)
+      use ASTG_AbstractHandler_mod
+      use ASTG_StringUtilities_mod, only: toLowerCase
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
+      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map, HandlerMapIterator => mapIterator
+      character(len=*), intent(in) :: name
+      type (Map), intent(in) :: loggerDict
+      type (FilterMap), intent(in) :: filters
+      type (HandlerMap), intent(in) :: handlers
+
+      type (Logger), pointer :: lgr
+
+      lgr => logging%getLogger(name)
+
+      call set_logger_level(lgr, loggerDict)
+      call set_logger_filters(lgr, loggerDict, filters)
+      call set_logger_handlers(lgr, loggerDict, handlers)
+
+
+
+   contains
+
+      subroutine set_logger_level(lgr, loggerDict)
+         class (Logger), intent(inout) :: lgr
+         type (Map), intent(in) :: loggerDict
+
+         character(len=:), pointer :: levelNamePtr
+         integer :: level
+         integer :: iostat
+
+         levelNamePtr => toString(loggerDict, 'level')
+         if (associated(levelNamePtr)) then
+            ! Try as integer
+            read(levelNamePtr,*, iostat=iostat) level
+            if (iostat /= 0) then
+               level = nameToLevel(levelNamePtr)
+            end if
+
+            call lgr%setLevel(level)
+         end if
+
+      end subroutine set_logger_level
+      
+
+      subroutine set_logger_filters(lgr, loggerDict, filters)
+         class (Logger), intent(inout) :: lgr
+         type (Map), intent(in) :: loggerDict
+         type (FilterMap), intent(in) :: filters
+
+         character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: name
+         type (FilterMapIterator) :: iter
+         integer :: i, j, n
+
+         filterNamesList => toString(loggerDict, 'filters')
+         if (associated(filterNamesList)) then
+
+            n = len_trim(filterNamesList)
+            if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
+               call throw("Config::build_logger() - filters is not of the form '[a,b,...,c]'")
+               return
+            end if
+
+            i = 2
+            do while (i < n)
+               j = index(filterNamesList(i:n-1),',')
+               if (j == 0) then
+                  if (i < n-1) then
+                     name = adjustl(trim(filterNamesList(i:n-1)))
+                     i = n
+                  end if
+               else
+                  name = adjustl(trim(filterNamesList(i:i+j-2)))
+                  i = i + j
+               end if
+               iter = filters%find(name)
+               if (iter /= filters%end()) then
+                  call lgr%addFilter(iter%value())
+               else
+                  call throw("Config::build_logger() - unknown filter'"//name//"'.")
+               end if
+            end do
+            
+         end if
+
+      end subroutine set_logger_filters
+
+
+      subroutine set_logger_handlers(lgr, loggerDict, handlers)
+         class (Logger), intent(inout) :: lgr
+         type (Map), intent(in) :: loggerDict
+         type (HandlerMap), intent(in) :: handlers
+
+         character(len=:), pointer :: handlerNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: name
+         type (HandlerMapIterator) :: iter
+         integer :: i, j, n
+
+         handlerNamesList => toString(loggerDict, 'handlers')
+         if (associated(handlerNamesList)) then
+
+            n = len_trim(handlerNamesList)
+            if (handlerNamesList(1:1) /= '[' .or. handlerNamesList(n:n) /= ']') then
+               call throw("Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
+               return
+            end if
+
+            i = 2
+            do while (i < n)
+               j = index(handlerNamesList(i:n-1),',')
+               if (j == 0) then
+                  if (i < n-1) then
+                     name = handlerNamesList(i:n-1)
+                     i = n
+                  end if
+               else
+                  name = handlerNamesList(i:j-1)
+                  i = j + 1
+               end if
+               iter = handlers%find(name)
+               if (iter /= handlers%end()) then
+                  call lgr%addHandler(iter%value())
+               else
+                  call throw("Config::build_logger() - unknown handler'"//name//"'.")
+               end if
+            end do
+            
+         end if
+
+      end subroutine set_logger_handlers
+
+
+   end subroutine build_logger
 
 
    subroutine create_loggers(dict)

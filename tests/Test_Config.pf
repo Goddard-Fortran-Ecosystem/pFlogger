@@ -188,17 +188,16 @@ contains
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
 
-
       call filters%insert('filterA',Filter('A'))
       call filters%insert('filterB',Filter('B'))
 
-      call formatters%insert('handlerA', Formatter('%(message)'))
-      call formatters%insert('handlerB,', Formatter('%(levelname)'))
+      call formatters%insert('formatterA', Formatter('%(message)'))
+      call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
       handler_cfg = map([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
-           & P('formatter', String('handlerB')), &
+           & P('formatter', String('formatterB')), &
            & P('filters', String('[filterA]')), &
            & P('level', String('DEBUG')) &
            & ])
@@ -207,6 +206,93 @@ contains
       @assertEqual(DEBUG, h%getLevel())
 
    end subroutine test_build_handler
+
+   @test
+   subroutine test_build_handlers()
+      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_Filter_mod
+      use ASTG_StreamHandler_mod
+      use ASTG_Formatter_mod
+      type (map) :: handlersDict
+      type (HandlerMap) :: handlers
+
+      type (map) :: h1_cfg, h2_cfg
+
+      type (FilterMap) :: filters
+      type (FormatterMap) :: formatters
+
+      call filters%insert('filterA',Filter('A'))
+      call filters%insert('filterB',Filter('B'))
+
+      call formatters%insert('formatterA', Formatter('%(message)'))
+      call formatters%insert('formatterB,', Formatter('%(levelname)'))
+
+
+      h1_cfg = map([ &
+           & P('class', String('StreamHandler')), &
+           & P('unit', String('OUTPUT_UNIT')), &
+           & P('formatter', String('formatterA')), &
+           & P('filters', String('[filterA]')), &
+           & P('level', String('INFO')) &
+           & ])
+
+      h2_cfg = map([ &
+           & P('class', String('StreamHandler')), &
+           & P('unit', String('OUTPUT_UNIT')), &
+           & P('formatter', String('formatterB')), &
+           & P('filters', String('[filterA,filterB]')), &
+           & P('level', String('CRITICAL')) &
+           & ])
+
+      handlersDict = &
+           & map([ &
+           &       P('A', h1_cfg), &
+           &       P('B', h2_cfg) &
+           &     ])
+
+      handlers = build_handlers(handlersDict, formatters, filters)
+      @assertEqual(2, handlers%size())
+
+   end subroutine test_build_handlers
+
+
+   subroutine test_build_logger_trivial()
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+
+      type (map) :: dict
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
+
+      dict = map()
+      call build_logger('A', dict, filters, handlers)
+
+   end subroutine test_build_logger_trivial
+
+   subroutine test_build_logger()
+      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+
+      use ASTG_Filter_mod
+      use ASTG_AbstractHandler_mod
+      use ASTG_FileHandler_mod
+
+      type (map) :: dict
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
+
+      call handlers%insert('handlerA', FileHandler('A', delay=.true.))
+      call handlers%insert('handlerB', FileHandler('B', delay=.true.))
+
+      call filters%insert('filterA', Filter('A'))
+      call filters%insert('filterB', Filter('B'))
+
+      dict = map()
+      call build_logger('A', dict, filters, handlers)
+
+   end subroutine test_build_logger
 
 
    @test
