@@ -4,6 +4,7 @@ program loggingFormat
    use ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
    use ASTG_Formatter_mod
+   use pflogger_mod
    implicit none
    
    type (Logger) :: log
@@ -12,6 +13,8 @@ program loggingFormat
    integer :: i, j
    real(kind=8) :: T(15,10)
    
+   call initialize() 
+
    ! Create a Logger and give it a name. A log message will be displayed
    ! with the following default format: <LEVEL: NAME: MESSAGE>.
    ! Note that if the log name is the empty string then it will be given

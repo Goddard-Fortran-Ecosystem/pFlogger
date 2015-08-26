@@ -3,11 +3,14 @@ program basicLogging
    use ASTG_StreamHandler_mod
    use ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
+   use pflogger_mod
    implicit none
    
    type (Logger) :: log
    type (StreamHandler) :: stdout
    type (FileHandler) :: logfile
+
+   call initialize()  ! pfloggger
 
    ! Create a Logger and give it a name. A log message will be displayed
    ! with the following default format: <LEVEL: NAME: MESSAGE>.
