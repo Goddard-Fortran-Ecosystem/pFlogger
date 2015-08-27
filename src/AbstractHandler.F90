@@ -142,8 +142,10 @@ contains
       class (AbstractHandler), intent(inout) :: this
       class (Formatter) :: fmt
 
+      if (allocated(this%fmt)) deallocate(this%fmt)
+
       allocate(this%fmt, source=fmt)
-      
+
    end subroutine setFormatter
 
    
