@@ -35,12 +35,14 @@ module ASTG_FormatString_mod
    interface FormatString
       module procedure formatMap
       module procedure formatVector
+      module procedure formatPreparsed
    end interface FormatString
 
 #ifndef __GFORTRAN__
    interface operator(.fmt.)
       module procedure formatMap
       module procedure formatVector
+      module procedure formatPreparsed
    end interface operator(.fmt.)
 #endif
 
@@ -51,26 +53,37 @@ contains
 
    function formatMap(fmt, dictionary) result(string)
       use ASTG_FormatToken_mod
-      use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
-      use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use ASTG_CIStringUnlimitedMap_mod, only: Map
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       class(Map), intent(in) :: dictionary
 
       type (FormatParser) :: p
+
+      call p%parse(fmt)
+      string = formatPreparsed(p, dictionary)
+
+   end function formatMap
+
+   function formatPreparsed(parsed, dictionary) result(string)
+      use ASTG_FormatToken_mod
+      use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
+      use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
+      use ASTG_CIStringUnlimitedMap_mod, only: Map
+      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      character(len=:), allocatable :: string
+      type (FormatParser), intent(in) :: parsed
+      class(Map), intent(in) :: dictionary
+
       type (TokenVectorIterator) :: tokenIter
       type (FormatToken), pointer :: token
       type (MapIterator) :: dictionaryIter
       class (*), pointer :: arg
 
-      call p%parse(fmt)
-      
-      tokenIter = p%begin()
+      tokenIter = parsed%begin()
       string = ''
 
-      do while (tokenIter /= p%end())
+      do while (tokenIter /= parsed%end())
          token => tokenIter%get()
          select case (token%type)
 
@@ -95,7 +108,7 @@ contains
 
       end do
 
-   end function formatMap
+   end function formatPreparsed
 
 
    function formatVector(fmt, args) result(string)

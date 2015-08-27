@@ -35,12 +35,11 @@ module ASTG_LogRecord_mod
       character(len=:), allocatable :: fmt
       type (UnlimitedVector) :: args
       type (CIStringUnlimitedMap) :: extra
+      integer :: time_fields(8)
    contains
       procedure :: getName
       procedure :: getLevel
       procedure :: getMessage
-!      procedure :: getStr
-!      procedure :: getFmt
       procedure, nopass :: fillDateAndTime
    end type LogRecord
 
@@ -116,14 +115,7 @@ contains
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
       
-      call date_and_time(VALUES=values)
-      call rec%extra%insert('Y', values(1))
-      call rec%extra%insert('M', values(2))
-      call rec%extra%insert('D', values(3))
-      call rec%extra%insert('HH', values(5))
-      call rec%extra%insert('MM', values(6))
-      call rec%extra%insert('SS', values(7))
-      call rec%extra%insert('MS', values(8))
+      call date_and_time(VALUES=rec%time_fields)
 
    end subroutine fillDateAndTime
    
@@ -175,41 +167,6 @@ contains
       
    end function getMessage
 
-
-! TODO: Is there any use for this function?   
-   function getStr(this) result(str)
-      class (LogRecord), intent(in) :: this
-      character(len=:), allocatable :: str
-      integer :: eos
-
-      eos = index(this%messageFormat, ' ')
-      if (eos>0) then
-        allocate(character(len=eos-1)::str)
-        str = this%messageFormat(1:eos-1)
-      else
-        str = this%messageFormat
-      end if
-      
-   end function getStr
-
-   
-! TODO: Is there any use for this function?   
-   function getFmt(this) result(fmt)
-      class (LogRecord), intent(in) :: this
-      character(len=:), allocatable :: fmt
-      integer :: eos, newLen, msgLen
-
-      eos = index(this%messageFormat, '%')
-      if (eos>0) then
-        msgLen = len(this%messageFormat)
-        newLen = len(this%messageFormat)-eos
-        allocate(character(len=newLen)::fmt)
-        fmt = this%messageFormat(eos+1:msgLen)
-      else
-        fmt = ''
-      end if
-      
-   end function getFmt
 
 
    !---------------------------------------------------------------------------  

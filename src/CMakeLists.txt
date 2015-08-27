@@ -14,6 +14,7 @@ set(SRCS
    FileHandler.F90
    Filter.F90
    Filterer.F90
+   FastFormatter.F90
    FormatToken.F90
    FormatParser.F90
    FormatString.F90

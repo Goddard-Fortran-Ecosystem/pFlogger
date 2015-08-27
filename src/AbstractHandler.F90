@@ -36,7 +36,7 @@ module ASTG_AbstractHandler_mod
    type, extends(Filterer), abstract :: AbstractHandler
       private
       integer :: level = NOTSET ! default
-      type(Formatter) :: fmt
+      class (Formatter), allocatable :: fmt
    contains
       procedure(emitMessage), deferred :: emitMessage
       procedure :: handle
@@ -140,9 +140,9 @@ contains
    !---------------------------------------------------------------------------
    subroutine setFormatter(this, fmt)
       class (AbstractHandler), intent(inout) :: this
-      type(Formatter) :: fmt
-      
-      this%fmt = fmt
+      class (Formatter) :: fmt
+
+      allocate(this%fmt, source=fmt)
       
    end subroutine setFormatter
 

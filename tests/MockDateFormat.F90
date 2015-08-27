@@ -12,6 +12,7 @@ module MockDateFormat_mod
    type, extends (Formatter) :: MockDateFormat
       ! These components must be public for testing purposes
       type (Formatter) :: f
+
       integer :: Y = 0
       integer :: M = 0
       integer :: D = 0
@@ -32,15 +33,15 @@ contains
       class(MockDateFormat), intent(in) :: this
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
-      
-      call rec%extra%insert('Y', this%Y)
-      call rec%extra%insert('M', this%M)
-      call rec%extra%insert('D', this%D)
-      call rec%extra%insert('HH', this%HH)
-      call rec%extra%insert('MM', this%MM)
-      call rec%extra%insert('SS', this%SS)
-      call rec%extra%insert('MS', this%MS)
-      
+
+      rec%time_fields(1) = this%Y
+      rec%time_fields(2) = this%M
+      rec%time_fields(3) = this%D
+      rec%time_fields(5) = this%HH
+      rec%time_fields(6) = this%MM
+      rec%time_fields(7) = this%SS
+      rec%time_fields(8) = this%MS
+
    end subroutine fillDateAndTime
 
    

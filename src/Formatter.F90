@@ -31,6 +31,7 @@
 module ASTG_Formatter_mod
    use ASTG_Object_mod
    use ASTG_LogRecord_mod
+   use ASTG_FormatParser_mod
    implicit none
    private
 
@@ -38,15 +39,12 @@ module ASTG_Formatter_mod
 
    type, extends(Object) :: Formatter
       private
-      integer :: placeholder
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
+      type (FormatParser) :: p
    contains
       procedure :: format
       procedure :: formatTime
-      procedure :: toString_unlimitedPoly
-      generic :: toString => toString_unlimitedPoly
-      procedure :: toStringOther
       procedure :: usesTime
    end type Formatter
 
@@ -81,6 +79,8 @@ contains
       if (present(datefmt)) then
          f%datefmt = datefmt
       end if
+
+      call f%p%parse(f%fmt)
       
    end function newFormatter
 
@@ -92,17 +92,27 @@ contains
    ! DESCRIPTION: 
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
-   function formatTime(this, record, datefmt) result(logMessage)
+   function formatTime(this, record, datefmt) result(asctime)
       use ASTG_FormatString_mod
       use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
 
-      character(len=:), allocatable :: logMessage
+      character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
       character(len=*), optional, intent(in) :: datefmt
 
       type (CIStringUnlimitedMap) :: extra
       character(len=:), allocatable :: datefmt_
+
+      associate (t => record%time_fields)
+        call extra%insert('Y', t(1))
+        call extra%insert('M', t(2))
+        call extra%insert('D', t(3))
+        call extra%insert('HH', t(5))
+        call extra%insert('MM', t(6))
+        call extra%insert('SS', t(7))
+        call extra%insert('MS', t(8))
+      end associate
 
       if (present(datefmt)) then
          dateFmt_ = datefmt
@@ -111,7 +121,7 @@ contains
               & '%(HH)i2.2~:%(MM)i2.2~:%(SS)i2.2~.%(MS)i3.3'
       end if
          
-      logMessage = FormatString(dateFmt_, record%extra)
+      asctime = FormatString(dateFmt_, extra)
 
    end function formatTime
 
@@ -136,10 +146,10 @@ contains
       use ASTG_String_mod
 
       character(len=:), allocatable :: logMessage
-      character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
 
+      character(len=:), allocatable :: asctime
       type (CIStringUnlimitedMap) :: extra
       type (CIStringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
@@ -164,7 +174,8 @@ contains
          call extra%insert('asctime', asctime)
 #endif
       end if
-      logMessage = FormatString(this%fmt, extra)
+
+      logMessage = FormatString(this%p, extra)
     
    end function format
 
@@ -182,79 +193,4 @@ contains
       usesTime = (index(this%fmt,'%(asctime)') > 0)
    end function usesTime
 
-   
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! toString_unlimitedPoly
-   !
-   ! DESCRIPTION: 
-   ! This function operates on different input data types and returns a string.
-   !---------------------------------------------------------------------------
-   function toString_unlimitedPoly(this, arg) result(str)
-      use ASTG_StringUtilities_mod
-      use iso_fortran_env
-      class (Formatter), intent(in) :: this
-      class (*), intent(in) :: arg
-
-      character(len=80) :: buffer
-      character(len=:), allocatable :: str
-       
-      select type (p => arg)
-
-      type is (integer(int8))
-         str = toString(p)
-      type is (integer(int16))
-         str = toString(p)
-      type is (integer(int32))
-         str = toString(p)
-      type is (integer(int64))
-         str = toString(p)
-
-      type is (real(real32))
-         str = toString(p)
-      type is (real(real64))
-         str = toString(p)
-      type is (real(real128))
-         str = toString(p)
-
-      type is (complex(real32))
-         str = toString(p)
-      type is (complex(real64))
-         str = toString(p)
-      type is (complex(real128))
-         str = toString(p)
-
-      type is (character(len=*))
-         str = toString(p)
-
-      type is (logical)
-         str = toString(p)
-
-      class default ! user defined
-         str = this%toStringOther(arg) ! allow subclasses to provid extensions
-      end select
-
-   end function toString_unlimitedPoly
-
-
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! toStringOther
-   !
-   ! DESCRIPTION: 
-   ! Exception handler for unimplemented unlimited polymorphic variables.
-   !---------------------------------------------------------------------------
-   function toStringOther(this, arg) result(str)
-      use ASTG_Exception_mod
-      character(len=:), allocatable :: str
-      class (Formatter), intent(in) :: this
-      class (*), intent(in) :: arg
-
-      str = ''
-      call throw('Logger::toString_other() not implemented.')
-      
-
-   end function toStringOther
-
-   
 end module ASTG_Formatter_mod

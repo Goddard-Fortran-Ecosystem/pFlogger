@@ -33,22 +33,14 @@ contains
       mockdf%MM = 4
       mockdf%SS = 5
       mockdf%MS = 123
+
+      this%f = Formatter()
    end subroutine setUp
 
    
    subroutine tearDown(this)
       class (Test_Formatter), intent(inout) :: this
    end subroutine tearDown
-
-
-! @Test
-   subroutine test_string(this)
-      class (Test_Formatter), intent(inout) :: this
-            
-      this%f = Formatter('')
-      @assertEqual('Hello', this%f%toString('Hello'))
-      
-  end subroutine test_string
 
 
    @Test
@@ -117,7 +109,7 @@ contains
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter(fmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
+      mockdf%f = Formatter(fmt='%(asctime)', datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
       write(date,'(i4.4,a,i2.2,a,i2.2)') mockdf%Y,'-',mockdf%M,'-',mockdf%D
       @assertEqual(date, mockdf%f%format(this%rec))
 
@@ -166,72 +158,6 @@ contains
       
    end subroutine test_formatWithName
    
-
-@Test
-   subroutine test_int32(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%f = Formatter('')
-      @assertEqual('1', this%f%toString(1))
-      
-   end subroutine test_int32
-   
-@Test
-   subroutine test_r32(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%f = Formatter('')
-      @assertEqual('32.00000', this%f%toString(32.))
-      
-   end subroutine test_r32
-   
-
-@Test
-   subroutine test_r64(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%f = Formatter('')
-      @assertEqual('64.000000000000000', this%f%toString(64.d0))
-      
-   end subroutine test_r64
-   
-@Test
-   subroutine test_logical(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%f = Formatter('')
-      @assertEqual('T', this%f%toString(.true.))
-      @assertEqual('F', this%f%toString(.false.))
-      
-   end subroutine test_logical
-   
-@Test
-   subroutine test_cmp32(this)
-      class (Test_Formatter), intent(inout) :: this
-      
-      this%f = Formatter('')
-      @assertEqual('(0.000000,1.000000)', this%f%toString((0.,1.)))
-      
-   end subroutine test_cmp32
-
-   
-@Test
-   subroutine test_toString_unsupported(this)
-      class (Test_Formatter), intent(inout) :: this      
-      character(len=:), allocatable :: logMessage
-
-      type Foo
-      end type Foo
-      
-      type (Foo) :: x
-
-      this%f = Formatter('')
-      logMessage = this%f%toString(x)
-
-      @assertExceptionRaised('Logger::toString_other() not implemented.')
-      
-   end subroutine test_toString_unsupported
-
 
 @Test
    subroutine test_format(this)
