@@ -41,7 +41,7 @@ module ASTG_Formatter_mod
       private
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
-      type (FormatParser) :: p
+!!$      type (FormatParser) :: p
    contains
       procedure :: format
       procedure :: formatTime
@@ -80,7 +80,7 @@ contains
          f%datefmt = datefmt
       end if
 
-      call f%p%parse(f%fmt)
+!!$      call f%p%parse(f%fmt)
       
    end function newFormatter
 
@@ -175,7 +175,8 @@ contains
 #endif
       end if
 
-      logMessage = FormatString(this%p, extra)
+!!$      logMessage = FormatString(this%p, extra)
+      logMessage = FormatString(this%fmt, extra)
     
    end function format
 
