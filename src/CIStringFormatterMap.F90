@@ -15,7 +15,8 @@ module  ASTG_CIStringFormatterMap_mod
 #include "types/key_deferredLengthString.inc"
 #define _KEY_LESS_THAN(x,y) caseInsensitiveLessThan(x,y)
 
-#define _value type (Formatter)
+#define _value class (Formatter)
+#define _value_polymorphic
 
 #define _alt
 #include "templates/map.inc"
