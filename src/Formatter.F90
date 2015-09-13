@@ -42,6 +42,7 @@ module ASTG_Formatter_mod
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
 !!$      type (FormatParser) :: p
+      logical :: uses_time
    contains
       procedure :: format
       procedure :: formatTime
@@ -79,6 +80,8 @@ contains
       if (present(datefmt)) then
          f%datefmt = datefmt
       end if
+
+      f%uses_time = f%usesTime()
 
 !!$      call f%p%parse(f%fmt)
       
@@ -154,7 +157,7 @@ contains
       type (StringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
 
-      call extra%deepCopy(record%extra)
+      extra = record%extra
       msg = record%getMessage()
 
 #ifdef __GFORTRAN__
@@ -162,7 +165,7 @@ contains
 #else
       call extra%insert('message', msg)
 #endif
-      if(this%usesTime()) then
+      if(this%uses_time) then
          if (allocated(this%datefmt)) then
             asctime = this%formatTime(record, datefmt=this%datefmt)
          else

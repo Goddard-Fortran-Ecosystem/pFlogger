@@ -30,6 +30,7 @@ program main
 
       print*,n, time_pflogger, time_raw, time_pflogger / time_raw
 
+      ! clean up files
       open(file='foo.txt',newunit=unit)
       close(unit, status='delete')
 
@@ -51,7 +52,7 @@ contains
 
       call my_logger%setLevel(INFO)
       h = FileHandler('foo.txt')
-      f = Formatter('%(message)')
+      f = Formatter('%(message)a')
       call h%setFormatter(f)
 
       call my_logger%addHandler(h)
@@ -62,10 +63,13 @@ contains
       integer, intent(in) :: n
       type (Logger), pointer :: my_logger
       integer :: i
+
+      real :: x
       
       my_logger => logging%getLogger('A')
       do i = 1, n
-         call my_logger%INFO('hello %i8', i)
+         call do_work(i, x)
+         call my_logger%INFO('hello %i8 %f8.4', i, x)
       end do
 
    end subroutine bench_pflogger
@@ -76,14 +80,24 @@ contains
 
       integer :: i
       integer :: unit
+      real :: x
 
       open(file='foo_raw.txt', newunit=unit, status='new', form='formatted')
 
       do i = 1, n
-         write(unit,'(a, i8)')'hello ', i
+         call do_work(i, x)
+         write(unit,'(a, i8, 1x, f8.4)')'hello ', i, x
       end do
 
    end subroutine bench_raw
+
+   subroutine do_work(i, x)
+      integer, intent(in) :: i
+      real, intent(out) :: x
+
+      call random_number(x)
+
+   end subroutine do_work
 
 end program main
 
