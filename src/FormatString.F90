@@ -53,7 +53,7 @@ contains
 
    function formatMap(fmt, dictionary) result(string)
       use ASTG_FormatToken_mod
-      use ASTG_CIStringUnlimitedMap_mod, only: Map
+      use ASTG_StringUnlimitedMap_mod, only: Map
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       class(Map), intent(in) :: dictionary
@@ -69,8 +69,8 @@ contains
       use ASTG_FormatToken_mod
       use ASTG_FormatTokenVector_mod, only: TokenVector => Vector
       use ASTG_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
-      use ASTG_CIStringUnlimitedMap_mod, only: Map
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: Map
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       character(len=:), allocatable :: string
       type (FormatParser), intent(in) :: parsed
       class(Map), intent(in) :: dictionary

@@ -30,7 +30,7 @@ module ASTG_Logger_mod
    use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use ASTG_LogRecord_mod
-   use ASTG_CIStringUnlimitedMap_mod
+   use ASTG_StringUnlimitedMap_mod
    implicit none
    private
 

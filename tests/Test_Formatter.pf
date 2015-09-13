@@ -74,9 +74,9 @@ contains
 @test
    subroutine test_datefmtMessage_default(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
-      type (CIStringUnlimitedMap) :: extra
+      type (StringUnlimitedMap) :: extra
       character(len=32) :: date
 
       ! Create a LogRecord
@@ -96,9 +96,9 @@ contains
 @test
    subroutine test_datefmtMessage(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
-      type (CIStringUnlimitedMap) :: extra
+      type (StringUnlimitedMap) :: extra
       character(len=20) :: date
 
       ! Create a LogRecord
@@ -118,9 +118,9 @@ contains
 
 @test
    subroutine test_datefmt(this)
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
-      type (CIStringUnlimitedMap) :: extra
+      type (StringUnlimitedMap) :: extra
       character(len=20) :: date
 
       ! Create a LogRecord

@@ -4,7 +4,7 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config_mod
-   use ASTG_CIStringUnlimitedMap_mod
+   use ASTG_StringUnlimitedMap_mod
    use pfunit_mod
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
@@ -94,7 +94,7 @@ contains
 
    @test
    subroutine test_build_formatters()
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
       type (map) :: formattersDict
       type (FormatterMap) :: formatters
 
@@ -125,7 +125,7 @@ contains
 
    @test
    subroutine test_build_filters()
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
       type (map) :: filtersDict
       type (FilterMap) :: filters
 
@@ -143,8 +143,8 @@ contains
 
    @test
    subroutine test_build_streamhandler()
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -176,8 +176,8 @@ contains
 
    @test
    subroutine test_build_handler()
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -209,9 +209,9 @@ contains
 
    @test
    subroutine test_build_handlers()
-      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_Filter_mod
       use ASTG_StreamHandler_mod
       use ASTG_Formatter_mod
@@ -259,8 +259,8 @@ contains
 
 
    subroutine test_build_logger_trivial()
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
-      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
 
       type (map) :: dict
       type (FilterMap) :: filters
@@ -272,8 +272,8 @@ contains
    end subroutine test_build_logger_trivial
 
    subroutine test_build_logger()
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
-      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
 
       use ASTG_Filter_mod
       use ASTG_AbstractHandler_mod

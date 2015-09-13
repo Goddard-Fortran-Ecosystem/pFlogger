@@ -11,7 +11,7 @@
 !------------------------------------------------------------------------------
 module ASTG_SeverityLevels_mod
    use ASTG_Exception_mod
-   use ASTG_CIStringIntegerMap_mod, only: CIStringIntegerMap => map
+   use ASTG_StringIntegerMap_mod, only: StringIntegerMap => map
    use ASTG_IntegerStringMap_mod, only: IntegerStringMap => map
    implicit none
    private
@@ -40,7 +40,7 @@ module ASTG_SeverityLevels_mod
    end enum
 
    ! (Harmless?) Singletons?
-   type (CIStringIntegerMap), save :: name_to_level_
+   type (StringIntegerMap), save :: name_to_level_
    type (IntegerStringMap), save :: level_to_name_
 
 contains
@@ -80,7 +80,7 @@ contains
    ! Convert a level name to a numeric severity level
    !---------------------------------------------------------------------------
    function nameToLevel(name) result(level)
-      use ASTG_CIStringIntegerMap_mod, only: mapiterator
+      use ASTG_StringIntegerMap_mod, only: mapiterator
       integer :: level
       character(len=*), intent(in) :: name
 

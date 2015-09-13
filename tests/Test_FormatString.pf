@@ -50,8 +50,8 @@ contains
 
 @test
    subroutine test_formatMap()
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      type (CIStringUnlimitedMap) :: extra
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -68,8 +68,8 @@ contains
 
 @test
    subroutine test_formatMap_missingKey()
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      type (CIStringUnlimitedMap) :: extra
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -82,8 +82,8 @@ contains
 
 @test
    subroutine test_formatMap_illegalPositionToken()
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      type (CIStringUnlimitedMap) :: extra
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -110,7 +110,7 @@ contains
    ! with keyword
 @test
    subroutine test_defaultFormat_keyword()
-      use ASTG_CIStringUnlimitedMap_mod
+      use ASTG_StringUnlimitedMap_mod
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -221,7 +221,7 @@ contains
    ! an appropriate error message is generated.
 @test
     subroutine test_badFormat()
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       character(len=:), allocatable :: found
 
       found = formatString('%i2.2-',makeArgVector(1))

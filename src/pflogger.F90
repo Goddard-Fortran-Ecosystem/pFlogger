@@ -6,6 +6,7 @@ module pflogger_mod
    use astg_FileHandler_mod
    use astg_SeverityLevels_mod
    use astg_Formatter_mod
+   use astg_FastFormatter_mod
    implicit none
    private
 
@@ -20,6 +21,7 @@ module pflogger_mod
    public :: FileHandler
 
    public :: Formatter
+   public :: FastFormatter
 
 
    public :: NOTSET

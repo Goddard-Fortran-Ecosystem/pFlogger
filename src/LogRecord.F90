@@ -16,7 +16,7 @@
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-   use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+   use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
    use ASTG_String_mod
@@ -34,7 +34,7 @@ module ASTG_LogRecord_mod
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (UnlimitedVector) :: args
-      type (CIStringUnlimitedMap) :: extra
+      type (StringUnlimitedMap) :: extra
       integer :: time_fields(8)
    contains
       procedure :: getName
@@ -66,7 +66,7 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: messageFormat
       type (UnlimitedVector), optional, intent(in) :: args
-      type (CIStringUnlimitedMap), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
       character(len=:), allocatable :: levelName
@@ -178,14 +178,14 @@ contains
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       use ASTG_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: messageFormat
       type (UnlimitedVector), optional, intent(in) :: args
-      type (CIStringUnlimitedMap), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: levelName
       

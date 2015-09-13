@@ -1,7 +1,7 @@
 module MockDateFormat_mod
    use ASTG_Formatter_mod
    use ASTG_LogRecord_mod
-   use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+   use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
    implicit none
    private
 

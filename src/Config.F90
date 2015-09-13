@@ -4,10 +4,10 @@ module ASTG_Config_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
-   use ASTG_CIStringUnlimitedMap_mod
-   use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-   use ASTG_CIStringFilterMap_mod, only: FilterMap => map
-   use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map
+   use ASTG_StringUnlimitedMap_mod
+   use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+   use ASTG_StringFilterMap_mod, only: FilterMap => map
+   use ASTG_StringHandlerMap_mod, only: HandlerMap => map
 
    implicit none
    private
@@ -42,7 +42,7 @@ contains
 
 
    function build_formatters(formattersDict) result(formatters)
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       type (FormatterMap) :: formatters
       type (Map), intent(in) :: formattersDict
 
@@ -84,7 +84,7 @@ contains
 
    function build_filters(filtersDict) result(filters)
       use ASTG_Filter_mod
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       type (FilterMap) :: filters
       type (Map), intent(in) :: filtersDict
 
@@ -114,7 +114,7 @@ contains
    end function build_filter
 
    function build_handlers(handlersDict, formatters, filters) result(handlers)
-      use ASTG_CIStringUnlimitedMap_mod, only: mapIterator
+      use ASTG_StringUnlimitedMap_mod, only: mapIterator
       use ASTG_AbstractHandler_mod
       type (HandlerMap) :: handlers
       type (Map), intent(in) :: handlersDict
@@ -135,8 +135,8 @@ contains
    end function build_handlers
    
    function build_handler(handlerDict, formatters, filters) result(h)
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map, FormatterMapIterator => mapIterator
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map, FormatterMapIterator => mapIterator
+      use ASTG_StringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       class (AbstractHandler), allocatable :: h
@@ -263,8 +263,8 @@ contains
 
 
    function build_streamhandler(handlerDict, formatters, filters) result(h)
-      use ASTG_CIStringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
@@ -304,8 +304,8 @@ contains
    subroutine build_logger(name, loggerDict, filters, handlers)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
-      use ASTG_CIStringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
-      use ASTG_CIStringHandlerMap_mod, only: HandlerMap => map, HandlerMapIterator => mapIterator
+      use ASTG_StringFilterMap_mod, only: FilterMap => map, FilterMapIterator => mapIterator
+      use ASTG_StringHandlerMap_mod, only: HandlerMap => map, HandlerMapIterator => mapIterator
       character(len=*), intent(in) :: name
       type (Map), intent(in) :: loggerDict
       type (FilterMap), intent(in) :: filters
@@ -437,7 +437,7 @@ contains
 
 
    subroutine create_loggers(dict)
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       type (Map), intent(in) :: dict
 
       type (MapIterator) :: iter
@@ -501,7 +501,7 @@ contains
 
 
    function toInteger(m, key, require) result(i)
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       integer, pointer :: i
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
@@ -546,7 +546,7 @@ contains
 
 
    function toString(m, key, require) result(str)
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       character(len=:), pointer :: str
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key
@@ -595,7 +595,7 @@ contains
 
 
    function toMap(m, key, require) result(mPtr)
-      use ASTG_CIStringUnlimitedMap_mod, only: MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: MapIterator
       type (Map), pointer :: mPtr
       type (Map), target, intent(in) :: m
       character(len=*), intent(in) :: key

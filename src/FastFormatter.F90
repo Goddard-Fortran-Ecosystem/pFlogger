@@ -81,8 +81,8 @@ contains
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use ASTG_FormatString_mod
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMapIterator => MapIterator
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
       use ASTG_String_mod
 
       character(len=:), allocatable :: logMessage

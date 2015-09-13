@@ -100,7 +100,7 @@ contains
    subroutine test_emitBasicWithFormatAndDate(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_Formatter_mod
-      use ASTG_CIStringUnlimitedMap_mod, only: CIStringUnlimitedMap => Map
+      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
@@ -108,7 +108,7 @@ contains
       type (LogRecord) :: record
       type(Formatter) :: fmt
       type (UnlimitedVector) :: args
-      type (CIStringUnlimitedMap) :: extra
+      type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: levelName
       
       args = UnlimitedVector()
