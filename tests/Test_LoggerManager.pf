@@ -102,7 +102,7 @@ contains
 
    
 @test
-   subroutine test_caseInsensitiveName()
+   subroutine test_caseSensitiveName()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
@@ -110,8 +110,12 @@ contains
       manager = LoggerManager()
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('a')
+      
+      ! loggerA pointer may become invalid because second getLogger() call
+      ! changes the data structure.  So we get it again
+      loggerA => manager%getLogger('A')
 
-      @assertTrue(associated(loggerA, loggerB))
-   end subroutine test_caseInsensitiveName
+      @assertFalse(associated(loggerA, loggerB))
+   end subroutine test_caseSensitiveName
 
 end module Test_LoggerManager_mod
