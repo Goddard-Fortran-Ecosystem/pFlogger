@@ -58,5 +58,7 @@ set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 include_directories (${FTL}/include)
+include_directories (${FTL}/mod)
 add_library (${THIS} STATIC ${SRCS})
+target_link_libraries(${THIS} ftl)
 

@@ -32,15 +32,7 @@ set(CMAKE_MODULE_PATH
 include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
-
-# FTL library is required to build logger
-if (DEFINED ENV{FTL})
-   message(STATUS " +++ FTL is set to $ENV{FTL}")
-else ()
-   message(FATAL_ERROR " +++ Please set FTL installation path. \
-      For example: export FTL=/mylibraries/FTL")
-endif ()
-set(FTL $ENV{FTL})
+include(FindFTL)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)

@@ -4,8 +4,8 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config_mod
-   use ASTG_StringUnlimitedMap_mod
    use pfunit_mod
+   use ftl_Config_mod
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
@@ -15,13 +15,11 @@ module Test_Config_mod
 
    implicit none
 
-#define P(x,y) pair(x,y)
-
 contains
 
    @test
    subroutine test_check_schema_specified()
-      type (map) :: dict
+      type (Config) :: dict
 
       call dictConfig(dict)
       @assertExceptionRaised("Config::dictConfig() - 'schema_version' not found.")
@@ -30,7 +28,7 @@ contains
 
    @test
    subroutine test_check_schema_version()
-      type (map) :: dict
+      type (Config) :: dict
 
       call dict%insert('schema_version', 2)
       call dictConfig(dict)
@@ -42,12 +40,11 @@ contains
    subroutine test_build_formatter_noargs()
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
-      type (map) :: cfg
+      type (Config) :: cfg
       type (Formatter) :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = map()
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -60,12 +57,12 @@ contains
    subroutine test_build_formatter_withFmt()
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
-      type (map) :: cfg
+      type (Config) :: cfg
       type (Formatter) :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = map([P('fmt',String('---'))])
+      cfg = Config([P('fmt',String('---'))])
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -78,12 +75,12 @@ contains
    subroutine test_build_formatter_withDateFmt()
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
-      type (map) :: cfg
+      type (Config) :: cfg
       type (Formatter) :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = map([P('fmt',String('%(asctime)a %(message)a')), P('datefmt',String('date'))])
+      cfg = Config([P('fmt',String('%(asctime)a %(message)a')), P('datefmt',String('date'))])
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -95,13 +92,13 @@ contains
    @test
    subroutine test_build_formatters()
       use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-      type (map) :: formattersDict
+      type (Config) :: formattersDict
       type (FormatterMap) :: formatters
 
       formattersDict = &
-           & map([ &
-           &       P('A', map([P('fmt',String('---'))]) ), &
-           &       P('B', map([P('fmt',String('---')), P('datefmt',String('hello'))])) &
+           & Config([ &
+           &       P('A', Config([P('fmt',String('---'))]) ), &
+           &       P('B', Config([P('fmt',String('---')), P('datefmt',String('hello'))])) &
            &     ])
 
       formatters = build_formatters(formattersDict)
@@ -112,11 +109,11 @@ contains
    @test
    subroutine test_build_filter()
       use ASTG_Filter_mod
-      type (map) :: cfg
+      type (Config) :: cfg
       type (Filter) :: f
       character(len=:), allocatable :: logMessage
 
-      cfg = map([P('name',String('A'))])
+      cfg = Config([P('name',String('A'))])
       f = build_filter(cfg)
 
       @assertEqual('A', f%getName())
@@ -126,13 +123,13 @@ contains
    @test
    subroutine test_build_filters()
       use ASTG_StringFilterMap_mod, only: FilterMap => map
-      type (map) :: filtersDict
+      type (Config) :: filtersDict
       type (FilterMap) :: filters
 
       filtersDict = &
-           & map([ &
-           &       P('A', map([P('name',String('A'))])), &
-           &       P('B', map([P('name',String('B'))])) &
+           & Config([ &
+           &       P('A', Config([P('name',String('A'))])), &
+           &       P('B', Config([P('name',String('B'))])) &
            &     ])
 
       filters = build_filters(filtersDict)
@@ -148,7 +145,7 @@ contains
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
-      type (map) :: handler_cfg
+      type (Config) :: handler_cfg
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
       type (StreamHandler) :: h
@@ -160,7 +157,7 @@ contains
       call formatters%insert('formatterA', Formatter('%(message)'))
       call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
-      handler_cfg = map([ &
+      handler_cfg = Config([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('handlerB')), &
@@ -182,7 +179,7 @@ contains
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
       use ASTG_AbstractHandler_mod
-      type (map) :: handler_cfg
+      type (Config) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
       type (FilterMap) :: filters
@@ -194,7 +191,7 @@ contains
       call formatters%insert('formatterA', Formatter('%(message)'))
       call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
-      handler_cfg = map([ &
+      handler_cfg = Config([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('formatterB')), &
@@ -215,10 +212,10 @@ contains
       use ASTG_Filter_mod
       use ASTG_StreamHandler_mod
       use ASTG_Formatter_mod
-      type (map) :: handlersDict
+      type (Config) :: handlersDict
       type (HandlerMap) :: handlers
 
-      type (map) :: h1_cfg, h2_cfg
+      type (Config) :: h1_cfg, h2_cfg
 
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
@@ -230,7 +227,7 @@ contains
       call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
 
-      h1_cfg = map([ &
+      h1_cfg = Config([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('formatterA')), &
@@ -238,7 +235,7 @@ contains
            & P('level', String('INFO')) &
            & ])
 
-      h2_cfg = map([ &
+      h2_cfg = Config([ &
            & P('class', String('StreamHandler')), &
            & P('unit', String('OUTPUT_UNIT')), &
            & P('formatter', String('formatterB')), &
@@ -247,7 +244,7 @@ contains
            & ])
 
       handlersDict = &
-           & map([ &
+           & Config([ &
            &       P('A', h1_cfg), &
            &       P('B', h2_cfg) &
            &     ])
@@ -262,12 +259,12 @@ contains
       use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_StringHandlerMap_mod, only: HandlerMap => map
 
-      type (map) :: dict
+      type (Config) :: cfg
       type (FilterMap) :: filters
       type (HandlerMap) :: handlers
 
-      dict = map()
-      call build_logger('A', dict, filters, handlers)
+      ! cfg is empty by default
+      call build_logger('A', cfg, filters, handlers)
 
    end subroutine test_build_logger_trivial
 
@@ -279,7 +276,7 @@ contains
       use ASTG_AbstractHandler_mod
       use ASTG_FileHandler_mod
 
-      type (map) :: dict
+      type (Config) :: cfg
       type (FilterMap) :: filters
       type (HandlerMap) :: handlers
 
@@ -289,46 +286,45 @@ contains
       call filters%insert('filterA', Filter('A'))
       call filters%insert('filterB', Filter('B'))
 
-      dict = map()
-      call build_logger('A', dict, filters, handlers)
+      call build_logger('A', cfg, filters, handlers)
 
    end subroutine test_build_logger
 
 
    @test
-   subroutine test_basic_loggers_invalid_dict()
-      type (map) :: dict
-      type (map) :: loggers
+   subroutine test_basic_loggers_invalid_cfg()
+      type (Config) :: cfg
+      type (Config) :: loggers
 
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
 
-      dict = map([ &
+      cfg = Config([ &
            &      P('schema_version', 1), &
            &      P('loggers', 1) &
            &     ])
 
-      call dictConfig(dict)
+      call dictConfig(cfg)
 
       lgr => logging%getLogger('A')
       expectedMessage = "Config::dictConfig() - cannot cast 'loggers' as Map."
       @assertExceptionRaised(expectedMessage)
 
-   end subroutine test_basic_loggers_invalid_dict
+   end subroutine test_basic_loggers_invalid_cfg
 
    @test
    subroutine test_basic_loggers()
-      type (map) :: dict
-      type (map) :: loggers
+      type (Config) :: cfg
+      type (Config) :: loggers
 
       class (Logger), pointer :: lgr
 
-      dict = map([ &
+      cfg = Config([ &
            &      P('schema_version', 1), &
-           &      P('loggers', map([P('A', map([P('level','DEBUG')]))])) &
+           &      P('loggers', Config([P('A', Config([P('level','DEBUG')]))])) &
            &     ])
 
-      call dictConfig(dict)
+      call dictConfig(cfg)
       lgr => logging%getLogger('A')
 
       @assertEqual(DEBUG, lgr%getLevel())

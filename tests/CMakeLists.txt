@@ -1,7 +1,6 @@
 # CMakeLists.txt for logger tests
 
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS logger_tests)
 
 # Pre-process pf files
 file(GLOB pfSources "*.pf")
@@ -64,31 +63,30 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
    ${FTL}/include
+   ${FTL}/mod
    ${PFUNIT}/include
 )
 
 # Targets:
 
-add_library(${THIS} STATIC ${ALL_SRCS})
-
-target_link_libraries(${THIS}
-   logger
-   pfunit
-)
-
+link_directories(${FTL}/lib)
 add_definitions (-DPFUNIT_EXTRA_INITIALIZE=initTests)
 
+# Can this be made to work?
 #set_target_properties (${EXE}
 #  PROPERTIES DEFINE_SYMBOL -DPFUNIT_EXTRA_INITIALIZE=initTests )
 
+add_library(logger_tests STATIC ${ALL_SRCS})
+target_link_libraries(logger_tests logger ftl pfunit)
+
 set(EXE tests.x)
 add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} ${THIS} logger pfunit)
+target_link_libraries(${EXE} logger_tests logger ftl pfunit)
+
 
 add_custom_target(tests
    COMMAND ${EXE} 
    DEPENDS ${EXE} 
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
    COMMENT "Run ${EXE}"
-)
-add_dependencies(tests ${THIS})
+   )
