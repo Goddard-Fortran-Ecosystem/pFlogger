@@ -12,6 +12,8 @@
 module  ASTG_StringAbstractLoggerPolyMap_mod
    use ASTG_AbstractLogger_mod
 
+#define _map LoggerMap
+#define _iterator LoggerIterator
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(AbstractLogger)

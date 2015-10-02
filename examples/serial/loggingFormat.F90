@@ -5,13 +5,14 @@ program loggingFormat
    use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
    use ASTG_Formatter_mod
    use pflogger_mod
+   use iso_fortran_env, only: REAL64
    implicit none
    
    type (Logger) :: log
    type (StreamHandler) :: stdout
    type (FileHandler) :: logfile
    integer :: i, j
-   real(kind=8) :: T(15,10)
+   real(kind=REAL64) :: T(15,10)
    
    call initialize() 
 

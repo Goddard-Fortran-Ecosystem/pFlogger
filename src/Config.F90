@@ -5,9 +5,10 @@ module ASTG_Config_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
-   use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-   use ASTG_StringFilterMap_mod, only: FilterMap => map
-   use ASTG_StringHandlerMap_mod, only: HandlerMap => map
+   use ASTG_StringAbstractLoggerPolyMap_mod
+   use ASTG_StringFilterMap_mod
+   use ASTG_StringHandlerMap_mod
+   use ASTG_StringFormatterMap_mod
 
    implicit none
    private
@@ -43,11 +44,11 @@ contains
 
 
    function build_formatters(formattersDict) result(formatters)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (FormatterMap) :: formatters
       type (Config), intent(in) :: formattersDict
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
 
       iter = formattersDict%begin()
@@ -85,11 +86,11 @@ contains
 
    function build_filters(filtersDict) result(filters)
       use ASTG_Filter_mod
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (FilterMap) :: filters
       type (Config), intent(in) :: filtersDict
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
       type (Filter) :: f
       iter = filtersDict%begin()
@@ -115,14 +116,14 @@ contains
    end function build_filter
 
    function build_handlers(handlersDict, formatters, filters) result(handlers)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       use ASTG_AbstractHandler_mod
       type (HandlerMap) :: handlers
       type (Config), intent(in) :: handlersDict
       type (FormatterMap), intent(in) :: formatters
       type (FilterMap), intent(in) :: filters
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
       class (AbstractHandler), allocatable :: h
 
@@ -136,8 +137,6 @@ contains
    end function build_handlers
    
    function build_handler(handlerDict, formatters, filters) result(h)
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map, FormatterStringUnlimitedPolyMapIterator => mapIterator
-      use ASTG_StringFilterMap_mod, only: FilterMap => map, FilterStringUnlimitedPolyMapIterator => mapIterator
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       class (AbstractHandler), allocatable :: h
@@ -203,7 +202,7 @@ contains
          type (FormatterMap), intent(in) :: formatters
 
          character(len=:), pointer :: formatterNamePtr
-         type (FormatterStringUnlimitedPolyMapIterator) :: iter
+         type (FormatterIterator) :: iter
 
          formatternameptr => toString(handlerDict, 'formatter')
          if (associated(formatterNamePtr)) then
@@ -223,7 +222,7 @@ contains
 
          character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
-         type (FilterStringUnlimitedPolyMapIterator) :: iter
+         type (FilterIterator) :: iter
          integer :: i, j, n
 
          filterNamesList => toString(handlerDict, 'filters')
@@ -264,8 +263,6 @@ contains
 
 
    function build_streamhandler(handlerDict, formatters, filters) result(h)
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
       use ASTG_StreamHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
@@ -305,8 +302,6 @@ contains
    subroutine build_logger(name, loggerDict, filters, handlers)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
-      use ASTG_StringFilterMap_mod, only: FilterMap => map, FilterStringUnlimitedPolyMapIterator => mapIterator
-      use ASTG_StringHandlerMap_mod, only: HandlerMap => map, HandlerStringUnlimitedPolyMapIterator => mapIterator
       character(len=*), intent(in) :: name
       type (Config), intent(in) :: loggerDict
       type (FilterMap), intent(in) :: filters
@@ -353,7 +348,7 @@ contains
 
          character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
-         type (FilterStringUnlimitedPolyMapIterator) :: iter
+         type (FilterIterator) :: iter
          integer :: i, j, n
 
          filterNamesList => toString(loggerDict, 'filters')
@@ -397,7 +392,7 @@ contains
 
          character(len=:), pointer :: handlerNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
-         type (HandlerStringUnlimitedPolyMapIterator) :: iter
+         type (HandlerIterator) :: iter
          integer :: i, j, n
 
          handlerNamesList => toString(loggerDict, 'handlers')
@@ -438,10 +433,10 @@ contains
 
 
    subroutine create_loggers(dict)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (Config), intent(in) :: dict
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       type (Config), pointer :: mPtr1, mPtr2
 
       iter = dict%find('loggers')
@@ -502,13 +497,13 @@ contains
 
 
    function toInteger(m, key, require) result(i)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       integer, pointer :: i
       type (Config), target, intent(in) :: m
       character(len=*), intent(in) :: key
       logical, optional, intent(in)  :: require
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       class (*), pointer :: ptr
       logical :: require_
 
@@ -547,13 +542,13 @@ contains
 
 
    function toString(m, key, require) result(str)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       character(len=:), pointer :: str
       type (Config), target, intent(in) :: m
       character(len=*), intent(in) :: key
       logical, optional, intent(in)  :: require
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       class (*), pointer :: ptr
       logical :: require_
 
@@ -596,13 +591,13 @@ contains
 
 
    function toMap(m, key, require) result(mPtr)
-      use ftl_StringUnlimitedPolyMap_mod, only: StringUnlimitedPolyMapIterator
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (Config), pointer :: mPtr
       type (Config), target, intent(in) :: m
       character(len=*), intent(in) :: key
       logical, optional, intent(in) :: require
 
-      type (StringUnlimitedPolyMapIterator) :: iter
+      type (ConfigIterator) :: iter
       class (*), pointer :: ptr
       logical :: require_
 

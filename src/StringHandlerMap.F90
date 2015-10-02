@@ -11,6 +11,9 @@
 !------------------------------------------------------------------------------
 module  ASTG_StringHandlerMap_mod
    use ASTG_AbstractHandler_mod
+#define _map HandlerMap
+#define _iterator HandlerIterator
+   
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(AbstractHandler)

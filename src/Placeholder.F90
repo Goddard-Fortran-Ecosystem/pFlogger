@@ -13,7 +13,7 @@
 !> @todo Is this class necessary?
 !------------------------------------------------------------------------------
 module ASTG_Placeholder_mod
-   use ASTG_StringAbstractLoggerPolyMap_mod, only: LoggerMap => Map
+   use ASTG_StringAbstractLoggerPolyMap_mod
    use ASTG_AbstractLogger_mod
    implicit none
    private

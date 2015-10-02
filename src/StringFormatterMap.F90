@@ -11,6 +11,9 @@
 !------------------------------------------------------------------------------
 module  ASTG_StringFormatterMap_mod
    use ASTG_Formatter_mod
+#define _map FormatterMap
+#define _iterator FormatterIterator
+   
 #include "types/key_deferredLengthString.inc"
 
 #define _value class (Formatter)

@@ -91,7 +91,7 @@ contains
 
    @test
    subroutine test_build_formatters()
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
+      use ASTG_StringFormatterMap_mod
       type (Config) :: formattersDict
       type (FormatterMap) :: formatters
 
@@ -122,7 +122,7 @@ contains
 
    @test
    subroutine test_build_filters()
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFilterMap_mod
       type (Config) :: filtersDict
       type (FilterMap) :: filters
 
@@ -140,8 +140,8 @@ contains
 
    @test
    subroutine test_build_streamhandler()
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFormatterMap_mod
+      use ASTG_StringFilterMap_mod
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -173,8 +173,8 @@ contains
 
    @test
    subroutine test_build_handler()
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringFormatterMap_mod
+      use ASTG_StringFilterMap_mod
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -206,9 +206,9 @@ contains
 
    @test
    subroutine test_build_handlers()
-      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
-      use ASTG_StringFormatterMap_mod, only: FormatterMap => map
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
+      use ASTG_StringHandlerMap_mod
+      use ASTG_StringFormatterMap_mod
+      use ASTG_StringFilterMap_mod
       use ASTG_Filter_mod
       use ASTG_StreamHandler_mod
       use ASTG_Formatter_mod
@@ -256,8 +256,8 @@ contains
 
 
    subroutine test_build_logger_trivial()
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
-      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_StringFilterMap_mod
+      use ASTG_StringHandlerMap_mod
 
       type (Config) :: cfg
       type (FilterMap) :: filters
@@ -269,8 +269,8 @@ contains
    end subroutine test_build_logger_trivial
 
    subroutine test_build_logger()
-      use ASTG_StringFilterMap_mod, only: FilterMap => map
-      use ASTG_StringHandlerMap_mod, only: HandlerMap => map
+      use ASTG_StringFilterMap_mod
+      use ASTG_StringHandlerMap_mod
 
       use ASTG_Filter_mod
       use ASTG_AbstractHandler_mod

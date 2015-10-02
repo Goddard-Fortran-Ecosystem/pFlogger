@@ -10,8 +10,7 @@
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
-   use ASTG_StringAbstractLoggerPolyMap_mod, only: LoggerMap => Map
-   use ASTG_StringAbstractLoggerPolyMap_mod, only: LoggerMapIterator => MapIterator
+   use ASTG_StringAbstractLoggerPolyMap_mod
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
    use ASTG_Logger_mod

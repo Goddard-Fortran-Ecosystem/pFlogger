@@ -11,6 +11,9 @@
 !------------------------------------------------------------------------------
 module  ASTG_StringFilterMap_mod
    use ASTG_Filter_mod
+#define _map FilterMap
+#define _iterator FilterIterator
+   
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(Filter)
