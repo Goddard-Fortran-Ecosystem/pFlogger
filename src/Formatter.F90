@@ -36,24 +36,40 @@ module ASTG_Formatter_mod
    private
 
    public :: Formatter
+   public :: get_sim_time
+      
 
    type, extends(Object) :: Formatter
       private
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
 !!$      type (FormatParser) :: p
-      logical :: uses_time
+      logical :: uses_asc_time
+      logical :: uses_sim_time
    contains
       procedure :: format
       procedure :: formatTime
-      procedure :: usesTime
+      procedure :: usesAscTime
+      procedure :: usesSimTime
    end type Formatter
 
    interface Formatter
       module procedure newFormatter
    end interface Formatter
    
-   
+   character(len=*), parameter :: DEFAULT_DATE_FMT = &
+        & '%(Y)i4.4~-%(M)i2.2~-%(D)i2.2 %(HH)i2.2~:%(MM)i2.2~:%(SS)i2.2~.%(MS)i3.3'
+
+
+   abstract interface
+      subroutine get_time(dict)
+         use ASTG_StringUnlimitedMap_mod
+         type (Map), intent(out) :: dict
+      end subroutine get_time
+   end interface
+
+   procedure(get_time), pointer :: get_sim_time ! => null()
+
 contains
 
  
@@ -81,7 +97,8 @@ contains
          f%datefmt = datefmt
       end if
 
-      f%uses_time = f%usesTime()
+      f%uses_asc_time = f%usesAscTime()
+      f%uses_sim_time = f%usesSimTime()
 
 !!$      call f%p%parse(f%fmt)
       
@@ -120,8 +137,7 @@ contains
       if (present(datefmt)) then
          dateFmt_ = datefmt
       else
-         dateFmt_ = '%(Y)i4.4~-%(M)i2.2~-%(D)i2.2 ' // &
-              & '%(HH)i2.2~:%(MM)i2.2~:%(SS)i2.2~.%(MS)i3.3'
+         dateFmt_ = DEFAULT_DATE_FMT
       end if
          
       asctime = FormatString(dateFmt_, extra)
@@ -153,6 +169,7 @@ contains
       class (LogRecord), intent(in) :: record
 
       character(len=:), allocatable :: asctime
+      character(len=:), allocatable :: simtime
       type (StringUnlimitedMap) :: extra
       type (StringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
@@ -165,7 +182,7 @@ contains
 #else
       call extra%insert('message', msg)
 #endif
-      if(this%uses_time) then
+      if(this%uses_asc_time) then
          if (allocated(this%datefmt)) then
             asctime = this%formatTime(record, datefmt=this%datefmt)
          else
@@ -175,6 +192,25 @@ contains
          call extra%insert('asctime', String(asctime))
 #else
          call extra%insert('asctime', asctime)
+#endif
+      end if
+      if(this%uses_sim_time) then
+         block
+           type (StringUnlimitedMap) :: dict
+           if (allocated(this%datefmt)) then
+
+              call get_sim_time(dict)
+              simtime = FormatString(this%datefmt, dict)
+           else
+              simtime = FormatString(DEFAULT_DATE_FMT, dict)
+           end if
+         end block
+
+         
+#ifdef __GFORTRAN__
+         call extra%insert('simtime', String(simtime))
+#else
+         call extra%insert('simtime', simtime)
 #endif
       end if
 
@@ -192,9 +228,21 @@ contains
    ! DESCRIPTION: 
    ! Check if the format uses the creation time of the record.
    !---------------------------------------------------------------------------
-   logical function usesTime(this)
+   logical function usesAscTime(this)
       class (Formatter), intent(in) :: this
-      usesTime = (index(this%fmt,'%(asctime)') > 0)
-   end function usesTime
+      usesAscTime = (index(this%fmt,'%(asctime)') > 0)
+   end function usesAscTime
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! usesSimTime
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the creation time of the record.
+   !---------------------------------------------------------------------------
+   logical function usesSimTime(this)
+      class (Formatter), intent(in) :: this
+      usesSimTime = (index(this%fmt,'%(simtime)') > 0)
+   end function usesSimTime
 
 end module ASTG_Formatter_mod

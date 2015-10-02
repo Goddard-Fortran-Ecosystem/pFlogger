@@ -36,7 +36,6 @@ module ASTG_LoggerManager_mod
 
    type (LoggerManager), save :: logging
 
-
 contains
 
 

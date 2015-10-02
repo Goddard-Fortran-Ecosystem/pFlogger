@@ -1,0 +1,28 @@
+module Test_SimTime_mod
+   use ASTG_Formatter_mod
+   use ASTG_LogRecord_mod
+   use MockSimTime_mod
+   use ASTG_SeverityLevels_mod
+   use pfunit_mod
+   implicit none
+
+contains
+
+   @test
+   subroutine test_basic()
+      type (Formatter) :: f
+      type (LogRecord) :: rec
+      character(len=:), allocatable :: str
+      
+      call initLogRecord(rec, 'A', INFO, 'Goodbye')
+
+      f = Formatter('%(simtime)a','%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
+      get_sim_time => mockSimTime
+
+      str = f%format(rec)
+
+      @assertEqual('1234-03-21', str, whitespace=KEEP_ALL)
+      
+   end subroutine test_basic
+
+end module Test_SimTime_mod

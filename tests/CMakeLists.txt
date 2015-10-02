@@ -19,6 +19,7 @@ set (SRCS
    initTests.F90
    MockHandler.F90
    MockDateFormat.F90
+   MockSimTime.F90
    ConfigurableFilter.F90
 )
 
@@ -38,6 +39,7 @@ set(TEST_SRCS
    Test_ArgListUtilities.F90
    Test_SeverityLevels.F90
    Test_Config.F90
+   Test_SimTime.F90
 )
 
 if (MPI) 
