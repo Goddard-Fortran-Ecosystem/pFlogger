@@ -3,19 +3,21 @@ module Test_LoggerManager_mod
    use ASTG_LoggerManager_mod 
    use ASTG_AbstractLogger_mod
    use ASTG_Logger_mod
+   use ASTG_RootLogger_mod
+   use ASTG_SeverityLevels_mod
    implicit none
 
 contains
 
    
 @test
-   subroutine test_getName()
+   subroutine test_getLogger()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
       class (Logger), pointer :: loggerC
 
-      manager = LoggerManager()
+      manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('B')
       ! might invalidate loggerA, as the underlying vector resizes()
@@ -31,9 +33,9 @@ contains
       ! ... expect ROOT
       @assertEqual('ROOT', loggerC%getName())
       
-   end subroutine test_getName
+   end subroutine test_getLogger
 
-   
+
 @test
    subroutine test_getParentPrefix()
       type (LoggerManager) :: manager
@@ -52,7 +54,7 @@ contains
       class (Logger), pointer :: loggerB
       class (AbstractLogger), pointer :: parentOfB
 
-      manager = LoggerManager()
+      manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('A.B')
       parentOfB => loggerB%getParent()
@@ -66,12 +68,29 @@ contains
 
 
 @test
+   subroutine test_parent_is_root()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (AbstractLogger), pointer :: parent
+
+      manager = LoggerManager(RootLogger(WARNING))
+      loggerA => manager%getLogger('A')
+
+      parent => loggerA%getParent()
+      @assertTrue(same_type_as(parent, loggerA))
+      select type (parent)
+      class is (Logger)
+         @assertEqual('ROOT_LOGGER', parent%getName())
+      end select
+
+   end subroutine test_parent_is_root
+
+@test
    subroutine test_noParent()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
-      class (Logger), pointer :: parentOfA
 
-      manager = LoggerManager()
+      manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%getLogger('A')
 
       @assertNotAssociated(loggerA%getParent())
@@ -91,7 +110,7 @@ contains
       type (MockHandler) :: handlerA
       type (MockHandler) :: handlerB
 
-      manager = LoggerManager()
+      manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('A.B')
 
@@ -107,7 +126,7 @@ contains
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
 
-      manager = LoggerManager()
+      manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%getLogger('A')
       loggerB => manager%getLogger('a')
       
