@@ -7,6 +7,7 @@ module pflogger_mod
    use astg_SeverityLevels_mod
    use astg_Formatter_mod
    use astg_FastFormatter_mod
+   use astg_WrapArray_mod
    implicit none
    private
 
@@ -15,6 +16,7 @@ module pflogger_mod
 
    public :: logging
    public :: Logger
+   public :: WrapArray
 
    public :: AbstractHandler
    public :: StreamHandler
