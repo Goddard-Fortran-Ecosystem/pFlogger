@@ -41,7 +41,7 @@ contains
       type (RootLogger) :: lgr
       integer, intent(in) :: level !! NOT OPTIONAL !!
 
-      call lgr%setName('root')
+      call lgr%setName('ROOT_LOGGER')
       call lgr%setLevel(level)
 
    end function newRootLogger
