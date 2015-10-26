@@ -20,7 +20,7 @@
 !> @date 01 Jan 2015 - Initial Version
 ! ---------------------------------------------------------------------
 
-module ASTG_WrapArray_mod
+module astg_WrapArray_mod
    implicit none
    private
 
@@ -121,4 +121,4 @@ contains
 #endif
    end function wrap5d
    
-end module ASTG_WrapArray_mod
+end module astg_WrapArray_mod
