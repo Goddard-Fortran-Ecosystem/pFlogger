@@ -17,7 +17,7 @@ module  ASTG_StringFilterMap_mod
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(Filter)
-#define _value_polymorphic
+#define _value_allocatable
 
 #define _alt
 #include "templates/map.inc"

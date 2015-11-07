@@ -2,18 +2,24 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_UnlimitedVector_mod
+!*MODULE: ASTG_AbstractLoggerPolyVector_mod
 !
-!> @brief Unlimited polymorphic vector class.
+!> @brief Vector of loggers
 !
 !> @author ASTG staff
-!> @date 01 Jan 2015 - Initial Version
+!> @date 01 Nov 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_UnlimitedVector_mod
+module  ASTG_LoggerPolyVector_mod
+   use ASTG_Logger_mod
 
-#define _type class (*)
+#define _vector LoggerVector
+#define _iterator LoggerVecIterator
+
+#define _type class(Logger)
 #define _allocatable
+#define _pointer   
 
 #include "templates/vector.inc"
 
-end module ASTG_UnlimitedVector_mod
+end module ASTG_LoggerPolyVector_mod
+

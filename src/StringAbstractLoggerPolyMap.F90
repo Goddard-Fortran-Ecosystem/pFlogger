@@ -17,7 +17,7 @@ module  ASTG_StringAbstractLoggerPolyMap_mod
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(AbstractLogger)
-#define _value_polymorphic
+#define _value_allocatable
 #define _value_equal_defined
 
 #define _alt

@@ -16,7 +16,7 @@ module ASTG_AbstractFilterPolyVector_mod
    use ASTG_AbstractFilter_mod
 
 #define _type class (AbstractFilter)
-#define _polymorphic
+#define _allocatable
 #define _equal_defined
 
 #include "templates/vector.inc"

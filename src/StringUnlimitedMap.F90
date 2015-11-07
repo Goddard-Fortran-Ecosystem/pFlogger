@@ -12,7 +12,7 @@
 module  ASTG_StringUnlimitedMap_mod
 #include "types/key_deferredLengthString.inc"
 #define _value class(*)
-#define _value_polymorphic
+#define _value_allocatable
 
 #define _alt
 #include "templates/map.inc"
