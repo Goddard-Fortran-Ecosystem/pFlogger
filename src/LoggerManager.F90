@@ -10,11 +10,13 @@
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
 module ASTG_LoggerManager_mod
+   use ASTG_RootLogger_mod
    use ASTG_StringAbstractLoggerPolyMap_mod
    use ASTG_SeverityLevels_mod
    use ASTG_Object_mod
    use ASTG_Logger_mod
    use ASTG_AbstractLogger_mod
+   use ASTG_LoggerPolyVector_mod
    implicit none
    private
 
@@ -23,18 +25,30 @@ module ASTG_LoggerManager_mod
 
    type, extends(Object) :: LoggerManager
       private
+      type (RootLogger) :: root_node
       type (LoggerMap) :: loggers
    contains
       procedure :: getLogger
+      procedure, private :: fixup_ancestors
+      procedure, private :: fixup_children
       procedure, nopass :: getParentPrefix
    end type LoggerManager
-
-
+   
+   
    interface LoggerManager
       module procedure newLoggerManager
    end interface LoggerManager
+   
+   type (LoggerManager), target, save :: logging
 
-   type (LoggerManager), save :: logging
+   ! Private type - only used internally
+   integer :: counter = 0
+   type, extends(AbstractLogger) :: Placeholder
+      private
+      integer :: counter
+      type (LoggerVector) :: children
+   end type Placeholder
+
 
 contains
 
@@ -46,80 +60,178 @@ contains
    ! DESCRIPTION: 
    ! Initialize with the root node of the logger hierarchy.
    !---------------------------------------------------------------------------
-   function newLoggerManager() result(manager)
-      type (LoggerManager) :: manager
+function newLoggerManager(root_node) result(manager)
+   type (RootLogger), intent(in) :: root_node
+   type (LoggerManager) :: manager
 
-   end function newLoggerManager
+   manager%root_node = root_node
+
+end function newLoggerManager
 
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getLogger
-   !
-   ! DESCRIPTION: 
-   ! Get a logger with the specified 'name', creating it if necessary.
-   ! Note that:
-   ! 1) 'name' is a dot-separated hierarchical name such as 'A','A.B','A.B.C',
-   !    etc.
-   ! 2) 'name' is case insensitive.
-   !---------------------------------------------------------------------------
-   function getLogger(this, name) result(lgr)
-      use ASTG_Exception_mod
-      class (Logger), pointer :: lgr
-      class (LoggerManager), target, intent(inout) :: this
-      character(len=*), intent(in) :: name
-      character(len=:), allocatable :: parentName
+!---------------------------------------------------------------------------  
+! FUNCTION: 
+! getLogger
+!
+! DESCRIPTION: 
+! Get a logger with the specified 'name', creating it if necessary.
+! Note that:
+! 1) 'name' is a dot-separated hierarchical name such as 'A','A.B','A.B.C',
+!    etc.
+! 2) 'name' is case insensitive.
+!---------------------------------------------------------------------------
+function getLogger(this, name) result(lgr)
+   use ASTG_Exception_mod
+   class (Logger), pointer :: lgr
+   class (LoggerManager), target, intent(inout) :: this
+   character(len=*), intent(in) :: name
+   character(len=:), allocatable :: parentName
 
-      class (AbstractLogger), pointer :: tmp
+   class (AbstractLogger), pointer :: tmp, tmp2
+   class (AbstractLogger), allocatable :: rv
 
-      tmp => this%loggers%at(name)
-      if (associated(tmp)) then  ! cast to Logger
-         select type (tmp)
-         class is (Logger)
-            lgr => tmp
+   tmp => this%loggers%at(name)
+   if (associated(tmp)) then
+
+      ! cast to Logger
+      select type (tmp)
+      type is (Logger)
+         lgr => tmp
+      type is (Placeholder)
+         allocate(lgr, source=newLogger(name))
+         call this%loggers%set(name, lgr)
+
+         tmp2 => this%loggers%at(name)
+         select type (tmp2)
+         type is (Logger)
+            lgr => tmp2
+            call this%fixup_children(tmp, lgr)
+            call this%fixup_ancestors(lgr)
          class default
-            call throw('LoggerManager::getLogger() - Illegal type of logger <' &
-                 & // name // '>')
+            call throw('should not get here')
          end select
-         return
+      class default
+         lgr => null()
+         call throw('LoggerManager::getLogger() - Illegal type of logger <' &
+              & // name // '>')
+      end select
+      return
 
-      else ! new logger
+   else ! new logger
 
-         call this%loggers%insert(name, newLogger(name))
-         parentName = this%getParentPrefix(name)
-
-         tmp => this%loggers%at(name)
-         select type (tmp)
+      allocate(lgr, source=newLogger(name))
+      call this%loggers%insert(name, lgr)
+      tmp => this%loggers%at(name)
+      ! cast to Logger
+      select type (tmp)
          class is (Logger)
-            lgr => tmp
-         end select
+         lgr => tmp
+         call this%fixup_ancestors(lgr)
+      class default
+         lgr => null()
+         call throw('LoggerManager::getLogger() - Illegal type of logger <' &
+              & // name // '>')
+      end select
+   end if
 
-         if (parentName /= '') then ! should exist !
-            call lgr%setParent(this%loggers%at(parentName))
-         end if
+end function getLogger
+
+subroutine fixup_ancestors(this, lgr)
+   use ASTG_Exception_mod
+   class (LoggerManager), target, intent(inout) :: this
+   class (Logger), intent(inout), target :: lgr
+
+   integer :: i
+   character(len=:), allocatable :: name
+   character(len=:), allocatable :: ancestor_name
+   class (Logger), pointer :: ancestor
+   class (AbstractLogger), pointer :: tmp
+
+   name = lgr%getName()
+   ancestor_name = this%getParentPrefix(name)
+   ancestor => null()
+
+   do while (ancestor_name /= '' .and. (.not. associated(ancestor)))
+      tmp => this%loggers%at(ancestor_name)
+      if (associated(tmp)) then ! ancestor exists
+         select type (tmp)
+            class is (Logger)
+            ancestor => tmp
+            call lgr%setParent(ancestor)
+         type is (Placeholder)
+               call tmp%children%push_back(lgr)
+         class default
+            call throw("LoggerManager::fixup_ancestors() - illegal type for name '"//ancestor_name//"'.")
+         end select
+      else ! create placeholder
+         block
+           type (Placeholder) :: ph
+           counter = counter + 1
+           ph%counter = counter
+           call ph%children%push_back(lgr)
+           call this%loggers%insert(ancestor_name, ph)
+         end block
       end if
 
-   end function getLogger
+      ancestor_name = this%getParentPrefix(ancestor_name)
+   end do
+
+   if (.not. associated(ancestor)) then
+      ancestor => this%root_node
+   end if
+
+   call lgr%setParent(ancestor)
+
+end subroutine fixup_ancestors
 
 
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! getParentPrefix
-   !
-   ! DESCRIPTION: 
-   ! In the logger hierarchy, the parent prefix is the string preceding the
-   ! last logger in the hierarchy. For example: the parent prefix of c in the
-   ! logger hierarchy a.b.c is a.b
-   !---------------------------------------------------------------------------
-   function getParentPrefix(name) result(prefix)
-      character(len=*), intent(in) :: name
-      character(len=:), allocatable :: prefix
+subroutine fixup_children(this, ph, lgr)
+   class (LoggerManager), intent(in) :: this
+   type (Placeholder), intent(in) :: ph
+   class (Logger), intent(inout) :: lgr
 
-      integer :: idx
+   type (LoggerVecIterator) :: iter
+   class (Logger), pointer :: child
+   class (Logger), pointer :: child_ancestor
+   character(len=:), allocatable :: name, child_ancestor_name
+   integer :: n
 
-      idx = index(name, '.', back=.true.)
-      prefix = name(1:idx-1)
+   iter = ph%children%begin()
+   name = lgr%getName()
+   n = len(name)
+   
+   do while (iter /= ph%children%end())
+      child => iter%get()
+      child_ancestor => child%getParent()
+      child_ancestor_name = child_ancestor%getName()
 
-   end function getParentPrefix
+      if (child_ancestor_name(1:n) /= name) then
+         call lgr%setParent(child_ancestor)
+         call child%setParent(lgr)
+      end if
+      call iter%next()
+   end do
+
+end subroutine fixup_children
+
+!---------------------------------------------------------------------------  
+! FUNCTION: 
+! getParentPrefix
+!
+! DESCRIPTION: 
+! In the logger hierarchy, the parent prefix is the string preceding the
+! last logger in the hierarchy. For example: the parent prefix of c in the
+! logger hierarchy a.b.c is a.b
+!---------------------------------------------------------------------------
+function getParentPrefix(name) result(prefix)
+   character(len=*), intent(in) :: name
+   character(len=:), allocatable :: prefix
+
+   integer :: idx
+
+   idx = index(name, '.', back=.true.)
+   prefix = name(1:idx-1)
+
+end function getParentPrefix
 
 end module ASTG_LoggerManager_mod

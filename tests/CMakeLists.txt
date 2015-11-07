@@ -45,6 +45,7 @@ set(TEST_SRCS
 if (MPI) 
   list(APPEND SRCS
      MockMpi.F90
+     Test_MpiLock.F90
   )
 
   list(APPEND TEST_SRCS

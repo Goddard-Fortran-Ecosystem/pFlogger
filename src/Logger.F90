@@ -42,6 +42,7 @@ module ASTG_Logger_mod
       integer :: level
       character(len=:), allocatable :: name
       type (HandlerVector) :: handlers
+      class (Logger), pointer :: parent => null()
    contains
 
       procedure :: setName
@@ -61,6 +62,8 @@ module ASTG_Logger_mod
       procedure :: log_
       procedure :: emit
       procedure :: makeRecord
+      procedure :: setParent
+      procedure :: getParent
    end type Logger
 
    interface Logger
@@ -439,6 +442,34 @@ contains
       level = this%level
       
    end function getLevel
+
+!---------------------------------------------------------------------------  
+!*ROUTINE: setParent
+!
+!> @brief Set parent for 'this' logger.
+!---------------------------------------------------------------------------
+   subroutine setParent(this, parent)
+      class (Logger), intent(inout) :: this
+      class (Logger), target, intent(in) :: parent
+
+      this%parent => parent
+
+   end subroutine setParent
+
+   
+!---------------------------------------------------------------------------  
+!*FUNCTION: getParent
+!
+!> @brief Get parent of "this" logger.
+!---------------------------------------------------------------------------
+   function getParent(this) result(parent)
+      class (Logger), pointer :: parent
+      class (Logger), intent(in) :: this
+
+      parent => this%parent
+
+   end function getParent
+
 
 end module ASTG_Logger_mod
 

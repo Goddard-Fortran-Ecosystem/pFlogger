@@ -17,12 +17,12 @@ contains
       integer :: rank, ier
 
       comm = 12345
-      call setMpiRank(0)
+      call set_mpi_rank(0)
       f = MpiFilter(comm)
       call initLogRecord(record,'A', INFO, 'some message')
       @assertTrue(f%dofilter(record))
       
-      call setMpiRank(1)
+      call set_mpi_rank(1)
       f = MpiFilter(comm)
       @assertFalse(f%dofilter(record))
       
@@ -37,12 +37,12 @@ contains
       
       call initLogRecord(record, 'A', INFO, 'some message')
 
-      call setMpiRank(0)
+      call set_mpi_rank(0)
       
       f = MpiFilter(comm, rank=1)
       @assertFalse(f%dofilter(record))
       
-      call setMpiRank(1)
+      call set_mpi_rank(1)
       
       f = MpiFilter(comm, rank=1)
       @assertTrue(f%dofilter(record))

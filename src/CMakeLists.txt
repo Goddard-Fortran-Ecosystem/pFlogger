@@ -8,6 +8,7 @@ set(SRCS
    AbstractFilter.F90
    AbstractHandler.F90
    AbstractLogger.F90
+   AbstractLock.F90
    Config.F90
    DynamicBuffer.F90
    Exception.F90
@@ -24,7 +25,6 @@ set(SRCS
    LoggerManager.F90
    Object.F90
    pflogger.F90
-   Placeholder.F90
    RootLogger.F90
    RotatingFileHandler.F90
    SeverityLevels.F90
@@ -39,6 +39,7 @@ set(SRCS
    StringFormatterMap.F90
    StringFilterMap.F90
    StringHandlerMap.F90
+   LoggerPolyVector.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
    UnlimitedVector.F90
@@ -51,6 +52,7 @@ if (MPI)
   list (APPEND SRCS
      MpiFilter.F90
      MpiFileHandler.F90
+     MpiLock.F90
   )
 endif ()
 

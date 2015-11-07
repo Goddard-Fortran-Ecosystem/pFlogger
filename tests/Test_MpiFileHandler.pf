@@ -44,7 +44,7 @@ contains
 
       comm = 12345
 
-      call setMpiRank(0)
+      call set_mpi_rank(0)
       handler = MpiFileHandler('logFile', comm)
       @assertEqual('logFile.pe=0', handler%getFileName())
       call handler%close()
@@ -52,7 +52,7 @@ contains
       open(newunit=unit,file='logFile.pe=0', status='old')
       close(unit, status='delete')
 
-      call setMpiRank(47)
+      call set_mpi_rank(47)
       handler = MpiFileHandler('logFile', comm, suffixFormat='_%i3.3')
       @assertEqual('logFile_047', handler%getFileName())
       call handler%close()
@@ -76,7 +76,7 @@ contains
       integer :: unit
       integer :: comm
 
-      call setMpiRank(0)
+      call set_mpi_rank(0)
       comm = 12345
       handler = MpiFileHandler(PREFIX, comm, delay=.true.)
       inquire(file=FILE_NAME, exist=exist)
@@ -102,7 +102,7 @@ contains
 
       comm = 12345
 
-      call setMpiRank(123)
+      call set_mpi_rank(123)
       call setDefaultMpiSuffixFormat('.%i4.4') ! warning - global setting
 
       handler = MpiFileHandler('logFile', comm, delay=.true.)
