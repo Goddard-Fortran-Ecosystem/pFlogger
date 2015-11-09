@@ -14,7 +14,7 @@ module Test_Config_mod
 
    implicit none
 
-#define P(k,v) p(k,String(v))
+#define P(k,v) p(k,newString(v))
    
 contains
 
