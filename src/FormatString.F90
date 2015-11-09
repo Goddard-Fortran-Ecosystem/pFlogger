@@ -185,7 +185,7 @@ contains
    function handleScalar(arg, fmt) result(str)
       use ASTG_DynamicBuffer_mod
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
-      use ASTG_String_mod
+      use FTL
       character(len=:), allocatable :: str
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
@@ -201,9 +201,9 @@ contains
          select type (arg)
          type is (String)
             if (fmt == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg%str
+               write(buffer%buffer,*,iostat=iostat) arg%get()
             else
-               write(buffer%buffer,'(' // fmt // ')',iostat=iostat) arg%str
+               write(buffer%buffer,'(' // fmt // ')',iostat=iostat) arg%get()
             end if
             intrinsic = .true.
          class default

@@ -116,7 +116,8 @@ contains
 
       type (Map) :: extra
 
-      extra = map([pair('dog','fido'), pair('cat','tabby')])
+      call extra%insert('dog','fido')
+      call extra%insert('cat','tabby')
 
       found = formatString('%(dog) %(cat)', extra)
       expected = ' fido  tabby'

@@ -159,10 +159,10 @@ contains
    ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
+      use FTL
       use ASTG_FormatString_mod
       use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-      use ASTG_String_mod
 
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
@@ -174,7 +174,8 @@ contains
       type (StringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
 
-      extra = record%extra
+      call extra%deepCopy(record%extra)
+!!$      extra = record%extra
       msg = record%getMessage()
 
 #ifdef __GFORTRAN__

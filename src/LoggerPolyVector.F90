@@ -16,7 +16,6 @@ module  ASTG_LoggerPolyVector_mod
 #define _iterator LoggerVecIterator
 
 #define _type class(Logger)
-#define _allocatable
 #define _pointer   
 
 #include "templates/vector.inc"

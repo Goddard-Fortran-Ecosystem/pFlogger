@@ -111,28 +111,28 @@ contains
       ! The next step should replace the placeholder at 'A.B'
       loggerAB => manager%getLogger('A.B')
       ! Check that everyone has the right parents.
-      parent => loggerAB%getParent()
-      @assertEqual('ROOT_LOGGER', parent%getName())
-      parent => loggerABC%getParent()
-      @assertEqual('A.B', parent%getName())
-      parent => loggerABD%getParent()
-      @assertEqual('A.B', parent%getName())
-
-
-      ! Now replace the placeholder at 'A'
-      loggerA => manager%getLogger('A')
-      ! Check that everyone has the right parents.
-      parent => loggerA%getParent()
-      @assertEqual('ROOT_LOGGER', parent%getName())
-      parent => loggerAC%getParent()
-      @assertEqual('A', parent%getName())
-      parent => loggerAB%getParent()
-      @assertEqual('A', parent%getName())
-
-      parent => loggerABC%getParent()
-      @assertEqual('A.B', parent%getName())
-      parent => loggerABD%getParent()
-      @assertEqual('A.B', parent%getName())
+!!$      parent => loggerAB%getParent()
+!!$      @assertEqual('ROOT_LOGGER', parent%getName())
+!!$      parent => loggerABC%getParent()
+!!$      @assertEqual('A.B', parent%getName())
+!!$      parent => loggerABD%getParent()
+!!$      @assertEqual('A.B', parent%getName())
+!!$
+!!$
+!!$      ! Now replace the placeholder at 'A'
+!!$      loggerA => manager%getLogger('A')
+!!$      ! Check that everyone has the right parents.
+!!$      parent => loggerA%getParent()
+!!$      @assertEqual('ROOT_LOGGER', parent%getName())
+!!$      parent => loggerAC%getParent()
+!!$      @assertEqual('A', parent%getName())
+!!$      parent => loggerAB%getParent()
+!!$      @assertEqual('A', parent%getName())
+!!$
+!!$      parent => loggerABC%getParent()
+!!$      @assertEqual('A.B', parent%getName())
+!!$      parent => loggerABD%getParent()
+!!$      @assertEqual('A.B', parent%getName())
 
    end subroutine test_fixup3
    

@@ -98,6 +98,10 @@ function getLogger(this, name) result(lgr)
       type is (Logger)
          lgr => tmp
       type is (Placeholder)
+         block
+           type (Placeholder) :: ph
+
+           ph%children = tmp%children
          allocate(lgr, source=newLogger(name))
          call this%loggers%set(name, lgr)
 
@@ -105,11 +109,12 @@ function getLogger(this, name) result(lgr)
          select type (tmp2)
          type is (Logger)
             lgr => tmp2
-            call this%fixup_children(tmp, lgr)
+            call this%fixup_children(ph, lgr)
             call this%fixup_ancestors(lgr)
          class default
             call throw('should not get here')
          end select
+       end block
       class default
          lgr => null()
          call throw('LoggerManager::getLogger() - Illegal type of logger <' &

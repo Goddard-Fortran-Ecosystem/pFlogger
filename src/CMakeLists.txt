@@ -30,7 +30,6 @@ set(SRCS
    SeverityLevels.F90
    StreamHandler.F90
    StringUtilities.F90
-   String.F90
    WrapArray.F90
 # FTL containers
    StringIntegerMap.F90

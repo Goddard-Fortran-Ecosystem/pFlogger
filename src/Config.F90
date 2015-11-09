@@ -1,6 +1,6 @@
 ! Singleton pattern for now
 module ASTG_Config_mod
-   use ftl_Config_mod
+   use FTL
    use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
@@ -570,7 +570,6 @@ contains
    contains
 
       function cast(anything) result(str)
-         use ASTG_String_mod
          character(len=:), pointer :: str
          class (*), target, intent(in) :: anything
 
@@ -578,7 +577,7 @@ contains
          type is (character(len=*))
             str => anything
          type is (String)
-            str => anything%str
+            str => anything%get()
          class default
             str => null()
             call throw("Config::dictConfig() - cannot cast '"//key//"' as character.")

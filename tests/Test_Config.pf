@@ -5,16 +5,17 @@
 !
 module Test_Config_mod
    use pfunit_mod
-   use ftl_Config_mod
+   use FTL
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
-   use ASTG_String_mod
 
    use ASTG_Config_mod
 
    implicit none
 
+#define P(k,v) p(k,String(v))
+   
 contains
 
    @test
@@ -62,7 +63,7 @@ contains
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('fmt',String('---'))])
+      cfg = Config([P('fmt','---')])
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -80,7 +81,7 @@ contains
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('fmt',String('%(asctime)a %(message)a')), P('datefmt',String('date'))])
+      cfg = Config([P('fmt','%(asctime)a %(message)a'), P('datefmt','date')])
       fmtr = build_formatter(cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -97,8 +98,8 @@ contains
 
       formattersDict = &
            & Config([ &
-           &       P('A', Config([P('fmt',String('---'))]) ), &
-           &       P('B', Config([P('fmt',String('---')), P('datefmt',String('hello'))])) &
+           &       p('A', Config([P('fmt','---')]) ), &
+           &       p('B', Config([P('fmt','---'), P('datefmt', 'hello')])) &
            &     ])
 
       formatters = build_formatters(formattersDict)
@@ -113,7 +114,7 @@ contains
       type (Filter) :: f
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('name',String('A'))])
+      cfg = Config([P('name', 'A')])
       f = build_filter(cfg)
 
       @assertEqual('A', f%getName())
@@ -128,8 +129,8 @@ contains
 
       filtersDict = &
            & Config([ &
-           &       P('A', Config([P('name',String('A'))])), &
-           &       P('B', Config([P('name',String('B'))])) &
+           &       p('A', Config([P('name', 'A')])), &
+           &       p('B', Config([P('name', 'B')])) &
            &     ])
 
       filters = build_filters(filtersDict)
@@ -158,11 +159,11 @@ contains
       call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
       handler_cfg = Config([ &
-           & P('class', String('StreamHandler')), &
-           & P('unit', String('OUTPUT_UNIT')), &
-           & P('formatter', String('handlerB')), &
-           & P('filters', String('[filterA]')), &
-           & P('level', String('DEBUG')) &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'handlerB'), &
+           & P('filters', '[filterA]'), &
+           & P('level', 'DEBUG') &
            & ])
 
       ! TODO
@@ -192,11 +193,11 @@ contains
       call formatters%insert('formatterB,', Formatter('%(levelname)'))
 
       handler_cfg = Config([ &
-           & P('class', String('StreamHandler')), &
-           & P('unit', String('OUTPUT_UNIT')), &
-           & P('formatter', String('formatterB')), &
-           & P('filters', String('[filterA]')), &
-           & P('level', String('DEBUG')) &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'formatterB'), &
+           & P('filters', '[filterA]'), &
+           & P('level', 'DEBUG') &
            & ])
 
       allocate(h, source=build_handler(handler_cfg, formatters, filters))
@@ -228,25 +229,25 @@ contains
 
 
       h1_cfg = Config([ &
-           & P('class', String('StreamHandler')), &
-           & P('unit', String('OUTPUT_UNIT')), &
-           & P('formatter', String('formatterA')), &
-           & P('filters', String('[filterA]')), &
-           & P('level', String('INFO')) &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'formatterA'), &
+           & P('filters', '[filterA]'), &
+           & P('level', 'INFO') &
            & ])
 
       h2_cfg = Config([ &
-           & P('class', String('StreamHandler')), &
-           & P('unit', String('OUTPUT_UNIT')), &
-           & P('formatter', String('formatterB')), &
-           & P('filters', String('[filterA,filterB]')), &
-           & P('level', String('CRITICAL')) &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'formatterB'), &
+           & P('filters', '[filterA,filterB]'), &
+           & P('level', 'CRITICAL') &
            & ])
 
       handlersDict = &
            & Config([ &
-           &       P('A', h1_cfg), &
-           &       P('B', h2_cfg) &
+           &       p('A', h1_cfg), &
+           &       p('B', h2_cfg) &
            &     ])
 
       handlers = build_handlers(handlersDict, formatters, filters)
@@ -300,8 +301,8 @@ contains
       character(len=:), allocatable :: expectedMessage
 
       cfg = Config([ &
-           &      P('schema_version', 1), &
-           &      P('loggers', 1) &
+           &      p('schema_version', 1), &
+           &      p('loggers', 1) &
            &     ])
 
       call dictConfig(cfg)
@@ -320,8 +321,8 @@ contains
       class (Logger), pointer :: lgr
 
       cfg = Config([ &
-           &      P('schema_version', 1), &
-           &      P('loggers', Config([P('A', Config([P('level','DEBUG')]))])) &
+           &      p('schema_version', 1), &
+           &      p('loggers', Config([p('A', Config([P('level','DEBUG')]))])) &
            &     ])
 
       call dictConfig(cfg)

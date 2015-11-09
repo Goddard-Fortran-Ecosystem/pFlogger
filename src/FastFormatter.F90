@@ -83,7 +83,6 @@ contains
       use ASTG_FormatString_mod
       use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-      use ASTG_String_mod
 
       character(len=:), allocatable :: logMessage
       class (FastFormatter), intent(in) :: this

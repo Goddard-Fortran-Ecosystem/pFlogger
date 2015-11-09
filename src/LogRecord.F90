@@ -15,11 +15,11 @@
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module ASTG_LogRecord_mod
+   use FTL
    use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
    use ASTG_Object_mod
    use ASTG_SeverityLevels_mod
-   use ASTG_String_mod
    implicit none
    private
 
@@ -179,7 +179,6 @@ contains
    subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use ASTG_String_mod
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level

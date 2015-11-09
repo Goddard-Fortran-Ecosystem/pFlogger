@@ -21,6 +21,7 @@ module  ASTG_StringAbstractLoggerPolyMap_mod
 #define _value_equal_defined
 
 #define _alt
+#define _pair_allocatable   
 #include "templates/map.inc"
 
 end module ASTG_StringAbstractLoggerPolyMap_mod
