@@ -1,4 +1,6 @@
 program simpleMpi
+   use ASTG_RootLogger_mod
+   use ASTG_SeverityLevels_mod
    use ASTG_LoggerManager_mod
    use ASTG_MpiFileHandler_mod
    use ASTG_Logger_mod
@@ -17,7 +19,7 @@ program simpleMpi
    call mpi_init(ier)
 
    ! instantiate manager with the root node of the logger hierarchy.
-   manager = LoggerManager()
+   manager = LoggerManager(RootLogger(WARNING))
    lgr => manager%getLogger('A')
 
    ! each rank will open and write to log.pe=rank file

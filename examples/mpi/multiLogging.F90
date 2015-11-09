@@ -1,5 +1,5 @@
 program multiLogging
-
+   use ASTG_RootLogger_mod
    use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_Filter_mod
@@ -31,18 +31,20 @@ program multiLogging
 
    rundeck = 'em20'
    
-   manager = LoggerManager()
+   manager = LoggerManager(RootLogger(WARNING))
    loggerStd => manager%getLogger('modelE')
    rootFilter = MpiFilter(MPI_COMM_WORLD)
   
    ! print on screen
-   prtFile = StreamHandler(OUTPUT_UNIT, level=DEBUG)
+   prtFile = StreamHandler(OUTPUT_UNIT)
+   call prtFile%setLevel(DEBUG)
    call prtFile%addFilter(rootFilter)
    call loggerStd%addHandler(prtFile)
    call loggerStd%warning('Warning on screen!')
   
    ! write error into  files
-   errFile = MpiFileHandler(rundeck // '.ERR', MPI_COMM_WORLD,level=INFO)
+   errFile = MpiFileHandler(rundeck // '.ERR', MPI_COMM_WORLD)
+   call errFile%setLevel(INFO)
    call errFile%addFilter(rootFilter)
    loggerErr => manager%getLogger('modelE.erro')
    call loggerErr%addHandler(errFile)
@@ -51,9 +53,9 @@ program multiLogging
    ! write debug file into different files
    debugFilter = MpiFilter(MPI_COMM_WORLD)
    debugFile = MpiFileHandler(rundeck//'.Chem', MPI_COMM_WORLD, &
-        level=DEBUG, &
         suffixFormat='.%(i3.3)', &
         delay=.true.)
+   call debugFile%setLevel(DEBUG)
    call debugFile%addFilter(debugFilter)
    loggerChem => manager%getLogger('modelE.chemistry')
    call loggerChem%setLevel(DEBUG)
