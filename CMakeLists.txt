@@ -33,6 +33,7 @@ include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 include(FindFTL)
+include(CheckCompilerCapabilities)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)

@@ -75,7 +75,7 @@ contains
 
       else ! local window memory is size 0, but have to pass something
          block
-           integer :: buffer
+           logical :: buffer(1)
            sz = 0
            call MPI_Win_create(buffer, sz, 1, MPI_INFO_NULL, lock%comm, lock%window, ierror)
          end block

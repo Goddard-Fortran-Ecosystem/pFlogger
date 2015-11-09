@@ -42,7 +42,7 @@ set(TEST_SRCS
    Test_SimTime.F90
 )
 
-if (MPI) 
+if (MPI AND SUPPORT_FOR_ASSUMED_TYPE) 
   list(APPEND SRCS
      MockMpi.F90
      Test_MpiLock.F90

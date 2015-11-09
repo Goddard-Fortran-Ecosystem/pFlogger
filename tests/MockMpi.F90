@@ -3,7 +3,6 @@ module mpi_base
 end module mpi_base
 
 module MockMpi_mod
-   use iso_fortran_env, only: INT64
    use pfunit_mod
    implicit none
    private
