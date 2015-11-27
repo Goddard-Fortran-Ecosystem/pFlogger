@@ -28,8 +28,9 @@ contains
 
       call set_mpi_rank(1)
       call set_mpi_size(2)
-
       call set_MPI_Get([.true.])
+      call set_Mpi_Recv(is_called=.true.)
+
       lock = MpiLock(comm)
 
       call lock%acquire()
@@ -37,4 +38,81 @@ contains
       
    end subroutine test_acquire_wait
 
+   @test
+   subroutine test_acquire_nowait()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+
+      call set_MPI_Get([.false.])
+      lock = MpiLock(comm)
+
+      call lock%acquire()
+      call verify()
+      
+   end subroutine test_acquire_nowait
+   
+
+   @test
+   subroutine test_release_nowaiter()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+      call set_MPI_Get([.false.])
+      call set_MPI_Get([.false.],2)
+
+      lock = MpiLock(comm)
+      call lock%acquire()
+      call lock%release()
+      
+      call verify()
+      
+   end subroutine test_release_nowaiter
+
+
+   @test
+   subroutine test_release_waiter()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+      call set_MPI_Get([.false.])
+      call set_MPI_Get([.true.], 2)
+      call set_MPI_Recv(is_called = .false.)
+      call set_MPI_Send(is_called = .true.)
+
+      lock = MpiLock(comm)
+      call lock%acquire()
+      call lock%release()
+      
+      call verify()
+      
+   end subroutine test_release_waiter
+   
 end module Test_MpiLock_mod

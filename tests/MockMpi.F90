@@ -13,6 +13,8 @@ module MockMpi_mod
    public :: set_mpi_rank
    public :: set_mpi_size
    public :: set_mpi_get
+   public :: set_mpi_recv
+   public :: set_mpi_send
    public :: verify
 
    type MockMpi
@@ -20,8 +22,15 @@ module MockMpi_mod
       integer :: size
 
       integer :: call_count = 0
+      integer :: mpi_get_call_count = 0
+      logical :: mpi_recv_has_expectation
+      logical :: mpi_recv_is_called
       logical :: mpi_recv_was_called
+      logical :: mpi_send_has_expectation
+      logical :: mpi_send_is_called
+      logical :: mpi_send_was_called
       logical, allocatable :: MPI_Get_buffer(:)
+      logical, allocatable :: MPI_Get_buffer2(:)
    contains
       procedure :: reset
    end type MockMpi
@@ -34,7 +43,13 @@ contains
    subroutine reset(this)
       class (MockMpi), intent(inout) :: this
       this%call_count = 0
+      this%mpi_recv_has_expectation = .false.
       this%mpi_recv_was_called = .false.
+      this%mpi_send_has_expectation = .false.
+      this%mpi_send_was_called = .false.
+      if (allocated(this%mpi_get_buffer)) deallocate(this%mpi_get_buffer)
+      if (allocated(this%mpi_get_buffer2)) deallocate(this%mpi_get_buffer2)
+      this%mpi_get_call_count = 0
    end subroutine reset
 
 
@@ -54,16 +69,43 @@ contains
    end subroutine set_mpi_size
 
 
-   subroutine set_MPI_Get(buffer)
+   subroutine set_MPI_Get(buffer, nth)
       logical, intent(in) :: buffer(:)
-      mocker%MPI_Get_buffer = buffer
+      integer, optional, intent(in) :: nth
+      if (present(nth)) then
+         mocker%MPI_Get_buffer2 = buffer
+      else
+         mocker%MPI_Get_buffer = buffer
+      end if
    end subroutine set_MPI_Get
 
+
+   subroutine set_MPI_Recv(is_called)
+      logical, intent(in) :: is_called
+      mocker%mpi_recv_has_expectation = .true.
+      mocker%mpi_recv_is_called  = is_called
+   end subroutine set_MPI_Recv
+
+
+   subroutine set_MPI_Send(is_called)
+      logical, intent(in) :: is_called
+      mocker%mpi_send_has_expectation = .true.
+      mocker%mpi_send_is_called  = is_called
+   end subroutine set_MPI_Send
+   
    subroutine verify()
-      if (.not. mocker%mpi_recv_was_called) then
-         call throw('Expected call to MPI_recv')
+      if (mocker%mpi_recv_has_expectation) then
+         if (mocker%mpi_recv_is_called .neqv. mocker%mpi_recv_was_called) then
+            call throw('Mismatched call to MPI_recv')
+         end if
+      end if
+      if (mocker%mpi_send_has_expectation) then
+         if (mocker%mpi_send_was_called .neqv. mocker%mpi_send_was_called) then
+            call throw('Mismatched call to MPI_send')
+         end if
       end if
 
+      call mocker%reset()
    end subroutine verify
 
 end module MockMpi_mod
@@ -176,14 +218,19 @@ subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
    integer origin_count, origin_datatype, target_rank, &
         & target_count, target_datatype, win, ierror
 
-   mocker%call_count = mocker%call_count + 1
+   mocker%mpi_get_call_count = mocker%mpi_get_call_count + 1
 
    block
      type (c_ptr) :: loc
      logical, pointer :: buffer(:)
      loc = c_loc(origin_addr(1))
      call c_f_pointer(loc, buffer, [1])
-     buffer = .true.
+     select case (mocker%mpi_get_call_count)
+     case (1)
+        buffer = mocker%mpi_get_buffer
+     case (2)
+        buffer = mocker%mpi_get_buffer2
+     end select
    end block
 end subroutine MPI_Get
 
