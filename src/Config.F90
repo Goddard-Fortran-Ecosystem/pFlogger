@@ -569,7 +569,8 @@ contains
 
    contains
 
-      function cast(anything) result(str)
+     function cast(anything) result(str)
+       use FTL, only: String
          character(len=:), pointer :: str
          class (*), target, intent(in) :: anything
 
