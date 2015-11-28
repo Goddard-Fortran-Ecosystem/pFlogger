@@ -1,12 +1,12 @@
 module astg_MpiLock_mod
-!   use mpi
+   use mpi
    use astg_AbstractLock_mod
    use iso_fortran_env, only: INT64
    use iso_c_binding, only: c_ptr, c_f_pointer
    implicit none
    private
 
-   include 'mpif.h'
+!   include 'mpif.h'
    
    public :: MpiLock
 
