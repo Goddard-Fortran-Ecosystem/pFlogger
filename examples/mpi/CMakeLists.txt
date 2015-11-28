@@ -4,5 +4,7 @@ if (MPI)
    target_link_libraries(simpleMPI.x logger ${MPI_Fortran_LIBRARIES})
    add_executable(multiLogging.x multiLogging.F90)
    target_link_libraries(multiLogging.x logger ${MPI_Fortran_LIBRARIES})
+   add_executable(sharedFileHandle.x sharedFileHandle.F90)
+   target_link_libraries(sharedFileHandle.x logger ${MPI_Fortran_LIBRARIES})
 endif()
 
