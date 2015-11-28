@@ -8,6 +8,11 @@ module pflogger_mod
    use astg_Formatter_mod
    use astg_FastFormatter_mod
    use astg_WrapArray_mod
+   use astg_SharedFileHandler_mod
+   use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+#ifdef LOGGER_USE_MPI
+   use astg_MpiLock_mod
+#endif
    implicit none
    private
 
@@ -21,10 +26,10 @@ module pflogger_mod
    public :: AbstractHandler
    public :: StreamHandler
    public :: FileHandler
+   public :: SharedFileHandler
 
    public :: Formatter
    public :: FastFormatter
-
 
    public :: NOTSET
    public :: DEBUG
@@ -36,9 +41,14 @@ module pflogger_mod
    public :: levelToName
    public :: nameToLevel
 
+   public :: StringUnlimitedMap
+
    public :: initialize_severity_levels
    public :: finalize_severity_levels
 
+#ifdef LOGGER_USE_MPI
+   public :: MpiLock
+#endif
 
 contains
 

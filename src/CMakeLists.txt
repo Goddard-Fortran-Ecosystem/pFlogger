@@ -6,13 +6,11 @@ set(THIS logger)
 set(SRCS
    ArgListUtilities.F90
    AbstractFilter.F90
-   AbstractHandler.F90
    AbstractLogger.F90
    AbstractLock.F90
    Config.F90
    DynamicBuffer.F90
    Exception.F90
-   FileHandler.F90
    Filter.F90
    Filterer.F90
    FastFormatter.F90
@@ -26,9 +24,12 @@ set(SRCS
    Object.F90
    pflogger.F90
    RootLogger.F90
-   RotatingFileHandler.F90
    SeverityLevels.F90
+   AbstractHandler.F90
+   SharedFileHandler.F90
    StreamHandler.F90
+   FileHandler.F90
+   RotatingFileHandler.F90
    StringUtilities.F90
    WrapArray.F90
 # FTL containers

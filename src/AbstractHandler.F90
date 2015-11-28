@@ -125,8 +125,16 @@ contains
       class(AbstractHandler), intent(in) :: this
       type(LogRecord), intent(in) :: record
       character(len=:), allocatable :: message
-      
-      message = this%fmt%format(record)
+
+      if (allocated(this%fmt)) then
+         message = this%fmt%format(record)
+      else
+         block
+           type (Formatter) :: fmtr
+           fmtr = Formatter(BASIC_FORMAT)
+           message = fmtr%format(record)
+         end block
+      end if
       
    end function format
 
@@ -195,5 +203,5 @@ contains
 
    end function notEqual
    
-   
+
 end module ASTG_AbstractHandler_mod

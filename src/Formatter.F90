@@ -40,7 +40,7 @@ module ASTG_Formatter_mod
       
 
    type, extends(Object) :: Formatter
-      private
+!!$      private
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
 !!$      type (FormatParser) :: p

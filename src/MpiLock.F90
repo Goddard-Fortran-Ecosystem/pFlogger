@@ -1,11 +1,13 @@
 module astg_MpiLock_mod
-   use mpi
+!   use mpi
    use astg_AbstractLock_mod
    use iso_fortran_env, only: INT64
    use iso_c_binding, only: c_ptr, c_f_pointer
    implicit none
    private
 
+   include 'mpif.h'
+   
    public :: MpiLock
 
    type, extends(AbstractLock) :: MpiLock
@@ -19,18 +21,17 @@ module astg_MpiLock_mod
    contains
       procedure :: acquire
       procedure :: release
-      final :: free_mpi_resources
+      procedure :: free_mpi_resources
    end type MpiLock
 
+   integer, parameter :: LOCK_TAG = 10
 
    interface MpiLock
       module procedure newMpiLock
    end interface MpiLock
 
-   integer, parameter :: LOCK_TAG = 10
-
-
 contains
+
 
    function newMpiLock(comm) result(lock)
       type (MpiLock) :: lock
@@ -130,16 +131,16 @@ contains
         integer :: p, next_rank, buffer
         p = this%rank
         next_rank = -1
-        do p = this%rank, this%npes-1
+        do p = this%rank+1, this%npes-1
            if (this%local_data(p)) then
-              next_rank = p + 1
+              next_rank = p
               exit
            end if
         end do
         if (next_rank == -1) then
-           do p = 0, this%rank-1
+           do p = 1, this%rank
               if (this%local_data(p)) then
-                 next_rank = p
+                 next_rank = p-1
                  exit
               end if
            end do
@@ -154,7 +155,7 @@ contains
    end subroutine release
 
    subroutine free_mpi_resources(this)
-      type (MpiLock), intent(inout) :: this
+      class (MpiLock), intent(inout) :: this
 
       logical, pointer :: scratchpad(:)
       integer :: ierror

@@ -33,6 +33,7 @@ module ASTG_StreamHandler_mod
       integer :: unit = UNCONNECTED
    contains
       procedure :: getUnit
+      procedure :: setUnit
       procedure :: emitMessage
       procedure :: close ! noop
       procedure :: flush => flushUnit
@@ -65,8 +66,6 @@ contains
          handler%unit = ERROR_UNIT
       end if
 
-      call handler%setFormatter(Formatter(BASIC_FORMAT))
-      
    end function newStreamHandler
 
    
@@ -86,6 +85,15 @@ contains
      
    end function getUnit
 
+
+   subroutine setUnit(this, unit)
+      class (StreamHandler), intent(inout) :: this
+      integer, intent(in) :: unit
+
+      this%unit = unit
+     
+   end subroutine setUnit
+   
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
    ! emitMessage
@@ -96,6 +104,7 @@ contains
    subroutine emitMessage(this, record)
       class (StreamHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
+
       write(this%unit, '(a)') this%format(record)
       call this%flush()
      

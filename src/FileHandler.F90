@@ -65,9 +65,8 @@ contains
          delay_ = .false. ! backward compatibility
       end if
 
-      call handler%setFormatter(Formatter(BASIC_FORMAT))
-
       call handler%setFileName(fileName)
+
       if (.not. delay_) call handler%open()
 
    end function newFileHandler
@@ -87,7 +86,6 @@ contains
       logical :: opened
 
       if (.not. this%isOpen()) call this%open()
-
       call this%StreamHandler%emitMessage(record)
 
    end subroutine emitMessage
@@ -127,7 +125,7 @@ contains
 
       this%isOpen_ = .true.
 
-      this%StreamHandler = StreamHandler(unit)
+      call this%setUnit(unit)
        
    end subroutine open
 
