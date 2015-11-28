@@ -8,11 +8,11 @@ module pflogger_mod
    use astg_Formatter_mod
    use astg_FastFormatter_mod
    use astg_WrapArray_mod
-   use astg_SharedFileHandler_mod
    use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
 #ifdef LOGGER_USE_MPI
    use astg_MpiLock_mod
 #endif
+   use astg_RotatingFileHandler_mod
    implicit none
    private
 
@@ -26,7 +26,8 @@ module pflogger_mod
    public :: AbstractHandler
    public :: StreamHandler
    public :: FileHandler
-   public :: SharedFileHandler
+   public :: RotatingFileHandler
+   public :: newRotatingFileHandler
 
    public :: Formatter
    public :: FastFormatter

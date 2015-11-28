@@ -15,6 +15,7 @@ module ASTG_FileHandler_mod
    use ASTG_LogRecord_mod
    use ASTG_Formatter_mod
    use ASTG_StreamHandler_mod
+   use ASTG_AbstractLock_mod
    implicit none
    private
 
@@ -24,6 +25,7 @@ module ASTG_FileHandler_mod
       private
       logical :: isOpen_ = .false.
       character(len=:), allocatable :: fileName
+      class (AbstractLock), allocatable :: lock
    contains
       procedure :: isOpen
       procedure :: open
@@ -31,7 +33,10 @@ module ASTG_FileHandler_mod
       procedure :: setFileName
       procedure :: getFileName
       procedure :: emitMessage
+      procedure :: atomicEmitMessage
       procedure :: equal
+      procedure :: setLock
+      procedure :: isLockable
    end type FileHandler
 
    interface FileHandler
@@ -83,12 +88,31 @@ contains
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
 
-      logical :: opened
+      if (this%isLockable()) then
+         call this%lock%acquire()
+         call this%open()
+      end if
 
-      if (.not. this%isOpen()) call this%open()
-      call this%StreamHandler%emitMessage(record)
+      call this%atomicEmitMessage(record)
+
+      if (this%isLockable()) then
+         call this%close()
+         call this%lock%release()
+      end if
 
    end subroutine emitMessage
+
+
+   subroutine atomicEmitMessage(this, record)
+      class (FileHandler), intent(inout) :: this
+      type(LogRecord), intent(in) :: record
+
+      if (.not. this%isOpen()) call this%open()
+
+      call this%StreamHandler%emitMessage(record)
+
+   end subroutine atomicEmitMessage
+   
 
     
    !---------------------------------------------------------------------------  
@@ -204,5 +228,28 @@ contains
 
    end function equal
 
+
+   logical function isLockable(this)
+      class (FileHandler), intent(in) :: this
+
+      isLockable = allocated(this%lock)
+
+   end function isLockable
+
+
+
+   subroutine setLock(this, lock)
+      class (FileHandler), intent(inout) :: this
+      class (AbstractLock), intent(in) :: lock
+      
+      if (this%isLockable()) then
+         deallocate(this%lock)
+      end if
+
+      if (this%isOpen()) call this%close()
+
+      allocate(this%lock, source=lock)
+
+   end subroutine setLock
 
 end module ASTG_FileHandler_mod

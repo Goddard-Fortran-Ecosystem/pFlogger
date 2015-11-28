@@ -26,7 +26,6 @@ set(SRCS
    RootLogger.F90
    SeverityLevels.F90
    AbstractHandler.F90
-   SharedFileHandler.F90
    StreamHandler.F90
    FileHandler.F90
    RotatingFileHandler.F90

@@ -5,3 +5,5 @@ subroutine foo(x)
   loc = c_loc(x(1))
 end subroutine foo
 
+program main
+end program main

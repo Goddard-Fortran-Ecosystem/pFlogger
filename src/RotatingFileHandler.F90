@@ -27,6 +27,7 @@ module ASTG_RotatingFileHandler_mod
    private
 
    public :: RotatingFileHandler
+   public :: newRotatingFileHandler
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
@@ -36,7 +37,7 @@ module ASTG_RotatingFileHandler_mod
    contains
       procedure :: doRollover
       procedure :: shouldRollover
-      procedure :: emitMessage
+      procedure :: atomicEmitMessage
    end type RotatingFileHandler
 
    interface RotatingFileHandler
@@ -110,20 +111,20 @@ contains
       character(len=16) :: fmt
       integer :: pos, n, nl
 
-      pos = scan(maxBytes,'kmg')      
+      pos = scan(maxBytes,'kmg')
       if (pos > 0) then
         nl = len(maxBytes(1:pos-1))        
         fmt = setFmt_(nl)
         select case(maxBytes(pos:pos+1))
         case ('kb')
           read(maxBytes(1:pos-1), fmt) n
-          nBytes = n * 2E10
+          nBytes = n * (2_int64 ** 10)
         case ('mb')
           read(maxBytes(1:pos-1), fmt) n
-          nBytes = n * 2E20
+          nBytes = n * (2_int64 ** 20)
         case ('gb')
           read(maxBytes(1:pos-1), fmt) n
-          nBytes = n * 2E30
+          nBytes = n * (2_int64 ** 30)
         end select
       else
         nl = len(maxBytes)
@@ -147,23 +148,24 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! emitMessage
+   ! atomicEmitMessage
    !
    ! DESCRIPTION: 
    ! Write a formatted string to a file.
    !---------------------------------------------------------------------------  
-   subroutine emitMessage(this, record)
+   subroutine atomicEmitMessage(this, record)
       class (RotatingFileHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
       integer :: fileSize
 
+      
       if (this%shouldRollover()) then
          call this%doRollover()
       end if
 
-      call this%FileHandler%emitMessage(record)
+      call this%FileHandler%atomicEmitMessage(record)
     
-   end subroutine emitMessage
+   end subroutine atomicEmitMessage
 
 
    !---------------------------------------------------------------------------  
@@ -232,6 +234,7 @@ contains
             dstFile = this%getFileName()//'.'//trim(suffix)
 
             inquire(FILE=srcFile, EXIST=exists)
+
             if (exists) then
                call delete_if_exists(dstFile)
                call execute_command_line('mv ' // srcFile // ' ' // dstFile)
