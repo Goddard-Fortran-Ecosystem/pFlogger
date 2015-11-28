@@ -7,3 +7,4 @@ end subroutine foo
 
 program main
 end program main
+
