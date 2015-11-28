@@ -30,10 +30,12 @@ ADD_TEST_SUITE(Test_ArgListUtilities_mod_suite)
 ADD_TEST_SUITE(Test_SeverityLevels_mod_suite)
 
 ! MPI related
-#if defined(LOGGER_USE_MPI) && defined(SUPPORT_FOR_ASSUMED_TYPE)
+#if defined(LOGGER_USE_MPI) 
+#  if defined(SUPPORT_FOR_ASSUMED_TYPE) && defined(SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
 ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
 ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 ADD_TEST_SUITE(Test_MpiLock_mod_suite)
+#  endif
 #endif
 
 ! config

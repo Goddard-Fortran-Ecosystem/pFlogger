@@ -86,7 +86,7 @@ contains
 
       call rec%extra%insert('level', level)
 #ifdef __GFORTRAN__
-      call rec%extra%insert('name', newString(name))
+      call rec%extra%insert('name', String(name))
 #else
       call rec%extra%insert('name', name)
 #endif
@@ -94,7 +94,7 @@ contains
       levelName = levelToName(level)
       ! Compiler workarounds
 #ifdef __GFORTRAN__
-      call rec%extra%insert('levelName', newString(levelName))
+      call rec%extra%insert('levelName', String(levelName))
 #else
       call rec%extra%insert('levelName', levelName)
 #endif

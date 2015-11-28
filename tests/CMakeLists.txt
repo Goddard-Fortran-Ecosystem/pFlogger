@@ -42,17 +42,18 @@ set(TEST_SRCS
    Test_SimTime.F90
 )
 
-if (MPI AND SUPPORT_FOR_ASSUMED_TYPE) 
-  list(APPEND SRCS
-     MockMpi.F90
-     Test_MpiLock.F90
-  )
-
-  list(APPEND TEST_SRCS
-     Test_MpiFileHandler.F90
-     Test_MpiFilter.F90
-  )
-endif()
+if (MPI) 
+  if (SUPPORT_FOR_ASSUMED_TYPE AND SUPPORT_FOR_C_LOC_ASSUMED_SIZE) 
+    list (APPEND SRCS
+       MockMpi.F90
+       Test_MpiLock.F90
+       )
+    list (APPEND TEST_SRCS
+       Test_MpiFileHandler.F90
+       Test_MpiFilter.F90
+       )
+  endif ()
+endif ()
 
 
 set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
