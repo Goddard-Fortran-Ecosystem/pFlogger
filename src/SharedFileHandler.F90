@@ -49,9 +49,6 @@ contains
       class (SharedFileHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
 
-      include 'mpif.h'
-      integer :: rank, ier
-      call mpi_comm_rank(MPI_COMM_WORLD, rank, ier)
       call this%lock%acquire()
       call this%handler%emitMessage(record)
       call this%close()
