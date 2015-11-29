@@ -1,0 +1,83 @@
+module Test_MpiFormatter_mod
+   use pfunit_mod
+   use mockmpi_mod
+   use astg_MpiFormatter_mod
+   use astg_LogRecord_mod
+   use astg_SeverityLevels_mod
+   implicit none
+
+contains
+
+   @test
+   subroutine test_no_reference()
+      type (MpiFormatter) :: f
+      type (LogRecord) :: rec
+      integer :: comm ! not really used due to mock
+      
+      call initLogRecord(rec, 'A', INFO, 'message')
+
+      f = MpiFormatter(fmt='%(message)a', comm=comm)
+      @assertEqual('message', f%format(rec))
+      
+   end subroutine test_no_reference
+
+   @test
+   subroutine test_one_comm()
+      type (MpiFormatter) :: f
+      type (LogRecord) :: rec
+
+      integer :: comm = 1 ! not really used due to mock
+      
+      call initLogRecord(rec, 'A', INFO, 'message')
+
+      call set_mpi_rank(2)
+      call set_mpi_size(5)
+
+      f = MpiFormatter(fmt='%(message)a %(rank)i2.2 %(npes)i2.2', comm=comm)
+      @assertEqual('message 02 05', f%format(rec))
+      
+   end subroutine test_one_comm
+   
+
+   @test
+   subroutine test_multi_comm()
+      type (MpiFormatter) :: f
+      type (LogRecord) :: rec
+
+      integer :: comm = 1 ! not really used due to mock
+      
+      call initLogRecord(rec, 'A', INFO, 'message')
+
+      call set_mpi_rank(2)
+      call set_mpi_size(5)
+
+      f = MpiFormatter(fmt='%(message)a %(rank_1)i2.2 %(npes_2)i2.2', comms=[comm,comm])
+      @assertEqual('message 02 05', f%format(rec))
+      
+   end subroutine test_multi_comm
+
+   @test
+   subroutine test_alt_names()
+      type (MpiFormatter) :: f
+      type (LogRecord) :: rec
+
+      character(len=:), allocatable :: fmt
+      integer :: comm = 1 ! not really used due to mock
+      
+      call initLogRecord(rec, 'A', INFO, 'message')
+
+      call set_mpi_rank(2)
+      call set_mpi_size(5)
+
+      fmt = '%(message)a %(p)i2.2 %(np)i2.2'
+      f = MpiFormatter(fmt=fmt, comm=comm, rank_name='p', size_name='np')
+      @assertEqual('message 02 05', f%format(rec))
+
+
+      fmt = '%(message)a %(p_1)i2.2 %(p_2)i2.2 %(np_1)i2.2 %(np_2)i2.2'
+      f = MpiFormatter(fmt=fmt, comms=[comm,comm], rank_prefix='p', size_prefix='np')
+      @assertEqual('message 02 02 05 05', f%format(rec))
+      
+   end subroutine test_alt_names
+   
+end module Test_MpiFormatter_mod

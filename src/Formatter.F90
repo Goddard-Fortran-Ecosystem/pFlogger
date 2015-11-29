@@ -40,10 +40,10 @@ module ASTG_Formatter_mod
       
 
    type, extends(Object) :: Formatter
-!!$      private
+      private
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
-!!$      type (FormatParser) :: p
+      type (FormatParser) :: p
       logical :: uses_asc_time
       logical :: uses_sim_time
    contains
@@ -51,6 +51,7 @@ module ASTG_Formatter_mod
       procedure :: formatTime
       procedure :: usesAscTime
       procedure :: usesSimTime
+      procedure :: setParser
    end type Formatter
 
    interface Formatter
@@ -86,7 +87,9 @@ contains
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
       character(len=*), optional, intent(in) :: datefmt
-      
+
+      type (FormatParser) :: p
+
       if (present(fmt)) then
          f%fmt = fmt
       else
@@ -100,7 +103,8 @@ contains
       f%uses_asc_time = f%usesAscTime()
       f%uses_sim_time = f%usesSimTime()
 
-!!$      call f%p%parse(f%fmt)
+      call p%parse(f%fmt)
+      call f%setParser(p)
       
    end function newFormatter
 
@@ -215,8 +219,7 @@ contains
 #endif
       end if
 
-!!$      logMessage = FormatString(this%p, extra)
-      logMessage = FormatString(this%fmt, extra)
+      logMessage = FormatString(this%p, extra)
     
    end function format
 
@@ -245,5 +248,13 @@ contains
       class (Formatter), intent(in) :: this
       usesSimTime = (index(this%fmt,'%(simtime)') > 0)
    end function usesSimTime
+
+   subroutine setParser(this, p)
+      class (Formatter), intent(inout) :: this
+      type (FormatParser), intent(in) :: p
+
+      this%p = p
+
+   end subroutine setParser
 
 end module ASTG_Formatter_mod

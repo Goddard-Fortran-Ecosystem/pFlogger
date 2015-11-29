@@ -51,6 +51,7 @@ if (MPI)
     list (APPEND TEST_SRCS
        Test_MpiFileHandler.F90
        Test_MpiFilter.F90
+       Test_MpiFormatter.F90
        )
   endif ()
 endif ()

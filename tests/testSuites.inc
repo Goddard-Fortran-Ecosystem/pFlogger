@@ -35,6 +35,7 @@ ADD_TEST_SUITE(Test_SeverityLevels_mod_suite)
 ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
 ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 ADD_TEST_SUITE(Test_MpiLock_mod_suite)
+ADD_TEST_SUITE(Test_MpiFormatter_mod_suite)
 #  endif
 #endif
 

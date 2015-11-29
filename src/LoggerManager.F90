@@ -27,6 +27,9 @@ module ASTG_LoggerManager_mod
       private
       type (RootLogger) :: root_node
       type (LoggerMap) :: loggers
+      integer :: mpi_communicator
+      integer :: mpi_world_rank
+      integer :: mpi_world_size
    contains
       procedure :: getLogger
       procedure, private :: fixup_ancestors
@@ -60,11 +63,40 @@ contains
    ! DESCRIPTION: 
    ! Initialize with the root node of the logger hierarchy.
    !---------------------------------------------------------------------------
-function newLoggerManager(root_node) result(manager)
-   type (RootLogger), intent(in) :: root_node
-   type (LoggerManager) :: manager
+   function newLoggerManager(root_node, comm) result(manager)
+      type (LoggerManager) :: manager
+      type (RootLogger), intent(in) :: root_node
+      integer, optional, intent(in) :: comm
 
-   manager%root_node = root_node
+      manager%root_node = root_node
+
+#ifdef LOGGER_USE_MPI
+      call init_mpi_info(comm)
+#else
+        manager%mpi_communicator = 0
+        manager%mpi_world_rank = 0
+        manager%mpi_world_size = 1
+#endif
+
+#ifdef LOGGER_USE_MPI        
+   contains
+
+      subroutine init_mpi_info(comm)
+         use mpi
+         integer, optional, intent(in) :: comm
+         integer :: comm_, ierror
+         if (present(comm)) then
+            comm_ = comm
+         else
+            comm_ = MPI_COMM_WORLD
+         end if
+         
+         call MPI_Comm_dup(comm_, manager%mpi_communicator, ierror)
+         call MPI_Comm_rank(manager%mpi_communicator, manager%mpi_world_rank, ierror)
+         call MPI_Comm_size(manager%mpi_communicator, manager%mpi_world_size, ierror)
+      end subroutine init_mpi_info
+#endif
+     
 
 end function newLoggerManager
 

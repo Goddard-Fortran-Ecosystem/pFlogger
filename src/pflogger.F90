@@ -1,6 +1,7 @@
 module pflogger_mod
    use astg_LoggerManager_mod
    use astg_Logger_mod
+   use ASTG_RootLogger_mod
    use astg_AbstractHandler_mod
    use astg_StreamHandler_mod
    use astg_FileHandler_mod
@@ -21,6 +22,7 @@ module pflogger_mod
 
    public :: logging
    public :: Logger
+   public :: RootLogger
    public :: WrapArray
 
    public :: AbstractHandler
@@ -51,16 +53,26 @@ module pflogger_mod
    public :: MpiLock
 #endif
 
+
+
 contains
 
-   subroutine initialize()
+   subroutine initialize(comm)
       use ASTG_SeverityLevels_mod
+      use ASTG_RootLogger_mod
+      integer, optional, intent(in) :: comm ! unused except with MPI
+
       call initialize_severity_levels()
+      logging = LoggerManager(RootLogger(WARNING), comm)
+
    end subroutine initialize
+   
 
    subroutine finalize()
       use ASTG_SeverityLevels_mod
+
       call finalize_severity_levels()
+
    end subroutine finalize
 
 end module pflogger_mod
