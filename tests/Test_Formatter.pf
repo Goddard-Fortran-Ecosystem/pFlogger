@@ -12,7 +12,6 @@ module Test_Formatter_mod
    
 @TestCase
    type, extends(TestCase) :: Test_Formatter
-      type (Formatter) :: f
       type (LogRecord) :: rec
    contains
       procedure :: setUp   
@@ -24,8 +23,7 @@ contains
    
    subroutine setUp(this)
       class (Test_Formatter), intent(inout) :: this
-      this%f = Formatter()
-      mockdf%f = Formatter()
+
       mockdf%Y = 2015
       mockdf%M = 1
       mockdf%D = 2
@@ -34,7 +32,6 @@ contains
       mockdf%SS = 5
       mockdf%MS = 123
 
-      this%f = Formatter()
    end subroutine setUp
 
    
@@ -47,9 +44,11 @@ contains
    subroutine test_formatDefault(this)
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
+      type (Formatter) :: f
 
       call initLogRecord(this%rec, 'A', INFO, 'Goodbye')
-      @assertEqual('Goodbye', this%f%format(this%rec))
+      f = Formatter('%(message)')
+      @assertEqual('Goodbye', f%format(this%rec))
       
    end subroutine test_formatDefault
    
@@ -60,13 +59,14 @@ contains
       class (Test_Formatter), intent(inout) :: this
 
       type (UnlimitedVector) :: args
+      type (Formatter) :: f
       
       args = UnlimitedVector()
       call args%push_back(1)
       call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
 
-      this%f = Formatter('Hello %(message)a')
-      @assertEqual('Hello Goodbye 1', this%f%format(this%rec))
+      f = Formatter('Hello %(message)a')
+      @assertEqual('Hello Goodbye 1', f%format(this%rec))
       
    end subroutine test_formatint32
    
@@ -78,6 +78,7 @@ contains
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=32) :: date
+      type (Formatter) :: f
 
       ! Create a LogRecord
       this%rec%name = 'someRec'
@@ -87,9 +88,9 @@ contains
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter('%(asctime)a')
+      f = Formatter('%(asctime)a')
       date = '2015-01-02 03:04:05.123'
-      @assertEqual(date, mockdf%f%format(this%rec))
+      @assertEqual(date, f%format(this%rec))
 
    end subroutine test_datefmtMessage_default
 
@@ -100,6 +101,7 @@ contains
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
+      type (Formatter) :: f
 
       ! Create a LogRecord
       this%rec%name = 'someRec'
@@ -109,9 +111,9 @@ contains
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter(fmt='%(asctime)', datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
+      f = Formatter(fmt='%(asctime)', datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
       write(date,'(i4.4,a,i2.2,a,i2.2)') mockdf%Y,'-',mockdf%M,'-',mockdf%D
-      @assertEqual(date, mockdf%f%format(this%rec))
+      @assertEqual(date, f%format(this%rec))
 
    end subroutine test_datefmtMessage
 
@@ -122,6 +124,7 @@ contains
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
+      type (Formatter) :: f
 
       ! Create a LogRecord
       this%rec%name = 'someRec'
@@ -135,10 +138,10 @@ contains
       ! record has name, level and message + opt args and/or extra
       ! Format the specified record as text: format(record)
       call mockdf%fillDateAndTime(this%rec)
-      mockdf%f = Formatter(fmt='%(asctime)a', &
+      f = Formatter(fmt='%(asctime)a', &
                          datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
       write(date,'(i2.2,a,i2.2,a,i2.2)') mockdf%HH,'-',mockdf%MM,'-',mockdf%SS
-      @assertEqual(date, mockdf%f%format(this%rec))
+      @assertEqual(date, f%format(this%rec))
 
    end subroutine test_datefmt
 
@@ -148,27 +151,33 @@ contains
       use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (UnlimitedVector) :: args
+      type (Formatter) :: f
 
       args = UnlimitedVector()
       call args%push_back(1)
 
       call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
-      this%f = Formatter('%(name)a %(message)a')
-      @assertEqual('A Goodbye 1', this%f%format(this%rec))
+      f = Formatter('%(name)a %(message)a')
+      @assertEqual('A Goodbye 1', f%format(this%rec))
       
    end subroutine test_formatWithName
    
 
-@Test
-   subroutine test_format(this)
-      use ASTG_SeverityLevels_mod, only: INFO
+@test
+   subroutine test_format_with_extra(this)
+      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
+      type (StringUnlimitedMap) :: dictionary
+      type (Formatter) :: f
 
-      this%f = Formatter('Hello')
-      logMessage = this%f%format(LogRecord('name', INFO, 'Hello'))
+      call dictionary%insert('one',1)
+      call dictionary%insert('two',2)
+      f = Formatter('Hello %(one)i1.1 %(two)i1.1', extra=dictionary)
 
-   end subroutine test_format
-
+      logMessage = f%format(LogRecord('name', INFO, 'Hello'))
+      @assertEqual('Hello 1 2', logMessage)
+   end subroutine test_format_with_extra
+   
 
 end module Test_Formatter_mod

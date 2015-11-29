@@ -51,7 +51,7 @@ module ASTG_Formatter_mod
       procedure :: formatTime
       procedure :: usesAscTime
       procedure :: usesSimTime
-      procedure :: setParser
+      procedure, private :: fill_extra_keywords
    end type Formatter
 
    interface Formatter
@@ -71,6 +71,10 @@ module ASTG_Formatter_mod
 
    procedure(get_time), pointer :: get_sim_time ! => null()
 
+   ! Private type - to force keyword usage for optional arguments
+   type :: Unusable
+   end type Unusable
+
 contains
 
  
@@ -83,12 +87,13 @@ contains
    ! described above. Allow for specialized date formatting using the optional
    ! datefmt argument.
    !---------------------------------------------------------------------------
-   function newFormatter(fmt, datefmt) result(f)
+   function newFormatter(fmt, unused, datefmt, extra) result(f)
+      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
+      type (Unusable), optional, intent(in) :: unused
       character(len=*), optional, intent(in) :: datefmt
-
-      type (FormatParser) :: p
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       if (present(fmt)) then
          f%fmt = fmt
@@ -103,9 +108,12 @@ contains
       f%uses_asc_time = f%usesAscTime()
       f%uses_sim_time = f%usesSimTime()
 
-      call p%parse(f%fmt)
-      call f%setParser(p)
-      
+      call f%p%parse(f%fmt)
+
+      if (present(extra)) then
+         call f%fill_extra_keywords(extra)
+      end if
+
    end function newFormatter
 
 
@@ -249,12 +257,37 @@ contains
       usesSimTime = (index(this%fmt,'%(simtime)') > 0)
    end function usesSimTime
 
-   subroutine setParser(this, p)
+
+
+   subroutine fill_extra_keywords(this, extra)
+      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+      use astg_FormatToken_mod
+      use astg_FormatTokenVector_mod
+      use astg_FormatString_mod
       class (Formatter), intent(inout) :: this
-      type (FormatParser), intent(in) :: p
+      type (StringUnlimitedMap), intent(in) :: extra
 
-      this%p = p
+      type (FormatParser) :: p
+      type (FormatToken), pointer :: token
+      type (VectorIterator) :: iter
+      
+      iter = this%p%begin()
+      do while (iter /= this%p%end())
+         token => iter%get()
+         
+         select case (token%type)
+         case (KEYWORD)
+            if (extra%count(token%text) > 0) then
+               call p%push_back(token)
+               token%type = TEXT
+               token%text = formatString(p, extra)
+               token%editDescriptor = ''
+               call p%clear()
+            end if
+         end select
+         call iter%next()
+      end do
 
-   end subroutine setParser
+   end subroutine fill_extra_keywords
 
 end module ASTG_Formatter_mod

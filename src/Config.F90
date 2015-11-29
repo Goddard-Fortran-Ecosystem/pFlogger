@@ -63,6 +63,7 @@ contains
 
    function build_formatter(dict) result(fmtr)
       use ASTG_Formatter_mod
+      use ASTG_AbstractHandler_mod
       class (Formatter), allocatable :: fmtr
       type (Config), intent(in) :: dict
       character(len=:), pointer :: fmt
@@ -73,7 +74,7 @@ contains
       
       if (associated(fmt)) then
          if (associated(datefmt)) then
-            allocate(fmtr,source=Formatter(fmt, datefmt))
+            allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
          end if

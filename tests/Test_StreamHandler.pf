@@ -26,7 +26,7 @@ contains
 
       open(newunit=this%unit, file='testStreamHandler.txt', form='formatted', &
            status='new')
-      mockdf%f = Formatter()
+
       mockdf%Y = 2015
       mockdf%M = 1
       mockdf%D = 2
@@ -106,11 +106,11 @@ contains
       character(len=32) :: foundMessage
 
       type (LogRecord) :: record
-      type(Formatter) :: fmt
       type (UnlimitedVector) :: args
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: levelName
-      
+      type (Formatter) :: f
+
       args = UnlimitedVector()
       call args%push_back(1)
 
@@ -125,12 +125,12 @@ contains
       call record%extra%insert('levelName', levelName)
 
       call mockdf%fillDateAndTime(record)
-      mockdf%f = Formatter(&
+      f = Formatter(&
            fmt='%(asctime)a %(levelName)a~: %(name)a~: %(message)a', &
            datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
 
       handler = StreamHandler(unit=this%unit)
-      call handler%setFormatter(mockdf%f)
+      call handler%setFormatter(f)
       call handler%handle(record)
       
       rewind(this%unit)

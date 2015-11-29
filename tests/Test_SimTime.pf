@@ -16,7 +16,7 @@ contains
       
       call initLogRecord(rec, 'A', INFO, 'Goodbye')
 
-      f = Formatter('%(simtime)a','%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
+      f = Formatter('%(simtime)a',datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
       get_sim_time => mockSimTime
 
       str = f%format(rec)

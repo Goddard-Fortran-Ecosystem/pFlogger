@@ -37,7 +37,6 @@ contains
       type (StringUnlimitedMap) :: dictionary
 
       character(len=:), allocatable :: fmt_
-      type (FormatParser) :: p
 
       block
         character(len=:), allocatable :: rank_name_, size_name_
@@ -54,33 +53,7 @@ contains
       end block
 
       fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
-      call p%parse(fmt_)
-
-      block 
-        type (FormatParser) :: pp
-        type (FormatToken), pointer :: token
-        type (VectorIterator) :: iter
-        
-        iter = p%begin()
-        do while (iter /= p%end())
-           token => iter%get()
-           
-           select case (token%type)
-           case (KEYWORD)
-              if (dictionary%count(token%text) > 0) then
-                 call pp%push_back(token)
-                 token%type = TEXT
-                 token%text = formatString(pp, dictionary)
-                 token%editDescriptor = ''
-                 call pp%clear()
-              end if
-           end select
-           call iter%next()
-        end do
-      end block
-        
-      f%Formatter = Formatter(datefmt=datefmt)
-      call f%setParser(p)
+      f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
 
    end function newMpiFormatter_comm
 
@@ -123,37 +96,8 @@ contains
       end block
 
       fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
+      f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
 
-      block
-        type (FormatParser) :: pp
-        type (FormatToken), pointer :: token
-        type (VectorIterator) :: iter
-
-        call p%parse(fmt_)
-
-        iter = p%begin()
-        do while (iter /= p%end())
-           token => iter%get()
-           select case (token%type)
-           case (KEYWORD)
-              block
-                integer :: n
-                n = len(token%text)
-                if (dictionary%count(token%text) > 0) then
-                   call pp%push_back(token)
-                   token%type = TEXT
-                   token%text = formatString(pp, dictionary)
-                   token%editDescriptor = ''
-                   call pp%clear()
-                end if
-              end block
-           end select
-           call iter%next()
-        end do
-      end block
-
-      f%Formatter = Formatter(datefmt=datefmt)
-      call f%setParser(p)
       
    end function newMpiFormatter_comms
 
