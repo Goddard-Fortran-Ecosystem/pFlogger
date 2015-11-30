@@ -53,6 +53,7 @@ if (MPI)
      MpiFileHandler.F90
      MpiLock.F90
      MpiFormatter.F90
+     MpiCommConfig.F90
   )
 endif ()
 

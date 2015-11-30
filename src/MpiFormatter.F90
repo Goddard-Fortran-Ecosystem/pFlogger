@@ -1,5 +1,6 @@
 module astg_MpiFormatter_mod
    use astg_Formatter_mod
+   use astg_MpiCommConfig_mod
    use mpi
    implicit none
    private
@@ -20,7 +21,7 @@ module astg_MpiFormatter_mod
 
 contains
 
-   function newMpiFormatter_comm(comm, unused, rank_name, size_name, fmt, datefmt) result(f)
+   function newMpiFormatter_comm(comm, unused, rank_keyword, size_keyword, fmt, datefmt) result(f)
       use astg_FormatParser_mod
       use astg_FormatTokenVector_mod
       use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
@@ -29,8 +30,8 @@ contains
       type (MpiFormatter) :: f
       integer, intent(in) :: comm
       type (Unusable), optional :: unused
-      character(len=*), optional, intent(in) :: rank_name
-      character(len=*), optional, intent(in) :: size_name
+      character(len=*), optional, intent(in) :: rank_keyword
+      character(len=*), optional, intent(in) :: size_keyword
       character(len=*), intent(in) :: fmt
       character(len=*), optional, intent(in) :: datefmt
 
@@ -38,19 +39,7 @@ contains
 
       character(len=:), allocatable :: fmt_
 
-      block
-        character(len=:), allocatable :: rank_name_, size_name_
-        integer :: rank, npes, ierror
-        
-        call MPI_Comm_rank(comm, rank, ierror)
-        call MPI_Comm_size(comm, npes, ierror)
-      
-        rank_name_ = default(rank_name, 'rank')
-        size_name_ = default(size_name, 'npes')
-      
-        call dictionary%insert(rank_name_, rank)
-        call dictionary%insert(size_name_, npes)
-      end block
+      dictionary = MpiCommConfig(comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
 
       fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
@@ -78,22 +67,7 @@ contains
       character(len=:), allocatable :: fmt_
       
 
-      block
-        integer :: i
-        character(len=:), allocatable :: rank_prefix_, size_prefix_
-        character(len=:), allocatable :: suffix
-        integer :: rank, npes, ierror
-        do i = 1, size(comms)
-           call MPI_Comm_rank(comms(i), rank, ierror)
-           call MPI_Comm_size(comms(i), npes, ierror)
-           
-           suffix = formatString('_%i1.1', makeArgVector(i))
-           rank_prefix_ = default(rank_prefix, 'rank')
-           size_prefix_ = default(size_prefix, 'npes')
-           call dictionary%insert(rank_prefix_ // suffix, rank)
-           call dictionary%insert(size_prefix_ // suffix, npes)
-        end do
-      end block
+      dictionary = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
 
       fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)

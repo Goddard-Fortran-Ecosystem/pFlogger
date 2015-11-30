@@ -1,0 +1,108 @@
+module Test_MpiCommConfig_mod
+   use MockMpi_mod
+   use pfunit_mod
+   use astg_MpiCommConfig_mod
+   use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+   use astg_FormatString_mod
+   implicit none
+
+
+contains
+
+   @test
+   subroutine test_default()
+      ! use mpi_comm_world if necessary.
+      ! Note that the usage is
+      ! read-only, so does not violate encapsulation of MPI
+      ! communicators.
+
+      character(len=:), allocatable :: s
+      type (StringUnlimitedMap) :: d
+      
+      call set_mpi_rank(3)
+      call set_mpi_size(7)
+
+      d = MpiCommConfig()
+
+      s = FormatString('%(mpi_rank)i1.1', d)
+      @assertEqual('3', s)
+
+      s = FormatString('%(mpi_size)i1.1', d)
+      @assertEqual('7', s)
+
+   end subroutine test_default
+
+
+   @test
+   subroutine test_override_keywords()
+      ! use mpi_comm_world if necessary.
+      ! Note that the usage is
+      ! read-only, so does not violate encapsulation of MPI
+      ! communicators.
+
+      character(len=:), allocatable :: s
+      type (StringUnlimitedMap) :: d
+      
+      call set_mpi_rank(3)
+      call set_mpi_size(7)
+
+      d = MpiCommConfig(rank_keyword='rank', size_keyword='npes')
+
+      s = FormatString('%(rank)i1.1', d)
+      @assertEqual('3', s)
+
+      s = FormatString('%(npes)i1.1', d)
+      @assertEqual('7', s)
+
+   end subroutine test_override_keywords
+
+   @test
+   subroutine test_with_comm()
+      ! Note this test is a bit weak, as the mock layer does not actually
+      ! use comm.  But it ensures the interface is in place,
+      ! and the implementation is trivial extension.
+      character(len=:), allocatable :: s
+      type (StringUnlimitedMap) :: d
+      integer :: comm = 1
+      
+      call set_mpi_rank(3)
+      call set_mpi_size(7)
+
+      d = MpiCommConfig(comm, rank_keyword='rank', size_keyword='npes')
+
+      s = FormatString('%(rank)i1.1', d)
+      @assertEqual('3', s)
+
+      s = FormatString('%(npes)i1.1', d)
+      @assertEqual('7', s)
+      
+   end subroutine test_with_comm
+   
+   @test
+   subroutine test_with_multi_comm()
+      ! Note this test is a bit weak, as the mock layer does not actually
+      ! use comm.  But it ensures the interface is in place,
+      ! and the implementation is trivial extension.
+      character(len=:), allocatable :: s
+      type (StringUnlimitedMap) :: d
+      integer :: comm = 1
+      
+      call set_mpi_rank(3)
+      call set_mpi_size(7)
+
+      d = MpiCommConfig([comm,comm], rank_prefix='rank', size_prefix='npes')
+
+      s = FormatString('%(rank_1)i1.1', d)
+      @assertEqual('3', s)
+
+      s = FormatString('%(rank_2)i1.1', d)
+      @assertEqual('3', s)
+
+      s = FormatString('%(npes_1)i1.1', d)
+      @assertEqual('7', s)
+      s = FormatString('%(npes_2)i1.1', d)
+      @assertEqual('7', s)
+      
+   end subroutine test_with_multi_comm
+   
+end module Test_MpiCommConfig_mod

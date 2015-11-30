@@ -33,7 +33,7 @@ contains
       call set_mpi_rank(2)
       call set_mpi_size(5)
 
-      f = MpiFormatter(fmt='%(message)a %(rank)i2.2 %(npes)i2.2', comm=comm)
+      f = MpiFormatter(fmt='%(message)a %(mpi_rank)i2.2 %(mpi_size)i2.2', comm=comm)
       @assertEqual('message 02 05', f%format(rec))
       
    end subroutine test_one_comm
@@ -51,7 +51,7 @@ contains
       call set_mpi_rank(2)
       call set_mpi_size(5)
 
-      f = MpiFormatter(fmt='%(message)a %(rank_1)i2.2 %(npes_2)i2.2', comms=[comm,comm])
+      f = MpiFormatter(fmt='%(message)a %(mpi_rank_1)i2.2 %(mpi_size_2)i2.2', comms=[comm,comm])
       @assertEqual('message 02 05', f%format(rec))
       
    end subroutine test_multi_comm
@@ -70,7 +70,7 @@ contains
       call set_mpi_size(5)
 
       fmt = '%(message)a %(p)i2.2 %(np)i2.2'
-      f = MpiFormatter(fmt=fmt, comm=comm, rank_name='p', size_name='np')
+      f = MpiFormatter(fmt=fmt, comm=comm, rank_keyword='p', size_keyword='np')
       @assertEqual('message 02 05', f%format(rec))
 
 
