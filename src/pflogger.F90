@@ -63,7 +63,7 @@ contains
       integer, optional, intent(in) :: comm ! unused except with MPI
 
       call initialize_severity_levels()
-      logging = LoggerManager(RootLogger(WARNING), comm)
+      call initialize_logger_manager(comm)
 
    end subroutine initialize
    
