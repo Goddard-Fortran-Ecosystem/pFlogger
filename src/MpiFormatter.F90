@@ -41,7 +41,7 @@ contains
 
       dictionary = MpiCommConfig(comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
 
-      fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
+      fmt_ = default(fmt, 'pe=%(rank)a~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
 
    end function newMpiFormatter_comm
@@ -69,7 +69,24 @@ contains
 
       dictionary = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
 
-      fmt_ = default(fmt, '%(rank)a~: %(name)a~: %(message)a')
+      if (present(fmt)) then
+         fmt_ = fmt
+      else
+         block
+           integer :: i
+           character(len=1) :: c
+           fmt_ = 'pe=('
+           do i = 1, size(comms)
+              write(c,'(i1.1)')i
+              fmt_ = fmt_ // '%(' // default(rank_prefix,'mpi_rank') // '_' // c // ')i0'
+              if (i < size(comms)) then ! insert a comma
+                 fmt_ = fmt_ // '~,'
+              end if
+           end do
+           fmt_ = fmt_ // '~): %(message)a'
+         end block
+      end if
+
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
 
       

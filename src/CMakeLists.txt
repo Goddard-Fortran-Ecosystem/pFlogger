@@ -51,10 +51,13 @@ if (MPI)
   list (APPEND SRCS
      MpiFilter.F90
      MpiFileHandler.F90
-     MpiLock.F90
      MpiFormatter.F90
      MpiCommConfig.F90
-  )
+     )
+   if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
+     list (APPEND SRCS MpiLock.F90)
+   endif ()
+
 endif ()
 
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )

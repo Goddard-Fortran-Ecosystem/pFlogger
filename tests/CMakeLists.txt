@@ -42,19 +42,21 @@ set(TEST_SRCS
    Test_SimTime.F90
 )
 
-if (MPI) 
-  if (SUPPORT_FOR_ASSUMED_TYPE AND SUPPORT_FOR_C_LOC_ASSUMED_SIZE) 
-    list (APPEND SRCS
-       MockMpi.F90
-       )
+if (MPI)
+  list (APPEND SRCS
+    MockMpi.F90
+    )
+  list (APPEND TEST_SRCS
+    Test_MpiFileHandler.F90
+    Test_MpiFilter.F90
+    Test_MpiFormatter.F90
+    Test_MpiCommConfig.F90
+    )
+  if (SUPPORT_FOR_ASSUMED_TYPE AND SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
     list (APPEND TEST_SRCS
-       Test_MpiFileHandler.F90
-       Test_MpiFilter.F90
-       Test_MpiFormatter.F90
-       Test_MpiCommConfig.F90
        Test_MpiLock.F90
        )
-  endif ()
+   endif ()
 endif ()
 
 

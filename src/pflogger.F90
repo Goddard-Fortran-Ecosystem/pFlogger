@@ -11,7 +11,9 @@ module pflogger_mod
    use astg_WrapArray_mod
    use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
 #ifdef LOGGER_USE_MPI
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_C_PTR
    use astg_MpiLock_mod
+#  endif   
 #endif
    use astg_RotatingFileHandler_mod
    implicit none
@@ -50,8 +52,10 @@ module pflogger_mod
    public :: finalize_severity_levels
 
 #ifdef LOGGER_USE_MPI
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_C_PTR
    public :: MpiLock
-#endif
+#  endif
+#endif   
 
 
 

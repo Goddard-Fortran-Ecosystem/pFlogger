@@ -15,6 +15,7 @@
 module ASTG_MpiFilter_mod
    use ASTG_AbstractFilter_mod
    use ASTG_LogRecord_mod
+   use mpi
    implicit none
    private
 

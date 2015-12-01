@@ -17,6 +17,9 @@ module ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_AbstractLogger_mod
    use ASTG_LoggerPolyVector_mod
+#ifdef LOGGER_USE_MPI
+   use mpi
+#endif
    implicit none
    private
 
@@ -83,7 +86,6 @@ contains
    contains
 
       subroutine init_mpi_info(comm)
-         use mpi
          integer, optional, intent(in) :: comm
          integer :: comm_, ierror
          if (present(comm)) then

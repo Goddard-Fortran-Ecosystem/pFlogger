@@ -52,11 +52,14 @@ contains
         & rank_prefix, size_prefix) result(cfg)
       use astg_FormatString_mod
       use astg_ArgListUtilities_mod
+      use ASTG_UnlimitedVector_mod
+            
       integer, intent(in) :: mpi_communicators(:)
       type (StringUnlimitedMap) :: cfg
       type (Unusable), optional, intent(in) :: unused
       character(len=*), optional, intent(in) :: rank_prefix
       character(len=*), optional, intent(in) :: size_prefix
+      type (Vector) :: v
 
       integer :: rank
       integer :: npes
@@ -68,7 +71,13 @@ contains
          call MPI_Comm_rank(mpi_communicators(i), rank, ierror)
          call MPI_Comm_size(mpi_communicators(i), npes, ierror)
 
-         suffix = FormatString('_%i0',makeArgVector(i))
+#ifndef __GFORTRAN__         
+         suffix = FormatString('_%i0', makeArgVector(i))
+#else
+         v = makeArgVector(i)
+         suffix = FormatString('_%i0', v)
+#endif
+
          call cfg%insert(default(rank_prefix,'mpi_rank')//suffix, rank)
          call cfg%insert(default(size_prefix,'mpi_size')//suffix, npes)
       end do

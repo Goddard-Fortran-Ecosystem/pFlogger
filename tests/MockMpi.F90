@@ -208,6 +208,8 @@ subroutine MPI_Win_unlock(rank, win, ierror)
 
 end subroutine MPI_Win_unlock
 
+#ifdef SUPPORT_FOR_ASSUMED_TYPE
+#  ifdef SUPPORT_FOR_C_LOC_ASSUMED_SIZE
 subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
    use MockMpi_mod
@@ -233,6 +235,7 @@ subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
      end select
    end block
 end subroutine MPI_Get
+#  endif
 
 subroutine MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
@@ -271,6 +274,16 @@ subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
 
 end subroutine MPI_Send
 
+subroutine MPI_Free_mem(base, ierror)
+   use MockMpi_mod
+   use mpi_base
+   type(*) :: base(*)
+   integer ierror
+
+   mocker%call_count = mocker%call_count + 1
+   ierror = MPI_SUCCESS
+
+end subroutine MPI_Free_mem
 
 subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    use MockMpi_mod
@@ -289,18 +302,9 @@ subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    mocker%call_count = mocker%call_count + 1
    ierror = MPI_SUCCESS
 end subroutine MPI_Alloc_mem_cptr
+#endif
 
 
-subroutine MPI_Free_mem(base, ierror)
-   use MockMpi_mod
-   use mpi_base
-   type(*) :: base(*)
-   integer ierror
-
-   mocker%call_count = mocker%call_count + 1
-   ierror = MPI_SUCCESS
-
-end subroutine MPI_Free_mem
 
 ! This one is just a stub for now
 subroutine MPI_Comm_dup(comm, newcomm, ierror)
@@ -366,6 +370,7 @@ subroutine MPI_Type_free(datatype, ierror)
    ierror = MPI_SUCCESS
    mocker%call_count = mocker%call_count + 1
 end subroutine MPI_Type_free
+
 
 !!$subroutine mpi_init(ierror)
 !!$   use MockMpi_mod

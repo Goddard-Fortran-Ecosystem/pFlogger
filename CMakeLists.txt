@@ -33,15 +33,28 @@ include(PreventInSourceBuild)
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 include(FindFTL)
-include(CheckCompilerCapabilities)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)
-   add_definitions(-DLOGGER_USE_MPI)
-   find_package(MPI REQUIRED)
-   include_directories(${MPI_Fortran_INCLUDE_PATH})
-   message( STATUS "MPI enabled")
+  add_definitions (-DLOGGER_USE_MPI)
+  find_package (MPI REQUIRED)
+  include_directories (${MPI_Fortran_INCLUDE_PATH})
+  message( STATUS "MPI enabled")
+elseif ()
+  message (FATAL_ERROR
+    "MPI support not available - MPI implementation"
+    )
 endif()
+
+include(CheckCompilerCapabilities)
+
+if (MPI)
+  if (NOT SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
+    message (FATAL_ERROR
+      "Version of MPI is too old to support MPI_Alloc_mem() with C_PTR argument."
+      )
+  endif ()
+endif ()
 
 # Compiler flags
 include(setCompilerFlags)

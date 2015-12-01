@@ -13,6 +13,7 @@ module ASTG_MpiFileHandler_mod
    use ASTG_SeverityLevels_mod, only: INFO
    use ASTG_LogRecord_mod
    use ASTG_FileHandler_mod
+   use mpi
    
    implicit none
    private

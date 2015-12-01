@@ -18,6 +18,7 @@ contains
 
       f = MpiFormatter(fmt='%(message)a', comm=comm)
       @assertEqual('message', f%format(rec))
+      call verify()
       
    end subroutine test_no_reference
 
@@ -35,6 +36,7 @@ contains
 
       f = MpiFormatter(fmt='%(message)a %(mpi_rank)i2.2 %(mpi_size)i2.2', comm=comm)
       @assertEqual('message 02 05', f%format(rec))
+      call verify()
       
    end subroutine test_one_comm
    
@@ -53,10 +55,30 @@ contains
 
       f = MpiFormatter(fmt='%(message)a %(mpi_rank_1)i2.2 %(mpi_size_2)i2.2', comms=[comm,comm])
       @assertEqual('message 02 05', f%format(rec))
+      call verify()
       
    end subroutine test_multi_comm
 
+
    @test
+   subroutine test_multi_comm_default_fmt()
+      type (MpiFormatter) :: f
+      type (LogRecord) :: rec
+
+      integer :: comm = 1 ! not really used due to mock
+      
+      call initLogRecord(rec, 'A', INFO, 'message')
+
+      call set_mpi_rank(2)
+      call set_mpi_size(5)
+
+      f = MpiFormatter(comms=[comm,comm,comm])
+      @assertEqual('pe=(2,2,2): message', f%format(rec))
+      call verify()
+      
+   end subroutine test_multi_comm_default_fmt
+
+@test
    subroutine test_alt_names()
       type (MpiFormatter) :: f
       type (LogRecord) :: rec
@@ -77,6 +99,7 @@ contains
       fmt = '%(message)a %(p_1)i2.2 %(p_2)i2.2 %(np_1)i2.2 %(np_2)i2.2'
       f = MpiFormatter(fmt=fmt, comms=[comm,comm], rank_prefix='p', size_prefix='np')
       @assertEqual('message 02 02 05 05', f%format(rec))
+      call verify()
       
    end subroutine test_alt_names
    
