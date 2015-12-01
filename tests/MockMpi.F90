@@ -160,18 +160,6 @@ subroutine MPI_Comm_size(comm, size, ierror)
 
 end subroutine MPI_Comm_size
 
-subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
-   use MockMpi_mod
-   use mpi_base
-   type(*) :: base(*)
-   integer(kind=MPI_ADDRESS_KIND) size
-   integer disp_unit, info, comm, win, ierror
-
-   ierror = MPI_SUCCESS
-   mocker%call_count = mocker%call_count + 1
-
-end subroutine MPI_Win_create
-
 subroutine MPI_Win_free(win, ierror)
    use MockMpi_mod
    use mpi_base
@@ -302,6 +290,19 @@ subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    mocker%call_count = mocker%call_count + 1
    ierror = MPI_SUCCESS
 end subroutine MPI_Alloc_mem_cptr
+
+subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
+   use MockMpi_mod
+   use mpi_base
+   type(*) :: base(*)
+   integer(kind=MPI_ADDRESS_KIND) size
+   integer disp_unit, info, comm, win, ierror
+
+   ierror = MPI_SUCCESS
+   mocker%call_count = mocker%call_count + 1
+
+end subroutine MPI_Win_create
+
 #endif
 
 
