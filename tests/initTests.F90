@@ -10,10 +10,12 @@ end subroutine pfunit_throw
 subroutine initTests()
    use pflogger_mod
    use ASTG_Exception_mod, only: setThrowFunPtr
+   use FTL_Exception_mod, only: FTL_setThrowFunPtr => setThrowFunPtr
    implicit none
    external :: pfunit_throw
 
    call initialize()
    call setThrowFunPtr(pfunit_throw)
+   call FTL_setThrowFunPtr(pfunit_throw)
 
 end subroutine initTests
