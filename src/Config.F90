@@ -25,6 +25,9 @@ module ASTG_Config_mod
 
    public :: build_logger
 
+   type Unusable
+   end type Unusable
+
 contains
 
    subroutine dictConfig(dict)
@@ -66,14 +69,16 @@ contains
       use ASTG_AbstractHandler_mod
       class (Formatter), allocatable :: fmtr
       type (Config), intent(in) :: dict
-      character(len=:), pointer :: fmt
-      character(len=:), pointer :: datefmt
 
-      fmt => toString(dict, 'fmt')
-      datefmt => toString(dict, 'datefmt')
+      character(len=:), allocatable :: fmt
+      character(len=:), allocatable :: datefmt
+      logical :: found
+
+      fmt = dict%toString('fmt', found=found)
       
-      if (associated(fmt)) then
-         if (associated(datefmt)) then
+      if (found) then
+         datefmt = dict%toString('datefmt', found=found)
+         if (found) then
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
@@ -94,6 +99,7 @@ contains
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
       type (Filter) :: f
+
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
          cfg => toMap(filtersDict, iter%key())
@@ -103,15 +109,20 @@ contains
 
    end function build_filters
 
+
    function build_filter(dict) result(f)
       use ASTG_Filter_mod
       type (Filter) :: f
       type (Config), intent(in) :: dict
-      character(len=:), pointer :: name
 
-      name => toString(dict, 'name', require=.true.)
-      if (associated(name)) then
+      character(len=:), allocatable :: name
+      logical :: found
+
+      name = dict%toString('name', found=found)
+      if (found) then
          f = Filter(name)
+      else
+         call throw('FTL::Config::build_filter() - empty list of filters or nameless filter.')
       end if
 
    end function build_filter
@@ -140,6 +151,7 @@ contains
    function build_handler(handlerDict, formatters, filters) result(h)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
+      use ASTG_Filter_mod
       class (AbstractHandler), allocatable :: h
       type (Config), intent(in) :: handlerDict
       type (FormatterMap), intent(in) :: formatters
@@ -161,17 +173,16 @@ contains
          class (AbstractHandler), allocatable, intent(out) :: h
          type (Config), intent(in) :: handlerDict
 
-         character(len=:), pointer :: classNamePtr
+         character(len=:), allocatable :: className
 
-         classNamePtr => toString(handlerDict, 'class', require=.true.)
-         if (associated(classNamePtr)) then
-            select case (toLowerCase(classNamePtr))
-            case ('streamhandler')
-               allocate(h, source=build_streamhandler(handlerDict, formatters, filters))
-            case default
-               call throw("Config::build_handler() - unsupported class: '" // classNamePtr //"'.")
-            end select
-         end if
+         className = handlerDict%toString('class', default='unknown')
+
+         select case (toLowerCase(className))
+         case ('streamhandler')
+            allocate(h, source=build_streamhandler(handlerDict))
+         case default
+            call throw("ASTG::Config::build_handler() - unsupported class: '" // className //"'.")
+         end select
 
       end subroutine allocate_concrete_handler
 
@@ -179,20 +190,20 @@ contains
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
 
-         character(len=:), pointer :: levelNamePtr
+         character(len=:), allocatable :: levelName
          integer :: level
          integer :: iostat
 
-         levelNamePtr => toString(handlerDict, 'level')
-         if (associated(levelNamePtr)) then
-            ! Try as integer
-            read(levelNamePtr,*, iostat=iostat) level
-            if (iostat /= 0) then
-               level = nameToLevel(levelNamePtr)
-            end if
+         levelName = handlerDict%toString('level', default='NOTSET')
+         ! Try as integer
+         read(levelName,*, iostat=iostat) level
 
-            call h%setLevel(level)
+         ! If that failed - interpret as a name from SeverityLevels.
+         if (iostat /= 0) then
+            level = nameToLevel(levelName)
          end if
+
+         call h%setLevel(level)
 
       end subroutine set_handler_level
       
@@ -202,14 +213,16 @@ contains
          type (Config), intent(in) :: handlerDict
          type (FormatterMap), intent(in) :: formatters
 
-         character(len=:), pointer :: formatterNamePtr
-         type (FormatterIterator) :: iter
+         character(len=:), allocatable :: formatterName
+         logical :: found
 
-         formatternameptr => toString(handlerDict, 'formatter')
-         if (associated(formatterNamePtr)) then
-            iter = formatters%find(formatterNamePtr)
-            if (iter /= formatters%end()) then
-               call h%setFormatter(iter%value())
+         formatterName = handlerDict%toString('formatter', found=found)
+
+         if (found) then  ! OK if no formatter
+            if (formatters%count(formatterName) == 1) then
+               call h%setFormatter(formatters%at(formatterName))
+            else
+               call throw("ASTG::Config::build_handler() - formatter '"//formatterName//"' not found.")
             end if
          end if
 
@@ -221,17 +234,17 @@ contains
          type (Config), intent(in) :: handlerDict
          type (FilterMap), intent(in) :: filters
 
-         character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: filterNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
-         type (FilterIterator) :: iter
+         logical :: found
          integer :: i, j, n
 
-         filterNamesList => toString(handlerDict, 'filters')
-         if (associated(filterNamesList)) then
+         filterNamesList = handlerDict%toString('filters', found=found)
+         if (found) then
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw("Config::build_handler() - filters is not of the form '[a,b,...,c]'")
+               call throw("FTL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -247,12 +260,15 @@ contains
                   name = adjustl(trim(filterNamesList(i:i + j-2)))
                   i = i + j
                end if
-               iter = filters%find(name)
-               if (iter /= filters%end()) then
-                  call h%addFilter(iter%value())
-               else
-                  call throw("Config::build_handler() - unknown filter'"//name//"'.")
-               end if
+               block
+                 class (Filter), pointer :: f
+                 f => filters%at(name)
+                 if (associated(f)) then
+                    call h%addFilter(f)
+                 else
+                    call throw("FTL::Config::build_handler() - unknown filter'"//name//"'.")
+                 end if
+               end block
             end do
             
          end if
@@ -263,50 +279,50 @@ contains
    end function build_handler
 
 
-   function build_streamhandler(handlerDict, formatters, filters) result(h)
+   function build_streamhandler(handlerDict) result(h)
       use ASTG_StreamHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
       type (Config), intent(in) :: handlerDict
-      type (FormatterMap), intent(in) :: formatters
-      type (FilterMap), intent(in) :: filters
 
-      integer, pointer :: unitPtr
+      character(len=:), allocatable :: unitName
       integer :: unit
-      character(len=:), pointer :: unitNamePtr
+      logical :: found
+      integer :: iostat
       
-      unitNamePtr => toString(handlerDict, 'unit')
-      if (associated(unitNamePTr)) then
-         select case (toLowerCase(unitNamePtr))
-         case ('output_unit')
+      unitName = handlerDict%toString('unit', default='error_unit')
+
+      ! is it an integer?
+      read(unitName,*,iostat=iostat) unit
+
+      ! if failed, maybe it is a defined name?
+      if (iostat /= 0) then ! try as a string
+         select case (toLowerCase(unitName))
+         case ('output_unit','*')
             unit = OUTPUT_UNIT
          case ('error_unit')
             unit = ERROR_UNIT
          case default
-            call throw("Config::build_streamhandler() - unknown value for unit '"//unitNamePtr//"'.")
+            call throw("Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
             return
          end select
-         h = StreamHandler(unit)
-      else
-         unitPtr => toInteger(handlerDict, 'unit')
-         if (associated(unitPtr)) then
-            h = StreamHandler(unit)
-         else
-            h = StreamHandler()
-         end if
       end if
+
+      h = StreamHandler(unit)
 
    end function build_streamhandler
 
 
-   subroutine build_logger(name, loggerDict, filters, handlers)
+   subroutine build_logger(name, loggerDict, filters, handlers, unused, extra)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       character(len=*), intent(in) :: name
       type (Config), intent(in) :: loggerDict
       type (FilterMap), intent(in) :: filters
       type (HandlerMap), intent(in) :: handlers
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
       type (Logger), pointer :: lgr
 
@@ -342,11 +358,13 @@ contains
       end subroutine set_logger_level
       
 
-      subroutine set_logger_filters(lgr, loggerDict, filters)
+      subroutine set_logger_filters(lgr, loggerDict, filters, unused, extra)
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
          type (FilterMap), intent(in) :: filters
-
+         type (Unusable), optional, intent(in) :: unused
+         type (Config), optional, intent(in) :: extra
+      
          character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
          type (FilterIterator) :: iter
@@ -386,22 +404,54 @@ contains
       end subroutine set_logger_filters
 
 
-      subroutine set_logger_handlers(lgr, loggerDict, handlers)
+      subroutine set_logger_handlers(lgr, loggerDict, handlers, unused, extra)
+#ifdef LOGGER_USE_MPI
+         use mpi
+#endif
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
          type (HandlerMap), intent(in) :: handlers
+         type (Unusable), optional, intent(in) :: unused
+         type (Config), optional, intent(in) :: extra
 
-         character(len=:), pointer :: handlerNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: handlerNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
          type (HandlerIterator) :: iter
          integer :: i, j, n
 
-         handlerNamesList => toString(loggerDict, 'handlers')
-         if (associated(handlerNamesList)) then
+         logical :: found
 
+#ifdef LOGGER_USE_MPI
+         block
+           logical :: parallel
+           character(len=:), allocatable :: communicator_name
+           integer :: comm, rank, ier
+
+           parallel = loggerDict%toLogical('parallel', default=.false.)
+           if (.not. parallel) then
+              communicator_name = loggerDict%toString('comm:', default='MPI_COMM_WORLD')
+              select case (communicator_name)
+              case ('MPI_COMM_WORLD')
+                 comm = MPI_COMM_WORLD
+              case default
+                 if (present(extra)) then
+                    comm = extra%toInteger(communicator_name, found=found)
+                 else
+                    call throw('ASTG::Config::build_logger() - MPI communicator not found.')
+                    return
+                 end if
+              end select
+              call MPI_Comm_rank(comm, rank, ier)
+              if (rank /= 0) return
+           end if
+         end block
+#endif
+
+         handlerNamesList = loggerDict%toString('handlers', found=found)
+         if (found) then
             n = len_trim(handlerNamesList)
             if (handlerNamesList(1:1) /= '[' .or. handlerNamesList(n:n) /= ']') then
-               call throw("Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
+               call throw("ASTG::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -433,9 +483,11 @@ contains
    end subroutine build_logger
 
 
-   subroutine create_loggers(dict)
+   subroutine create_loggers(dict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: mPtr1, mPtr2
@@ -481,65 +533,25 @@ contains
    end subroutine addLogger
 
 
+   ! Including a version number is crucial for providing non-backward
+   ! compatible updates in the future.
    subroutine check_schema_version(dict)
       type (Config), intent(in) :: dict
 
-      integer, pointer :: schema_version
+      integer :: version
+      logical :: found
 
-      schema_version => toInteger(dict, 'schema_version', require=.true.)
-      if (associated(schema_version)) then
-         if (schema_version /= 1) then
-            call throw('Config::dictConfig() - unsupported schema version. Must be 1.')
+      version = dict%toInteger('schema_version', found=found)
+      if (found) then
+         if (version /= 1) then
+            call throw('ASTG::Config::dictConfig() - unsupported schema_version. Allowed values are [1].')
             return
          end if
+      else
+         call throw('ASTG::Config::dictConfig() - must specify a schema_version for Config.')
       end if
 
    end subroutine check_schema_version
-
-
-   function toInteger(m, key, require) result(i)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      integer, pointer :: i
-      type (Config), target, intent(in) :: m
-      character(len=*), intent(in) :: key
-      logical, optional, intent(in)  :: require
-
-      type (ConfigIterator) :: iter
-      class (*), pointer :: ptr
-      logical :: require_
-
-      require_ = .false.
-      if (present(require)) require_ = require
-
-      iter = m%find(key)
-      if (iter == m%end()) then
-         i => null()
-         if (require_) then
-            call throw("Config::dictConfig() - '"//key//"' not found.")
-         end if
-         return
-      end if
-
-      ptr => iter%value()
-      i => cast(ptr)
-
-   contains
-
-      function cast(anything) result(i)
-         integer, pointer :: i
-         class (*), target, intent(in) :: anything
-
-         select type (anything)
-         type is (integer)
-            i => anything
-         class default
-            i => null()
-            call throw("Config::dictConfig() - cannot cast '"//key//"' as integer.")
-         end select
-
-      end function cast
-
-   end function toInteger
 
 
    function toString(m, key, require) result(str)

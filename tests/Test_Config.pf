@@ -14,28 +14,43 @@ module Test_Config_mod
 
    implicit none
 
+#ifdef __GFORTRAN__   
 #define P(k,v) p(k,String(v))
+#endif
    
 contains
+
 
    @test
    subroutine test_check_schema_specified()
       type (Config) :: dict
 
-      call dictConfig(dict)
-      @assertExceptionRaised("Config::dictConfig() - 'schema_version' not found.")
+      call dictConfig(dict) ! Empty config
+      @assertExceptionRaised("ASTG::Config::dictConfig() - must specify a schema_version for Config.")
 
    end subroutine test_check_schema_specified
 
+
    @test
-   subroutine test_check_schema_version()
+   subroutine test_check_schema_version_unsupported()
       type (Config) :: dict
 
       call dict%insert('schema_version', 2)
       call dictConfig(dict)
-      @assertExceptionRaised('Config::dictConfig() - unsupported schema version. Must be 1.')
+      @assertExceptionRaised('ASTG::Config::dictConfig() - unsupported schema_version. Allowed values are [1].')
 
-   end subroutine test_check_schema_version
+   end subroutine test_check_schema_version_unsupported
+
+
+   @test
+   subroutine test_check_schema_version_valid()
+      type (Config) :: dict
+
+      call dict%insert('schema_version', 1) ! currently only valid option
+      call dictConfig(dict)
+
+   end subroutine test_check_schema_version_valid
+
 
    @test
    subroutine test_build_formatter_noargs()
@@ -54,6 +69,7 @@ contains
 
    end subroutine test_build_formatter_noargs
 
+   
    @test
    subroutine test_build_formatter_withFmt()
       use ASTG_Formatter_mod
@@ -98,8 +114,8 @@ contains
 
       formattersDict = &
            & Config([ &
-           &       p('A', Config([P('fmt','---')]) ), &
-           &       p('B', Config([P('fmt','---'), P('datefmt', 'hello')])) &
+           &       P('A', Config([P('fmt','---')]) ), &
+           &       P('B', Config([P('fmt','---'), P('datefmt', 'hello')])) &
            &     ])
 
       formatters = build_formatters(formattersDict)
@@ -129,8 +145,8 @@ contains
 
       filtersDict = &
            & Config([ &
-           &       p('A', Config([P('name', 'A')])), &
-           &       p('B', Config([P('name', 'B')])) &
+           &       P('A', Config([P('name', 'A')])), &
+           &       P('B', Config([P('name', 'B')])) &
            &     ])
 
       filters = build_filters(filtersDict)
@@ -141,34 +157,37 @@ contains
 
    @test
    subroutine test_build_streamhandler()
-      use ASTG_StringFormatterMap_mod
-      use ASTG_StringFilterMap_mod
       use ASTG_StreamHandler_mod
-      use ASTG_Filter_mod
-      use ASTG_Formatter_mod
+      use ASTG_LogRecord_mod
       type (Config) :: handler_cfg
-      type (FilterMap) :: filters
-      type (FormatterMap) :: formatters
       type (StreamHandler) :: h
+      integer :: unit
+      character(len=10) :: unitStr
+      type (LogRecord) :: record
 
-
-      call filters%insert('filterA',Filter('A'))
-      call filters%insert('filterB',Filter('B'))
-
-      call formatters%insert('formatterA', Formatter('%(message)'))
-      call formatters%insert('formatterB,', Formatter('%(levelname)'))
-
+      open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
+           & form='formatted')
+     
+      write(unitStr,'(i0)') unit
       handler_cfg = Config([ &
            & P('class', 'StreamHandler'), &
-           & P('unit', 'OUTPUT_UNIT'), &
-           & P('formatter', 'handlerB'), &
-           & P('filters', '[filterA]'), &
-           & P('level', 'DEBUG') &
+           & P('unit', unitStr), &
+           & P('level', 'INFO') &
            & ])
 
-      ! TODO
-      ! With F2008, this can become an assignment statement
-      h = build_streamhandler(handler_cfg, formatters, filters)
+      ! Note that, level, filters, and format are added at a higher level.
+      h = build_streamhandler(handler_cfg)
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      call h%handle(record)
+
+      rewind(unit)
+      block
+        character(len=80) :: str
+        read(unit,'(a)') str
+        @assertEqual('DEBUG: A: hello', str)
+      end block
+      close(unit, status='delete')
+      
 
    end subroutine test_build_streamhandler
 
@@ -180,28 +199,58 @@ contains
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
       use ASTG_AbstractHandler_mod
+      use ASTG_LogRecord_mod
       type (Config) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
+      integer :: unit
+      character(len=10) :: unitStr
+      type (LogRecord) :: record
+
 
       call filters%insert('filterA',Filter('A'))
       call filters%insert('filterB',Filter('B'))
 
-      call formatters%insert('formatterA', Formatter('%(message)'))
-      call formatters%insert('formatterB,', Formatter('%(levelname)'))
+      call formatters%insert('formatterA', Formatter('%(message)a'))
+      call formatters%insert('formatterB', Formatter('%(levelName)a~: %(message)a'))
 
+      open(newunit=unit, file='test_build_handler.txt', status='unknown', &
+           & form='formatted')
+      write(unitStr,'(i0)') unit
       handler_cfg = Config([ &
            & P('class', 'StreamHandler'), &
-           & P('unit', 'OUTPUT_UNIT'), &
+           & P('unit', unitStr), &
            & P('formatter', 'formatterB'), &
            & P('filters', '[filterA]'), &
-           & P('level', 'DEBUG') &
+           & P('level', 'INFO') &
            & ])
 
+
       allocate(h, source=build_handler(handler_cfg, formatters, filters))
-      @assertEqual(DEBUG, h%getLevel())
+      @assertEqual(INFO, h%getLevel(),'incorrect level')
+
+      block
+        character(len=80) :: str
+        type (LogRecord) :: record
+        
+!!$        call initLogRecord(record, 'B', INFO, 'hello')
+!!$        call h%handle(record) ! skip - filter 'A'
+!!$        
+!!$        call initLogRecord(record, 'A', DEBUG, 'goodbye')
+!!$        call h%handle(record) ! skip - level is INFO
+!!$        
+        call initLogRecord(record, 'A', INFO, 'ciao')
+        call h%handle(record) ! keep
+        
+        rewind(unit)
+
+        read(unit,'(a)') str
+        @assertEqual('INFO: ciao', str)
+      end block
+      close(unit, status='delete')
+      
 
    end subroutine test_build_handler
 
@@ -225,7 +274,7 @@ contains
       call filters%insert('filterB',Filter('B'))
 
       call formatters%insert('formatterA', Formatter('%(message)'))
-      call formatters%insert('formatterB,', Formatter('%(levelname)'))
+      call formatters%insert('formatterB', Formatter('%(levelname)'))
 
 
       h1_cfg = Config([ &
@@ -246,8 +295,8 @@ contains
 
       handlersDict = &
            & Config([ &
-           &       p('A', h1_cfg), &
-           &       p('B', h2_cfg) &
+           &       P('A', h1_cfg), &
+           &       P('B', h2_cfg) &
            &     ])
 
       handlers = build_handlers(handlersDict, formatters, filters)
@@ -255,7 +304,7 @@ contains
 
    end subroutine test_build_handlers
 
-
+@test
    subroutine test_build_logger_trivial()
       use ASTG_StringFilterMap_mod
       use ASTG_StringHandlerMap_mod
@@ -269,6 +318,7 @@ contains
 
    end subroutine test_build_logger_trivial
 
+   @test
    subroutine test_build_logger()
       use ASTG_StringFilterMap_mod
       use ASTG_StringHandlerMap_mod
@@ -291,7 +341,89 @@ contains
 
    end subroutine test_build_logger
 
+@test
+   subroutine test_build_logger_serial_in_mpi_context()
+      use mpi
+      use ASTG_StringFilterMap_mod
+      use ASTG_StringHandlerMap_mod
+      use MockHandler_mod
+      use MockMpi_mod
+      use ASTG_SeverityLevels_mod
 
+      type (Config) :: cfg
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
+      type (MockBuffer) :: buffer
+      type (Logger), pointer :: lgr
+      type (MockHandler) :: h
+
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+
+      ! loggers:
+      !     serial:
+      !         handlers: [A, B]
+
+      ! When not root, serial logger should get no handlers
+
+      h = MockHandler(buffer, level=INFO)
+      call handlers%insert('handlerA', h)
+
+      cfg = Config([P('handlers','[handlerA]')])
+      call build_logger('serial', cfg, filters, handlers)
+
+      lgr => logging%getLogger('serial')
+      buffer%buffer = ''
+      call lgr%info('message')
+      call assertEqual('',buffer%buffer)
+      
+
+   end subroutine test_build_logger_serial_in_mpi_context
+
+
+@test
+   subroutine test_build_logger_serial_comm()
+      use mpi
+      use ASTG_StringFilterMap_mod
+      use ASTG_StringHandlerMap_mod
+      use MockHandler_mod
+      use MockMpi_mod
+      use ASTG_SeverityLevels_mod
+
+      type (Config) :: cfg
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
+      type (MockBuffer) :: buffer
+      type (Logger), pointer :: lgr
+      type (MockHandler) :: h
+      type (Config) :: extra
+
+      integer :: comm ! fake comm
+
+      call set_mpi_rank(0)
+      call set_mpi_size(2)
+
+      ! loggers:
+      !     serial:
+      !         handlers: [A, B]
+
+      ! When not root, serial logger should get no handlers
+
+      h = MockHandler(buffer, level=INFO)
+      call handlers%insert('handlerA', h)
+
+      cfg = Config([P('handlers','[handlerA]')])
+      extra = Config([p('comm', comm)])
+      call build_logger('serial', cfg, filters, handlers, extra=extra)
+
+      lgr => logging%getLogger('serial')
+      buffer%buffer = ''
+      call lgr%info('message')
+      call assertEqual('message',buffer%buffer)
+      
+   end subroutine test_build_logger_serial_comm
+
+   
    @test
    subroutine test_basic_loggers_invalid_cfg()
       type (Config) :: cfg
@@ -301,8 +433,8 @@ contains
       character(len=:), allocatable :: expectedMessage
 
       cfg = Config([ &
-           &      p('schema_version', 1), &
-           &      p('loggers', 1) &
+           &      P('schema_version', 1), &
+           &      P('loggers', 1) &
            &     ])
 
       call dictConfig(cfg)
@@ -321,8 +453,8 @@ contains
       class (Logger), pointer :: lgr
 
       cfg = Config([ &
-           &      p('schema_version', 1), &
-           &      p('loggers', Config([p('A', Config([P('level','DEBUG')]))])) &
+           &      P('schema_version', 1), &
+           &      P('loggers', Config([P('A', Config([P('level','DEBUG')]))])) &
            &     ])
 
       call dictConfig(cfg)
