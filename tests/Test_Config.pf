@@ -440,7 +440,7 @@ contains
       call dictConfig(cfg)
 
       lgr => logging%getLogger('A')
-      expectedMessage = "Config::dictConfig() - cannot cast 'loggers' as Map."
+      expectedMessage = "FTL::Config::toConfigPtr() - type of 'loggers' is not a Config."
       @assertExceptionRaised(expectedMessage)
 
    end subroutine test_basic_loggers_invalid_cfg

@@ -13,7 +13,10 @@ module ASTG_Config_mod
    implicit none
    private
 
+   ! Primary user interface
    public :: dictConfig
+
+   ! Remaining procedures are public just for testing purposes.
    public :: build_formatters
    public :: build_formatter
    public :: build_filters
@@ -56,7 +59,7 @@ contains
 
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
-         cfg => toMap(formattersDict, iter%key())
+         cfg => formattersDict%toConfigPtr(iter%key())
          call formatters%insert(iter%key(), build_formatter(cfg))
          call iter%next()
       end do
@@ -102,7 +105,7 @@ contains
 
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
-         cfg => toMap(filtersDict, iter%key())
+         cfg => filtersDict%toConfigPtr(iter%key())
          call filters%insert(iter%key(), build_filter(cfg))
          call iter%next()
       end do
@@ -141,7 +144,7 @@ contains
 
       iter = handlersDict%begin()
       do while (iter /= handlersDict%end())
-         cfg => toMap(handlersDict, iter%key())
+         cfg => handlersDict%toConfigPtr(iter%key())
          call handlers%insert(iter%key(), build_handler(cfg, formatters, filters))
          call iter%next()
       end do
@@ -340,19 +343,21 @@ contains
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
 
-         character(len=:), pointer :: levelNamePtr
+         character(len=:), allocatable :: levelName
          integer :: level
          integer :: iostat
+         logical :: found
 
-         levelNamePtr => toString(loggerDict, 'level')
-         if (associated(levelNamePtr)) then
+         levelName = loggerDict%toString('level', found=found)
+         if (found) then
             ! Try as integer
-            read(levelNamePtr,*, iostat=iostat) level
+            read(levelName,*, iostat=iostat) level
             if (iostat /= 0) then
-               level = nameToLevel(levelNamePtr)
+               level = nameToLevel(levelName)
             end if
-
             call lgr%setLevel(level)
+         else
+            ! leave as default level
          end if
 
       end subroutine set_logger_level
@@ -365,13 +370,14 @@ contains
          type (Unusable), optional, intent(in) :: unused
          type (Config), optional, intent(in) :: extra
       
-         character(len=:), pointer :: filterNamesList ! '[ str1, str2, ..., strn ]'
+         character(len=:), allocatable :: filterNamesList ! '[ str1, str2, ..., strn ]'
          character(len=:), allocatable :: name
          type (FilterIterator) :: iter
          integer :: i, j, n
+         logical :: found
 
-         filterNamesList => toString(loggerDict, 'filters')
-         if (associated(filterNamesList)) then
+         filterNamesList = loggerDict%toString('filters', found=found)
+         if (found) then
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
@@ -489,22 +495,23 @@ contains
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
 
-      type (ConfigIterator) :: iter
       type (Config), pointer :: mPtr1, mPtr2
+      
+      logical :: found
+      type (ConfigIterator) :: iter
 
-      iter = dict%find('loggers')
-      if (iter /= dict%end()) then
-         mPtr1 => toMap(dict, 'loggers')
+      mPtr1 => dict%toConfigPtr('loggers', found=found)
 
-         if (associated(mPtr1)) then
-            iter = mPtr1%begin()
-            do while (iter /= mPtr1%end())
-               mPtr2 => toMap(mPtr1, iter%key())
-               call addLogger(iter%key(), mPtr2, dict)
-               call iter%next()
-            end do
-         end if
+      if (found) then
+         ! Loop over contained loggers
+         iter = mPtr1%begin()
+         do while (iter /= mPtr1%end())
+            mPtr2 => mPtr1%toConfigPtr(iter%key())
+            call addLogger(iter%key(), mPtr2, dict)
+            call iter%next()
+         end do
       end if
+
    end subroutine create_loggers
 
 
@@ -516,16 +523,17 @@ contains
       class (Logger), pointer :: lgr
       integer :: level
       integer :: iostat
-      character(len=:), pointer :: levelNamePtr
-
+      character(len=:), allocatable :: levelName
+      logical :: found
+      
       lgr => logging%getLogger(name)
 
-      levelNamePtr => toString(args, 'level')
-      if (associated(levelNamePtr)) then
+      levelName = args%toString('level', found=found)
+      if (found) then
          ! Try as integer
-         read(levelNamePtr,*, iostat=iostat) level
+         read(levelName,*, iostat=iostat) level
          if (iostat /= 0) then
-            level = nameToLevel(levelNamePtr)
+            level = nameToLevel(levelName)
          end if
          call lgr%setLevel(level)
       end if
@@ -554,96 +562,5 @@ contains
    end subroutine check_schema_version
 
 
-   function toString(m, key, require) result(str)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      character(len=:), pointer :: str
-      type (Config), target, intent(in) :: m
-      character(len=*), intent(in) :: key
-      logical, optional, intent(in)  :: require
-
-      type (ConfigIterator) :: iter
-      class (*), pointer :: ptr
-      logical :: require_
-
-      require_ = .false.
-      if (present(require)) require_ = require
-
-      iter = m%find(key)
-      if (iter == m%end()) then
-         str => null()
-         if (require_) then
-            call throw("Config::dictConfig() - '"//key//"' not found.")
-         end if
-         return
-      end if
-
-      ptr => iter%value()
-      str => cast(ptr)
-
-   contains
-
-     function cast(anything) result(str)
-       use FTL, only: String
-         character(len=:), pointer :: str
-         class (*), target, intent(in) :: anything
-
-         select type (anything)
-         type is (character(len=*))
-            str => anything
-         type is (String)
-            str => anything%get()
-         class default
-            str => null()
-            call throw("Config::dictConfig() - cannot cast '"//key//"' as character.")
-            return
-         end select
-
-      end function cast
-
-   end function toString
-
-
-   function toMap(m, key, require) result(mPtr)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      type (Config), pointer :: mPtr
-      type (Config), target, intent(in) :: m
-      character(len=*), intent(in) :: key
-      logical, optional, intent(in) :: require
-
-      type (ConfigIterator) :: iter
-      class (*), pointer :: ptr
-      logical :: require_
-
-      require_ = .false.
-      if (present(require)) require_ = require
-
-
-      iter = m%find(key)
-      if (iter == m%end()) then
-         mPtr => null()
-         call throw("Config::dictConfig() - '"//key//"' not found.")
-         return
-      end if
-
-      ptr => iter%value()
-      mPtr => cast(ptr)
-
-   contains
-
-      function cast(anything) result(m)
-         type (Config), pointer :: m
-         class (*), target, intent(in) :: anything
-
-         select type (anything)
-         type is (Config)
-            m => anything
-         class default
-            m => null()
-            call throw("Config::dictConfig() - cannot cast '"//key//"' as Map.")
-         end select
-
-      end function cast
-
-   end function toMap
 
 end module ASTG_Config_mod
