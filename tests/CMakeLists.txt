@@ -39,6 +39,7 @@ set(TEST_SRCS
    Test_ArgListUtilities.F90
    Test_SeverityLevels.F90
    Test_Config.F90
+   Test_Complex_Config.F90
    Test_SimTime.F90
 )
 

@@ -14,6 +14,8 @@ module ASTG_Config_mod
    private
 
    ! Primary user interface
+   public :: Config
+   public :: load_file
    public :: dictConfig
 
    ! Remaining procedures are public just for testing purposes.
@@ -27,24 +29,47 @@ module ASTG_Config_mod
    public :: build_handlers
 
    public :: build_logger
+   public :: P
 
    type Unusable
    end type Unusable
 
 contains
 
-   subroutine dictConfig(dict)
+   subroutine dictConfig(dict, unused, extra)
       type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
+      type (FilterMap) :: filters
       type (FormatterMap) :: formatters
+      type (HandlerMap) :: handlers
+
+      logical :: found
 
       call check_schema_version(dict)
 
-!!$      formatters = build_formatters(dict)
-!!$      loggers = build_loggers(dict)
-!!$      call add_loggers(dict)
+      block
+        type (Config), pointer :: filtersCfg
+        filtersCfg => dict%toConfigPtr('filters', found=found)
+        if (found) filters = build_filters(filtersCfg)
+      end block
 
-      call create_loggers(dict)
+      block
+        type (Config), pointer :: formattersCfg
+        formattersCfg => dict%toConfigPtr('formatters', found=found)
+        if (found) formatters = build_formatters(formattersCfg)
+      end block
+      
+      block
+        type (Config), pointer :: handlersCfg
+        handlersCfg => dict%toConfigPtr('handlers', found=found)
+        if (found) then
+           call build_handlers(handlers, handlersCfg, formatters, filters)
+        end if
+      end block
+
+      call create_loggers(dict, filters, handlers, extra=extra)
 
    end subroutine dictConfig
 
@@ -130,7 +155,8 @@ contains
 
    end function build_filter
 
-   function build_handlers(handlersDict, formatters, filters) result(handlers)
+!!$   function build_handlers(handlersDict, formatters, filters) result(handlers)
+   subroutine build_handlers(handlers, handlersDict, formatters, filters)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       use ASTG_AbstractHandler_mod
       type (HandlerMap) :: handlers
@@ -149,7 +175,8 @@ contains
          call iter%next()
       end do
 
-   end function build_handlers
+!!$   end function build_handlers
+   end subroutine build_handlers
    
    function build_handler(handlerDict, formatters, filters) result(h)
       use ASTG_AbstractHandler_mod
@@ -173,6 +200,7 @@ contains
    contains
 
       subroutine allocate_concrete_handler(h, handlerDict)
+         use ASTG_Filehandler_mod
          class (AbstractHandler), allocatable, intent(out) :: h
          type (Config), intent(in) :: handlerDict
 
@@ -183,6 +211,12 @@ contains
          select case (toLowerCase(className))
          case ('streamhandler')
             allocate(h, source=build_streamhandler(handlerDict))
+         case ('filehandler')
+            block
+              type (Filehandler) :: fh
+              call build_filehandler(fh, handlerDict)
+              allocate(h, source=fh)
+            end block
          case default
             call throw("ASTG::Config::build_handler() - unsupported class: '" // className //"'.")
          end select
@@ -307,7 +341,7 @@ contains
          case ('error_unit')
             unit = ERROR_UNIT
          case default
-            call throw("Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
+            call throw("ASTG::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
             return
          end select
       end if
@@ -316,6 +350,31 @@ contains
 
    end function build_streamhandler
 
+!!$   function build_filehandler(handlerDict)
+   subroutine build_filehandler(h, handlerDict)
+      use ASTG_FileHandler_mod
+      use ASTG_StringUtilities_mod, only: toLowerCase
+      use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
+      type (FileHandler) :: h
+      type (Config), intent(in) :: handlerDict
+
+      character(len=:), allocatable :: fileName
+      integer :: unit
+      logical :: found
+      integer :: iostat
+
+      fileName = handlerDict%toString('name', found=found)
+
+      if (found) then
+      else
+         call throw("ASTG::Config::build_FileHandler() - must provide file name.")
+         return
+      end if
+
+      h = FileHandler(fileName)
+
+!!$   end function build_filehandler
+   end subroutine build_filehandler
 
    subroutine build_logger(name, loggerDict, filters, handlers, unused, extra)
       use ASTG_AbstractHandler_mod
@@ -489,9 +548,11 @@ contains
    end subroutine build_logger
 
 
-   subroutine create_loggers(dict, unused, extra)
+   subroutine create_loggers(dict, filters, handlers, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       type (Config), intent(in) :: dict
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
 

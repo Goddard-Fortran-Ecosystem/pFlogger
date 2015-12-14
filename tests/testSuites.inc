@@ -44,4 +44,5 @@ ADD_TEST_SUITE(Test_MpiLock_mod_suite)
 
 ! config
 ADD_TEST_SUITE(Test_Config_mod_suite)
+ADD_TEST_SUITE(Test_Complex_Config_mod_suite)
 ADD_TEST_SUITE(Test_SimTime_mod_suite)
