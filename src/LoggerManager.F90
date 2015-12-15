@@ -17,6 +17,7 @@ module ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_AbstractLogger_mod
    use ASTG_LoggerPolyVector_mod
+   use ASTG_Config_mod
 #ifdef LOGGER_USE_MPI
    use mpi
 #endif
@@ -39,6 +40,11 @@ module ASTG_LoggerManager_mod
       procedure, private :: fixup_ancestors
       procedure, private :: fixup_children
       procedure, nopass :: getParentPrefix
+
+      procedure :: load_file
+      procedure :: load_config
+      procedure :: build_loggers
+
    end type LoggerManager
    
    
@@ -56,6 +62,9 @@ module ASTG_LoggerManager_mod
       type (LoggerVector) :: children
    end type Placeholder
 
+   type Unusable
+   end type Unusable
+   
 
 contains
 
@@ -281,5 +290,86 @@ contains
       logging = newLoggerManager(RootLogger(WARNING), comm)
 
    end subroutine initialize_logger_manager
+
+
+
+
+
+   subroutine load_file(this, file_name)
+      use FTL_Config_mod, only: Config
+      use FTL_YAML_Parser_mod, only: YAML_load_file => load_file
+      class (LoggerManager), intent(inout) :: this
+      character(len=*), intent(in) :: file_name
+
+      type (Config) :: cfg
+      integer :: rc
+
+      cfg = YAML_load_file(file_name, rc)
+      call this%load_config(cfg)
+      
+   end subroutine load_file
+
+
+
+   subroutine load_config(this, cfg, unused, extra)
+      use FTL_Config_mod
+      class (LoggerManager), intent(inout) :: this
+      type (Config), intent(in) :: cfg
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      type (ConfigElements) :: elements
+      
+      logical :: found
+      type (Config), pointer :: subcfg
+
+      call check_schema_version(cfg)
+
+      subcfg => cfg%toConfigPtr('filters', found=found)
+      if (found) call elements%build_filters(subcfg, extra=extra)
+      
+      subcfg => cfg%toConfigPtr('formatters', found=found)
+      if (found) call elements%build_formatters(subcfg, extra=extra)
+
+      subcfg => cfg%toConfigPtr('handlers', found=found)
+      if (found)call elements%build_handlers(subcfg, extra=extra)
+
+      call this%build_loggers(cfg, elements, extra=extra)
+
+   end subroutine load_config
+
+
+   subroutine build_loggers(this, cfg, elements, unused, extra)
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use FTL_Config_mod
+      class (LoggerManager), intent(inout) :: this
+      type (Config), intent(in) :: cfg
+      type (ConfigElements), intent(in) :: elements
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      type (Config), pointer :: lgrs_cfg, lgr_cfg
+      
+      logical :: found
+      type (ConfigIterator) :: iter
+      character(len=:), allocatable :: name
+      type (Logger), pointer :: lgr
+
+      lgrs_cfg => cfg%toConfigPtr('loggers', found=found)
+      if (found) then
+         ! Loop over contained loggers
+         iter = lgrs_cfg%begin()
+         do while (iter /= lgrs_cfg%end())
+            name = iter%key()
+            lgr => this%getLogger(name)
+            lgr_cfg => lgrs_cfg%toConfigPtr(name)
+            call build_logger(lgr, lgr_cfg, elements, extra=extra)
+            call iter%next()
+         end do
+      end if
+
+   end subroutine build_loggers
+
+
 
 end module ASTG_LoggerManager_mod

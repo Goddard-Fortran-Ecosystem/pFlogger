@@ -4,15 +4,19 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config_mod
-#ifdef __GFORTRAN__
-   use FTL_String_mod
-#endif
    use pfunit_mod
    use ASTG_Logger_mod
    use ASTG_LoggerManager_mod
    use ASTG_SeverityLevels_mod
+   use ASTG_StringFilterMap_mod
+   use ASTG_StringFormatterMap_mod
+   use ASTG_StringHandlerMap_mod
 
    use ASTG_Config_mod
+   use FTL
+#ifdef __GFORTRAN__
+   use FTL, only: String
+#endif
 
    implicit none
 
@@ -27,8 +31,8 @@ contains
    subroutine test_check_schema_specified()
       type (Config) :: dict
 
-      call dictConfig(dict) ! Empty config
-      @assertExceptionRaised("ASTG::Config::dictConfig() - must specify a schema_version for Config.")
+      call check_schema_version(dict) ! Empty config
+      @assertExceptionRaised("ASTG::Config::check_schema_version() - must specify a schema_version for Config.")
 
    end subroutine test_check_schema_specified
 
@@ -38,8 +42,8 @@ contains
       type (Config) :: dict
 
       call dict%insert('schema_version', 2)
-      call dictConfig(dict)
-      @assertExceptionRaised('ASTG::Config::dictConfig() - unsupported schema_version. Allowed values are [1].')
+      call check_schema_version(dict) ! Empty config
+      @assertExceptionRaised('ASTG::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
 
    end subroutine test_check_schema_version_unsupported
 
@@ -49,7 +53,9 @@ contains
       type (Config) :: dict
 
       call dict%insert('schema_version', 1) ! currently only valid option
-      call dictConfig(dict)
+      call check_schema_version(dict) ! Empty config
+
+      ! simply should not throw an exception ...
 
    end subroutine test_check_schema_version_valid
 
@@ -110,9 +116,9 @@ contains
 
    @test
    subroutine test_build_formatters()
-      use ASTG_StringFormatterMap_mod
       type (Config) :: formattersDict
-      type (FormatterMap) :: formatters
+      type (FormatterMap), pointer :: formatters
+      type (ConfigElements), target :: elements
 
       formattersDict = &
            & Config([ &
@@ -120,7 +126,8 @@ contains
            &       p('B', Config([P('fmt','---'), P('datefmt', 'hello')])) &
            &     ])
 
-      formatters = build_formatters(formattersDict)
+      call elements%build_formatters(formattersDict)
+      formatters => elements%get_formatters()
       @assertEqual(2, formatters%size())
 
    end subroutine test_build_formatters
@@ -141,9 +148,9 @@ contains
 
    @test
    subroutine test_build_filters()
-      use ASTG_StringFilterMap_mod
       type (Config) :: filtersDict
-      type (FilterMap) :: filters
+      type (FilterMap), pointer :: filters
+      type (ConfigElements), target :: elements
 
       filtersDict = &
            & Config([ &
@@ -151,7 +158,8 @@ contains
            &       p('B', Config([P('name', 'B')])) &
            &     ])
 
-      filters = build_filters(filtersDict)
+      call elements%build_filters(filtersDict)
+      filters => elements%get_filters()
       @assertEqual(2, filters%size())
 
    end subroutine test_build_filters
@@ -195,8 +203,6 @@ contains
 
    @test
    subroutine test_build_handler()
-      use ASTG_StringFormatterMap_mod
-      use ASTG_StringFilterMap_mod
       use ASTG_StreamHandler_mod
       use ASTG_Filter_mod
       use ASTG_Formatter_mod
@@ -205,12 +211,18 @@ contains
       type (Config) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
-      type (FilterMap) :: filters
-      type (FormatterMap) :: formatters
       integer :: unit
       character(len=10) :: unitStr
       type (LogRecord) :: record
 
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+
+      filters => elements%get_filters()
+      formatters => elements%get_formatters()
 
       call filters%insert('filterA',Filter('A'))
       call filters%insert('filterB',Filter('B'))
@@ -220,6 +232,7 @@ contains
 
       open(newunit=unit, file='test_build_handler.txt', status='unknown', &
            & form='formatted')
+
       write(unitStr,'(i0)') unit
       handler_cfg = Config([ &
            & P('class', 'StreamHandler'), &
@@ -229,8 +242,7 @@ contains
            & P('level', 'INFO') &
            & ])
 
-
-      allocate(h, source=build_handler(handler_cfg, formatters, filters))
+      allocate(h, source=build_handler(handler_cfg, elements))
       @assertEqual(INFO, h%getLevel(),'incorrect level')
 
       block
@@ -258,26 +270,26 @@ contains
 
    @test
    subroutine test_build_handlers()
-      use ASTG_StringHandlerMap_mod
-      use ASTG_StringFormatterMap_mod
-      use ASTG_StringFilterMap_mod
       use ASTG_Filter_mod
       use ASTG_StreamHandler_mod
       use ASTG_Formatter_mod
-      type (Config) :: handlersDict
-      type (HandlerMap) :: handlers
 
+      type (Config) :: handlersDict
       type (Config) :: h1_cfg, h2_cfg
 
-      type (FilterMap) :: filters
-      type (FormatterMap) :: formatters
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+      filters => elements%get_filters()
+      formatters => elements%get_formatters()
 
       call filters%insert('filterA',Filter('A'))
       call filters%insert('filterB',Filter('B'))
 
       call formatters%insert('formatterA', Formatter('%(message)'))
       call formatters%insert('formatterB', Formatter('%(levelname)'))
-
 
       h1_cfg = Config([ &
            & P('class', 'StreamHandler'), &
@@ -301,38 +313,47 @@ contains
            &       p('B', h2_cfg) &
            &     ])
 
-!!$      handlers = build_handlers(handlersDict, formatters, filters)
-      call build_handlers(handlers, handlersDict, formatters, filters)
+      call elements%build_handlers(handlersDict)
+      handlers => elements%get_handlers()
       @assertEqual(2, handlers%size())
 
    end subroutine test_build_handlers
 
 @test
    subroutine test_build_logger_trivial()
-      use ASTG_StringFilterMap_mod
-      use ASTG_StringHandlerMap_mod
 
       type (Config) :: cfg
       type (FilterMap) :: filters
       type (HandlerMap) :: handlers
 
+      type (ConfigElements), target :: elements
+      type (LoggerManager) :: mgr
+      class (Logger), pointer :: lgr
+
+      lgr => mgr%getLogger('A')
       ! cfg is empty by default
-      call build_logger('A', cfg, filters, handlers)
+      call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger_trivial
 
    @test
    subroutine test_build_logger()
-      use ASTG_StringFilterMap_mod
-      use ASTG_StringHandlerMap_mod
 
       use ASTG_Filter_mod
       use ASTG_AbstractHandler_mod
       use ASTG_FileHandler_mod
 
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
       type (Config) :: cfg
-      type (FilterMap) :: filters
-      type (HandlerMap) :: handlers
+      type (LoggerManager) :: mgr
+      class (Logger), pointer :: lgr
+
+      filters => elements%get_filters()
+      handlers => elements%get_handlers()
 
       call handlers%insert('handlerA', FileHandler('A', delay=.true.))
       call handlers%insert('handlerB', FileHandler('B', delay=.true.))
@@ -340,24 +361,27 @@ contains
       call filters%insert('filterA', Filter('A'))
       call filters%insert('filterB', Filter('B'))
 
-      call build_logger('A', cfg, filters, handlers)
+      lgr => mgr%getLogger('A')
+      call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
 
 @test
    subroutine test_build_logger_serial_in_mpi_context()
       use mpi
-      use ASTG_StringFilterMap_mod
-      use ASTG_StringHandlerMap_mod
       use MockHandler_mod
       use MockMpi_mod
       use ASTG_SeverityLevels_mod
 
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
       type (Config) :: cfg
-      type (FilterMap) :: filters
-      type (HandlerMap) :: handlers
+
       type (MockBuffer) :: buffer
-      type (Logger), pointer :: lgr
+      class (Logger), pointer :: lgr
       type (MockHandler) :: h
 
       call set_mpi_rank(1)
@@ -370,16 +394,17 @@ contains
       ! When not root, serial logger should get no handlers
 
       h = MockHandler(buffer, level=INFO)
+      handlers => elements%get_handlers()
       call handlers%insert('handlerA', h)
 
       cfg = Config([P('handlers','[handlerA]')])
-      call build_logger('serial', cfg, filters, handlers)
 
       lgr => logging%getLogger('serial')
+      call build_logger(lgr, cfg, elements)
+
       buffer%buffer = ''
       call lgr%info('message')
       call assertEqual('',buffer%buffer)
-      
 
    end subroutine test_build_logger_serial_in_mpi_context
 
@@ -387,19 +412,21 @@ contains
 @test
    subroutine test_build_logger_serial_comm()
       use mpi
-      use ASTG_StringFilterMap_mod
-      use ASTG_StringHandlerMap_mod
       use MockHandler_mod
       use MockMpi_mod
       use ASTG_SeverityLevels_mod
 
       type (Config) :: cfg
-      type (FilterMap) :: filters
-      type (HandlerMap) :: handlers
       type (MockBuffer) :: buffer
-      type (Logger), pointer :: lgr
+      class (Logger), pointer :: lgr
       type (MockHandler) :: h
       type (Config) :: extra
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+      
 
       integer :: comm ! fake comm
 
@@ -412,14 +439,17 @@ contains
 
       ! When not root, serial logger should get no handlers
 
+      
       h = MockHandler(buffer, level=INFO)
+      handlers => elements%get_handlers()
       call handlers%insert('handlerA', h)
 
       cfg = Config([P('handlers','[handlerA]')])
       extra = Config([p('comm', comm)])
-      call build_logger('serial', cfg, filters, handlers, extra=extra)
 
       lgr => logging%getLogger('serial')
+      call build_logger(lgr, cfg, elements, extra=extra)
+
       buffer%buffer = ''
       call lgr%info('message')
       call assertEqual('message',buffer%buffer)
@@ -432,6 +462,7 @@ contains
       type (Config) :: cfg
       type (Config) :: loggers
 
+      type (LoggerManager) :: mgr
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
 
@@ -440,9 +471,9 @@ contains
            &      p('loggers', 1) &
            &     ])
 
-      call dictConfig(cfg)
+      call mgr%load_config(cfg)
 
-      lgr => logging%getLogger('A')
+      lgr => mgr%getLogger('A')
       expectedMessage = "FTL::Config::toConfigPtr() - type of 'loggers' is not a Config."
       @assertExceptionRaised(expectedMessage)
 
@@ -453,6 +484,7 @@ contains
       type (Config) :: cfg
       type (Config) :: loggers
 
+      type (LoggerManager) :: mgr
       class (Logger), pointer :: lgr
 
       cfg = Config([ &
@@ -460,12 +492,12 @@ contains
            &      p('loggers', Config([p('A', Config([P('level','DEBUG')]))])) &
            &     ])
 
-      call dictConfig(cfg)
-      lgr => logging%getLogger('A')
+      call mgr%load_config(cfg)
+      lgr => mgr%getLogger('A')
 
       @assertEqual(DEBUG, lgr%getLevel())
 
    end subroutine test_basic_loggers
 
-
+   
 end module Test_Config_mod

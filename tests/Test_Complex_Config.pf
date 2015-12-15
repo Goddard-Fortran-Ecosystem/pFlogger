@@ -42,11 +42,8 @@ contains
       write(unit,*) '      level:  CRITICAL'
       write(unit,*) 'loggers:'
       write(unit,*) '   A:'
-      write(unit,*) '      handler: debug1'
-      write(unit,*) '      handler: info2'
-      write(unit,*) '      handler: warning3'
-      write(unit,*) '      handler: error4'
-      write(unit,*) '      handler: critical5'
+      write(unit,*) '      handlers: [debug1,info2,warning3,error4,critical5]'
+      write(unit,*) '      level: DEBUG'
       write(unit,*) ' '
       close(unit)
    end subroutine setUp
@@ -56,11 +53,11 @@ contains
    subroutine tearDown()
 
       call delete_if_exists(FILE)
-!!$      call delete_if_exists('a.log')
-!!$      call delete_if_exists('b.log')
-!!$      call delete_if_exists('c.log')
-!!$      call delete_if_exists('d.log')
-!!$      call delete_if_exists('e.log')
+      call delete_if_exists('a.log')
+      call delete_if_exists('b.log')
+      call delete_if_exists('c.log')
+      call delete_if_exists('d.log')
+      call delete_if_exists('e.log')
 
    contains
 
@@ -83,19 +80,22 @@ contains
 
    @test
    subroutine test_config()
+      use FTL
       type (Config) :: cfg
       type (Config) :: loggers
 
       class (Logger), pointer :: lgr
       integer :: rc
+      type (LoggerManager) :: mgr
 
-      cfg = load_file(FILE, rc)
-      call dictConfig(cfg)
+      call mgr%load_file(FILE)
+      lgr => mgr%getLogger('A')
 
-      lgr => logging%getLogger('A')
-
-      call lgr%DEBUG('hello')
-      call lgr%INFO('goodbye')
+      call lgr%debug('debug')
+      call lgr%info('info')
+      call lgr%warning('warning')
+      call lgr%error('error')
+      call lgr%critical('critical')
       
       @assertEqual(DEBUG, lgr%getLevel())
 

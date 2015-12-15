@@ -1,7 +1,6 @@
 ! Singleton pattern for now
 module ASTG_Config_mod
    use FTL
-   use ASTG_LoggerManager_mod
    use ASTG_Logger_mod
    use ASTG_Exception_mod
    use ASTG_SeverityLevels_mod
@@ -14,70 +13,46 @@ module ASTG_Config_mod
    private
 
    ! Primary user interface
-   public :: Config
-   public :: load_file
-   public :: dictConfig
+   public :: ConfigElements
 
    ! Remaining procedures are public just for testing purposes.
-   public :: build_formatters
+   public :: check_schema_version
+
    public :: build_formatter
-   public :: build_filters
    public :: build_filter
 
    public :: build_streamhandler
    public :: build_handler
-   public :: build_handlers
 
    public :: build_logger
-   public :: P
+
+   type ConfigElements
+      private
+      type (FilterMap) :: filters
+      type (FormatterMap) :: formatters
+      type (HandlerMap) :: handlers
+   contains
+      procedure :: build_filters
+      procedure :: build_formatters
+      procedure :: build_handlers
+
+      ! accessors
+      procedure :: get_filters
+      procedure :: get_formatters
+      procedure :: get_handlers
+   end type ConfigElements
 
    type Unusable
    end type Unusable
 
 contains
 
-   subroutine dictConfig(dict, unused, extra)
-      type (Config), intent(in) :: dict
+   subroutine build_formatters(this, formattersDict, unused, extra)
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      class (ConfigElements), intent(inout) :: this
+      type (Config), intent(in) :: formattersDict
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
-
-      type (FilterMap) :: filters
-      type (FormatterMap) :: formatters
-      type (HandlerMap) :: handlers
-
-      logical :: found
-
-      call check_schema_version(dict)
-
-      block
-        type (Config), pointer :: filtersCfg
-        filtersCfg => dict%toConfigPtr('filters', found=found)
-        if (found) filters = build_filters(filtersCfg)
-      end block
-
-      block
-        type (Config), pointer :: formattersCfg
-        formattersCfg => dict%toConfigPtr('formatters', found=found)
-        if (found) formatters = build_formatters(formattersCfg)
-      end block
-      
-      block
-        type (Config), pointer :: handlersCfg
-        handlersCfg => dict%toConfigPtr('handlers', found=found)
-        if (found) then
-           call build_handlers(handlers, handlersCfg, formatters, filters)
-        end if
-      end block
-
-      call create_loggers(dict, filters, handlers, extra=extra)
-
-   end subroutine dictConfig
-
-
-   function build_formatters(formattersDict) result(formatters)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      type (FormatterMap) :: formatters
-      type (Config), intent(in) :: formattersDict
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
@@ -85,11 +60,11 @@ contains
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
          cfg => formattersDict%toConfigPtr(iter%key())
-         call formatters%insert(iter%key(), build_formatter(cfg))
+         call this%formatters%insert(iter%key(), build_formatter(cfg))
          call iter%next()
       end do
 
-   end function build_formatters
+   end subroutine build_formatters
 
 
    function build_formatter(dict) result(fmtr)
@@ -118,11 +93,13 @@ contains
    end function build_formatter
 
 
-   function build_filters(filtersDict) result(filters)
+   subroutine build_filters(this, filtersDict, unused, extra)
       use ASTG_Filter_mod
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      type (FilterMap) :: filters
+      class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: filtersDict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
@@ -131,11 +108,11 @@ contains
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
          cfg => filtersDict%toConfigPtr(iter%key())
-         call filters%insert(iter%key(), build_filter(cfg))
+         call this%filters%insert(iter%key(), build_filter(cfg))
          call iter%next()
       end do
 
-   end function build_filters
+   end subroutine build_filters
 
 
    function build_filter(dict) result(f)
@@ -155,47 +132,45 @@ contains
 
    end function build_filter
 
-!!$   function build_handlers(handlersDict, formatters, filters) result(handlers)
-   subroutine build_handlers(handlers, handlersDict, formatters, filters)
+   subroutine build_handlers(this, handlersDict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       use ASTG_AbstractHandler_mod
-      type (HandlerMap) :: handlers
+      class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: handlersDict
-      type (FormatterMap), intent(in) :: formatters
-      type (FilterMap), intent(in) :: filters
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
-      class (AbstractHandler), allocatable :: h
 
       iter = handlersDict%begin()
       do while (iter /= handlersDict%end())
          cfg => handlersDict%toConfigPtr(iter%key())
-         call handlers%insert(iter%key(), build_handler(cfg, formatters, filters))
+         call this%handlers%insert(iter%key(), &
+              & build_handler(cfg, this, extra=extra))
          call iter%next()
       end do
 
 !!$   end function build_handlers
    end subroutine build_handlers
    
-   function build_handler(handlerDict, formatters, filters) result(h)
+   function build_handler(handlerDict, elements, unused, extra) result(h)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use ASTG_Filter_mod
       class (AbstractHandler), allocatable :: h
       type (Config), intent(in) :: handlerDict
-      type (FormatterMap), intent(in) :: formatters
-      type (FilterMap), intent(in) :: filters
+      type (ConfigElements), intent(in) :: elements
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
 
 
       call allocate_concrete_handler(h, handlerDict)
       if (.not. allocated(h)) return
 
       call set_handler_level(h, handlerDict)
-
-      call set_handler_formatter(h, handlerDict, formatters)
-
-      call set_handler_filters(h, handlerDict, filters)
+      call set_handler_formatter(h, handlerDict, elements%formatters)
+      call set_handler_filters(h, handlerDict, elements%filters)
 
    contains
 
@@ -205,6 +180,7 @@ contains
          type (Config), intent(in) :: handlerDict
 
          character(len=:), allocatable :: className
+              type (Filehandler) :: fh
 
          className = handlerDict%toString('class', default='unknown')
 
@@ -212,11 +188,8 @@ contains
          case ('streamhandler')
             allocate(h, source=build_streamhandler(handlerDict))
          case ('filehandler')
-            block
-              type (Filehandler) :: fh
               call build_filehandler(fh, handlerDict)
               allocate(h, source=fh)
-            end block
          case default
             call throw("ASTG::Config::build_handler() - unsupported class: '" // className //"'.")
          end select
@@ -315,7 +288,6 @@ contains
 
    end function build_handler
 
-
    function build_streamhandler(handlerDict) result(h)
       use ASTG_StreamHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
@@ -355,7 +327,7 @@ contains
       use ASTG_FileHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
-      type (FileHandler) :: h
+      type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
 
       character(len=:), allocatable :: fileName
@@ -364,7 +336,6 @@ contains
       integer :: iostat
 
       fileName = handlerDict%toString('name', found=found)
-
       if (found) then
       else
          call throw("ASTG::Config::build_FileHandler() - must provide file name.")
@@ -376,25 +347,18 @@ contains
 !!$   end function build_filehandler
    end subroutine build_filehandler
 
-   subroutine build_logger(name, loggerDict, filters, handlers, unused, extra)
+   subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
-      character(len=*), intent(in) :: name
+      type (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
-      type (FilterMap), intent(in) :: filters
-      type (HandlerMap), intent(in) :: handlers
+      type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
 
-      type (Logger), pointer :: lgr
-
-      lgr => logging%getLogger(name)
-
       call set_logger_level(lgr, loggerDict)
-      call set_logger_filters(lgr, loggerDict, filters)
-      call set_logger_handlers(lgr, loggerDict, handlers)
-
-
+      call set_logger_filters(lgr, loggerDict, elements%filters)
+      call set_logger_handlers(lgr, loggerDict, elements%handlers)
 
    contains
 
@@ -529,9 +493,10 @@ contains
                      i = n
                   end if
                else
-                  name = handlerNamesList(i:j-1)
-                  i = j + 1
+                  name = handlerNamesList(i:i+j-2)
+                  i = i + j
                end if
+
                iter = handlers%find(name)
                if (iter /= handlers%end()) then
                   call lgr%addHandler(iter%value())
@@ -548,60 +513,6 @@ contains
    end subroutine build_logger
 
 
-   subroutine create_loggers(dict, filters, handlers, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      type (Config), intent(in) :: dict
-      type (FilterMap) :: filters
-      type (HandlerMap) :: handlers
-      type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
-
-      type (Config), pointer :: mPtr1, mPtr2
-      
-      logical :: found
-      type (ConfigIterator) :: iter
-
-      mPtr1 => dict%toConfigPtr('loggers', found=found)
-
-      if (found) then
-         ! Loop over contained loggers
-         iter = mPtr1%begin()
-         do while (iter /= mPtr1%end())
-            mPtr2 => mPtr1%toConfigPtr(iter%key())
-            call addLogger(iter%key(), mPtr2, dict)
-            call iter%next()
-         end do
-      end if
-
-   end subroutine create_loggers
-
-
-   subroutine addLogger(name, args, dict)
-      character(len=*), intent(in) :: name
-      class (Config), intent(in) :: args
-      class (Config), intent(in) :: dict
-
-      class (Logger), pointer :: lgr
-      integer :: level
-      integer :: iostat
-      character(len=:), allocatable :: levelName
-      logical :: found
-      
-      lgr => logging%getLogger(name)
-
-      levelName = args%toString('level', found=found)
-      if (found) then
-         ! Try as integer
-         read(levelName,*, iostat=iostat) level
-         if (iostat /= 0) then
-            level = nameToLevel(levelName)
-         end if
-         call lgr%setLevel(level)
-      end if
-
-   end subroutine addLogger
-
-
    ! Including a version number is crucial for providing non-backward
    ! compatible updates in the future.
    subroutine check_schema_version(dict)
@@ -613,15 +524,36 @@ contains
       version = dict%toInteger('schema_version', found=found)
       if (found) then
          if (version /= 1) then
-            call throw('ASTG::Config::dictConfig() - unsupported schema_version. Allowed values are [1].')
+            call throw('ASTG::Config::check_schema_version() -' // &
+                 & ' unsupported schema_version. Allowed values are [1].')
             return
          end if
       else
-         call throw('ASTG::Config::dictConfig() - must specify a schema_version for Config.')
+         call throw('ASTG::Config::check_schema_version() -' // &
+              & ' must specify a schema_version for Config.')
       end if
 
    end subroutine check_schema_version
 
 
+   function get_filters(this) result(ptr)
+      type (FilterMap), pointer :: ptr
+      class (ConfigElements), target, intent(in) :: this
+      ptr => this%filters
+   end function get_filters
 
+
+   function get_formatters(this) result(ptr)
+      type (FormatterMap), pointer :: ptr
+      class (ConfigElements), target, intent(in) :: this
+      ptr => this%formatters
+   end function get_formatters
+
+
+   function get_handlers(this) result(ptr)
+      type (HandlerMap), pointer :: ptr
+      class (ConfigElements), target, intent(in) :: this
+      ptr => this%handlers
+   end function get_handlers
+   
 end module ASTG_Config_mod
