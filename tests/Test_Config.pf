@@ -172,7 +172,7 @@ contains
       type (Config) :: handler_cfg
       type (StreamHandler) :: h
       integer :: unit
-      character(len=10) :: unitStr
+      character(len=16) :: unitStr
       type (LogRecord) :: record
 
       open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
@@ -212,7 +212,7 @@ contains
       class (AbstractHandler), allocatable :: h
 
       integer :: unit
-      character(len=10) :: unitStr
+      character(len=16) :: unitStr
       type (LogRecord) :: record
 
       type (FilterMap), pointer :: filters
