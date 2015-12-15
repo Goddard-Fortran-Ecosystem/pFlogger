@@ -366,7 +366,8 @@ contains
 
    end subroutine test_build_logger
 
-@test
+#ifdef LOGGER_USE_MPI
+@test(ifdef=LOGGER_USE_MPI)
    subroutine test_build_logger_serial_in_mpi_context()
       use mpi
       use MockHandler_mod
@@ -408,8 +409,7 @@ contains
 
    end subroutine test_build_logger_serial_in_mpi_context
 
-
-@test
+@test(ifdef=LOGGER_USE_MPI)
    subroutine test_build_logger_serial_comm()
       use mpi
       use MockHandler_mod
@@ -455,7 +455,7 @@ contains
       call assertEqual('message',buffer%buffer)
       
    end subroutine test_build_logger_serial_comm
-
+#endif
    
    @test
    subroutine test_basic_loggers_invalid_cfg()
