@@ -3,7 +3,7 @@ program basicLogging
    use ASTG_StreamHandler_mod
    use ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
-   use pflogger_mod
+   use pflogger
    implicit none
    
    type (Logger) :: log

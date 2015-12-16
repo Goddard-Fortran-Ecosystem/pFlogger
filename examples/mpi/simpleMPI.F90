@@ -4,6 +4,7 @@ program simpleMpi
    use ASTG_LoggerManager_mod
    use ASTG_MpiFileHandler_mod
    use ASTG_Logger_mod
+   use pflogger
    implicit none
 
    include 'mpif.h'
@@ -17,7 +18,7 @@ program simpleMpi
    ! each rank will open and write to xxx.pe=rank file
 
    call mpi_init(ier)
-
+   call initialize()
    ! instantiate manager with the root node of the logger hierarchy.
    manager = LoggerManager(RootLogger(WARNING))
    lgr => manager%getLogger('A')

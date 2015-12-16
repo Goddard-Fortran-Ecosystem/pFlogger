@@ -8,7 +8,7 @@ subroutine pfunit_throw(message)
 end subroutine pfunit_throw
 
 subroutine initTests()
-   use pflogger_mod
+   use pflogger
    use ASTG_Exception_mod, only: setThrowFunPtr
    use FTL_Exception_mod, only: FTL_setThrowFunPtr => setThrowFunPtr
    implicit none

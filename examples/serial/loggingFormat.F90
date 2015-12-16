@@ -4,7 +4,7 @@ program loggingFormat
    use ASTG_FileHandler_mod
    use ASTG_SeverityLevels_mod, only: DEBUG, WARNING,ERROR
    use ASTG_Formatter_mod
-   use pflogger_mod
+   use pflogger
    use iso_fortran_env, only: REAL64
    implicit none
    

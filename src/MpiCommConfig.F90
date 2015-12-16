@@ -1,6 +1,6 @@
 module astg_MpiCommConfig_mod
    use mpi
-   use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+   use ASTG_StringUnlimitedMap_mod
    implicit none
    private
 
@@ -9,28 +9,29 @@ module astg_MpiCommConfig_mod
    interface MpiCommConfig
       module procedure MPICommConfig_default_comm
       module procedure MPICommConfig_comm
-            module procedure MPICommConfig_multi_comm
+      module procedure MPICommConfig_multi_comm
    end interface MpiCommConfig
 
    type Unusable
    end type Unusable
+
 contains
 
 
-   function MpiCommConfig_Default_comm(unused, rank_keyword, size_keyword) result(cfg)
-      type (StringUnlimitedMap) :: cfg
+   function MpiCommConfig_Default_comm(unused, rank_keyword, size_keyword) result(m)
+      type (Map) :: m
       type (Unusable), optional, intent(in) :: unused
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
 
-      cfg = MpiCommConfig(MPI_COMM_WORLD, unused, rank_keyword, size_keyword)
+      m = MpiCommConfig(MPI_COMM_WORLD, unused, rank_keyword, size_keyword)
       
    end function MpiCommConfig_Default_comm
    
 
-   function MpiCommConfig_comm(mpi_communicator, unused, rank_keyword, size_keyword) result(cfg)
+   function MpiCommConfig_comm(mpi_communicator, unused, rank_keyword, size_keyword) result(m)
       integer, intent(in) :: mpi_communicator
-      type (StringUnlimitedMap) :: cfg
+      type (Map) :: m
       type (Unusable), optional, intent(in) :: unused
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
@@ -42,20 +43,20 @@ contains
       call MPI_Comm_rank(mpi_communicator, rank, ierror)
       call MPI_Comm_size(mpi_communicator, npes, ierror)
 
-      call cfg%insert(default(rank_keyword,'mpi_rank'), rank)
-      call cfg%insert(default(size_keyword,'mpi_size'), npes)
+      call m%insert(default(rank_keyword,'mpi_rank'), rank)
+      call m%insert(default(size_keyword,'mpi_size'), npes)
       
    end function MpiCommConfig_comm
 
 
    function MpiCommConfig_multi_comm(mpi_communicators, unused, &
-        & rank_prefix, size_prefix) result(cfg)
+        & rank_prefix, size_prefix) result(m)
       use astg_FormatString_mod
       use astg_ArgListUtilities_mod
       use ASTG_UnlimitedVector_mod
             
       integer, intent(in) :: mpi_communicators(:)
-      type (StringUnlimitedMap) :: cfg
+      type (Map) :: m
       type (Unusable), optional, intent(in) :: unused
       character(len=*), optional, intent(in) :: rank_prefix
       character(len=*), optional, intent(in) :: size_prefix
@@ -78,8 +79,8 @@ contains
          suffix = FormatString('_%i0', v)
 #endif
 
-         call cfg%insert(default(rank_prefix,'mpi_rank')//suffix, rank)
-         call cfg%insert(default(size_prefix,'mpi_size')//suffix, npes)
+         call m%insert(default(rank_prefix,'mpi_rank')//suffix, rank)
+         call m%insert(default(size_prefix,'mpi_size')//suffix, npes)
       end do
       
    end function MpiCommConfig_multi_comm

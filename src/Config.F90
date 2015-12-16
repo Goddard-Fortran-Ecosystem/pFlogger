@@ -190,6 +190,11 @@ contains
          case ('filehandler')
               call build_filehandler(fh, handlerDict)
               allocate(h, source=fh)
+#ifdef LOGGER_USE_MPI              
+         case ('mpifilehandler')
+              call build_mpifilehandler(fh, handlerDict)
+              allocate(h, source=fh)
+#endif              
          case default
             call throw("ASTG::Config::build_handler() - unsupported class: '" // className //"'.")
          end select
@@ -322,11 +327,9 @@ contains
 
    end function build_streamhandler
 
-!!$   function build_filehandler(handlerDict)
    subroutine build_filehandler(h, handlerDict)
       use ASTG_FileHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
-      use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
 
@@ -335,7 +338,7 @@ contains
       logical :: found
       integer :: iostat
 
-      fileName = handlerDict%toString('name', found=found)
+      fileName = handlerDict%toString('filename', found=found)
       if (found) then
       else
          call throw("ASTG::Config::build_FileHandler() - must provide file name.")
@@ -344,8 +347,106 @@ contains
 
       h = FileHandler(fileName)
 
-!!$   end function build_filehandler
    end subroutine build_filehandler
+
+#ifdef LOGGER_USE_MPI
+   subroutine build_mpifilehandler(h, handlerDict, unused, extra)
+      use ASTG_FileHandler_mod
+      use ASTG_StringUtilities_mod, only: toLowerCase
+      use ASTG_MpiCommConfig_mod
+      use ASTG_StringUnlimitedMap_mod, only: Map
+      use mpi
+      type (FileHandler), intent(out) :: h
+      type (Config), intent(in) :: handlerDict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      character(len=:), allocatable :: fileName
+      integer :: unit
+      logical :: found
+      integer :: iostat
+      integer :: comm
+      integer, allocatable :: comms(:)
+      integer :: i, j, n
+
+      type (Map) :: commMap
+      character(len=:), allocatable :: communicator_name_list, communicator_name, name
+      
+      fileName = handlerDict%toString('filename', found=found)
+      if (found) then
+      else
+         call throw("ASTG::Config::build_MpiFileHandler() - must provide file name.")
+         return
+      end if
+
+      communicator_name_list = handlerDict%toString('comms:', found=found)
+      if (found) then
+         allocate(comms(0))
+         n = len_trim(communicator_name_list)
+         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
+            call throw("ASTG::Config::build_mpifilehandler() - misformed list of communicators.")
+            return
+         end if
+
+         i = 2
+         do while (i < n)
+            j = index(communicator_name_list(i:n-1),',')
+            if (j == 0) then
+               if (i < n-1) then
+                  name = communicator_name_list(i:n-1)
+                  i = n
+               end if
+            else
+               name = communicator_name_list(i:i+j-2)
+               i = i + j
+            end if
+
+            select case (name)
+            case ('MPI_COMM_WORLD')
+               comms = [comms, MPI_COMM_WORLD]
+            case default
+               if (extra%count(name) == 1) then
+                  comms = [comms, extra%toInteger(name)]
+               else
+                  call throw("ASTG::Config::build_mpifilehandler() - unknown communicator '"//name//"'.")
+                  return
+               end if
+            end select
+         end do
+
+         block
+           character(len=:), allocatable :: rank_prefix
+           character(len=:), allocatable :: size_prefix
+           rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
+           size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
+           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
+         end block
+      else
+         communicator_name = handlerDict%toString('comm:', default='MPI_COMM_WORLD')
+         select case (communicator_name)
+         case ('MPI_COMM_WORLD')
+            comm = MPI_COMM_WORLD
+         case default
+            comm = extra%toInteger(communicator_name)
+         end select
+         block
+           character(len=:), allocatable :: rank_prefix
+           character(len=:), allocatable :: size_prefix
+           rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
+           size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
+           commMap = MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
+         end block
+      end if
+
+      block
+        use ASTG_FormatString_mod
+        fileName = formatString(filename, commMap)
+      end block
+
+      h = FileHandler(fileName)
+      
+   end subroutine build_mpifilehandler
+#endif
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use ASTG_AbstractHandler_mod
@@ -357,6 +458,7 @@ contains
       type (Config), optional, intent(in) :: extra
 
       call set_logger_level(lgr, loggerDict)
+      call set_logger_propagate(lgr, loggerDict)
       call set_logger_filters(lgr, loggerDict, elements%filters)
       call set_logger_handlers(lgr, loggerDict, elements%handlers)
 
@@ -384,6 +486,22 @@ contains
          end if
 
       end subroutine set_logger_level
+      
+
+      subroutine set_logger_propagate(lgr, loggerDict)
+         class (Logger), intent(inout) :: lgr
+         type (Config), intent(in) :: loggerDict
+
+         logical :: propagate
+         integer :: level
+         logical :: found
+
+         propagate = loggerDict%toLogical('propagate', found=found)
+         if (found) then
+            call lgr%setPropagate(propagate)
+         end if
+
+      end subroutine set_logger_propagate
       
 
       subroutine set_logger_filters(lgr, loggerDict, filters, unused, extra)

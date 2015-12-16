@@ -356,6 +356,5 @@ contains
    end subroutine test_extra
 
 
-
 end module Test_Logger_mod
 

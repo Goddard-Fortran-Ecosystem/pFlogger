@@ -43,6 +43,7 @@ module ASTG_Logger_mod
       character(len=:), allocatable :: name
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
+      logical :: propagate = .true.
    contains
 
       procedure :: setName
@@ -64,6 +65,9 @@ module ASTG_Logger_mod
       procedure :: makeRecord
       procedure :: setParent
       procedure :: getParent
+      procedure :: setPropagate
+      procedure :: getPropagate
+
    end type Logger
 
    interface Logger
@@ -258,18 +262,28 @@ contains
    end subroutine log_
 
    subroutine emit(this, record)
-      class (Logger), intent(in) :: this
+      class (Logger), target, intent(in) :: this
       type (LogRecord), intent(inout) :: record
 
       type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: h
 
-      iter = this%handlers%begin()
+      class (Logger), pointer :: current
 
-      do while (iter /= this%handlers%end())
-         h => iter%get()
-         call h%handle(record)
-         call iter%next()
+      current => this
+      do while (associated(current))
+         iter = current%handlers%begin()
+         do while (iter /= current%handlers%end())
+            h => iter%get()
+            call h%handle(record)
+            call iter%next()
+         end do
+
+         if (current%propagate) then
+            current => current%parent
+         else
+            exit
+         end if
       end do
       
    end subroutine emit
@@ -471,6 +485,34 @@ contains
    end function getParent
 
 
+!---------------------------------------------------------------------------  
+!*ROUTINE: setPropagate
+!
+!> @brief Set propagate for 'this' logger.
+!---------------------------------------------------------------------------
+   subroutine setPropagate(this, propagate)
+      class (Logger), intent(inout) :: this
+      logical, intent(in) :: propagate
+
+      this%propagate = propagate
+
+   end subroutine setPropagate
+
+   
+!---------------------------------------------------------------------------  
+!*FUNCTION: getPropagate
+!
+!> @brief Get propagate of "this" logger.
+!---------------------------------------------------------------------------
+   function getPropagate(this) result(propagate)
+      logical :: propagate
+      class (Logger), intent(in) :: this
+
+      propagate = this%propagate
+
+   end function getPropagate
+
+   
 end module ASTG_Logger_mod
 
 

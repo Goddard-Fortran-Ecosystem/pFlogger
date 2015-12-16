@@ -195,4 +195,56 @@ contains
       @assertFalse(associated(loggerA, loggerB))
    end subroutine test_caseSensitiveName
 
+
+
+   @test
+   subroutine test_propagate()
+      use MockHandler_mod
+      use ASTG_Formatter_mod
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: parent
+      class (Logger), pointer :: child
+
+      type (MockHandler) :: h
+      type (MockBuffer), target :: buffer
+
+      manager = LoggerManager(RootLogger(ERROR))
+      parent => manager%getLogger('parent')
+      child => manager%getLogger('parent.child')
+      
+      h = MockHandler(buffer)
+      call h%setFormatter(Formatter('%(message)'))
+
+      call parent%addHandler(h)
+      call child%info('test_info') ! should invoke handler through parent
+      @assertEqual('test_info', buffer%buffer)
+
+   end subroutine test_propagate
+   
+   @test
+   subroutine test_propagate_off()
+      use MockHandler_mod
+      use ASTG_Formatter_mod
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: parent
+      class (Logger), pointer :: child
+
+      type (MockHandler) :: h
+      type (MockBuffer), target :: buffer
+
+      manager = LoggerManager(RootLogger(ERROR))
+      parent => manager%getLogger('parent')
+      child => manager%getLogger('parent.child')
+      call child%setPropagate(.false.)
+      
+      h = MockHandler(buffer)
+      call h%setFormatter(Formatter('%(message)'))
+
+      call parent%addHandler(h)
+      call child%info('test_info') ! should invoke handler through parent
+      @assertEqual('', buffer%buffer)
+
+   end subroutine test_propagate_off
+   
+
 end module Test_LoggerManager_mod

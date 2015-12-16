@@ -1,4 +1,4 @@
-module pflogger_mod
+module pflogger
    use astg_LoggerManager_mod
    use astg_Logger_mod
    use ASTG_RootLogger_mod
@@ -11,7 +11,7 @@ module pflogger_mod
    use astg_WrapArray_mod
    use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
 #ifdef LOGGER_USE_MPI
-#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_C_PTR
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    use astg_MpiLock_mod
 #  endif   
 #endif
@@ -52,7 +52,7 @@ module pflogger_mod
    public :: finalize_severity_levels
 
 #ifdef LOGGER_USE_MPI
-#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_C_PTR
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    public :: MpiLock
 #  endif
 #endif   
@@ -79,4 +79,4 @@ contains
 
    end subroutine finalize
 
-end module pflogger_mod
+end module pflogger

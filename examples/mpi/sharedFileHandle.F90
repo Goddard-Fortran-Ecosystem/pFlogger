@@ -1,6 +1,6 @@
 program main
    use mpi
-   use pflogger_mod
+   use pflogger
    use iso_c_binding
 
    type (FileHandler) :: fh
