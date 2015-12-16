@@ -216,6 +216,7 @@ contains
       call h%setFormatter(Formatter('%(message)'))
 
       call parent%addHandler(h)
+      buffer%buffer = ''
       call child%info('test_info') ! should invoke handler through parent
       @assertEqual('test_info', buffer%buffer)
 
@@ -241,6 +242,8 @@ contains
       call h%setFormatter(Formatter('%(message)'))
 
       call parent%addHandler(h)
+
+      buffer%buffer = ''
       call child%info('test_info') ! should invoke handler through parent
       @assertEqual('', buffer%buffer)
 
