@@ -6,16 +6,16 @@ subroutine sub_A()
    class (Logger), pointer :: log
    class (Logger), pointer :: plog
 
-   log => logging%getLogger('main')
-   plog => logging%getLogger('parallel')
+   log => logging%getLogger('main.A')
+   plog => logging%getLogger('parallel.A')
 
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,String(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
    call log%debug('inside sub_A')
-   call plog%info('at line: %i3.3 in file: %a20', __LINE__,String(__FILE__))
+   call plog%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
    call plog%debug('inside sub_A')
 
    call log%warning('empty procedure')
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,String(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
 
 end subroutine sub_A
 
@@ -29,15 +29,15 @@ subroutine sub_B()
    class (Logger), pointer :: plog
 
 
-   log => logging%getLogger('main')
-   plog => logging%getLogger('parallel')
+   log => logging%getLogger('main.B')
+   plog => logging%getLogger('parallel.B')
 
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call log%debug('inside sub_B')
    call plog%debug('inside sub_B')
 
    call log%error('this procedure is empty as well')
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
 end subroutine sub_B
 
 
@@ -60,13 +60,13 @@ program main
 
    log => logging%getLogger('main')
 
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call sub_A()
    
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call sub_B()
 
-   call log%info('at line: %i3.3 in file: %a20', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call mpi_finalize(ier)
 
 end program main

@@ -578,6 +578,7 @@ contains
          logical :: found
          class (AbstractHandler), pointer :: h
 
+
 #ifdef LOGGER_USE_MPI
          block
            logical :: parallel
@@ -585,6 +586,7 @@ contains
            integer :: comm, rank, ier
 
            parallel = loggerDict%toLogical('parallel', default=.false.)
+
            if (.not. parallel) then
               communicator_name = loggerDict%toString('comm:', default='MPI_COMM_WORLD')
               select case (communicator_name)
@@ -602,6 +604,7 @@ contains
               if (rank /= 0) return
            end if
          end block
+
 #endif
 
          handlerNamesList = loggerDict%toString('handlers', found=found)
@@ -628,6 +631,10 @@ contains
                iter = handlers%find(name)
                if (iter /= handlers%end()) then
                   h => iter%value()
+                  block
+                    integer :: rank, ier
+                    call mpi_comm_rank(MPI_COMM_WORLD, rank, ier)
+                  end block
                   call lgr%addHandler(h)
                else
                   call throw("Config::build_logger() - unknown handler'"//name//"'.")
