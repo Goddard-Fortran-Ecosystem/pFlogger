@@ -49,6 +49,7 @@ contains
 
    subroutine build_formatters(this, formattersDict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use ASTG_Formatter_mod
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: formattersDict
       type (Unusable), optional, intent(in) :: unused
@@ -56,28 +57,34 @@ contains
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
-
+      class (Formatter), allocatable :: f
+      
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
          cfg => formattersDict%toConfigPtr(iter%key())
-         call this%formatters%insert(iter%key(), build_formatter(cfg))
+         call build_formatter(f, cfg)
+         call this%formatters%insert(iter%key(), f)
+         deallocate(f)
          call iter%next()
       end do
 
    end subroutine build_formatters
 
 
-   function build_formatter(dict) result(fmtr)
+   subroutine build_formatter(fmtr, dict)
       use ASTG_Formatter_mod
       use ASTG_AbstractHandler_mod
-      class (Formatter), allocatable :: fmtr
+      class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
 
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       logical :: found
 
-      fmt = dict%toString('fmt', found=found)
+      fmt = dict%toString('format', found=found)
+      ! strip beginning and trailing quotes
+      fmt = trim(adjustl(fmt))
+      fmt = fmt(2:len(fmt)-1)
       
       if (found) then
          datefmt = dict%toString('datefmt', found=found)
@@ -90,7 +97,7 @@ contains
          allocate(fmtr, source=Formatter())
       end if
 
-   end function build_formatter
+   end subroutine build_formatter
 
 
    subroutine build_filters(this, filtersDict, unused, extra)
@@ -142,23 +149,24 @@ contains
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
+      class (AbstractHandler), allocatable :: h
 
       iter = handlersDict%begin()
       do while (iter /= handlersDict%end())
          cfg => handlersDict%toConfigPtr(iter%key())
-         call this%handlers%insert(iter%key(), &
-              & build_handler(cfg, this, extra=extra))
+         call build_handler(h,cfg, this, extra=extra)
+         call this%handlers%insert(iter%key(), h)
+         deallocate(h)
          call iter%next()
       end do
 
-!!$   end function build_handlers
    end subroutine build_handlers
    
-   function build_handler(handlerDict, elements, unused, extra) result(h)
+   subroutine build_handler(h, handlerDict, elements, unused, extra)
       use ASTG_AbstractHandler_mod
       use ASTG_StringUtilities_mod, only: toLowerCase
       use ASTG_Filter_mod
-      class (AbstractHandler), allocatable :: h
+      class (AbstractHandler), allocatable, intent(out) :: h
       type (Config), intent(in) :: handlerDict
       type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused
@@ -291,7 +299,7 @@ contains
       end subroutine set_handler_filters
 
 
-   end function build_handler
+   end subroutine build_handler
 
    function build_streamhandler(handlerDict) result(h)
       use ASTG_StreamHandler_mod
@@ -322,7 +330,6 @@ contains
             return
          end select
       end if
-
       h = StreamHandler(unit)
 
    end function build_streamhandler
@@ -419,7 +426,8 @@ contains
            character(len=:), allocatable :: size_prefix
            rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
            size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
-           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
+           call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
+!!$           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
          end block
       else
          communicator_name = handlerDict%toString('comm:', default='MPI_COMM_WORLD')
@@ -434,7 +442,8 @@ contains
            character(len=:), allocatable :: size_prefix
            rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
            size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
-           commMap = MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
+           call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
+!!$           commMap = MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       end if
 
@@ -567,6 +576,7 @@ contains
          integer :: i, j, n
 
          logical :: found
+         class (AbstractHandler), pointer :: h
 
 #ifdef LOGGER_USE_MPI
          block
@@ -617,7 +627,8 @@ contains
 
                iter = handlers%find(name)
                if (iter /= handlers%end()) then
-                  call lgr%addHandler(iter%value())
+                  h => iter%value()
+                  call lgr%addHandler(h)
                else
                   call throw("Config::build_logger() - unknown handler'"//name//"'.")
                end if
