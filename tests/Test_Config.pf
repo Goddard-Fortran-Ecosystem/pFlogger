@@ -65,11 +65,11 @@ contains
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
       type (Config) :: cfg
-      type (Formatter) :: fmtr
+      class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      fmtr = build_formatter(cfg)
+      call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
       logMessage = fmtr%format(record)
@@ -83,12 +83,12 @@ contains
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
       type (Config) :: cfg
-      type (Formatter) :: fmtr
+      class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('fmt','---')])
-      fmtr = build_formatter(cfg)
+      cfg = Config([P('format',"'---'")])
+      call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
       logMessage = fmtr%format(record)
@@ -101,12 +101,13 @@ contains
       use ASTG_Formatter_mod
       use ASTG_LogRecord_mod
       type (Config) :: cfg
-      type (Formatter) :: fmtr
+      class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('fmt','%(asctime)a %(message)a'), P('datefmt','date')])
-      fmtr = build_formatter(cfg)
+      cfg = Config([P('format',"'%(asctime)a %(message)a'"), &
+           & P('datefmt',"'date'")])
+      call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
       logMessage = fmtr%format(record)
@@ -122,8 +123,9 @@ contains
 
       formattersDict = &
            & Config([ &
-           &       p('A', Config([P('fmt','---')]) ), &
-           &       p('B', Config([P('fmt','---'), P('datefmt', 'hello')])) &
+           &       p('A', Config([P('format',"'---'")]) ), &
+           &       p('B', Config([P('format',"'---'"), &
+           &       P('datefmt', "'hello'")])) &
            &     ])
 
       call elements%build_formatters(formattersDict)
@@ -242,19 +244,19 @@ contains
            & P('level', 'INFO') &
            & ])
 
-      allocate(h, source=build_handler(handler_cfg, elements))
+      call build_handler(h, handler_cfg, elements)
       @assertEqual(INFO, h%getLevel(),'incorrect level')
 
       block
         character(len=80) :: str
         type (LogRecord) :: record
         
-!!$        call initLogRecord(record, 'B', INFO, 'hello')
-!!$        call h%handle(record) ! skip - filter 'A'
-!!$        
-!!$        call initLogRecord(record, 'A', DEBUG, 'goodbye')
-!!$        call h%handle(record) ! skip - level is INFO
-!!$        
+        call initLogRecord(record, 'B', INFO, 'hello')
+        call h%handle(record) ! skip - filter 'A'
+        
+        call initLogRecord(record, 'A', DEBUG, 'goodbye')
+        call h%handle(record) ! skip - level is INFO
+        
         call initLogRecord(record, 'A', INFO, 'ciao')
         call h%handle(record) ! keep
         

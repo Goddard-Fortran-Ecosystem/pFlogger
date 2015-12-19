@@ -85,10 +85,11 @@ contains
       ! strip beginning and trailing quotes
       fmt = trim(adjustl(fmt))
       fmt = fmt(2:len(fmt)-1)
-      
       if (found) then
          datefmt = dict%toString('datefmt', found=found)
          if (found) then
+            datefmt = trim(adjustl(datefmt))
+            datefmt = datefmt(2:len(datefmt)-1)
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
@@ -631,10 +632,6 @@ contains
                iter = handlers%find(name)
                if (iter /= handlers%end()) then
                   h => iter%value()
-                  block
-                    integer :: rank, ier
-                    call mpi_comm_rank(MPI_COMM_WORLD, rank, ier)
-                  end block
                   call lgr%addHandler(h)
                else
                   call throw("Config::build_logger() - unknown handler'"//name//"'.")
