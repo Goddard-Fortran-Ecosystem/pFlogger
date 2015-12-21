@@ -6,8 +6,8 @@ subroutine sub_A()
    class (Logger), pointer :: log
    class (Logger), pointer :: plog
 
-   log => logging%getLogger('main.A')
-   plog => logging%getLogger('parallel.A')
+   log => logging%get_logger('main.A')
+   plog => logging%get_logger('parallel.A')
 
    call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
    call log%debug('inside sub_A')
@@ -29,8 +29,8 @@ subroutine sub_B()
    class (Logger), pointer :: plog
 
 
-   log => logging%getLogger('main.B')
-   plog => logging%getLogger('parallel.B')
+   log => logging%get_logger('main.B')
+   plog => logging%get_logger('parallel.B')
 
    call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call log%debug('inside sub_B')
@@ -58,7 +58,7 @@ program main
 
    call logging%load_file('all_in_one.cfg')
 
-   log => logging%getLogger('main')
+   log => logging%get_logger('main')
 
    call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
    call sub_A()

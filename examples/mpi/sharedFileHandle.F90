@@ -21,25 +21,25 @@ program main
    call mpi_comm_rank(MPI_COMM_WORLD, rank, ier)
    call extra%insert('rank', rank)
 
-   loggerA => logging%getLogger('A')
+   loggerA => logging%get_logger('A')
 
    fmtr = Formatter('%(message) %(rank)')
    fh = FileHandler('foo.txt', delay=.true.)
-   call fh%setFormatter(fmtr)
-   call fh%setLock(MpiLock(MPI_COMM_WORLD))
+   call fh%set_formatter(fmtr)
+   call fh%set_lock(MpiLock(MPI_COMM_WORLD))
 
-   rfh = newRotatingFileHandler('foorot.txt', delay=.true., maxBytes='100', backupCount=2)
-   call rfh%setFormatter(fmtr)
-   call rfh%setLock(MpiLock(MPI_COMM_WORLD))
+   rfh = newRotatingFileHandler('foorot.txt', delay=.true., max_bytes='100', backup_count=2)
+   call rfh%set_formatter(fmtr)
+   call rfh%set_lock(MpiLock(MPI_COMM_WORLD))
 
 
-   call loggerA%addHandler(fh)
-   call loggerA%addHandler(rfh)
+   call loggerA%add_handler(fh)
+   call loggerA%add_handler(rfh)
    select case (rank)
    case (0)
-      call loggerA%setlevel(DEBUG)
+      call loggerA%set_level(DEBUG)
    case (1:)
-      call loggerA%setLevel(INFO)
+      call loggerA%set_level(INFO)
    end select
 
    block
