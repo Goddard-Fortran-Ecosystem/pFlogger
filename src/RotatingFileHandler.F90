@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_RotatingFileHandler_mod
+!*MODULE: PFL_RotatingFileHandler_mod
 !
 !> @brief Handler for logging to a set of files,.
 !> @details
@@ -15,13 +15,13 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module ASTG_RotatingFileHandler_mod
+module PFL_RotatingFileHandler_mod
    use iso_fortran_env
-   use ASTG_SeverityLevels_mod, only: INFO
-   use ASTG_FileHandler_mod, only: FileHandler
-   use ASTG_AbstractHandler_mod, only: BASIC_FORMAT
-   use ASTG_LogRecord_mod
-   use ASTG_Formatter_mod
+   use PFL_SeverityLevels_mod, only: INFO
+   use PFL_FileHandler_mod, only: FileHandler
+   use PFL_AbstractHandler_mod, only: BASIC_FORMAT
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
    
    implicit none
    private
@@ -210,7 +210,7 @@ contains
    ! respectively.
    !---------------------------------------------------------------------------  
    subroutine doRollover(this)
-      use ASTG_FormatString_mod
+      use PFL_FormatString_mod
       class (RotatingFileHandler), intent(inout) :: this
       
       character(len=:), allocatable :: srcFile
@@ -272,4 +272,4 @@ contains
    end subroutine doRollover
 
 
-end module ASTG_RotatingFileHandler_mod
+end module PFL_RotatingFileHandler_mod

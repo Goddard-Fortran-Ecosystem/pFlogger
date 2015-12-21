@@ -1,9 +1,9 @@
 module Test_Complex_Config_mod
    use pfunit_mod
-   use ASTG_Config_mod
-   use ASTG_Logger_mod
-   use ASTG_LoggerManager_mod
-   use ASTG_SeverityLevels_mod
+   use PFL_Config_mod
+   use PFL_Logger_mod
+   use PFL_LoggerManager_mod
+   use PFL_SeverityLevels_mod
    implicit none
 
 #ifdef __GFORTRAN__   

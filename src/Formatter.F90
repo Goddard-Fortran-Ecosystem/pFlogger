@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_Formatter_mod
+! MODULE: PFL_Formatter_mod
 !
 !> @author 
 !> ASTG staff
@@ -28,10 +28,10 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_Formatter_mod
-   use ASTG_Object_mod
-   use ASTG_LogRecord_mod
-   use ASTG_FormatParser_mod
+module PFL_Formatter_mod
+   use PFL_Object_mod
+   use PFL_LogRecord_mod
+   use PFL_FormatParser_mod
    implicit none
    private
 
@@ -64,7 +64,7 @@ module ASTG_Formatter_mod
 
    abstract interface
       subroutine get_time(dict)
-         use ASTG_StringUnlimitedMap_mod
+         use PFL_StringUnlimitedMap_mod
          type (Map), intent(out) :: dict
       end subroutine get_time
    end interface
@@ -88,7 +88,7 @@ contains
    ! datefmt argument.
    !---------------------------------------------------------------------------
    function newFormatter(fmt, unused, datefmt, extra) result(f)
-      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
       type (Unusable), optional, intent(in) :: unused
@@ -125,8 +125,8 @@ contains
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
    function formatTime(this, record, datefmt) result(asctime)
-      use ASTG_FormatString_mod
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_FormatString_mod
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
 
       character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
@@ -172,9 +172,9 @@ contains
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use FTL
-      use ASTG_FormatString_mod
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
+      use PFL_FormatString_mod
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
 
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
@@ -260,10 +260,10 @@ contains
 
 
    subroutine fill_extra_keywords(this, extra)
-      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
-      use astg_FormatToken_mod
-      use astg_FormatTokenVector_mod
-      use astg_FormatString_mod
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+      use PFL_FormatToken_mod
+      use PFL_FormatTokenVector_mod
+      use PFL_FormatString_mod
       class (Formatter), intent(inout) :: this
       type (StringUnlimitedMap), intent(in) :: extra
 
@@ -290,4 +290,4 @@ contains
 
    end subroutine fill_extra_keywords
 
-end module ASTG_Formatter_mod
+end module PFL_Formatter_mod

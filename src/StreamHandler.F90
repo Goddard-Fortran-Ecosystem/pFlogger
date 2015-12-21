@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_StreamHandler_mod
+!*MODULE: PFL_StreamHandler_mod
 !
 !> @brief Write logging event to a stream.
 !> @details
@@ -12,12 +12,12 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module ASTG_StreamHandler_mod
+module PFL_StreamHandler_mod
    use iso_fortran_env, only: ERROR_UNIT
-   use ASTG_SeverityLevels_mod, only: INFO
-   use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
-   use ASTG_LogRecord_mod
-   use ASTG_Formatter_mod
+   use PFL_SeverityLevels_mod, only: INFO
+   use PFL_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
    
    implicit none
    private
@@ -159,4 +159,4 @@ contains
    end function equal
 
 
-end module ASTG_StreamHandler_mod
+end module PFL_StreamHandler_mod

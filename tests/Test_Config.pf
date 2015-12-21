@@ -5,14 +5,14 @@
 !
 module Test_Config_mod
    use pfunit_mod
-   use ASTG_Logger_mod
-   use ASTG_LoggerManager_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_StringFilterMap_mod
-   use ASTG_StringFormatterMap_mod
-   use ASTG_StringHandlerMap_mod
+   use PFL_Logger_mod
+   use PFL_LoggerManager_mod
+   use PFL_SeverityLevels_mod
+   use PFL_StringFilterMap_mod
+   use PFL_StringFormatterMap_mod
+   use PFL_StringHandlerMap_mod
 
-   use ASTG_Config_mod
+   use PFL_Config_mod
    use FTL
 #ifdef __GFORTRAN__
    use FTL, only: String
@@ -62,8 +62,8 @@ contains
 
    @test
    subroutine test_build_formatter_noargs()
-      use ASTG_Formatter_mod
-      use ASTG_LogRecord_mod
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -80,8 +80,8 @@ contains
    
    @test
    subroutine test_build_formatter_withFmt()
-      use ASTG_Formatter_mod
-      use ASTG_LogRecord_mod
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -98,8 +98,8 @@ contains
 
    @test
    subroutine test_build_formatter_withDateFmt()
-      use ASTG_Formatter_mod
-      use ASTG_LogRecord_mod
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -136,7 +136,7 @@ contains
 
    @test
    subroutine test_build_filter()
-      use ASTG_Filter_mod
+      use PFL_Filter_mod
       type (Config) :: cfg
       type (Filter) :: f
       character(len=:), allocatable :: logMessage
@@ -169,8 +169,8 @@ contains
 
    @test
    subroutine test_build_streamhandler()
-      use ASTG_StreamHandler_mod
-      use ASTG_LogRecord_mod
+      use PFL_StreamHandler_mod
+      use PFL_LogRecord_mod
       type (Config) :: handler_cfg
       type (StreamHandler) :: h
       integer :: unit
@@ -205,11 +205,11 @@ contains
 
    @test
    subroutine test_build_handler()
-      use ASTG_StreamHandler_mod
-      use ASTG_Filter_mod
-      use ASTG_Formatter_mod
-      use ASTG_AbstractHandler_mod
-      use ASTG_LogRecord_mod
+      use PFL_StreamHandler_mod
+      use PFL_Filter_mod
+      use PFL_Formatter_mod
+      use PFL_AbstractHandler_mod
+      use PFL_LogRecord_mod
       type (Config) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
@@ -272,9 +272,9 @@ contains
 
    @test
    subroutine test_build_handlers()
-      use ASTG_Filter_mod
-      use ASTG_StreamHandler_mod
-      use ASTG_Formatter_mod
+      use PFL_Filter_mod
+      use PFL_StreamHandler_mod
+      use PFL_Formatter_mod
 
       type (Config) :: handlersDict
       type (Config) :: h1_cfg, h2_cfg
@@ -341,9 +341,9 @@ contains
    @test
    subroutine test_build_logger()
 
-      use ASTG_Filter_mod
-      use ASTG_AbstractHandler_mod
-      use ASTG_FileHandler_mod
+      use PFL_Filter_mod
+      use PFL_AbstractHandler_mod
+      use PFL_FileHandler_mod
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -374,7 +374,7 @@ contains
       use mpi
       use MockHandler_mod
       use MockMpi_mod
-      use ASTG_SeverityLevels_mod
+      use PFL_SeverityLevels_mod
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -416,7 +416,7 @@ contains
       use mpi
       use MockHandler_mod
       use MockMpi_mod
-      use ASTG_SeverityLevels_mod
+      use PFL_SeverityLevels_mod
 
       type (Config) :: cfg
       type (MockBuffer) :: buffer

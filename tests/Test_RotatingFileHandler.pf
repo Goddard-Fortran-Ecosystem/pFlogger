@@ -1,8 +1,8 @@
 module Test_RotatingFileHandler_mod
    use iso_fortran_env
-   use ASTG_SeverityLevels_mod
-   use ASTG_RotatingFileHandler_mod
-   use ASTG_LogRecord_mod
+   use PFL_SeverityLevels_mod
+   use PFL_RotatingFileHandler_mod
+   use PFL_LogRecord_mod
    use pfunit_mod
    implicit none
 

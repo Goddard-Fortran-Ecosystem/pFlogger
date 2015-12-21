@@ -2,22 +2,22 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_LoggerManager_mod
+! MODULE: PFL_LoggerManager_mod
 !
 !> @brief A manager instance that holds the hierarchy of loggers. 
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module ASTG_LoggerManager_mod
-   use ASTG_RootLogger_mod
-   use ASTG_StringAbstractLoggerPolyMap_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_Object_mod
-   use ASTG_Logger_mod
-   use ASTG_AbstractLogger_mod
-   use ASTG_LoggerPolyVector_mod
-   use ASTG_Config_mod
+module PFL_LoggerManager_mod
+   use PFL_RootLogger_mod
+   use PFL_StringAbstractLoggerPolyMap_mod
+   use PFL_SeverityLevels_mod
+   use PFL_Object_mod
+   use PFL_Logger_mod
+   use PFL_AbstractLogger_mod
+   use PFL_LoggerPolyVector_mod
+   use PFL_Config_mod
 #ifdef LOGGER_USE_MPI
    use mpi
 #endif
@@ -125,7 +125,7 @@ contains
    ! 2) 'name' is case insensitive.
    !---------------------------------------------------------------------------
    function getLogger(this, name) result(lgr)
-      use ASTG_Exception_mod
+      use PFL_Exception_mod
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
@@ -186,7 +186,7 @@ contains
    end function getLogger
 
    subroutine fixup_ancestors(this, lgr)
-      use ASTG_Exception_mod
+      use PFL_Exception_mod
       class (LoggerManager), target, intent(inout) :: this
       class (Logger), intent(inout), target :: lgr
 
@@ -372,4 +372,4 @@ contains
 
 
 
-end module ASTG_LoggerManager_mod
+end module PFL_LoggerManager_mod

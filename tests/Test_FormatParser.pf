@@ -1,7 +1,7 @@
 module Test_FormatParser_mod
    use pFUnit_mod
-   use ASTG_FormatParser_mod
-   use ASTG_FormatToken_mod
+   use PFL_FormatParser_mod
+   use PFL_FormatToken_mod
    implicit none
 
 contains

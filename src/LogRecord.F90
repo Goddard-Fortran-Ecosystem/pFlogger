@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_LogRecord_mod
+!*MODULE: PFL_LogRecord_mod
 !
 !> @brief A LogRecord instance represents an event being logged. 
 !> @details
@@ -14,12 +14,12 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module ASTG_LogRecord_mod
+module PFL_LogRecord_mod
    use FTL
-   use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-   use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-   use ASTG_Object_mod
-   use ASTG_SeverityLevels_mod
+   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+   use PFL_Object_mod
+   use PFL_SeverityLevels_mod
    implicit none
    private
 
@@ -159,7 +159,7 @@ contains
    ! arguments associated with message.
    !---------------------------------------------------------------------------
    function getMessage(this) result(message)
-      use ASTG_FormatString_mod, only: formatString
+      use PFL_FormatString_mod, only: formatString
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       
@@ -177,8 +177,8 @@ contains
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
@@ -219,4 +219,4 @@ contains
       
    end subroutine initLogRecord
 
-end module ASTG_LogRecord_mod
+end module PFL_LogRecord_mod

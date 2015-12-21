@@ -1,6 +1,6 @@
-module astg_MpiLock_mod
+module PFL_MpiLock_mod
    use mpi
-   use astg_AbstractLock_mod
+   use PFL_AbstractLock_mod
    use iso_fortran_env, only: INT64
    use iso_c_binding, only: c_ptr, c_f_pointer
    implicit none
@@ -169,4 +169,4 @@ contains
 
    end subroutine free_mpi_resources
 
-end module astg_MpiLock_mod
+end module PFL_MpiLock_mod

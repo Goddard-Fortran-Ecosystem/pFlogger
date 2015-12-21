@@ -2,20 +2,20 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_FileHandler_mod
+!*MODULE: PFL_FileHandler_mod
 !
 !> @brief A handler class which writes logging events to disk files
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_FileHandler_mod
-   use ASTG_SeverityLevels_mod, only: INFO
-   use ASTG_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
-   use ASTG_LogRecord_mod
-   use ASTG_Formatter_mod
-   use ASTG_StreamHandler_mod
-   use ASTG_AbstractLock_mod
+module PFL_FileHandler_mod
+   use PFL_SeverityLevels_mod, only: INFO
+   use PFL_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
+   use PFL_StreamHandler_mod
+   use PFL_AbstractLock_mod
    implicit none
    private
 
@@ -252,4 +252,4 @@ contains
 
    end subroutine setLock
 
-end module ASTG_FileHandler_mod
+end module PFL_FileHandler_mod

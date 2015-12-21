@@ -1,5 +1,5 @@
 module MockSimTime_mod
-   use ASTG_StringUnlimitedMap_mod
+   use PFL_StringUnlimitedMap_mod
    private
 
    public :: mockSimTime

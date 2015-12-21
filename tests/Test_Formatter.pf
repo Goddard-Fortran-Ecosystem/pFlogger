@@ -1,9 +1,9 @@
 module Test_Formatter_mod
    use pFUnit_mod
    use iso_fortran_env
-   use ASTG_Formatter_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_LogRecord_mod
+   use PFL_Formatter_mod
+   use PFL_SeverityLevels_mod
+   use PFL_LogRecord_mod
    use MockDateFormat_mod
    
    implicit none
@@ -42,7 +42,7 @@ contains
 
    @Test
    subroutine test_formatDefault(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (Formatter) :: f
 
@@ -55,7 +55,7 @@ contains
 
 @Test
    subroutine test_formatint32(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
 
       type (UnlimitedVector) :: args
@@ -73,8 +73,8 @@ contains
 
 @test
    subroutine test_datefmtMessage_default(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=32) :: date
@@ -96,8 +96,8 @@ contains
 
 @test
    subroutine test_datefmtMessage(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
@@ -120,7 +120,7 @@ contains
 
 @test
    subroutine test_datefmt(this)
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
@@ -148,7 +148,7 @@ contains
 
 @Test
    subroutine test_formatWithName(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (UnlimitedVector) :: args
       type (Formatter) :: f
@@ -165,7 +165,7 @@ contains
 
 @test
    subroutine test_format_with_extra(this)
-      use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary

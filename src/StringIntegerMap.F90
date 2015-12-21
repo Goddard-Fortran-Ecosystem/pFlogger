@@ -2,14 +2,14 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_StringIntegerMap_mod
+!*MODULE: PFL_StringIntegerMap_mod
 !
 !> @brief Case insensitive abstract logger map.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module  ASTG_StringIntegerMap_mod
+module  PFL_StringIntegerMap_mod
 #include "types/key_deferredLengthString.inc"
 #include "types/value_integer.inc"
 
@@ -17,5 +17,5 @@ module  ASTG_StringIntegerMap_mod
 #include "templates/map.inc"
 
 
-end module ASTG_StringIntegerMap_mod
+end module PFL_StringIntegerMap_mod
 

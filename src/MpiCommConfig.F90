@@ -1,6 +1,6 @@
-module astg_MpiCommConfig_mod
+module PFL_MpiCommConfig_mod
    use mpi
-   use ASTG_StringUnlimitedMap_mod
+   use PFL_StringUnlimitedMap_mod
    implicit none
    private
 
@@ -52,9 +52,9 @@ contains
 
    function MpiCommConfig_multi_comm(mpi_communicators, unused, &
         & rank_prefix, size_prefix) result(m)
-      use astg_FormatString_mod
-      use astg_ArgListUtilities_mod
-      use ASTG_UnlimitedVector_mod
+      use PFL_FormatString_mod
+      use PFL_ArgListUtilities_mod
+      use PFL_UnlimitedVector_mod
             
       integer, intent(in) :: mpi_communicators(:)
       type (Map) :: m
@@ -102,4 +102,4 @@ contains
       
    end function default
 
-end module astg_MpiCommConfig_mod
+end module PFL_MpiCommConfig_mod

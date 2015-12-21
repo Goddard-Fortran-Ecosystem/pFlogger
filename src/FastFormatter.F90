@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_FastFormatter_mod
+! MODULE: PFL_FastFormatter_mod
 !
 !> @author 
 !> ASTG staff
@@ -28,10 +28,10 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_FastFormatter_mod
-   use ASTG_Object_mod
-   use ASTG_LogRecord_mod
-   use ASTG_Formatter_mod
+module PFL_FastFormatter_mod
+   use PFL_Object_mod
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
    implicit none
    private
 
@@ -80,9 +80,9 @@ contains
    ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
-      use ASTG_FormatString_mod
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use ASTG_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
+      use PFL_FormatString_mod
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
 
       character(len=:), allocatable :: logMessage
       class (FastFormatter), intent(in) :: this
@@ -93,4 +93,4 @@ contains
    end function format
 
    
-end module ASTG_FastFormatter_mod
+end module PFL_FastFormatter_mod

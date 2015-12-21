@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_FormatParser_mod
+!*MODULE: PFL_FormatParser_mod
 !
 !> @brief Format parser classes and functions.
 !> @note  FormatParser exposes more methods than is desirable for
@@ -12,14 +12,14 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_FormatParser_mod
-   use ASTG_FormatTokenVector_mod, only: FormatTokenVector => Vector
-   use ASTG_FormatToken_mod, only: FormatToken
-   use ASTG_FormatToken_mod, only: KEYWORD_SEPARATOR
-   use ASTG_FormatToken_mod, only: TEXT, POSITION, KEYWORD
+module PFL_FormatParser_mod
+   use PFL_FormatTokenVector_mod, only: FormatTokenVector => Vector
+   use PFL_FormatToken_mod, only: FormatToken
+   use PFL_FormatToken_mod, only: KEYWORD_SEPARATOR
+   use PFL_FormatToken_mod, only: TEXT, POSITION, KEYWORD
    use iso_c_binding, only: C_NULL_CHAR
-   use ASTG_Exception_mod, only: throw
-   use ASTG_WrapArray_mod
+   use PFL_Exception_mod, only: throw
+   use PFL_WrapArray_mod
 
    implicit none
    private
@@ -416,4 +416,4 @@ contains
    end subroutine illegalContext
 
 
-end module ASTG_FormatParser_mod
+end module PFL_FormatParser_mod

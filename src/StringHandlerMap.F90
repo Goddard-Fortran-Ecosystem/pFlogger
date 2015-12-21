@@ -2,15 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_StringHandlerMap_mod
+!*MODULE: PFL_StringHandlerMap_mod
 !
 !> @brief Case insensitive abstract logger map.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module  ASTG_StringHandlerMap_mod
-   use ASTG_AbstractHandler_mod
+module  PFL_StringHandlerMap_mod
+   use PFL_AbstractHandler_mod
 #define _map HandlerMap
 #define _iterator HandlerIterator
    
@@ -22,5 +22,5 @@ module  ASTG_StringHandlerMap_mod
 #define _alt
 #include "templates/map.inc"
 
-end module ASTG_StringHandlerMap_mod
+end module PFL_StringHandlerMap_mod
 

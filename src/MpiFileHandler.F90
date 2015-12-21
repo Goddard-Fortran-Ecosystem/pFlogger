@@ -2,17 +2,17 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_MpiFileHandler_mod
+!*MODULE: PFL_MpiFileHandler_mod
 !
 !> @brief A handler class which writes logging events to disk files under MPI.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module ASTG_MpiFileHandler_mod
-   use ASTG_SeverityLevels_mod, only: INFO
-   use ASTG_LogRecord_mod
-   use ASTG_FileHandler_mod
+module PFL_MpiFileHandler_mod
+   use PFL_SeverityLevels_mod, only: INFO
+   use PFL_LogRecord_mod
+   use PFL_FileHandler_mod
    use mpi
    
    implicit none
@@ -83,9 +83,9 @@ contains
 
     
    function getSuffix(this, rank, suffixFormat) result(suffix)
-      use ASTG_FormatParser_mod
-      use ASTG_FormatString_mod
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => vector
+      use PFL_FormatParser_mod
+      use PFL_FormatString_mod
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => vector
       character(len=:), allocatable :: suffix
       class (MpiFileHandler), intent(in) :: this
       integer, intent(in) :: rank
@@ -117,5 +117,5 @@ contains
    end subroutine setDefaultMpiSuffixFormat
 
 
-end module ASTG_MpiFileHandler_mod
+end module PFL_MpiFileHandler_mod
 

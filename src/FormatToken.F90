@@ -2,15 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_FormatToken_mod
+!*MODULE: PFL_FormatToken_mod
 !
 !> @brief Provides constructor for a format token.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module ASTG_FormatToken_mod
-   use ASTG_Exception_mod, only: throw
+module PFL_FormatToken_mod
+   use PFL_Exception_mod, only: throw
    implicit none
    private
    
@@ -75,5 +75,5 @@ contains
    end function newFormatToken
 
 
-end module ASTG_FormatToken_mod
+end module PFL_FormatToken_mod
    

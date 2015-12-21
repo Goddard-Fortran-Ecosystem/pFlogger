@@ -1,8 +1,8 @@
 module Test_SimTime_mod
-   use ASTG_Formatter_mod
-   use ASTG_LogRecord_mod
+   use PFL_Formatter_mod
+   use PFL_LogRecord_mod
    use MockSimTime_mod
-   use ASTG_SeverityLevels_mod
+   use PFL_SeverityLevels_mod
    use pfunit_mod
    implicit none
 

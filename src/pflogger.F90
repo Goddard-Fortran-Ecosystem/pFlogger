@@ -1,21 +1,21 @@
 module pflogger
-   use astg_LoggerManager_mod
-   use astg_Logger_mod
-   use ASTG_RootLogger_mod
-   use astg_AbstractHandler_mod
-   use astg_StreamHandler_mod
-   use astg_FileHandler_mod
-   use astg_SeverityLevels_mod
-   use astg_Formatter_mod
-   use astg_FastFormatter_mod
-   use astg_WrapArray_mod
-   use astg_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+   use PFL_LoggerManager_mod
+   use PFL_Logger_mod
+   use PFL_RootLogger_mod
+   use PFL_AbstractHandler_mod
+   use PFL_StreamHandler_mod
+   use PFL_FileHandler_mod
+   use PFL_SeverityLevels_mod
+   use PFL_Formatter_mod
+   use PFL_FastFormatter_mod
+   use PFL_WrapArray_mod
+   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
 #ifdef LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
-   use astg_MpiLock_mod
+   use PFL_MpiLock_mod
 #  endif   
 #endif
-   use astg_RotatingFileHandler_mod
+   use PFL_RotatingFileHandler_mod
    implicit none
    private
 
@@ -62,8 +62,8 @@ module pflogger
 contains
 
    subroutine initialize(comm)
-      use ASTG_SeverityLevels_mod
-      use ASTG_RootLogger_mod
+      use PFL_SeverityLevels_mod
+      use PFL_RootLogger_mod
       integer, optional, intent(in) :: comm ! unused except with MPI
 
       call initialize_severity_levels()
@@ -73,7 +73,7 @@ contains
    
 
    subroutine finalize()
-      use ASTG_SeverityLevels_mod
+      use PFL_SeverityLevels_mod
 
       call finalize_severity_levels()
 

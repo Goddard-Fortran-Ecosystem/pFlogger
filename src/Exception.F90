@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_Exception_mod
+!*MODULE: PFL_Exception_mod
 !
 !> @brief
 !> This module contains a simple method to handle exceptions (runtime errors).
@@ -10,7 +10,7 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_Exception_mod
+module PFL_Exception_mod
    implicit none
    private
 
@@ -53,4 +53,4 @@ contains
       throwFunPtr => ptr
    end subroutine setThrowFunPtr
 
-end module ASTG_Exception_mod
+end module PFL_Exception_mod

@@ -1,7 +1,7 @@
 module Test_MpiFileHandler_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_MpiFileHandler_mod
-   use ASTG_LogRecord_mod
+   use PFL_SeverityLevels_mod
+   use PFL_MpiFileHandler_mod
+   use PFL_LogRecord_mod
    use MockMpi_mod
    use pfunit_mod
    implicit none

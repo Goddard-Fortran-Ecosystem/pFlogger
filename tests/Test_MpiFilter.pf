@@ -1,8 +1,8 @@
 module Test_MpiFilter_mod
    use pFUnit_mod
-   use ASTG_MpiFilter_mod
-   use ASTG_LogRecord_mod
-   use ASTG_SeverityLevels_mod, only: INFO
+   use PFL_MpiFilter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod, only: INFO
 
    implicit none
    

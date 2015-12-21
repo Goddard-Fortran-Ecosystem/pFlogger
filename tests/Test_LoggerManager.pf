@@ -1,10 +1,10 @@
 module Test_LoggerManager_mod
    use pfunit_mod
-   use ASTG_LoggerManager_mod 
-   use ASTG_AbstractLogger_mod
-   use ASTG_Logger_mod
-   use ASTG_RootLogger_mod
-   use ASTG_SeverityLevels_mod
+   use PFL_LoggerManager_mod 
+   use PFL_AbstractLogger_mod
+   use PFL_Logger_mod
+   use PFL_RootLogger_mod
+   use PFL_SeverityLevels_mod
    implicit none
 
 contains
@@ -200,7 +200,7 @@ contains
    @test
    subroutine test_propagate()
       use MockHandler_mod
-      use ASTG_Formatter_mod
+      use PFL_Formatter_mod
       type (LoggerManager) :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child
@@ -225,7 +225,7 @@ contains
    @test
    subroutine test_propagate_off()
       use MockHandler_mod
-      use ASTG_Formatter_mod
+      use PFL_Formatter_mod
       type (LoggerManager) :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child

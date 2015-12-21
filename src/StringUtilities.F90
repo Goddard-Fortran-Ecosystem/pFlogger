@@ -2,14 +2,14 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_StringUtilities_mod
+!*MODULE: PFL_StringUtilities_mod
 !
 !> @brief Various tring utilities.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module ASTG_StringUtilities_mod
+module PFL_StringUtilities_mod
    use iso_fortran_env
    implicit none
    private
@@ -282,4 +282,4 @@ contains
 
    end function caseInsensitiveLessThan
 
-end module ASTG_StringUtilities_mod
+end module PFL_StringUtilities_mod

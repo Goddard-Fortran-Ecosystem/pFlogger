@@ -1,5 +1,5 @@
 module ConfigurableFilter_mod
-   use ASTG_AbstractFilter_mod
+   use PFL_AbstractFilter_mod
    implicit none
    private
 
@@ -16,7 +16,7 @@ contains
 
 
    logical function doFilter(this, record)
-      use ASTG_LogRecord_mod
+      use PFL_LogRecord_mod
       class (ConfigurableFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 

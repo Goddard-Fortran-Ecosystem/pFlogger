@@ -3,8 +3,8 @@ module MockHandler_mod
    ! the mock is to be able to control the data that is written to an output
    ! stream (STDOUT or a disk file) by collecting it in a buffer and then 
    ! test for the contents of the buffer's correctnes.
-   use ASTG_AbstractHandler_mod
-   use ASTG_LogRecord_mod
+   use PFL_AbstractHandler_mod
+   use PFL_LogRecord_mod
    implicit none
    private
    
@@ -32,7 +32,7 @@ module MockHandler_mod
 contains
 
    function newMockHandler(buffer, level) result(handler)
-      use ASTG_Formatter_mod
+      use PFL_Formatter_mod
       type (MockHandler) :: handler
       type (MockBuffer), target, intent(in) :: buffer
       integer, optional, intent(in) :: level

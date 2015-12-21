@@ -1,9 +1,9 @@
 module Test_Filterer_mod
    use pFUnit_mod
-   use ASTG_Filterer_mod
-   use ASTG_Filter_mod
-   use ASTG_LogRecord_mod
-   use ASTG_SeverityLevels_mod, only: INFO
+   use PFL_Filterer_mod
+   use PFL_Filter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod, only: INFO
    implicit none
 
 
@@ -143,7 +143,7 @@ contains
 
    @test
    subroutine test_addFilter_noDups()
-      use ASTG_AbstractFilterPolyVector_mod, only: FilterVector => Vector
+      use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
 
       type (Filterer), target :: f
       type (FilterVector), pointer :: filters

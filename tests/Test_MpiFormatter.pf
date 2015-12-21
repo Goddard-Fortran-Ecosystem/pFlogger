@@ -1,9 +1,9 @@
 module Test_MpiFormatter_mod
    use pfunit_mod
    use mockmpi_mod
-   use astg_MpiFormatter_mod
-   use astg_LogRecord_mod
-   use astg_SeverityLevels_mod
+   use PFL_MpiFormatter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod
    implicit none
 
 contains

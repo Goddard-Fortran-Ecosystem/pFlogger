@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_MpiFilter_mod
+!*MODULE: PFL_MpiFilter_mod
 !
 !> @brief Perform arbitrary filtering of LogRecords.
 !> @details
@@ -12,9 +12,9 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module ASTG_MpiFilter_mod
-   use ASTG_AbstractFilter_mod
-   use ASTG_LogRecord_mod
+module PFL_MpiFilter_mod
+   use PFL_AbstractFilter_mod
+   use PFL_LogRecord_mod
    use mpi
    implicit none
    private
@@ -151,4 +151,4 @@ contains
    end function getRank
 
 
-end module ASTG_MpiFilter_mod
+end module PFL_MpiFilter_mod

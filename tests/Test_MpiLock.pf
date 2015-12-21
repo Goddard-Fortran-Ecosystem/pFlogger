@@ -1,6 +1,6 @@
 module Test_MpiLock_mod
    use pfunit_mod
-   use astg_MpiLock_mod
+   use PFL_MpiLock_mod
    use mpi
    use MockMpi_mod
    implicit none

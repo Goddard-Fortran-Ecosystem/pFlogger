@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!* MODULE: ASTG_AbstractHandler_mod
+!* MODULE: PFL_AbstractHandler_mod
 !
 !> @brief Abstract class for handlers. 
 !> @details
@@ -21,11 +21,11 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_AbstractHandler_mod
-   use ASTG_Filterer_mod
-   use ASTG_SeverityLevels_mod, only: NOTSET
-   use ASTG_LogRecord_mod
-   use ASTG_Formatter_mod
+module PFL_AbstractHandler_mod
+   use PFL_Filterer_mod
+   use PFL_SeverityLevels_mod, only: NOTSET
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
    
    implicit none
    private
@@ -204,4 +204,4 @@ contains
    end function notEqual
    
 
-end module ASTG_AbstractHandler_mod
+end module PFL_AbstractHandler_mod

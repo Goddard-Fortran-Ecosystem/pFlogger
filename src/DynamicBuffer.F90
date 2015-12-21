@@ -1,5 +1,5 @@
-module ASTG_DynamicBuffer_mod
-   use ASTG_Exception_mod
+module PFL_DynamicBuffer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -118,4 +118,4 @@ contains
       
    end subroutine initialize
 
-end module ASTG_DynamicBuffer_mod
+end module PFL_DynamicBuffer_mod

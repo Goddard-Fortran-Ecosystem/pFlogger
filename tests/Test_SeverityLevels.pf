@@ -1,6 +1,6 @@
 module Test_SeverityLevels_mod
    use pFUnit_mod
-   use ASTG_SeverityLevels_mod
+   use PFL_SeverityLevels_mod
    use iso_fortran_env
    
    implicit none

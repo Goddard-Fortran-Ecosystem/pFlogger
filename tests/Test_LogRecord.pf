@@ -1,7 +1,7 @@
 module Test_LogRecord_mod
    use pFUnit_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_LogRecord_mod
+   use PFL_SeverityLevels_mod
+   use PFL_LogRecord_mod
    use iso_fortran_env
    
    implicit none
@@ -46,7 +46,7 @@ contains
 
 @Test
    subroutine test_args(this)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_LogRecord), intent(inout) :: this
       type (UnlimitedVector) :: args
       

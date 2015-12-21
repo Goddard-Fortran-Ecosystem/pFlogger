@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: ASTG_Logger_mod
+!*MODULE: PFL_Logger_mod
 !
 !> @brief Logger classes and functions.
 !> @details
@@ -17,20 +17,20 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_Logger_mod
-   use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
-   use ASTG_AbstractHandlerPolyVector_mod, only: HandlerVectorIterator => VectorIterator
-   use ASTG_Exception_mod
-   use ASTG_AbstractLogger_mod
-   use ASTG_AbstractHandler_mod
-   use ASTG_StreamHandler_mod
-   use ASTG_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
-   use ASTG_SeverityLevels_mod, only: INFO_LEVEL => INFO
-   use ASTG_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
-   use ASTG_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
-   use ASTG_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
-   use ASTG_LogRecord_mod
-   use ASTG_StringUnlimitedMap_mod
+module PFL_Logger_mod
+   use PFL_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
+   use PFL_AbstractHandlerPolyVector_mod, only: HandlerVectorIterator => VectorIterator
+   use PFL_Exception_mod
+   use PFL_AbstractLogger_mod
+   use PFL_AbstractHandler_mod
+   use PFL_StreamHandler_mod
+   use PFL_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
+   use PFL_SeverityLevels_mod, only: INFO_LEVEL => INFO
+   use PFL_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
+   use PFL_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
+   use PFL_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
+   use PFL_LogRecord_mod
+   use PFL_StringUnlimitedMap_mod
    implicit none
    private
 
@@ -199,7 +199,7 @@ contains
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
    subroutine makeRecord(this, record, level, message, unused, args, extra)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
@@ -240,8 +240,8 @@ contains
 !! The log method needs two parameters - a message and the severity level
 !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST, unused, extra)
-      use ASTG_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use ASTG_ArgListUtilities_mod
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
@@ -513,6 +513,6 @@ contains
    end function getPropagate
 
    
-end module ASTG_Logger_mod
+end module PFL_Logger_mod
 
 

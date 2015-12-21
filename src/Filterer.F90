@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: ASTG_Filterer_mod
+! MODULE: PFL_Filterer_mod
 !
 !> @author 
 !> ASTG staff
@@ -16,12 +16,12 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module ASTG_Filterer_mod
-   use ASTG_Object_mod
-   use ASTG_AbstractFilter_mod
-   use ASTG_LogRecord_mod
-   use ASTG_AbstractFilterPolyVector_mod, only: FilterVector => Vector
-   use ASTG_AbstractFilterPolyVector_mod, only: FilterVectorIterator => VectorIterator
+module PFL_Filterer_mod
+   use PFL_Object_mod
+   use PFL_AbstractFilter_mod
+   use PFL_LogRecord_mod
+   use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
+   use PFL_AbstractFilterPolyVector_mod, only: FilterVectorIterator => VectorIterator
    implicit none
    private
 
@@ -125,7 +125,7 @@ contains
    ! Remove filter from 'this' handler.
    !---------------------------------------------------------------------------
    subroutine removeFilter(this, f)
-      use ASTG_Exception_mod
+      use PFL_Exception_mod
       class(Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: f
 
@@ -161,4 +161,4 @@ contains
    end function getFilters
 
 
-end module ASTG_Filterer_mod
+end module PFL_Filterer_mod

@@ -1,13 +1,13 @@
 ! Singleton pattern for now
-module ASTG_Config_mod
+module PFL_Config_mod
    use FTL
-   use ASTG_Logger_mod
-   use ASTG_Exception_mod
-   use ASTG_SeverityLevels_mod
-   use ASTG_StringAbstractLoggerPolyMap_mod
-   use ASTG_StringFilterMap_mod
-   use ASTG_StringHandlerMap_mod
-   use ASTG_StringFormatterMap_mod
+   use PFL_Logger_mod
+   use PFL_Exception_mod
+   use PFL_SeverityLevels_mod
+   use PFL_StringAbstractLoggerPolyMap_mod
+   use PFL_StringFilterMap_mod
+   use PFL_StringHandlerMap_mod
+   use PFL_StringFormatterMap_mod
 
    implicit none
    private
@@ -49,7 +49,7 @@ contains
 
    subroutine build_formatters(this, formattersDict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use ASTG_Formatter_mod
+      use PFL_Formatter_mod
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: formattersDict
       type (Unusable), optional, intent(in) :: unused
@@ -72,8 +72,8 @@ contains
 
 
    subroutine build_formatter(fmtr, dict)
-      use ASTG_Formatter_mod
-      use ASTG_AbstractHandler_mod
+      use PFL_Formatter_mod
+      use PFL_AbstractHandler_mod
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
 
@@ -102,7 +102,7 @@ contains
 
 
    subroutine build_filters(this, filtersDict, unused, extra)
-      use ASTG_Filter_mod
+      use PFL_Filter_mod
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: filtersDict
@@ -124,7 +124,7 @@ contains
 
 
    function build_filter(dict) result(f)
-      use ASTG_Filter_mod
+      use PFL_Filter_mod
       type (Filter) :: f
       type (Config), intent(in) :: dict
 
@@ -142,7 +142,7 @@ contains
 
    subroutine build_handlers(this, handlersDict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use ASTG_AbstractHandler_mod
+      use PFL_AbstractHandler_mod
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: handlersDict
       type (Unusable), optional, intent(in) :: unused
@@ -164,9 +164,9 @@ contains
    end subroutine build_handlers
    
    subroutine build_handler(h, handlerDict, elements, unused, extra)
-      use ASTG_AbstractHandler_mod
-      use ASTG_StringUtilities_mod, only: toLowerCase
-      use ASTG_Filter_mod
+      use PFL_AbstractHandler_mod
+      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_Filter_mod
       class (AbstractHandler), allocatable, intent(out) :: h
       type (Config), intent(in) :: handlerDict
       type (ConfigElements), intent(in) :: elements
@@ -184,7 +184,7 @@ contains
    contains
 
       subroutine allocate_concrete_handler(h, handlerDict)
-         use ASTG_Filehandler_mod
+         use PFL_Filehandler_mod
          class (AbstractHandler), allocatable, intent(out) :: h
          type (Config), intent(in) :: handlerDict
 
@@ -303,8 +303,8 @@ contains
    end subroutine build_handler
 
    function build_streamhandler(handlerDict) result(h)
-      use ASTG_StreamHandler_mod
-      use ASTG_StringUtilities_mod, only: toLowerCase
+      use PFL_StreamHandler_mod
+      use PFL_StringUtilities_mod, only: toLowerCase
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
       type (Config), intent(in) :: handlerDict
@@ -336,8 +336,8 @@ contains
    end function build_streamhandler
 
    subroutine build_filehandler(h, handlerDict)
-      use ASTG_FileHandler_mod
-      use ASTG_StringUtilities_mod, only: toLowerCase
+      use PFL_FileHandler_mod
+      use PFL_StringUtilities_mod, only: toLowerCase
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
 
@@ -359,10 +359,10 @@ contains
 
 #ifdef LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unused, extra)
-      use ASTG_FileHandler_mod
-      use ASTG_StringUtilities_mod, only: toLowerCase
-      use ASTG_MpiCommConfig_mod
-      use ASTG_StringUnlimitedMap_mod, only: Map
+      use PFL_FileHandler_mod
+      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_MpiCommConfig_mod
+      use PFL_StringUnlimitedMap_mod, only: Map
       use mpi
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -449,7 +449,7 @@ contains
       end if
 
       block
-        use ASTG_FormatString_mod
+        use PFL_FormatString_mod
         fileName = formatString(filename, commMap)
       end block
 
@@ -459,8 +459,8 @@ contains
 #endif
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
-      use ASTG_AbstractHandler_mod
-      use ASTG_StringUtilities_mod, only: toLowerCase
+      use PFL_AbstractHandler_mod
+      use PFL_StringUtilities_mod, only: toLowerCase
       type (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
@@ -689,4 +689,4 @@ contains
       ptr => this%handlers
    end function get_handlers
    
-end module ASTG_Config_mod
+end module PFL_Config_mod
