@@ -15,8 +15,8 @@ module PFL_StringUtilities_mod
    private
 
 !   public :: toString
-   public :: toLowerCase
-   public :: toUpperCase
+   public :: to_lower_case
+   public :: to_upper_case
    public :: toString
    public :: caseInsensitiveLessThan
 
@@ -40,46 +40,46 @@ module PFL_StringUtilities_mod
 contains
 
 
-   pure function toLowerCase(string) result(lowerCase)
+   pure function to_lower_case(string) result(lowerCase)
       character(len=*), intent(in) :: string
       character(len=len_trim(string)) :: lowerCase
 
       integer :: i
 
       do i= 1, len_trim(string)
-         lowerCase(i:i) = toLowerCaseChar(string(i:i))
+         lowerCase(i:i) = to_lower_caseChar(string(i:i))
       end do
 
    contains
 
-      pure function toLowerCaseChar(char) result(lowerCaseChar)
+      pure function to_lower_caseChar(char) result(lowerCaseChar)
          character :: lowerCaseChar
          character, intent(in) :: char
 
-         if (isUpperCase(char)) then
+         if (is_upper_case(char)) then
             lowerCaseChar = achar(iachar(char) - UPPER_LOWER_DELTA)
          else
             lowerCaseChar = char
          end if
 
-      end function toLowerCaseChar
+      end function to_lower_caseChar
 
-   end function toLowerCase
+   end function to_lower_case
 
 
-   pure function toUpperCase(string) result(upperCase)
+   pure function to_upper_case(string) result(upperCase)
       character(len=*), intent(in) :: string
       character(len=len_trim(string)) :: upperCase
 
       integer :: i
 
       do i= 1, len_trim(string)
-         upperCase(i:i) = toUpperCaseChar(string(i:i))
+         upperCase(i:i) = to_upper_caseChar(string(i:i))
       end do
 
    contains
 
-      pure function toUpperCaseChar(char) result(upperCaseChar)
+      pure function to_upper_caseChar(char) result(upperCaseChar)
          character :: upperCaseChar
          character, intent(in) :: char
 
@@ -89,12 +89,12 @@ contains
             upperCaseChar = char
          end if
 
-      end function toUpperCaseChar
+      end function to_upper_caseChar
 
-   end function toUpperCase
+   end function to_upper_case
 
 
-   pure logical function isUpperCase(char)
+   pure logical function is_upper_case(char)
       character(len=1), intent(in) :: char
       
       integer :: i
@@ -102,9 +102,9 @@ contains
       integer, parameter :: iZ = iachar('Z')
 
       i = iachar(char)
-      isUpperCase = ((i >= iA) .and. (i <= iZ))
+      is_upper_case = ((i >= iA) .and. (i <= iZ))
 
-   end function isUpperCase
+   end function is_upper_case
 
 
    pure logical function isLowerCase(char)

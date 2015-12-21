@@ -56,14 +56,14 @@ module PFL_FormatParser_mod
       procedure (ContextInterface), pointer :: previousContext => null()
    contains
       procedure :: parse
-      procedure :: parseCharacter
-      procedure :: setContext
-      procedure :: getContext
-      procedure :: setBuffer ! for testing
-      procedure :: getBuffer ! for testing
-      procedure :: pushContext
-      procedure :: popContext
-      procedure :: pushChar
+      procedure :: parse_character
+      procedure :: set_context
+      procedure :: get_context
+      procedure :: set_buffer ! for testing
+      procedure :: get_buffer ! for testing
+      procedure :: push_context
+      procedure :: pop_context
+      procedure :: push_char
    end type FormatParser
 
    !-----------------
@@ -98,51 +98,51 @@ contains
       parser%buffer = ''
       parser%currentPosition = 0 ! buffer is empty
 
-      call parser%setContext(textContext) ! assume start with text (but confirm)
+      call parser%set_context(textContext) ! assume start with text (but confirm)
 
    end function newFormatParser
 
 
-   subroutine setContext(this, context)
+   subroutine set_context(this, context)
       class (FormatParser), intent(inout) :: this
       procedure (ContextInterface) :: context
 
       this%context => context
 
-   end subroutine setContext
+   end subroutine set_context
 
 
-   subroutine getContext(this, context)
+   subroutine get_context(this, context)
       class (FormatParser), intent(in) :: this
       procedure (ContextInterface), pointer :: context
 
       context => this%context
 
-   end subroutine getContext
+   end subroutine get_context
 
 
-   subroutine popContext(this)
+   subroutine pop_context(this)
       class (FormatParser), intent(inout) :: this
 
       this%context => this%previousContext
       nullify(this%previousContext)
 
-   end subroutine popContext
+   end subroutine pop_context
 
-   subroutine pushContext(this)
+   subroutine push_context(this)
       class (FormatParser), intent(inout) :: this
       this%previousContext => this%context
-   end subroutine pushContext
+   end subroutine push_context
 
 
    ! Delegate to context for current context
-   subroutine parseCharacter(this, char)
+   subroutine parse_character(this, char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
 
       call this%context(char)
 
-   end subroutine parseCharacter
+   end subroutine parse_character
 
 
    ! Delegate to context for current context
@@ -157,32 +157,32 @@ contains
       end if
 
       do pos = 1, len(str)
-         call this%parseCharacter(str(pos:pos))
+         call this%parse_character(str(pos:pos))
       end do
 
-      call this%parseCharacter(C_NULL_CHAR)
+      call this%parse_character(C_NULL_CHAR)
 
    end subroutine parse
 
 
-   subroutine setBuffer(this, buffer)
+   subroutine set_buffer(this, buffer)
       class (FormatParser), intent(inout) :: this
       character(len=*), intent(in) :: buffer
       
       this%buffer = buffer
       this%currentPosition = len(buffer)
-   end subroutine setBuffer
+   end subroutine set_buffer
 
 
    ! This should be a function that returns a pointer.
    ! Unfortunately gfortran 4.9.1 munges string pointers in
    ! that context.
-   subroutine getBuffer(this, buffer)
+   subroutine get_buffer(this, buffer)
       character(:), pointer :: buffer
       class (FormatParser), target, intent(in) :: this
 
       buffer => this%buffer(1:this%currentPosition)
-   end subroutine getBuffer
+   end subroutine get_buffer
 
 
 
@@ -194,17 +194,17 @@ contains
 
       select case (char)
       case ("'")
-         call this%pushContext()
-         call this%setContext(singleQuoteContext)
-         call this%pushChar(char)
+         call this%push_context()
+         call this%set_context(singleQuoteContext)
+         call this%push_char(char)
       case ('"')
-         call this%pushContext()
-         call this%setContext(doubleQuoteContext)
-         call this%pushChar(char)
+         call this%push_context()
+         call this%set_context(doubleQuoteContext)
+         call this%push_char(char)
       case (ESCAPE)
-         call this%setContext(escapeContext)
+         call this%set_context(escapeContext)
       case (FORMAT_DELIMITER, C_NULL_CHAR)
-         call this%setContext(positionContext)
+         call this%set_context(positionContext)
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
@@ -213,13 +213,13 @@ contains
          end associate
          return ! char should not be put in buffer
       case default
-         call this%pushChar(char)
+         call this%push_char(char)
       end select
 
    end subroutine textContext
 
 
-   subroutine pushChar(this,char)
+   subroutine push_char(this,char)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
       
@@ -228,7 +228,7 @@ contains
         this%buffer(pos:pos) = char
       end associate
       
-   end subroutine pushChar
+   end subroutine push_char
 
 
    ! Single Quote context treats other special characters as ordinary.
@@ -239,9 +239,9 @@ contains
 
       select case (char)
       case ("'")
-         call this%popContext()
+         call this%pop_context()
       case (C_NULL_CHAR)
-         call this%setContext(illegalContext)
+         call this%set_context(illegalContext)
          call throw('FormatParser::singleQuoteContext() - unclosed single quote')
          return
       case default
@@ -264,9 +264,9 @@ contains
 
       select case (char)
       case ('"')
-         call this%popContext()
+         call this%pop_context()
       case (C_NULL_CHAR)
-         call this%setContext(illegalContext)
+         call this%set_context(illegalContext)
          call throw('FormatParser::doubleQuoteContext() - unclosed double quote')
          return
       case default
@@ -289,36 +289,36 @@ contains
 
         select case (char)
         case (SPACE, TERMINATOR, C_NULL_CHAR)
-           call this%setContext(textContext)
+           call this%set_context(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
               pos = 0
               if (char == TERMINATOR) return ! discard char
            else
-              call this%setContext(illegalContext)
+              call this%set_context(illegalContext)
               call throw('FormatParser::positionContext() - empty edit descriptor')
               return
            end if
         case ("'")
-           call this%pushContext()
-           call this%setContext(singleQuoteContext)
+           call this%push_context()
+           call this%set_context(singleQuoteContext)
         case ('"')
-           call this%pushContext()
-           call this%setContext(doubleQuoteContext)
+           call this%push_context()
+           call this%set_context(doubleQuoteContext)
         case (OPEN_PARENTHESES) ! (
            if (pos == 0) then
-              call this%setContext(keywordContext)
+              call this%set_context(keywordContext)
               return ! do not retain char
            end if
         case (FORMAT_DELIMITER) ! repeated delimeter should be interpreted as text
            if (pos == 0) then
-              call this%setContext(textContext)
+              call this%set_context(textContext)
            end if
         case default
          ! stay position format
         end select
 
-        call this%pushChar(char)
+        call this%push_char(char)
 
       end associate
 
@@ -336,11 +336,11 @@ contains
         select case (char)
         case (KEYWORD_SEPARATOR)
            if (pos == 0) then
-              call this%setContext(illegalContext)
+              call this%set_context(illegalContext)
               call throw('FormatParser::keywordContext() - missing keyword?')
            end if
         case (C_NULL_CHAR)
-           call this%setContext(illegalContext)
+           call this%set_context(illegalContext)
            idx = index(this%buffer, KEYWORD_SEPARATOR)
            if (pos == 0) then
               call throw('FormatParser::keywordContext() - missing keyword')
@@ -349,23 +349,23 @@ contains
            elseif (idx == 1) then
               call throw('FormatParser::keywordContext() - missing keyword?')
            elseif (idx == pos) then
-              call this%setContext(textContext)
+              call this%set_context(textContext)
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos) // '*'))
               pos = 0
            else
-              call this%setContext(textContext)
+              call this%set_context(textContext)
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0
            end if
            return
         case (SPACE, TERMINATOR)
-           call this%setContext(textContext)
+           call this%set_context(textContext)
            if (pos > 0) then ! send buffer to new token
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
               pos = 0
               if (char == TERMINATOR) return ! discard char
            else
-              call this%setContext(illegalContext)
+              call this%set_context(illegalContext)
               call throw('FormatParser::keywordContext() - empty edit descriptor')
               return
            end if
@@ -391,9 +391,9 @@ contains
         case ('n','N') ! newline
            pos = pos + 1
            this%buffer(pos:pos) = new_line('a')
-           call this%setContext(textContext)
+           call this%set_context(textContext)
         case default
-           call this%setContext(illegalContext)
+           call this%set_context(illegalContext)
            call throw('FormatParser::escapeContext() - ' // &
                 & 'no such escape sequence: ' // ESCAPE // char)
         end select

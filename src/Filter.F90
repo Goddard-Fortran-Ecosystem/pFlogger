@@ -34,12 +34,12 @@ module PFL_Filter_mod
       private
       character(len=:), allocatable :: name
    contains
-      procedure :: doFilter
+      procedure :: do_filter
       procedure :: equal
       procedure :: notEqual
       generic :: operator(/=) => notEqual
-      procedure :: setName
-      procedure :: getName
+      procedure :: set_name
+      procedure :: get_name
       procedure :: toString_self
    end type Filter
 
@@ -65,7 +65,7 @@ contains
       type (Filter) :: f
       character(len=*), intent(in) :: name
 
-      call f%setName(name)
+      call f%set_name(name)
 
    end function newFilter
 
@@ -83,7 +83,7 @@ contains
       type (Filter), intent(out) :: f
       character(len=*), intent(in) :: name
 
-      call f%setName(name)
+      call f%set_name(name)
 
    end subroutine initFilter
 
@@ -97,24 +97,24 @@ contains
    ! Is the specified record to be logged? Returns FALSE for no, TRUE for
    ! yes.
    !---------------------------------------------------------------------------
-   logical function doFilter(this, record)
+   logical function do_filter(this, record)
       class (Filter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
       character(len=:), allocatable :: recordName
       integer :: n
 
-      recordName = record%getName()
+      recordName = record%get_name()
 
       n = len(this%name)
 
       if (sameString(this%name,recordName)) then
-         doFilter = .true.  ! do emit
+         do_filter = .true.  ! do emit
       else
-         doFilter = .false. ! do NOT emit
+         do_filter = .false. ! do NOT emit
       end if
 
-   end function doFilter
+   end function do_filter
 
    logical function sameString(a, b) result(same)
       character(len=*), intent(in) :: a
@@ -190,34 +190,34 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getName
+   ! get_name
    !
    ! DESCRIPTION: 
    ! Get the name associated with this filter.
    !---------------------------------------------------------------------------  
-   function getName(this) result(name)
+   function get_name(this) result(name)
       class (Filter), intent(in) :: this
       character(len=:), allocatable :: name
 
       name = this%name
 
-   end function getName
+   end function get_name
 
 
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! setName
+   ! set_name
    !
    ! DESCRIPTION: 
    ! Set the name associated with this filter.
    !---------------------------------------------------------------------------  
-   subroutine setName(this, name)
+   subroutine set_name(this, name)
       class (Filter), intent(inout) :: this
       character(len=*), intent(in) :: name
 
       this%name = name
 
-   end subroutine setName
+   end subroutine set_name
 
    
    function toString_self(this) result(string)

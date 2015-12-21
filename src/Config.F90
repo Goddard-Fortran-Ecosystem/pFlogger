@@ -135,7 +135,7 @@ contains
       if (found) then
          f = Filter(name)
       else
-         call throw('FTL::Config::build_filter() - empty list of filters or nameless filter.')
+         call throw('PFL::Config::build_filter() - empty list of filters or nameless filter.')
       end if
 
    end function build_filter
@@ -165,7 +165,7 @@ contains
    
    subroutine build_handler(h, handlerDict, elements, unused, extra)
       use PFL_AbstractHandler_mod
-      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_StringUtilities_mod, only: to_lower_case
       use PFL_Filter_mod
       class (AbstractHandler), allocatable, intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -193,7 +193,7 @@ contains
 
          className = handlerDict%toString('class', default='unknown')
 
-         select case (toLowerCase(className))
+         select case (to_lower_case(className))
          case ('streamhandler')
             allocate(h, source=build_streamhandler(handlerDict))
          case ('filehandler')
@@ -205,7 +205,7 @@ contains
               allocate(h, source=fh)
 #endif              
          case default
-            call throw("ASTG::Config::build_handler() - unsupported class: '" // className //"'.")
+            call throw("PFL::Config::build_handler() - unsupported class: '" // className //"'.")
          end select
 
       end subroutine allocate_concrete_handler
@@ -224,10 +224,10 @@ contains
 
          ! If that failed - interpret as a name from SeverityLevels.
          if (iostat /= 0) then
-            level = nameToLevel(levelName)
+            level = name_to_level(levelName)
          end if
 
-         call h%setLevel(level)
+         call h%set_level(level)
 
       end subroutine set_handler_level
       
@@ -244,9 +244,9 @@ contains
 
          if (found) then  ! OK if no formatter
             if (formatters%count(formatterName) == 1) then
-               call h%setFormatter(formatters%at(formatterName))
+               call h%set_formatter(formatters%at(formatterName))
             else
-               call throw("ASTG::Config::build_handler() - formatter '"//formatterName//"' not found.")
+               call throw("PFL::Config::build_handler() - formatter '"//formatterName//"' not found.")
             end if
          end if
 
@@ -268,7 +268,7 @@ contains
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw("FTL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
+               call throw("PFL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -288,9 +288,9 @@ contains
                  class (Filter), pointer :: f
                  f => filters%at(name)
                  if (associated(f)) then
-                    call h%addFilter(f)
+                    call h%add_filter(f)
                  else
-                    call throw("FTL::Config::build_handler() - unknown filter'"//name//"'.")
+                    call throw("PFL::Config::build_handler() - unknown filter'"//name//"'.")
                  end if
                end block
             end do
@@ -304,7 +304,7 @@ contains
 
    function build_streamhandler(handlerDict) result(h)
       use PFL_StreamHandler_mod
-      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_StringUtilities_mod, only: to_lower_case
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
       type (Config), intent(in) :: handlerDict
@@ -321,13 +321,13 @@ contains
 
       ! if failed, maybe it is a defined name?
       if (iostat /= 0) then ! try as a string
-         select case (toLowerCase(unitName))
+         select case (to_lower_case(unitName))
          case ('output_unit','*')
             unit = OUTPUT_UNIT
          case ('error_unit')
             unit = ERROR_UNIT
          case default
-            call throw("ASTG::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
+            call throw("PFL::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
             return
          end select
       end if
@@ -337,7 +337,7 @@ contains
 
    subroutine build_filehandler(h, handlerDict)
       use PFL_FileHandler_mod
-      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_StringUtilities_mod, only: to_lower_case
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
 
@@ -349,7 +349,7 @@ contains
       fileName = handlerDict%toString('filename', found=found)
       if (found) then
       else
-         call throw("ASTG::Config::build_FileHandler() - must provide file name.")
+         call throw("PFL::Config::build_FileHandler() - must provide file name.")
          return
       end if
 
@@ -360,7 +360,7 @@ contains
 #ifdef LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unused, extra)
       use PFL_FileHandler_mod
-      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_StringUtilities_mod, only: to_lower_case
       use PFL_MpiCommConfig_mod
       use PFL_StringUnlimitedMap_mod, only: Map
       use mpi
@@ -383,7 +383,7 @@ contains
       fileName = handlerDict%toString('filename', found=found)
       if (found) then
       else
-         call throw("ASTG::Config::build_MpiFileHandler() - must provide file name.")
+         call throw("PFL::Config::build_MpiFileHandler() - must provide file name.")
          return
       end if
 
@@ -392,7 +392,7 @@ contains
          allocate(comms(0))
          n = len_trim(communicator_name_list)
          if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
-            call throw("ASTG::Config::build_mpifilehandler() - misformed list of communicators.")
+            call throw("PFL::Config::build_mpifilehandler() - misformed list of communicators.")
             return
          end if
 
@@ -416,7 +416,7 @@ contains
                if (extra%count(name) == 1) then
                   comms = [comms, extra%toInteger(name)]
                else
-                  call throw("ASTG::Config::build_mpifilehandler() - unknown communicator '"//name//"'.")
+                  call throw("PFL::Config::build_mpifilehandler() - unknown communicator '"//name//"'.")
                   return
                end if
             end select
@@ -460,7 +460,7 @@ contains
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use PFL_AbstractHandler_mod
-      use PFL_StringUtilities_mod, only: toLowerCase
+      use PFL_StringUtilities_mod, only: to_lower_case
       type (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
@@ -488,9 +488,9 @@ contains
             ! Try as integer
             read(levelName,*, iostat=iostat) level
             if (iostat /= 0) then
-               level = nameToLevel(levelName)
+               level = name_to_level(levelName)
             end if
-            call lgr%setLevel(level)
+            call lgr%set_level(level)
          else
             ! leave as default level
          end if
@@ -508,7 +508,7 @@ contains
 
          propagate = loggerDict%toLogical('propagate', found=found)
          if (found) then
-            call lgr%setPropagate(propagate)
+            call lgr%set_propagate(propagate)
          end if
 
       end subroutine set_logger_propagate
@@ -532,7 +532,7 @@ contains
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw("Config::build_logger() - filters is not of the form '[a,b,...,c]'")
+               call throw("PFL::Config::build_logger() - filters is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -550,9 +550,9 @@ contains
                end if
                iter = filters%find(name)
                if (iter /= filters%end()) then
-                  call lgr%addFilter(iter%value())
+                  call lgr%add_filter(iter%value())
                else
-                  call throw("Config::build_logger() - unknown filter'"//name//"'.")
+                  call throw("PFL::Config::build_logger() - unknown filter'"//name//"'.")
                end if
             end do
             
@@ -597,7 +597,7 @@ contains
                  if (present(extra)) then
                     comm = extra%toInteger(communicator_name, found=found)
                  else
-                    call throw('ASTG::Config::build_logger() - MPI communicator not found.')
+                    call throw('PFL::Config::build_logger() - MPI communicator not found.')
                     return
                  end if
               end select
@@ -612,7 +612,7 @@ contains
          if (found) then
             n = len_trim(handlerNamesList)
             if (handlerNamesList(1:1) /= '[' .or. handlerNamesList(n:n) /= ']') then
-               call throw("ASTG::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
+               call throw("PFL::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -632,9 +632,9 @@ contains
                iter = handlers%find(name)
                if (iter /= handlers%end()) then
                   h => iter%value()
-                  call lgr%addHandler(h)
+                  call lgr%add_handler(h)
                else
-                  call throw("Config::build_logger() - unknown handler'"//name//"'.")
+                  call throw("PFL::Config::build_logger() - unknown handler'"//name//"'.")
                end if
             end do
             
@@ -657,12 +657,12 @@ contains
       version = dict%toInteger('schema_version', found=found)
       if (found) then
          if (version /= 1) then
-            call throw('ASTG::Config::check_schema_version() -' // &
+            call throw('PFL::Config::check_schema_version() -' // &
                  & ' unsupported schema_version. Allowed values are [1].')
             return
          end if
       else
-         call throw('ASTG::Config::check_schema_version() -' // &
+         call throw('PFL::Config::check_schema_version() -' // &
               & ' must specify a schema_version for Config.')
       end if
 

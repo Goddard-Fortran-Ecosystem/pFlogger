@@ -46,8 +46,8 @@ module PFL_Logger_mod
       logical :: propagate = .true.
    contains
 
-      procedure :: setName
-      procedure :: getName
+      procedure :: set_name
+      procedure :: get_name
       procedure :: isEnabledFor
       procedure :: log
       procedure :: debug
@@ -55,18 +55,18 @@ module PFL_Logger_mod
       procedure :: warning
       procedure :: error
       procedure :: critical
-      procedure :: addHandler
-      procedure :: removeHandler
-      procedure :: getHandlers
-      procedure :: setLevel
-      procedure :: getLevel
+      procedure :: add_handler
+      procedure :: remove_handler
+      procedure :: get_handlers
+      procedure :: set_level
+      procedure :: get_level
       procedure :: log_
       procedure :: emit
-      procedure :: makeRecord
-      procedure :: setParent
-      procedure :: getParent
-      procedure :: setPropagate
-      procedure :: getPropagate
+      procedure :: make_record
+      procedure :: set_parent
+      procedure :: get_parent
+      procedure :: set_propagate
+      procedure :: get_propagate
 
    end type Logger
 
@@ -105,13 +105,13 @@ contains
       ! Initialize the logger with the name "ROOT"  
         name_ = 'ROOT'
       end if  
-      call alog%setName(name_)
+      call alog%set_name(name_)
       aLog%name = name_
 
       level_ = INFO_LEVEL
       if (present (level)) level_ = level
 ! TODO: Need to NOTSET when inheritance is working
-      call aLog%setLevel(level_)
+      call aLog%set_level(level_)
 
       alog%handlers = HandlerVector()
       
@@ -119,39 +119,39 @@ contains
 
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: setName
+!*ROUTINE: set_name
 !
 !> @brief Set the name for this logger.
 !---------------------------------------------------------------------------
-   subroutine setName(this, name)
+   subroutine set_name(this, name)
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: name
 
       this%name = name
 
-   end subroutine setName
+   end subroutine set_name
 
 
 !---------------------------------------------------------------------------  
-!*FUNCTION: getName
+!*FUNCTION: get_name
 !
 !> @brief Get the name for this logger.
 !---------------------------------------------------------------------------
-   function getName(this) result(name)
+   function get_name(this) result(name)
       character(len=:), allocatable :: name
       class (Logger), intent(in) :: this
       
       name = this%name
       
-   end function getName
+   end function get_name
 
    
 !---------------------------------------------------------------------------  
-!*ROUTINE: addHandler
+!*ROUTINE: add_handler
 !
 !> @brief Add the specified handler to this logger and increment handlers vector.
 !---------------------------------------------------------------------------
-   subroutine addHandler(this, handler)
+   subroutine add_handler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
       
@@ -168,15 +168,15 @@ contains
       ! increment
       call this%handlers%push_back(handler)
       
-   end subroutine addHandler
+   end subroutine add_handler
 
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: removeHandler
+!*ROUTINE: remove_handler
 !
 !> @brief Remove the specified handler to this logger.
 !---------------------------------------------------------------------------
-   subroutine removeHandler(this, handler)
+   subroutine remove_handler(this, handler)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
@@ -187,18 +187,18 @@ contains
          call this%handlers%erase(this%handlers%begin() + i - 1)
       else
          ! Only can get here if handler not found
-         call throw('Logger%removeHandler() called - logger has no such handler.')
+         call throw('PFL::Logger%remove_handler() called - logger has no such handler.')
       end if
 
-   end subroutine removeHandler
+   end subroutine remove_handler
 
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: makeRecord
+!*ROUTINE: make_record
 !
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
-   subroutine makeRecord(this, record, level, message, unused, args, extra)
+   subroutine make_record(this, record, level, message, unused, args, extra)
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
@@ -210,10 +210,10 @@ contains
 
       character(len=:), allocatable :: name
 
-      name = this%getName()
+      name = this%get_name()
       call initLogRecord(record, name, level, message, args=args, extra=extra)
       
-   end subroutine makeRecord
+   end subroutine make_record
 
 
 !---------------------------------------------------------------------------  
@@ -252,10 +252,10 @@ contains
       type (UnlimitedVector) :: args
       type (LogRecord) :: record
 
-      args = makeArgVector(ARG_LIST)
-      call this%makeRecord(record, level, message, args=args, extra=extra)
+      args = make_arg_vector(ARG_LIST)
+      call this%make_record(record, level, message, args=args, extra=extra)
 
-      if (this%doFilter(record)) then
+      if (this%do_filter(record)) then
          call this%emit(record)
       end if
 
@@ -417,100 +417,100 @@ contains
 
    
 !---------------------------------------------------------------------------  
-!*ROUTINE: getHandlers
+!*ROUTINE: get_handlers
 !
 !> @brief Get handlers pointer associated with this logger.
 !---------------------------------------------------------------------------
-   function getHandlers(this) result(handlers)
+   function get_handlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
       type (HandlerVector), pointer :: handlers
       
       handlers => this%handlers
       
-   end function getHandlers
+   end function get_handlers
 
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: setLevel
+!*ROUTINE: set_level
 !
 !> @brief Set the logging level of this logger.
 !---------------------------------------------------------------------------
-   subroutine setLevel(this, level)
+   subroutine set_level(this, level)
       class (Logger), intent(inout) :: this
       integer, intent(in) :: level      
 
       this%level = level
       
-   end subroutine setLevel
+   end subroutine set_level
 
 
 !---------------------------------------------------------------------------  
-!*FUNCTION: getLevel
+!*FUNCTION: get_level
 !
 !> @brief Get the logging level of this logger.
 !---------------------------------------------------------------------------
-   function getLevel(this) result(level)
+   function get_level(this) result(level)
       class (Logger), intent(inout) :: this
       integer :: level
       
       level = this%level
       
-   end function getLevel
+   end function get_level
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: setParent
+!*ROUTINE: set_parent
 !
 !> @brief Set parent for 'this' logger.
 !---------------------------------------------------------------------------
-   subroutine setParent(this, parent)
+   subroutine set_parent(this, parent)
       class (Logger), intent(inout) :: this
       class (Logger), target, intent(in) :: parent
 
       this%parent => parent
 
-   end subroutine setParent
+   end subroutine set_parent
 
    
 !---------------------------------------------------------------------------  
-!*FUNCTION: getParent
+!*FUNCTION: get_parent
 !
 !> @brief Get parent of "this" logger.
 !---------------------------------------------------------------------------
-   function getParent(this) result(parent)
+   function get_parent(this) result(parent)
       class (Logger), pointer :: parent
       class (Logger), intent(in) :: this
 
       parent => this%parent
 
-   end function getParent
+   end function get_parent
 
 
 !---------------------------------------------------------------------------  
-!*ROUTINE: setPropagate
+!*ROUTINE: set_propagate
 !
 !> @brief Set propagate for 'this' logger.
 !---------------------------------------------------------------------------
-   subroutine setPropagate(this, propagate)
+   subroutine set_propagate(this, propagate)
       class (Logger), intent(inout) :: this
       logical, intent(in) :: propagate
 
       this%propagate = propagate
 
-   end subroutine setPropagate
+   end subroutine set_propagate
 
    
 !---------------------------------------------------------------------------  
-!*FUNCTION: getPropagate
+!*FUNCTION: get_propagate
 !
 !> @brief Get propagate of "this" logger.
 !---------------------------------------------------------------------------
-   function getPropagate(this) result(propagate)
+   function get_propagate(this) result(propagate)
       logical :: propagate
       class (Logger), intent(in) :: this
 
       propagate = this%propagate
 
-   end function getPropagate
+   end function get_propagate
 
    
 end module PFL_Logger_mod

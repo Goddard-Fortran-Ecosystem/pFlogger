@@ -44,7 +44,7 @@ module PFL_FastFormatter_mod
    end type FastFormatter
 
    interface FastFormatter
-      module procedure newFormatter
+      module procedure new_FastFormatter
    end interface FastFormatter
    
    
@@ -53,17 +53,17 @@ contains
  
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! newFormatter
+   ! new_FastFormatter
    !
    ! DESCRIPTION: 
    ! Initialize a formatter with specified format strings or a default as
    ! described above. Allow for specialized date formatting using the optional
    ! datefmt argument.
    !---------------------------------------------------------------------------
-   function newFormatter() result(f)
+   function new_FastFormatter() result(f)
       type (FastFormatter) :: f
       
-   end function newFormatter
+   end function new_FastFormatter
 
 
    !---------------------------------------------------------------------------  
@@ -88,7 +88,7 @@ contains
       class (FastFormatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
 
-      logMessage = record%messageFormat
+      logMessage = record%message_format
 
    end function format
 

@@ -9,47 +9,47 @@ contains
 
 
 @test
-   subroutine test_formatVector()
+   subroutine test_format_vector()
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      found = FormatString('x',  makeArgVector())
+      found = FormatString('x',  make_arg_vector())
       expected = 'x'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
-      found = formatString('i %i3.3', makeArgVector(9))
+      found = formatString('i %i3.3', make_arg_vector(9))
       expected = 'i 009'
       @assertEqual(expected, found)
 
-      found = formatString('x=%f4.2~.', makeArgVector(1.23))
+      found = formatString('x=%f4.2~.', make_arg_vector(1.23))
       expected ='x=1.23.'
       @assertEqual(expected, found)
 
-   end subroutine test_formatVector
+   end subroutine test_format_vector
 
 
 @test
-   subroutine test_formatVector_tooFewArgs()
+   subroutine test_format_vector_tooFewArgs()
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      found = formatString('i %i3.3 %i2.2', makeArgVector(1))
-      @assertExceptionRaised('FormatString::formatVector() - not enough values for format string.')
+      found = formatString('i %i3.3 %i2.2', make_arg_vector(1))
+      @assertExceptionRaised('FormatString::format_vector() - not enough values for format string.')
 
-   end subroutine test_formatVector_tooFewArgs
+   end subroutine test_format_vector_tooFewArgs
 
 @test
-   subroutine test_formatVector_tooManyArgs()
+   subroutine test_format_vector_tooManyArgs()
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      found = formatString('i %i3.3', makeArgVector(1,2))
-      @assertExceptionRaised('FormatString::formatVector() - not all arguments converted during string formatting.')
+      found = formatString('i %i3.3', make_arg_vector(1,2))
+      @assertExceptionRaised('FormatString::format_vector() - not all arguments converted during string formatting.')
       
-   end subroutine test_formatVector_tooManyArgs
+   end subroutine test_format_vector_tooManyArgs
 
 @test
-   subroutine test_formatMap()
+   subroutine test_format_map()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
@@ -64,10 +64,10 @@ contains
       expected = 'i= 1 f= F s=word x=  1.23'
       @assertEqual(expected, found)
 
-   end subroutine test_formatMap
+   end subroutine test_format_map
 
 @test
-   subroutine test_formatMap_missingKey()
+   subroutine test_format_map_missingKey()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
@@ -76,12 +76,12 @@ contains
       call extra%insert('i',1)
 
       found = formatString('i=%(i)i2 f=%(f)*', extra)
-      @assertExceptionRaised('FormatString::formatMap() - no such keyword: <f> in "extra".')
+      @assertExceptionRaised('FormatString::format_map() - no such keyword: <f> in "extra".')
 
-   end subroutine test_formatMap_missingKey
+   end subroutine test_format_map_missingKey
 
 @test
-   subroutine test_formatMap_illegalPositionToken()
+   subroutine test_format_map_illegalPositionToken()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
@@ -90,9 +90,9 @@ contains
       call extra%insert('i',1)
 
       found = formatString('i=%(i)i2 %i', extra)
-      @assertExceptionRaised('FormatString::formatMap() - position arguments not allowed.')
+      @assertExceptionRaised('FormatString::format_map() - position arguments not allowed.')
 
-   end subroutine test_formatMap_illegalPositionToken
+   end subroutine test_format_map_illegalPositionToken
 
 
 @test
@@ -100,7 +100,7 @@ contains
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      found = formatString('%*', makeArgVector(1))
+      found = formatString('%*', make_arg_vector(1))
       expected = '1'
       @assertEqual(expected, found)
 
@@ -135,11 +135,11 @@ contains
       integer :: m(3) = [1,2,3]
       real :: x(3) = [1.2,2.3,3.4]
 
-      found = formatString('%4(f3.1,1x)', makeArgVector(wrapArray(x)))
+      found = formatString('%4(f3.1,1x)', make_arg_vector(wrapArray(x)))
       expected = '1.2 2.3 3.4'  ! note never has a trailing space
       @assertEqual(expected, found, whitespace=KEEP_ALL)
       
-      found = formatString('%5(I3.3:/)', makeArgVector(wrapArray(m)))
+      found = formatString('%5(I3.3:/)', make_arg_vector(wrapArray(m)))
       expected = '001' // new_line('a') // '002' // new_line('a') // '003'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
@@ -155,7 +155,7 @@ contains
 
       arr = reshape([1.2,2.3,3.4,4.5], [2,2])
 
-      found = formatString('%4(f3.1,:,1x)', makeArgVector(wrapArray(arr)))
+      found = formatString('%4(f3.1,:,1x)', make_arg_vector(wrapArray(arr)))
       expected = '1.2 2.3 3.4 4.5'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
@@ -173,7 +173,7 @@ contains
 
       arr = reshape([(i,i=1,6)],[2,1,3])
 
-      found = formatString('%3i3', makeArgVector(wrapArray(arr)))
+      found = formatString('%3i3', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3' // new_line('a') // '  4  5  6'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
@@ -191,7 +191,7 @@ contains
 
       arr = reshape([(i,i=1,12)],[2,1,3,2])
 
-      found = formatString('%6i3', makeArgVector(wrapArray(arr)))
+      found = formatString('%6i3', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3  4  5  6' // new_line('a') // &
            &  '  7  8  9 10 11 12'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
@@ -210,7 +210,7 @@ contains
 
       arr = reshape([(i,i=1,12)],[2,1,3,2,1])
 
-      found = formatString('%6i3', makeArgVector(wrapArray(arr)))
+      found = formatString('%6i3', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3  4  5  6' // new_line('a') // &
            &  '  7  8  9 10 11 12'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
@@ -225,7 +225,7 @@ contains
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       character(len=:), allocatable :: found
 
-      found = formatString('%i2.2-',makeArgVector(1))
+      found = formatString('%i2.2-',make_arg_vector(1))
       @assertExceptionRaised('FormatString::format*() - bad format "i2.2-"')
 
    end subroutine test_badFormat
@@ -238,7 +238,7 @@ contains
 
       integer :: m(5) = [1,2,3,4,5]
 
-      found = formatString('%5(i1.1,:,"-")', makeArgVector(wrapArray(m)))
+      found = formatString('%5(i1.1,:,"-")', make_arg_vector(wrapArray(m)))
       expected = '1-2-3-4-5'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
       

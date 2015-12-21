@@ -16,7 +16,7 @@ foreach(file ${pfSources})
 endforeach()
 
 set (SRCS
-   initTests.F90
+   init_tests.F90
    MockHandler.F90
    MockDateFormat.F90
    MockSimTime.F90
@@ -48,7 +48,6 @@ if (MPI)
     MockMpi.F90
     )
   list (APPEND TEST_SRCS
-    Test_MpiFileHandler.F90
     Test_MpiFilter.F90
     Test_MpiFormatter.F90
     Test_MpiCommConfig.F90
@@ -79,7 +78,7 @@ include_directories(
 # Targets:
 
 link_directories(${FTL}/lib)
-add_definitions (-DPFUNIT_EXTRA_INITIALIZE=initTests)
+add_definitions (-DPFUNIT_EXTRA_INITIALIZE=init_tests)
 
 # Can this be made to work?
 #set_target_properties (${EXE}

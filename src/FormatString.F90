@@ -33,16 +33,16 @@ module PFL_FormatString_mod
 #endif
 
    interface FormatString
-      module procedure formatMap
-      module procedure formatVector
-      module procedure formatPreparsed
+      module procedure format_map
+      module procedure format_vector
+      module procedure format_preparsed
    end interface FormatString
 
 #ifndef __GFORTRAN__
    interface operator(.fmt.)
-      module procedure formatMap
-      module procedure formatVector
-      module procedure formatPreparsed
+      module procedure format_map
+      module procedure format_vector
+      module procedure format_preparsed
    end interface operator(.fmt.)
 #endif
 
@@ -51,7 +51,7 @@ module PFL_FormatString_mod
 contains
 
 
-   function formatMap(fmt, dictionary) result(string)
+   function format_map(fmt, dictionary) result(string)
       use PFL_FormatToken_mod
       use PFL_StringUnlimitedMap_mod, only: Map
       character(len=:), allocatable :: string
@@ -61,11 +61,11 @@ contains
       type (FormatParser) :: p
 
       call p%parse(fmt)
-      string = formatPreparsed(p, dictionary)
+      string = format_preparsed(p, dictionary)
 
-   end function formatMap
+   end function format_map
 
-   function formatPreparsed(parsed, dictionary) result(string)
+   function format_preparsed(parsed, dictionary) result(string)
       use PFL_FormatToken_mod
       use PFL_FormatTokenVector_mod, only: TokenVector => Vector
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
@@ -93,14 +93,14 @@ contains
          case (KEYWORD)
             dictionaryIter = dictionary%find(token%text)
             if (dictionaryIter == dictionary%end()) then
-               call throw('FormatString::formatMap() - no such keyword: <' // token%text // '> in "extra".')
+               call throw('FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
                return
             end if
             arg => dictionaryIter%value()
-            string = string // handleScalar(arg, token%editDescriptor)
+            string = string // handleScalar(arg, token%edit_descriptor)
 
          case (POSITION)
-            call throw('FormatString::formatMap() - position arguments not allowed.')
+            call throw('FormatString::format_map() - position arguments not allowed.')
             return
          end select
 
@@ -108,10 +108,10 @@ contains
 
       end do
 
-   end function formatPreparsed
+   end function format_preparsed
 
 
-   function formatVector(fmt, args) result(string)
+   function format_vector(fmt, args) result(string)
       use PFL_FormatToken_mod
       use PFL_FormatTokenVector_mod, only: TokenVector => Vector
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
@@ -150,16 +150,16 @@ contains
          case (POSITION)
             if (argIter == args%end()) then
                ! check other ranks
-               call throw('FormatString::formatVector() - not enough values for format string.')
+               call throw('FormatString::format_vector() - not enough values for format string.')
                return
             else
                arg => argIter%get()
-               string = string // handleScalar(arg, token%editDescriptor)
+               string = string // handleScalar(arg, token%edit_descriptor)
                call argIter%next()
             end if
 
          case (KEYWORD)
-            call throw('FormatString::formatVector() - keyword arguments not allowed.')
+            call throw('FormatString::format_vector() - keyword arguments not allowed.')
             return
          end select
 
@@ -168,10 +168,10 @@ contains
       end do
 
       if (argIter /= args%end()) then
-         call throw('FormatString::formatVector() - not all arguments converted during string formatting.')
+         call throw('FormatString::format_vector() - not all arguments converted during string formatting.')
       end if
 
-   end function formatVector
+   end function format_vector
 
 
    !---------------------------------------------------------------------------  
@@ -230,11 +230,11 @@ contains
          
          if (iostat == 0) exit
          if (iostat == INTERNAL_FILE_EOR) then
-            call buffer%growRecordSize()
+            call buffer%grow_record_size()
             cycle
          end if
          if (iostat == INTERNAL_FILE_EOF) then
-            call buffer%growNumRecords()
+            call buffer%grow_num_records()
             cycle
          end if
          

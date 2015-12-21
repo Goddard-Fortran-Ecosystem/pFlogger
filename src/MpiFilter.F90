@@ -27,10 +27,10 @@ module PFL_MpiFilter_mod
       integer :: rank
       logical :: shouldFilter
    contains
-      procedure :: doFilter
+      procedure :: do_filter
       procedure :: equal
-      procedure :: setRank
-      procedure :: getRank
+      procedure :: set_rank
+      procedure :: get_rank
    end type MpiFilter
 
    interface MpiFilter
@@ -83,7 +83,7 @@ contains
    ! Is the specified record to be logged? Returns FALSE for no, TRUE for
    ! yes.
    !---------------------------------------------------------------------------
-   logical function doFilter(this, record)
+   logical function do_filter(this, record)
       class (MpiFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
@@ -91,12 +91,12 @@ contains
       integer :: n
 
       if (this%shouldFilter) then 
-         doFilter = .true.  ! do emit
+         do_filter = .true.  ! do emit
       else
-         doFilter = .false.
+         do_filter = .false.
       end if
       
-   end function doFilter
+   end function do_filter
    
 
    !---------------------------------------------------------------------------  
@@ -122,33 +122,33 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! setRank
+   ! set_rank
    !
    ! DESCRIPTION: 
    ! Set the MPI rank associated with this MPI filter.
    !---------------------------------------------------------------------------  
-   subroutine setRank(this, rank)
+   subroutine set_rank(this, rank)
       class (MpiFilter) :: this
       integer, intent(in) :: rank
 
       this%rank = rank
       
-   end subroutine setRank
+   end subroutine set_rank
 
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getRank
+   ! get_rank
    !
    ! DESCRIPTION: 
    ! Get the MPI rank associated with this MPI filter.
    !---------------------------------------------------------------------------  
-   function getRank(this) result(rank)
+   function get_rank(this) result(rank)
       class (MpiFilter) :: this
       integer :: rank
 
       rank = this%rank
-   end function getRank
+   end function get_rank
 
 
 end module PFL_MpiFilter_mod

@@ -8,21 +8,21 @@ module ConfigurableFilter_mod
    type, extends(AbstractFilter) :: ConfigurableFilter
       logical :: filterOn = .false.
    contains
-      procedure :: doFilter
+      procedure :: do_filter
       procedure :: equal
    end type ConfigurableFilter
 
 contains
 
 
-   logical function doFilter(this, record)
+   logical function do_filter(this, record)
       use PFL_LogRecord_mod
       class (ConfigurableFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
-      doFilter = this%filterOn
+      do_filter = this%filterOn
 
-   end function doFilter
+   end function do_filter
 
    logical function equal(a, b)
       use iso_fortran_env, only: IOSTAT_END

@@ -32,7 +32,6 @@ ADD_TEST_SUITE(Test_SeverityLevels_mod_suite)
 ! MPI related
 #if defined(LOGGER_USE_MPI) 
 ADD_TEST_SUITE(Test_MpiFilter_mod_suite)
-ADD_TEST_SUITE(Test_MpiFileHandler_mod_suite)
 ADD_TEST_SUITE(Test_MpiFormatter_mod_suite)
 ADD_TEST_SUITE(Test_MpiCommConfig_mod_suite)
 #  if defined(SUPPORT_FOR_ASSUMED_TYPE) && defined(SUPPORT_FOR_C_LOC_ASSUMED_SIZE)

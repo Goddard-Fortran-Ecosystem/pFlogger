@@ -74,9 +74,9 @@ contains
          call MPI_Comm_size(mpi_communicators(i), npes, ierror)
 
 #ifndef __GFORTRAN__         
-         suffix = FormatString('_%i0', makeArgVector(i))
+         suffix = FormatString('_%i0', make_arg_vector(i))
 #else
-         v = makeArgVector(i)
+         v = make_arg_vector(i)
          suffix = FormatString('_%i0', v)
 #endif
 

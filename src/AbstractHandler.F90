@@ -38,14 +38,14 @@ module PFL_AbstractHandler_mod
       integer :: level = NOTSET ! default
       class (Formatter), allocatable :: fmt
    contains
-      procedure(emitMessage), deferred :: emitMessage
+      procedure(emit_message), deferred :: emit_message
       procedure :: handle
       procedure(close), deferred :: close
       procedure(flush), deferred :: flush
-      procedure :: setFormatter
+      procedure :: set_formatter
       procedure :: format
-      procedure :: setLevel
-      procedure :: getLevel
+      procedure :: set_level
+      procedure :: get_level
       procedure(equal), deferred :: equal
       generic :: operator(==) => equal
       procedure :: notEqual
@@ -55,12 +55,12 @@ module PFL_AbstractHandler_mod
    abstract interface
 
       ! This version is intended to be implemented by subclasses
-      subroutine emitMessage(this, record)
+      subroutine emit_message(this, record)
          import AbstractHandler
          import LogRecord
          class (AbstractHandler), intent(inout) :: this
          type (LogRecord), intent(in) :: record
-      end subroutine emitMessage
+      end subroutine emit_message
 
       ! This version is intended to be implemented by subclasses
       subroutine close(this)
@@ -104,10 +104,10 @@ contains
 
       integer :: level
 
-      level = record%getLevel()
-      if (level >= this%getLevel()) then
-         if (this%doFilter(record)) then
-            call this%emitMessage(record)
+      level = record%get_level()
+      if (level >= this%get_level()) then
+         if (this%do_filter(record)) then
+            call this%emit_message(record)
          end if
       end if
       
@@ -141,12 +141,12 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! setFormatter
+   ! set_formatter
    !
    ! DESCRIPTION: 
    ! Set the formatter for this handler.
    !---------------------------------------------------------------------------
-   subroutine setFormatter(this, fmt)
+   subroutine set_formatter(this, fmt)
       class (AbstractHandler), intent(inout) :: this
       class (Formatter) :: fmt
 
@@ -154,38 +154,38 @@ contains
 
       allocate(this%fmt, source=fmt)
 
-   end subroutine setFormatter
+   end subroutine set_formatter
 
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! setLevel
+   ! set_level
    !
    ! DESCRIPTION: 
    ! Set the logging level of this handler.
    !---------------------------------------------------------------------------  
-   subroutine setLevel(this, level)
+   subroutine set_level(this, level)
       class (AbstractHandler), intent(inout) :: this
       integer, intent(in) :: level
       
       this%level = level
      
-   end subroutine setLevel
+   end subroutine set_level
 
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getLevel
+   ! get_level
    !
    ! DESCRIPTION: 
    ! Get the logging level of this handler.
    !---------------------------------------------------------------------------  
-   integer function getLevel(this)
+   integer function get_level(this)
       class (AbstractHandler), intent(in) :: this
       
-      getLevel = this%level
+      get_level = this%level
       
-   end function getLevel
+   end function get_level
  
 
    !---------------------------------------------------------------------------  

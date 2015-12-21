@@ -43,8 +43,8 @@ module pflogger
    public :: ERROR
    public :: CRITICAL
 
-   public :: levelToName
-   public :: nameToLevel
+   public :: level_to_name
+   public :: name_to_level
 
    public :: StringUnlimitedMap
 

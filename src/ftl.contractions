@@ -1,6 +1,0 @@
-{'Vector' : 'Vec',
-'CaseInsensitiveString' : 'CIString',
-'UnorderedMap' : 'UMap',
-'Iterator' : 'Iter',
-'UnlimitedPolymorphicEntity' : 'X'
-}

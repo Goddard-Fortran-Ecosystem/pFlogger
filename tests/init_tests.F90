@@ -7,15 +7,15 @@ subroutine pfunit_throw(message)
 
 end subroutine pfunit_throw
 
-subroutine initTests()
+subroutine init_tests()
    use pflogger
-   use PFL_Exception_mod, only: setThrowFunPtr
+   use PFL_Exception_mod, only: set_throw_fptr
    use FTL_Exception_mod, only: FTL_setThrowFunPtr => setThrowFunPtr
    implicit none
    external :: pfunit_throw
 
    call initialize()
-   call setThrowFunPtr(pfunit_throw)
+   call set_throw_fptr(pfunit_throw)
    call FTL_setThrowFunPtr(pfunit_throw)
 
-end subroutine initTests
+end subroutine init_tests

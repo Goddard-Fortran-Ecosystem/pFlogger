@@ -50,7 +50,6 @@ set(SRCS
 if (MPI) 
   list (APPEND SRCS
      MpiFilter.F90
-     MpiFileHandler.F90
      MpiFormatter.F90
      MpiCommConfig.F90
      )

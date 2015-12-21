@@ -22,7 +22,7 @@
 !> %(levelname)a       Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
 !> %(asctime)a         Textual time when the LogRecord was created
-!> %(message)a         The result of record.getMessage(), computed just as
+!> %(message)a         The result of record%get_message(), computed just as
 !>                        the record is emitted
 !
 ! REVISION HISTORY:
@@ -44,13 +44,13 @@ module PFL_Formatter_mod
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       type (FormatParser) :: p
-      logical :: uses_asc_time
-      logical :: uses_sim_time
+      logical :: fmt_uses_ascTime
+      logical :: fmt_uses_simTime
    contains
       procedure :: format
-      procedure :: formatTime
-      procedure :: usesAscTime
-      procedure :: usesSimTime
+      procedure :: format_time
+      procedure :: uses_ascTime
+      procedure :: uses_simTime
       procedure, private :: fill_extra_keywords
    end type Formatter
 
@@ -105,8 +105,8 @@ contains
          f%datefmt = datefmt
       end if
 
-      f%uses_asc_time = f%usesAscTime()
-      f%uses_sim_time = f%usesSimTime()
+      f%fmt_uses_ascTime = f%uses_ascTime()
+      f%fmt_uses_simTime = f%uses_simTime()
 
       call f%p%parse(f%fmt)
 
@@ -119,12 +119,12 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! formatTime
+   ! format_time
    !
    ! DESCRIPTION: 
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
-   function formatTime(this, record, datefmt) result(asctime)
+   function format_time(this, record, datefmt) result(asctime)
       use PFL_FormatString_mod
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
 
@@ -154,22 +154,23 @@ contains
          
       asctime = FormatString(dateFmt_, extra)
 
-   end function formatTime
+   end function format_time
 
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
    ! format
    !
-   ! DESCRIPTION: 
-   ! Format the specified record as text - this calls FormatParser's format.
-   ! The record's attribute dictionary is used as the operand to a string
-   ! formatting operation which yields the returned string. If the formatting 
-   ! string uses the time (as determined by a call to usesTime(), formatTime()
-   ! is called to format the event time. The formatting of the dictionary is
-   ! then performed by the format parser. For example, for a record message
-   ! containing "hello" format returns "INFO: logName: Hello".
-   !---------------------------------------------------------------------------
+   ! DESCRIPTION: Format the specified record as text - this calls
+   ! FormatParser's format.  The record's attribute dictionary is used
+   ! as the operand to a string formatting operation which yields the
+   ! returned string. If the formatting string uses the time (as
+   ! determined by a call to uses_ascTime() or uses_simTime()),
+   ! format_time() is called to format the event time. The formatting
+   ! of the dictionary is then performed by the format parser. For
+   ! example, for a record message containing "hello" format returns
+   ! "INFO: logName: Hello".
+   ! ---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
       use FTL
       use PFL_FormatString_mod
@@ -188,18 +189,18 @@ contains
 
       call extra%deepCopy(record%extra)
 !!$      extra = record%extra
-      msg = record%getMessage()
+      msg = record%get_message()
 
 #ifdef __GFORTRAN__
       call extra%insert('message', String(msg))
 #else
       call extra%insert('message', msg)
 #endif
-      if(this%uses_asc_time) then
+      if(this%fmt_uses_ascTime) then
          if (allocated(this%datefmt)) then
-            asctime = this%formatTime(record, datefmt=this%datefmt)
+            asctime = this%format_time(record, datefmt=this%datefmt)
          else
-            asctime = this%formatTime(record)
+            asctime = this%format_time(record)
          end if
 #ifdef __GFORTRAN__
          call extra%insert('asctime', String(asctime))
@@ -207,7 +208,7 @@ contains
          call extra%insert('asctime', asctime)
 #endif
       end if
-      if(this%uses_sim_time) then
+      if(this%fmt_uses_simTime) then
          block
            type (StringUnlimitedMap) :: dict
            if (allocated(this%datefmt)) then
@@ -240,22 +241,22 @@ contains
    ! DESCRIPTION: 
    ! Check if the format uses the creation time of the record.
    !---------------------------------------------------------------------------
-   logical function usesAscTime(this)
+   logical function uses_ascTime(this)
       class (Formatter), intent(in) :: this
-      usesAscTime = (index(this%fmt,'%(asctime)') > 0)
-   end function usesAscTime
+      uses_ascTime = (index(this%fmt,'%(asctime)') > 0)
+   end function uses_ascTime
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! usesSimTime
+   ! uses_simTime
    !
    ! DESCRIPTION: 
    ! Check if the format uses the creation time of the record.
    !---------------------------------------------------------------------------
-   logical function usesSimTime(this)
+   logical function uses_simTime(this)
       class (Formatter), intent(in) :: this
-      usesSimTime = (index(this%fmt,'%(simtime)') > 0)
-   end function usesSimTime
+      uses_simTime = (index(this%fmt,'%(simtime)') > 0)
+   end function uses_simTime
 
 
 
@@ -281,7 +282,7 @@ contains
                call p%push_back(token)
                token%type = TEXT
                token%text = formatString(p, extra)
-               token%editDescriptor = ''
+               token%edit_descriptor = ''
                call p%clear()
             end if
          end select

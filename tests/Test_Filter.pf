@@ -14,7 +14,7 @@ contains
 
       f = Filter('A')
       call initLogRecord(record, 'B', INFO, 'some message')
-      flag = f%doFilter(record)
+      flag = f%do_filter(record)
 
       @assertFalse(flag)
 
@@ -29,7 +29,7 @@ contains
       call initFilter(f, 'A')
       call initLogRecord(record, 'A', INFO, 'some message')
 
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
       
    end subroutine test_defaultFilterNameMatch
 
@@ -41,11 +41,11 @@ contains
 
       call initFilter(f, 'A')
       call initLogRecord(record, 'AB', INFO, 'some message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
       call initFilter(f, 'AB')
       call initLogRecord(record, 'A', INFO, 'some message')
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
       
 
    end subroutine test_defaultFilterPartialMatch
@@ -81,7 +81,7 @@ contains
 
       call initFilter(f, 'A')
       call initLogRecord(record, 'a', INFO, 'some message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
    end subroutine test_filterCaseInsensitive
 

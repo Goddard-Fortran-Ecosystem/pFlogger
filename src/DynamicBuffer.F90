@@ -12,16 +12,16 @@ module PFL_DynamicBuffer_mod
 #endif
 
    type :: DynamicBuffer
-      integer, private :: recordSize = 80
-      integer, private :: numRecords = 1
+      integer, private :: record_size = 80
+      integer, private :: num_records = 1
 #ifdef __GFORTRAN__
       character(len=RECORD_SIZE), allocatable :: buffer(:)
 #else
       character(len=:), allocatable :: buffer(:)
 #endif
    contains
-      procedure :: growRecordSize
-      procedure :: growNumRecords
+      procedure :: grow_record_size
+      procedure :: grow_num_records
       procedure :: allocate
       procedure :: concatenate
    end type DynamicBuffer
@@ -35,35 +35,35 @@ module PFL_DynamicBuffer_mod
    
 contains
 
-   subroutine growRecordSize(this)
+   subroutine grow_record_size(this)
       class (DynamicBuffer), intent(inout) :: this
 
-      if (this%recordSize * this%numRecords > MAX_BUFFER_SIZE/2) then
-         call throw('DynamicBuffer::growRecordSize() - exceeded maximum permitted buffer size.')
+      if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
+         call throw('DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
          return
       end if
-      this%recordSize = this%recordSize * 2
+      this%record_size = this%record_size * 2
       call this%allocate()
 
 #ifdef __GFORTRAN__
       call throw('Compiler limitation for GFORTRAN. Try increasing RECORD_SIZE.')
 #endif
 
-   end subroutine growRecordSize
+   end subroutine grow_record_size
 
 
-   subroutine growNumRecords(this)
+   subroutine grow_num_records(this)
       class (DynamicBuffer), intent(inout) :: this
 
-      if (this%recordSize * this%numRecords > MAX_BUFFER_SIZE/2) then
-         call throw('DynamicBuffer::growNumRecords() - exceeded maximum permitted buffer size.')
+      if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
+         call throw('DynamicBuffer::grow_num_records() - exceeded maximum permitted buffer size.')
          return
       end if
 
-      this%numRecords = this%numRecords * 2
+      this%num_records = this%num_records * 2
       call this%allocate()
 
-   end subroutine growNumRecords
+   end subroutine grow_num_records
 
    subroutine allocate(this)
       use iso_c_binding, only: C_NULL_CHAR
@@ -77,12 +77,12 @@ contains
       end if
 
 #ifdef __GFORTRAN__
-      allocate(this%buffer(this%numRecords))
+      allocate(this%buffer(this%num_records))
 #else
-      allocate(character(len=this%recordSize) :: this%buffer(this%numRecords))
+      allocate(character(len=this%record_size) :: this%buffer(this%num_records))
 #endif       
 
-      do i = 1, this%numRecords
+      do i = 1, this%num_records
          this%buffer(i) = C_NULL_CHAR
       end do
 
@@ -98,7 +98,7 @@ contains
       i = 1
       string = trim(this%buffer(1))
 
-      do i = 2, this%numRecords
+      do i = 2, this%num_records
          if (this%buffer(i) /= C_NULL_CHAR) then
             string = string // new_line('a') // trim(this%buffer(i))
          else

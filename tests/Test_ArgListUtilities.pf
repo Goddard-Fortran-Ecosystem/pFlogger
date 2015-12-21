@@ -11,7 +11,7 @@ contains
       type (UnlimitedVector) :: args
       class(*), pointer :: p
 
-      args = makeArgVector(1)
+      args = make_arg_vector(1)
       @assertEqual(1, args%size())
       p => args%at(1)
       select type (p)
@@ -30,7 +30,10 @@ contains
       type (UnlimitedVector) :: args
       class(*), pointer :: p
 
-      args = makeArgVector(1_int32, 2_int64, 3._real32, 4._real64, 5_int32, 6_int64, 7._real32, 8._real64, .true.)
+      args = make_arg_vector( &
+           & 1_int32, 2_int64, 3._real32, 4._real64, &
+           & 5_int32, 6_int64, 7._real32, 8._real64, &
+           & .true.)
       @assertEqual(9, args%size())
 
       p => args%at(1)

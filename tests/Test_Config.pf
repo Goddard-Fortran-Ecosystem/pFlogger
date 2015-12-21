@@ -32,7 +32,7 @@ contains
       type (Config) :: dict
 
       call check_schema_version(dict) ! Empty config
-      @assertExceptionRaised("ASTG::Config::check_schema_version() - must specify a schema_version for Config.")
+      @assertExceptionRaised("PFL::Config::check_schema_version() - must specify a schema_version for Config.")
 
    end subroutine test_check_schema_specified
 
@@ -43,7 +43,7 @@ contains
 
       call dict%insert('schema_version', 2)
       call check_schema_version(dict) ! Empty config
-      @assertExceptionRaised('ASTG::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
+      @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
 
    end subroutine test_check_schema_version_unsupported
 
@@ -144,7 +144,7 @@ contains
       cfg = Config([P('name', 'A')])
       f = build_filter(cfg)
 
-      @assertEqual('A', f%getName())
+      @assertEqual('A', f%get_name())
 
    end subroutine test_build_filter
 
@@ -245,7 +245,7 @@ contains
            & ])
 
       call build_handler(h, handler_cfg, elements)
-      @assertEqual(INFO, h%getLevel(),'incorrect level')
+      @assertEqual(INFO, h%get_level(),'incorrect level')
 
       block
         character(len=80) :: str
@@ -332,7 +332,7 @@ contains
       type (LoggerManager) :: mgr
       class (Logger), pointer :: lgr
 
-      lgr => mgr%getLogger('A')
+      lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call build_logger(lgr, cfg, elements)
 
@@ -363,7 +363,7 @@ contains
       call filters%insert('filterA', Filter('A'))
       call filters%insert('filterB', Filter('B'))
 
-      lgr => mgr%getLogger('A')
+      lgr => mgr%get_logger('A')
       call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
@@ -402,7 +402,7 @@ contains
 
       cfg = Config([P('handlers','[handlerA]')])
 
-      lgr => logging%getLogger('serial')
+      lgr => logging%get_logger('serial')
       call build_logger(lgr, cfg, elements)
 
       buffer%buffer = ''
@@ -449,7 +449,7 @@ contains
       cfg = Config([P('handlers','[handlerA]')])
       extra = Config([p('comm', comm)])
 
-      lgr => logging%getLogger('serial')
+      lgr => logging%get_logger('serial')
       call build_logger(lgr, cfg, elements, extra=extra)
 
       buffer%buffer = ''
@@ -475,7 +475,7 @@ contains
 
       call mgr%load_config(cfg)
 
-      lgr => mgr%getLogger('A')
+      lgr => mgr%get_logger('A')
       expectedMessage = "FTL::Config::toConfigPtr() - type of 'loggers' is not a Config."
       @assertExceptionRaised(expectedMessage)
 
@@ -495,9 +495,9 @@ contains
            &     ])
 
       call mgr%load_config(cfg)
-      lgr => mgr%getLogger('A')
+      lgr => mgr%get_logger('A')
 
-      @assertEqual(DEBUG, lgr%getLevel())
+      @assertEqual(DEBUG, lgr%get_level())
 
    end subroutine test_basic_loggers
 

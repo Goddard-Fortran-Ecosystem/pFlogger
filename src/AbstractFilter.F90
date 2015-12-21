@@ -24,19 +24,19 @@ module PFL_AbstractFilter_mod
    type, abstract, extends (Object) :: AbstractFilter
       private
    contains
-      procedure(doFilter), deferred :: doFilter
+      procedure(do_filter), deferred :: do_filter
       procedure(equal), deferred :: equal
       generic :: operator(==) => equal
    end type AbstractFilter
 
    abstract interface
 
-      logical function doFilter(this, record)
+      logical function do_filter(this, record)
          import AbstractFilter
          import LogRecord
          class (AbstractFilter), intent(in) :: this
          class (LogRecord), intent(inout) :: record
-      end function doFilter
+      end function do_filter
 
       logical function equal(a, b)
          import AbstractFilter

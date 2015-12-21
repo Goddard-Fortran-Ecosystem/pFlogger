@@ -1,4 +1,4 @@
-!------------------------------------------------------------------------------
+!!------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
@@ -30,17 +30,17 @@ module PFL_LogRecord_mod
 !      private
       integer :: level
       character(len=:), allocatable :: name
-      character(len=:), allocatable :: messageFormat
+      character(len=:), allocatable :: message_format
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (UnlimitedVector) :: args
       type (StringUnlimitedMap) :: extra
       integer :: time_fields(8)
    contains
-      procedure :: getName
-      procedure :: getLevel
-      procedure :: getMessage
-      procedure, nopass :: fillDateAndTime
+      procedure :: get_name
+      procedure :: get_level
+      procedure :: get_message
+      procedure, nopass :: fill_date_and_time
    end type LogRecord
 
 
@@ -61,10 +61,10 @@ contains
    ! DESCRIPTION:
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
-   function newLogRecord(name, level, messageFormat, args, extra) result(rec)
+   function newLogRecord(name, level, message_format, args, extra) result(rec)
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
-      character(len=*), intent(in) :: messageFormat
+      character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, intent(in) :: args
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
@@ -73,7 +73,7 @@ contains
       
       rec%name = name
       rec%level = level
-      rec%messageFormat = messageFormat
+      rec%message_format = message_format
       if (present(args)) then
          rec%args = args
       else
@@ -91,81 +91,81 @@ contains
       call rec%extra%insert('name', name)
 #endif
 
-      levelName = levelToName(level)
+      levelName = level_to_name(level)
       ! Compiler workarounds
 #ifdef __GFORTRAN__
       call rec%extra%insert('levelName', String(levelName))
 #else
       call rec%extra%insert('levelName', levelName)
 #endif
-      call fillDateAndTime(rec)
+      call fill_date_and_time(rec)
 
    end function newLogRecord
 
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! fillDateAndTime
+   ! fill_date_and_time
    !
    ! DESCRIPTION: 
    ! Helper routine to initialize log record dictionary with date/time
    ! information.
    !---------------------------------------------------------------------------
-   subroutine fillDateAndTime(rec)
+   subroutine fill_date_and_time(rec)
       type(LogRecord), intent(inout) :: rec
       integer,dimension(8) :: values
       
       call date_and_time(VALUES=rec%time_fields)
 
-   end subroutine fillDateAndTime
+   end subroutine fill_date_and_time
    
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getName
+   ! get_name
    !
    ! DESCRIPTION: 
    ! Get the name for this log record.
    !---------------------------------------------------------------------------
-   function getName(this) result(name)
+   function get_name(this) result(name)
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: name
       
       name = this%name
       
-   end function getName
+   end function get_name
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getLevel
+   ! get_level
    !
    ! DESCRIPTION: 
    ! Get the level associated with this log record. This is needed to 'handle'
    ! a message (see AbstractHandler).
    !---------------------------------------------------------------------------
-   integer function getLevel(this) result(level)
+   integer function get_level(this) result(level)
       class (LogRecord), intent(in) :: this
       level = this%level
-   end function getLevel
+   end function get_level
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getMessage
+   ! get_message
    !
    ! DESCRIPTION: 
    ! Return the message for this LogRecord after parsing any user-supplied
    ! arguments associated with message.
    !---------------------------------------------------------------------------
-   function getMessage(this) result(message)
+   function get_message(this) result(message)
       use PFL_FormatString_mod, only: formatString
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
       
-      message = formatString(this%messageFormat,  this%args)
+      message = formatString(this%message_format,  this%args)
       
-   end function getMessage
+   end function get_message
 
 
 
@@ -176,13 +176,13 @@ contains
    ! DESCRIPTION:
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
-   subroutine initLogRecord(rec, name, level, messageFormat, args, extra)
+   subroutine initLogRecord(rec, name, level, message_format, args, extra)
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
-      character(len=*), intent(in) :: messageFormat
+      character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, intent(in) :: args
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
@@ -190,7 +190,7 @@ contains
       
       rec%name = name
       rec%level = level
-      rec%messageFormat = messageFormat
+      rec%message_format = message_format
 
       if (present(args)) then
          rec%args = args
@@ -208,14 +208,14 @@ contains
 #else
       call rec%extra%insert('name', name)
 #endif
-      levelName = levelToName(level)
+      levelName = level_to_name(level)
 #ifdef __GFORTRAN__
       call rec%extra%insert('levelName', String(levelName))
 #else
       call rec%extra%insert('levelName', levelName)
 #endif
       
-      call fillDateAndTime(rec)
+      call fill_date_and_time(rec)
       
    end subroutine initLogRecord
 

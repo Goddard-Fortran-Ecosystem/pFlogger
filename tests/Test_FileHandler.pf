@@ -56,7 +56,7 @@ contains
       logical :: opened
 
       h = FileHandler(LOG_FILE)
-      inquire(file=h%getFileName(), opened=opened)
+      inquire(file=h%get_file_name(), opened=opened)
       call h%handle(this%record)
       call h%close()
 
@@ -64,7 +64,7 @@ contains
       read(unit, '(a)') foundMessage
       close(unit)
 
-      @assertEqual('INFO: logName: '//this%record%getMessage(), foundMessage)
+      @assertEqual('INFO: logName: '//this%record%get_message(), foundMessage)
 
    end subroutine test_emitBasic
 
@@ -86,7 +86,7 @@ contains
       read(unit, '(a)') foundMessage
       close(unit)
 
-      @assertEqual('INFO: Aname: '//this%record2%getMessage(), foundMessage)
+      @assertEqual('INFO: Aname: '//this%record2%get_message(), foundMessage)
 
    end subroutine test_emitBasicWithFormat
 
@@ -104,7 +104,7 @@ contains
       fmt = Formatter('%(levelName)a~- %(name)a~- %(message)a')
 
       h = FileHandler(LOG_FILE)
-      call h%setFormatter(fmt)
+      call h%set_formatter(fmt)
       call h%handle(this%record2)
       call h%close()
 
@@ -112,7 +112,7 @@ contains
       read(unit, '(a)') foundMessage
       close(unit)
 
-      @assertEqual('INFO- Aname- '//this%record2%getMessage(), foundMessage)
+      @assertEqual('INFO- Aname- '//this%record2%get_message(), foundMessage)
 
    end subroutine test_emitBasicWithFormatter
 
@@ -129,7 +129,7 @@ contains
       
 
       h = FileHandler(LOG_FILE)
-      call h%setLevel(ERROR)
+      call h%set_level(ERROR)
       call h%handle(this%record)
       call h%close()
 
@@ -152,7 +152,7 @@ contains
       integer :: unit
       
       h = FileHandler(LOG_FILE)
-      call h%setLevel(DEBUG)
+      call h%set_level(DEBUG)
       call h%handle(this%record)
       call h%close()
 
@@ -160,7 +160,7 @@ contains
       read(unit, '(a)', IOSTAT=iostatus) foundMessage
       close(unit)
 
-      @assertEqual('INFO: logName: '//this%record%getMessage(), foundMessage)
+      @assertEqual('INFO: logName: '//this%record%get_message(), foundMessage)
 
    end subroutine test_emitAboveThreshold
 

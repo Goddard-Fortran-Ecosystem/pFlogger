@@ -61,7 +61,7 @@ contains
 @Test
    subroutine test_emitBasic(this)
       ! Make sure RotatingFileHandler defaults to FileHandler when
-      ! maxBytes and backupCount are not specified
+      ! max_bytes and backup_count are not specified
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       integer :: unit
@@ -83,37 +83,37 @@ contains
 
 ! TODO   
 !@Test
-   subroutine test_shouldRollover(this)
-      ! The RFH should signal that it's time to rollover when 'maxBytes'
+   subroutine test_should_rollover(this)
+      ! The RFH should signal that it's time to rollover when 'max_bytes'
       ! has been exceeded
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       type (RotatingFileHandler) :: h
       integer :: unit
 
-      h = RotatingFileHandler('logFile', maxBytes='30', backupCount=2)
+      h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
       ! Each record is 14 bytes, and default 
-      ! Since maxBytes=30, h should rollOver after 3 records = 42 bytes
+      ! Since max_bytes=30, h should rollOver after 3 records = 42 bytes
 
-      @assertFalse(h%shouldRollover())
-
-      call h%handle(this%record_0)
-      @assertFalse(h%shouldRollover())
+      @assertFalse(h%should_rollover())
 
       call h%handle(this%record_0)
-      @assertFalse(h%shouldRollover())
+      @assertFalse(h%should_rollover())
+
+      call h%handle(this%record_0)
+      @assertFalse(h%should_rollover())
 
       ! This one should trip the threshold...
       call h%handle(this%record_0)
-      @assertTrue(h%shouldRollover())
+      @assertTrue(h%should_rollover())
 
-   end subroutine test_shouldRollover
+   end subroutine test_should_rollover
 
    
 @Test
-   subroutine test_doRollover(this)
-      ! The RFH should roll over every time 'maxBytes' is exceeded and should
-      ! create a maximum of 'backupCount' files
+   subroutine test_do_rollover(this)
+      ! The RFH should roll over every time 'max_bytes' is exceeded and should
+      ! create a maximum of 'backup_count' files
       class (Test_RotatingFileHandler), intent(inout) :: this   
 
       type (RotatingFileHandler) :: h
@@ -122,7 +122,7 @@ contains
       logical :: exists
       character(len=32) :: foundMessage
 
-      h = RotatingFileHandler('logFile', maxBytes='30', backupCount=2)
+      h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
 
       ! First set
       call h%handle(this%record_0)
@@ -177,7 +177,7 @@ contains
       close(unit)
       
       
-   end subroutine test_doRollover
+   end subroutine test_do_rollover
 
       
 end module Test_RotatingFileHandler_mod

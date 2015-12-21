@@ -32,11 +32,11 @@ module PFL_StreamHandler_mod
       private
       integer :: unit = UNCONNECTED
    contains
-      procedure :: getUnit
-      procedure :: setUnit
-      procedure :: emitMessage
+      procedure :: get_unit
+      procedure :: set_unit
+      procedure :: emit_message
       procedure :: close ! noop
-      procedure :: flush => flushUnit
+      procedure :: flush => flush_unit
       procedure :: equal
    end type StreamHandler
 
@@ -71,59 +71,59 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! getUnit
+   ! get_unit
    !
    ! DESCRIPTION: 
    ! Return the io unit in use.  
    ! Forced to use this due to a bug in NAG 6.0 for INQUIRE combined with 
    ! NEWUNIT.
    !---------------------------------------------------------------------------  
-   integer function getUnit(this) result(unit)
+   integer function get_unit(this) result(unit)
       class (StreamHandler), intent(in) :: this
 
       unit = this%unit
      
-   end function getUnit
+   end function get_unit
 
 
-   subroutine setUnit(this, unit)
+   subroutine set_unit(this, unit)
       class (StreamHandler), intent(inout) :: this
       integer, intent(in) :: unit
 
       this%unit = unit
      
-   end subroutine setUnit
+   end subroutine set_unit
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! emitMessage
+   ! emit_message
    !
    ! DESCRIPTION: 
    ! Write a formatted string to a stream.
    !---------------------------------------------------------------------------  
-   subroutine emitMessage(this, record)
+   subroutine emit_message(this, record)
       class (StreamHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
 
       write(this%unit, '(a)') this%format(record)
       call this%flush()
      
-   end subroutine emitMessage
+   end subroutine emit_message
 
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! flushUnit
+   ! flush_unit
    !
    ! DESCRIPTION: 
    ! Flushes unit currently open for output.
    !---------------------------------------------------------------------------  
-   subroutine flushUnit(this)
+   subroutine flush_unit(this)
       class (StreamHandler), intent(in) :: this
       
       flush(this%unit)
       
-   end subroutine flushUnit
+   end subroutine flush_unit
 
    
    !---------------------------------------------------------------------------  
@@ -151,7 +151,7 @@ contains
 
       select type (b)
       class is (StreamHandler)
-         equal = (a%unit == b%unit) .and. (a%getLevel() == b%getLevel())
+         equal = (a%unit == b%unit) .and. (a%get_level() == b%get_level())
       class default
          equal = .false.
       end select

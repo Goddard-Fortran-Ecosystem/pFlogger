@@ -16,7 +16,7 @@ contains
 
       f = Filterer()
       call initLogRecord(record, 'A', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
    end subroutine test_filterNoFilters
    
@@ -27,10 +27,10 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
+      call f%add_filter(Filter('A'))
       call initLogRecord(record, 'B', INFO, 'message')
      
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
 
    end subroutine test_filterMismatch
 
@@ -41,9 +41,9 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
+      call f%add_filter(Filter('A'))
       call initLogRecord(record, 'A', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
    end subroutine test_filterMatch
 
@@ -53,14 +53,14 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
-      call f%addFilter(Filter('B'))
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
 
       call initLogRecord(record, 'A', INFO, 'message')
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
 
       call initLogRecord(record, 'B', INFO, 'message')
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
 
    end subroutine test_filterCombo
 
@@ -71,78 +71,78 @@ contains
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
-      call f%addFilter(Filter('AB'))
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('AB'))
 
       call initLogRecord(record, 'AB', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
       call initLogRecord(record, 'B', INFO, 'message')
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
 
    end subroutine test_filterComboB
 
 
    @test
-   subroutine test_removeFilter_absent()
+   subroutine test_remove_filter_absent()
       type (Filterer) :: f
 
       f = Filterer()
 
-      call f%removeFilter(Filter('A'))
-      @assertExceptionRaised('Filterer::removeFilter() - no such filter.')
+      call f%remove_filter(Filter('A'))
+      @assertExceptionRaised('Filterer::remove_filter() - no such filter.')
 
-      call f%addFilter(Filter('A'))
+      call f%add_filter(Filter('A'))
 
-      call f%removeFilter(Filter('B'))
-      @assertExceptionRaised('Filterer::removeFilter() - no such filter.')
+      call f%remove_filter(Filter('B'))
+      @assertExceptionRaised('Filterer::remove_filter() - no such filter.')
 
 
-   end subroutine test_removeFilter_absent
+   end subroutine test_remove_filter_absent
 
 
    @test
-   subroutine test_removeFilter_simple()
+   subroutine test_remove_filter_simple()
       type (Filterer) :: f
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
-      call f%removeFilter(Filter('A'))
+      call f%add_filter(Filter('A'))
+      call f%remove_filter(Filter('A'))
 
       ! no filters left
       call initLogRecord(record, 'A', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
       call initLogRecord(record, 'B', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
-   end subroutine test_removeFilter_simple
+   end subroutine test_remove_filter_simple
    
 
    @test
-   subroutine test_removeFilter_nontrivial()
+   subroutine test_remove_filter_nontrivial()
       type (Filterer) :: f
       type (LogRecord) :: record
 
       f = Filterer()
-      call f%addFilter(Filter('A'))
-      call f%addFilter(Filter('B'))
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
 
-      call f%removeFilter(Filter('A'))
+      call f%remove_filter(Filter('A'))
       
       ! only 'B' left
       call initLogRecord(record, 'A', INFO, 'message')
-      @assertFalse(f%doFilter(record))
+      @assertFalse(f%do_filter(record))
 
       call initLogRecord(record, 'B', INFO, 'message')
-      @assertTrue(f%doFilter(record))
+      @assertTrue(f%do_filter(record))
 
-   end subroutine test_removeFilter_nontrivial
+   end subroutine test_remove_filter_nontrivial
    
 
    @test
-   subroutine test_addFilter_noDups()
+   subroutine test_add_filter_noDups()
       use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
 
       type (Filterer), target :: f
@@ -150,16 +150,16 @@ contains
 
       f = Filterer()
 
-      call f%addFilter(Filter('A'))
-      call f%addFilter(Filter('B'))
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
 
       ! Duplicate - do not add.
-      call f%addFilter(Filter('A'))
+      call f%add_filter(Filter('A'))
 
-      filters => f%getFilters()
+      filters => f%get_filters()
       @assertEqual(2, filters%size())
 
-   end subroutine test_addFilter_noDups
+   end subroutine test_add_filter_noDups
 
 
 end module Test_Filterer_mod

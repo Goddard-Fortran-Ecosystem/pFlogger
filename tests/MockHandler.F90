@@ -18,7 +18,7 @@ module MockHandler_mod
    type, extends (AbstractHandler) :: MockHandler
       type (MockBuffer), pointer :: buffer
    contains
-      procedure :: emitMessage
+      procedure :: emit_message
       procedure :: close ! noop
       procedure :: flush => flushUnit
       procedure :: equal
@@ -38,19 +38,19 @@ contains
       integer, optional, intent(in) :: level
 
       handler%buffer => buffer
-      call handler%setFormatter(Formatter('%(message)a'))
-      if (present(level)) call handler%setLevel(level)
+      call handler%set_formatter(Formatter('%(message)a'))
+      if (present(level)) call handler%set_level(level)
 
    end function newMockHandler
 
    
-   subroutine emitMessage(this, record)
+   subroutine emit_message(this, record)
       class (MockHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
 
       this%buffer%buffer = this%format(record)
       
-   end subroutine emitMessage
+   end subroutine emit_message
 
 
    subroutine flushUnit(this)
@@ -69,7 +69,7 @@ contains
 
       select type (b)
       class is (MockHandler)
-         equal = associated(a%buffer, b%buffer) .and. (a%getLevel() == b%getLevel())
+         equal = associated(a%buffer, b%buffer) .and. (a%get_level() == b%get_level())
       class default
          equal = .false.
       end select

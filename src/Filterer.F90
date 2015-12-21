@@ -31,15 +31,15 @@ module PFL_Filterer_mod
       private
       type (FilterVector) :: filters
    contains
-      procedure :: addFilter
-      procedure :: doFilter
-      procedure :: removeFilter
-      procedure :: getFilters
+      procedure :: add_filter
+      procedure :: do_filter
+      procedure :: remove_filter
+      procedure :: get_filters
    end type Filterer
 
 
    interface Filterer
-      module procedure newFilterer
+      module procedure new_Filterer
    end interface Filterer
 
 
@@ -48,25 +48,25 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! newFilterer
+   ! new_Filterer
    !
    ! DESCRIPTION: 
    ! Initializes list of filters to an empty list.
    !---------------------------------------------------------------------------
-   function newFilterer() result(f)
+   function new_Filterer() result(f)
       type (Filterer) :: f
       f%filters = FilterVector()
-   end function newFilterer
+   end function new_Filterer
 
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! addFilter
+   ! add_filter
    !
    ! DESCRIPTION: 
    ! Add a filter to 'this' handler.
    !---------------------------------------------------------------------------
-   subroutine addFilter(this, fltr)
+   subroutine add_filter(this, fltr)
       class (Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: fltr
 
@@ -83,48 +83,48 @@ contains
 
       call this%filters%push_back(fltr)
 
-   end subroutine addFilter
+   end subroutine add_filter
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! doFilter
+   ! do_filter
    !
    ! DESCRIPTION: 
    ! Determine if a record is loggable by consulting all the filters.
    ! The default is to allow the record to be logged unless otherwise
    ! specified by the filter.  Returns FALSE if a record, else TRUE.
    !---------------------------------------------------------------------------
-   logical function doFilter(this, record)
+   logical function do_filter(this, record)
       class (Filterer), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
       type (FilterVectorIterator) :: iter
       class (AbstractFilter), pointer :: fPtr
 
-      doFilter = .true. ! unless
+      do_filter = .true. ! unless
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
          fPtr => iter%get()
-         if (.not. fPtr%doFilter(record)) then
-            doFilter = .false.
+         if (.not. fPtr%do_filter(record)) then
+            do_filter = .false.
             exit
          end if
          call iter%next()
       end do
 
-   end function doFilter
+   end function do_filter
 
 
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! removeFilter
+   ! remove_filter
    !
    ! DESCRIPTION: 
    ! Remove filter from 'this' handler.
    !---------------------------------------------------------------------------
-   subroutine removeFilter(this, f)
+   subroutine remove_filter(this, f)
       use PFL_Exception_mod
       class(Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: f
@@ -139,26 +139,26 @@ contains
          call this%filters%erase(this%filters%begin() + i - 1)
       else
          ! Only can get here if filter not found
-         call throw('Filterer::removeFilter() - no such filter.')
+         call throw('Filterer::remove_filter() - no such filter.')
       end if
 
-   end subroutine removeFilter
+   end subroutine remove_filter
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getFilters
+   ! get_filters
    !
    ! DESCRIPTION: 
    ! Get list of "this" filters.
    !---------------------------------------------------------------------------
-  function getFilters(this) result(filters)
+  function get_filters(this) result(filters)
       type (FilterVector), pointer :: filters
       class (Filterer), target, intent(in) :: this
 
       filters => this%filters
 
-   end function getFilters
+   end function get_filters
 
 
 end module PFL_Filterer_mod

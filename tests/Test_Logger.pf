@@ -28,7 +28,7 @@ contains
       this%basicLogger = Logger('A')
       mockHandler_ = MockHandler(this%mockBuffer)
 
-      call this%basicLogger%addHandler(mockHandler_)
+      call this%basicLogger%add_handler(mockHandler_)
 
    end subroutine setUp
 
@@ -43,41 +43,41 @@ contains
    
 
 @Test
-   subroutine test_makeRecord(this)
+   subroutine test_make_record(this)
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
       type (UnlimitedVector) :: args
       
-      call this%basicLogger%makeRecord(record, INFO, 'hi')
-      @assertEqual('hi', record%getMessage())
+      call this%basicLogger%make_record(record, INFO, 'hi')
+      @assertEqual('hi', record%get_message())
       
-      call this%basicLogger%makeRecord(record, INFO, 'hi', args=args)
-      @assertEqual('hi', record%getMessage())
+      call this%basicLogger%make_record(record, INFO, 'hi', args=args)
+      @assertEqual('hi', record%get_message())
 
-   end subroutine test_makeRecord
+   end subroutine test_make_record
    
 
 @Test
    subroutine test_isEnabledFor(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(DEBUG)
+      call this%basicLogger%set_level(DEBUG)
       @assertTrue(this%basicLogger%isEnabledFor(DEBUG))
 
-      call this%basicLogger%setLevel(INFO)
+      call this%basicLogger%set_level(INFO)
       @assertTrue(this%basicLogger%isEnabledFor(INFO))
       @assertFalse(this%basicLogger%isEnabledFor(DEBUG))
 
-      call this%basicLogger%setLevel(WARNING)
+      call this%basicLogger%set_level(WARNING)
       @assertTrue(this%basicLogger%isEnabledFor(WARNING))
       @assertFalse(this%basicLogger%isEnabledFor(INFO))
 
-      call this%basicLogger%setLevel(ERROR)
+      call this%basicLogger%set_level(ERROR)
       @assertTrue(this%basicLogger%isEnabledFor(ERROR))
       @assertFalse(this%basicLogger%isEnabledFor(WARNING))
 
-      call this%basicLogger%setLevel(CRITICAL)
+      call this%basicLogger%set_level(CRITICAL)
       @assertTrue(this%basicLogger%isEnabledFor(CRITICAL))
       @assertFalse(this%basicLogger%isEnabledFor(ERROR))
 
@@ -129,7 +129,7 @@ contains
    subroutine test_debug(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(DEBUG)
+      call this%basicLogger%set_level(DEBUG)
       call this%basicLogger%debug('test_debug')
       @assertEqual('test_debug', this%mockBuffer%buffer)
 
@@ -139,7 +139,7 @@ contains
    subroutine test_debugNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(INFO)
+      call this%basicLogger%set_level(INFO)
       ! Here debug() will not emit message because DEBUG<INFO
       call this%basicLogger%debug('test_debug')
       @assertFalse(allocated(this%mockBuffer%buffer))
@@ -160,7 +160,7 @@ contains
    subroutine test_infoNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(WARNING)
+      call this%basicLogger%set_level(WARNING)
       call this%basicLogger%info('test_info')
       @assertFalse(allocated(this%mockBuffer%buffer))
 
@@ -172,7 +172,7 @@ contains
    subroutine test_warning(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(WARNING)
+      call this%basicLogger%set_level(WARNING)
       call this%basicLogger%warning('test_warning')
       @assertEqual('test_warning', this%mockBuffer%buffer)
 
@@ -183,7 +183,7 @@ contains
    subroutine test_warningNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(ERROR)
+      call this%basicLogger%set_level(ERROR)
       call this%basicLogger%warning('test_warning')
       @assertFalse(allocated(this%mockBuffer%buffer))
 
@@ -194,7 +194,7 @@ contains
    subroutine test_error(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(ERROR)
+      call this%basicLogger%set_level(ERROR)
       call this%basicLogger%error('test_error')
       @assertEqual('test_error', this%mockBuffer%buffer)
 
@@ -205,7 +205,7 @@ contains
    subroutine test_errorNoEmit(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(CRITICAL)
+      call this%basicLogger%set_level(CRITICAL)
       call this%basicLogger%error('test_error')
       @assertFalse(allocated(this%mockBuffer%buffer))
 
@@ -216,7 +216,7 @@ contains
    subroutine test_critical(this)
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%setLevel(CRITICAL)
+      call this%basicLogger%set_level(CRITICAL)
       call this%basicLogger%critical('test_critical')
       @assertEqual('test_critical', this%mockBuffer%buffer)
 
@@ -224,7 +224,7 @@ contains
 
 
 @test
-   subroutine test_removeHandler_missing(this)
+   subroutine test_remove_handler_missing(this)
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
@@ -234,14 +234,14 @@ contains
       lgr = Logger('A')
       mockHandler_ = MockHandler(buffer, level=DEBUG)
 
-      call lgr%removeHandler(mockHandler_)
-      @assertExceptionRaised('Logger%removeHandler() called - logger has no such handler.')
+      call lgr%remove_handler(mockHandler_)
+      @assertExceptionRaised('PFL::Logger%remove_handler() called - logger has no such handler.')
 
-   end subroutine test_removeHandler_missing
+   end subroutine test_remove_handler_missing
 
 
 @test
-   subroutine test_removeHandler_present(this)
+   subroutine test_remove_handler_present(this)
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
@@ -250,15 +250,15 @@ contains
 
       lgr = Logger('A')
       mockHandler_ = MockHandler(buffer, level=DEBUG)
-      call lgr%addHandler(mockHandler_)
-      call lgr%removeHandler(mockHandler_)
+      call lgr%add_handler(mockHandler_)
+      call lgr%remove_handler(mockHandler_)
       
       ! no exception should have been thrown
-   end subroutine test_removeHandler_present
+   end subroutine test_remove_handler_present
 
 
 @test
-   subroutine test_removeHandler_remove1st(this)
+   subroutine test_remove_handler_remove1st(this)
       use PFL_AbstractHandlerPolyVector_mod
       class (Test_Logger), intent(inout) :: this
 
@@ -269,21 +269,21 @@ contains
 
       lgr = Logger('A')
       mockHandler_ = MockHandler(bufferA, level=DEBUG)
-      call lgr%addHandler(mockHandler_)
+      call lgr%add_handler(mockHandler_)
       mockHandler_ = MockHandler(bufferB, level=INFO)
-      call lgr%addHandler(mockHandler_)
+      call lgr%add_handler(mockHandler_)
       mockHandler_ = MockHandler(bufferA, level=DEBUG)
-      call lgr%removeHandler(mockHandler_)
+      call lgr%remove_handler(mockHandler_)
 
       call lgr%info('Hello')
       @assertEqual('Hello', bufferB%buffer)
       @assertTrue(.not. allocated(bufferA%buffer))
 
-   end subroutine test_removeHandler_remove1st
+   end subroutine test_remove_handler_remove1st
 
 
 @test
-   subroutine test_addHandler_noDups(this)
+   subroutine test_add_handler_noDups(this)
       use PFL_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
       class (Test_Logger), intent(inout) :: this
 
@@ -294,16 +294,16 @@ contains
 
       lgr = Logger('A')
 
-      call lgr%addHandler(MockHandler(bufA))
-      call lgr%addHandler(MockHandler(bufB))
+      call lgr%add_handler(MockHandler(bufA))
+      call lgr%add_handler(MockHandler(bufB))
 
       ! Duplicate - do not add.
-      call lgr%addHandler(MockHandler(bufA))
+      call lgr%add_handler(MockHandler(bufA))
 
-      handlers => lgr%getHandlers()
+      handlers => lgr%get_handlers()
       @assertEqual(2, handlers%size())
 
-   end subroutine test_addHandler_noDups
+   end subroutine test_add_handler_noDups
 
 
    ! This next test is to ensure that filtering beyond level checking
@@ -314,7 +314,7 @@ contains
       use ConfigurableFilter_mod
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%addFilter(ConfigurableFilter(.false.))
+      call this%basicLogger%add_filter(ConfigurableFilter(.false.))
       call this%basicLogger%warning('hello')
 
       @assertFalse(allocated(this%mockbuffer%buffer))
@@ -327,7 +327,7 @@ contains
       use ConfigurableFilter_mod
       class (Test_Logger), intent(inout) :: this
 
-      call this%basicLogger%addFilter(ConfigurableFilter(.true.))
+      call this%basicLogger%add_filter(ConfigurableFilter(.true.))
       call this%basicLogger%warning('hello')
 
       @assertEqual('hello', this%mockBuffer%buffer)
@@ -348,8 +348,8 @@ contains
 
       lgr = Logger('A')
       h = MockHandler(this%mockBuffer)
-      call h%setFormatter(Formatter('%(option)i1.1'))
-      call lgr%addHandler(h)
+      call h%set_formatter(Formatter('%(option)i1.1'))
+      call lgr%add_handler(h)
       call lgr%info('test_info', extra=extra)
       @assertEqual('1', this%mockBuffer%buffer)
 

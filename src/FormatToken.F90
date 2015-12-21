@@ -27,7 +27,7 @@ module PFL_FormatToken_mod
    type FormatToken
       integer :: type ! use enum
       character(len=:), allocatable :: text
-      character(len=:), allocatable :: editDescriptor
+      character(len=:), allocatable :: edit_descriptor
    end type FormatToken
 
 
@@ -54,7 +54,7 @@ contains
          token%text = string
 
       case (POSITION)
-         token%editDescriptor = string
+         token%edit_descriptor = string
 
       case (KEYWORD)
          idx = index(string, KEYWORD_SEPARATOR)
@@ -65,9 +65,9 @@ contains
          end if
          token%text = string(:idx-1)
          if (idx == len_trim(string)) then
-            token%editDescriptor = '*'
+            token%edit_descriptor = '*'
          else
-            token%editDescriptor = string(idx+1:len_trim(string))
+            token%edit_descriptor = string(idx+1:len_trim(string))
          end if
 
       end select

@@ -38,9 +38,9 @@ contains
       
       call initLogRecord(this%record, 'A', INFO, 'Hello')
 !!$      this%record = LogRecord('A', INFO, 'Hello')
-      @assertEqual('A', this%record%getName())
-      @assertEqual(INFO, this%record%getLevel())
-      @assertEqual('Hello', this%record%getMessage())
+      @assertEqual('A', this%record%get_name())
+      @assertEqual(INFO, this%record%get_level())
+      @assertEqual('Hello', this%record%get_message())
       
    end subroutine test_intRecord
 
@@ -52,9 +52,9 @@ contains
       
       call initLogRecord(this%record, 'A', INFO, 'Hello')
 !!$      this%record = LogRecord('A', INFO, 'Hello')
-      @assertEqual('A', this%record%getName())
-      @assertEqual(INFO, this%record%getLevel())
-      @assertEqual('Hello', this%record%getMessage())
+      @assertEqual('A', this%record%get_name())
+      @assertEqual(INFO, this%record%get_level())
+      @assertEqual('Hello', this%record%get_message())
       
    end subroutine test_args
 

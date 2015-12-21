@@ -9,7 +9,7 @@ module Test_ParserContexts_mod
    type, extends(AbstractTestParameter) :: TestParam
 
       ! in
-      procedure (ContextInterface), nopass, pointer :: inContext
+      procedure (ContextInterface), nopass, pointer :: in_context
       character(len=:), allocatable :: inBuffer
       character(len=1) :: nextChar
 
@@ -42,7 +42,7 @@ contains
       type (TestParam), allocatable :: params(:)
 
       type struct
-         procedure (ContextInterface), nopass, pointer :: inContext
+         procedure (ContextInterface), nopass, pointer :: in_context
          character(len=:), allocatable :: inBuffer
          character(len=1) :: char
          character(len=:), allocatable :: outBuffer
@@ -154,10 +154,10 @@ contains
    contains
 
       
-      function p(inContext, inBuffer, char, outContext, outBuffer, token, errorMessage, prevContext)
+      function p(in_context, inBuffer, char, outContext, outBuffer, token, errorMessage, prevContext)
          type (TestParam) :: p
          
-         procedure (ContextInterface) :: inContext
+         procedure (ContextInterface) :: in_context
          character(len=*), intent(in) :: inBuffer
          character(len=1), intent(in) :: char
          procedure (ContextInterface) :: outContext
@@ -166,7 +166,7 @@ contains
          character(len=*), optional, intent(in) :: errorMessage
          procedure (ContextInterface), optional :: prevContext
 
-         p%inContext => inContext
+         p%in_context => in_context
          p%inBuffer = inBuffer
          p%nextChar = char
          p%outBuffer = outBuffer
@@ -207,7 +207,7 @@ contains
       p4 => positionContext
       p5 => keywordContext
 
-      p => this%inContext
+      p => this%in_context
       if (associated(p, p1)) then
          message = message // 'textContext' // new_line('a')
       elseif (associated(p, p2)) then
@@ -241,14 +241,14 @@ contains
       class (ContextsTestCase), intent(inout) :: this
 
       if (associated(this%param%prevContext)) then
-         call this%parser%setContext(this%param%prevContext)
-         call this%parser%pushContext()
+         call this%parser%set_context(this%param%prevContext)
+         call this%parser%push_context()
       end if
-      call this%parser%setContext(this%param%inContext)
+      call this%parser%set_context(this%param%in_context)
 
-      call this%parser%setBuffer(this%param%inBuffer)
+      call this%parser%set_buffer(this%param%inBuffer)
 
-      call this%param%inContext(this%parser, this%param%nextChar)
+      call this%param%in_context(this%parser, this%param%nextChar)
       if (allocated(this%param%errorMessage)) then
          @assertExceptionRaised(this%param%errorMessage)
       end if
@@ -270,7 +270,7 @@ contains
 
       character(len=:), pointer :: buffer
 
-      call this%parser%getBuffer(buffer)
+      call this%parser%get_buffer(buffer)
       @assertEqual(this%param%outBuffer, buffer, whiteSpace=KEEP_ALL)
 
    end subroutine test_outBuffer
@@ -286,7 +286,7 @@ contains
       procedure (ContextInterface), pointer :: procPtr
       procedure (ContextInterface), pointer :: expectedPtr
 
-      call this%parser%getContext(procPtr)
+      call this%parser%get_context(procPtr)
       expectedPtr => this%param%outContext
       @assertTrue(associated(procPtr, expectedPtr), 'incorrect state transition')
 
@@ -312,7 +312,7 @@ contains
          case (TEXT)
             @assertEqual(this%param%token%text, token%text)
          case (POSITION)
-            @assertEqual(this%param%token%editDescriptor, token%editDescriptor)
+            @assertEqual(this%param%token%edit_descriptor, token%edit_descriptor)
          case (KEYWORD)
             @assertEqual(this%param%token%text, token%text)
             @assertEqual(this%param%token%text, token%text)

@@ -36,10 +36,10 @@ module PFL_LoggerManager_mod
       integer :: mpi_world_rank
       integer :: mpi_world_size
    contains
-      procedure :: getLogger
+      procedure :: get_logger
       procedure, private :: fixup_ancestors
       procedure, private :: fixup_children
-      procedure, nopass :: getParentPrefix
+      procedure, nopass :: get_parent_prefix
 
       procedure :: load_file
       procedure :: load_config
@@ -71,7 +71,7 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getLogger
+   ! get_logger
    !
    ! DESCRIPTION: 
    ! Initialize with the root node of the logger hierarchy.
@@ -115,7 +115,7 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getLogger
+   ! get_logger
    !
    ! DESCRIPTION: 
    ! Get a logger with the specified 'name', creating it if necessary.
@@ -124,7 +124,7 @@ contains
    !    etc.
    ! 2) 'name' is case insensitive.
    !---------------------------------------------------------------------------
-   function getLogger(this, name) result(lgr)
+   function get_logger(this, name) result(lgr)
       use PFL_Exception_mod
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
@@ -161,7 +161,7 @@ contains
             end block
             class default
             lgr => null()
-            call throw('LoggerManager::getLogger() - Illegal type of logger <' &
+            call throw('LoggerManager::get_logger() - Illegal type of logger <' &
                  & // name // '>')
          end select
          return
@@ -178,12 +178,12 @@ contains
             call this%fixup_ancestors(lgr)
             class default
             lgr => null()
-            call throw('LoggerManager::getLogger() - Illegal type of logger <' &
+            call throw('LoggerManager::get_logger() - Illegal type of logger <' &
                  & // name // '>')
          end select
       end if
 
-   end function getLogger
+   end function get_logger
 
    subroutine fixup_ancestors(this, lgr)
       use PFL_Exception_mod
@@ -196,8 +196,8 @@ contains
       class (Logger), pointer :: ancestor
       class (AbstractLogger), pointer :: tmp
 
-      name = lgr%getName()
-      ancestor_name = this%getParentPrefix(name)
+      name = lgr%get_name()
+      ancestor_name = this%get_parent_prefix(name)
       ancestor => null()
 
       do while (ancestor_name /= '' .and. (.not. associated(ancestor)))
@@ -206,7 +206,7 @@ contains
             select type (tmp)
                class is (Logger)
                ancestor => tmp
-               call lgr%setParent(ancestor)
+               call lgr%set_parent(ancestor)
             type is (Placeholder)
                call tmp%children%push_back(lgr)
                class default
@@ -222,14 +222,14 @@ contains
             end block
          end if
 
-         ancestor_name = this%getParentPrefix(ancestor_name)
+         ancestor_name = this%get_parent_prefix(ancestor_name)
       end do
 
       if (.not. associated(ancestor)) then
          ancestor => this%root_node
       end if
 
-      call lgr%setParent(ancestor)
+      call lgr%set_parent(ancestor)
 
    end subroutine fixup_ancestors
 
@@ -246,17 +246,17 @@ contains
       integer :: n
 
       iter = ph%children%begin()
-      name = lgr%getName()
+      name = lgr%get_name()
       n = len(name)
 
       do while (iter /= ph%children%end())
          child => iter%get()
-         child_ancestor => child%getParent()
-         child_ancestor_name = child_ancestor%getName()
+         child_ancestor => child%get_parent()
+         child_ancestor_name = child_ancestor%get_name()
 
          if (child_ancestor_name(1:n) /= name) then
-            call lgr%setParent(child_ancestor)
-            call child%setParent(lgr)
+            call lgr%set_parent(child_ancestor)
+            call child%set_parent(lgr)
          end if
          call iter%next()
       end do
@@ -265,14 +265,14 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getParentPrefix
+   ! get_parent_prefix
    !
    ! DESCRIPTION: 
    ! In the logger hierarchy, the parent prefix is the string preceding the
    ! last logger in the hierarchy. For example: the parent prefix of c in the
    ! logger hierarchy a.b.c is a.b
    !---------------------------------------------------------------------------
-   function getParentPrefix(name) result(prefix)
+   function get_parent_prefix(name) result(prefix)
       character(len=*), intent(in) :: name
       character(len=:), allocatable :: prefix
 
@@ -281,7 +281,7 @@ contains
       idx = index(name, '.', back=.true.)
       prefix = name(1:idx-1)
 
-   end function getParentPrefix
+   end function get_parent_prefix
 
 
    subroutine initialize_logger_manager(comm)
@@ -361,7 +361,7 @@ contains
          iter = lgrs_cfg%begin()
          do while (iter /= lgrs_cfg%end())
             name = iter%key()
-            lgr => this%getLogger(name)
+            lgr => this%get_logger(name)
             lgr_cfg => lgrs_cfg%toConfigPtr(name)
             call build_logger(lgr, lgr_cfg, elements, extra=extra)
             call iter%next()

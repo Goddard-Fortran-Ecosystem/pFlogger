@@ -9,7 +9,7 @@
 !> Handler for logging to a set of files, which switches from one file
 !> to the next when the current file reaches a certain size.
 !> By default, the file grows indefinitely. You can specify particular
-!> values of maxBytes and backupCount to allow the file to rollover at
+!> values of max_bytes and backup_count to allow the file to rollover at
 !> a predetermined size.
 !
 !> @author ASTG staff
@@ -31,13 +31,13 @@ module PFL_RotatingFileHandler_mod
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
-      integer(int64) :: maxBytes = HUGE(1)
-      integer :: backupCount = 0
+      integer(int64) :: max_bytes = HUGE(1)
+      integer :: backup_count = 0
       logical :: delay = .false.
    contains
-      procedure :: doRollover
-      procedure :: shouldRollover
-      procedure :: atomicEmitMessage
+      procedure :: do_rollover
+      procedure :: should_rollover
+      procedure :: atomic_emit_message
    end type RotatingFileHandler
 
    interface RotatingFileHandler
@@ -54,30 +54,30 @@ contains
    !
    ! DESCRIPTION: 
    ! Instantiate a rotating file handler with a given file name. Optionally
-   ! set maxBytes, backupcount and level. Note maxBytes can be specified
-   ! in kb, mb or gb. E.g. maxBytes=100mb.
+   ! set max_bytes, backupcount and level. Note max_bytes can be specified
+   ! in kb, mb or gb. E.g. max_bytes=100mb.
    !---------------------------------------------------------------------------
-   function newRotatingFileHandler(fileName, maxBytes, backupCount, delay) &
+   function newRotatingFileHandler(fileName, max_bytes, backup_count, delay) &
         result(handler)
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      character(len=*), intent(in), optional :: maxBytes
-      integer, intent(in), optional :: backupCount
+      character(len=*), intent(in), optional :: max_bytes
+      integer, intent(in), optional :: backup_count
       logical, intent(in), optional :: delay
       
-      integer :: backupCount_
-      integer(int64) :: maxBytes_
+      integer :: backup_count_
+      integer(int64) :: max_bytes_
       logical :: delay_
 
-      if (present(maxBytes)) then
-         maxBytes_ = convertNumBytes_(maxBytes)
+      if (present(max_bytes)) then
+         max_bytes_ = convertNumBytes_(max_bytes)
       else
-         maxBytes_ = 0
+         max_bytes_ = 0
       end if
-      if (present(backupCount)) then
-         backupCount_ = backupCount
+      if (present(backup_count)) then
+         backup_count_ = backup_count
       else
-         backupCount_ = 0
+         backup_count_ = 0
       end if
 
       if (present(delay)) then
@@ -88,11 +88,11 @@ contains
 
       handler%FileHandler = FileHandler(fileName, delay)
 
-      handler%maxBytes = maxBytes_
-      handler%backupCount = backupCount_
+      handler%max_bytes = max_bytes_
+      handler%backup_count = backup_count_
       handler%delay = delay_
 
-      call handler%setFormatter(Formatter(BASIC_FORMAT))
+      call handler%set_formatter(Formatter(BASIC_FORMAT))
       
    end function newRotatingFileHandler
 
@@ -102,34 +102,34 @@ contains
    ! convertNumBytes
    !
    ! DESCRIPTION: 
-   ! Convert maxBytes descriptor to bytes.
+   ! Convert max_bytes descriptor to bytes.
    !---------------------------------------------------------------------------  
-   function convertNumBytes_(maxBytes) result(nBytes)
-      character(len=*), intent(in) :: maxBytes
+   function convertNumBytes_(max_bytes) result(nBytes)
+      character(len=*), intent(in) :: max_bytes
       integer(int64) :: nBytes
       
       character(len=16) :: fmt
       integer :: pos, n, nl
 
-      pos = scan(maxBytes,'kmg')
+      pos = scan(max_bytes,'kmg')
       if (pos > 0) then
-        nl = len(maxBytes(1:pos-1))        
+        nl = len(max_bytes(1:pos-1))        
         fmt = setFmt_(nl)
-        select case(maxBytes(pos:pos+1))
+        select case(max_bytes(pos:pos+1))
         case ('kb')
-          read(maxBytes(1:pos-1), fmt) n
+          read(max_bytes(1:pos-1), fmt) n
           nBytes = n * (2_int64 ** 10)
         case ('mb')
-          read(maxBytes(1:pos-1), fmt) n
+          read(max_bytes(1:pos-1), fmt) n
           nBytes = n * (2_int64 ** 20)
         case ('gb')
-          read(maxBytes(1:pos-1), fmt) n
+          read(max_bytes(1:pos-1), fmt) n
           nBytes = n * (2_int64 ** 30)
         end select
       else
-        nl = len(maxBytes)
+        nl = len(max_bytes)
         fmt = setFmt_(nl)
-        read(maxBytes, fmt) n
+        read(max_bytes, fmt) n
         nBytes = n
       end if
 
@@ -148,34 +148,34 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! atomicEmitMessage
+   ! atomic_emit_message
    !
    ! DESCRIPTION: 
    ! Write a formatted string to a file.
    !---------------------------------------------------------------------------  
-   subroutine atomicEmitMessage(this, record)
+   subroutine atomic_emit_message(this, record)
       class (RotatingFileHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
       integer :: fileSize
 
       
-      if (this%shouldRollover()) then
-         call this%doRollover()
+      if (this%should_rollover()) then
+         call this%do_rollover()
       end if
 
-      call this%FileHandler%atomicEmitMessage(record)
+      call this%FileHandler%atomic_emit_message(record)
     
-   end subroutine atomicEmitMessage
+   end subroutine atomic_emit_message
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! shouldRollover
+   ! should_rollover
    !
    ! DESCRIPTION: 
    ! Determine if rollover should occur.
    !---------------------------------------------------------------------------  
-   function shouldRollover(this) result(rollOver)
+   function should_rollover(this) result(rollOver)
       class (RotatingFileHandler), intent(in) :: this
       logical :: rollOver 
       integer :: fileSize
@@ -183,25 +183,25 @@ contains
       rollOver = .false.
       call this%FileHandler%flush()
       ! workaround for NAG
-!!$      inquire(file=this%getFileName(), size=fileSize)
-      inquire(unit=this%getUnit(), size=fileSize)
+!!$      inquire(file=this%get_file_name(), size=fileSize)
+      inquire(unit=this%get_unit(), size=fileSize)
 
-      if (fileSize > this%maxBytes) then
+      if (fileSize > this%max_bytes) then
          rollOver = .true.
       end if
       
-   end function shouldRollover
+   end function should_rollover
 
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! doRollover
+   ! do_rollover
    !
    ! DESCRIPTION: 
-   ! Rollover occurs whenever the current log file is nearly maxBytes in
-   ! length. If backupCount is >= 1, the system will successively create
+   ! Rollover occurs whenever the current log file is nearly max_bytes in
+   ! length. If backup_count is >= 1, the system will successively create
    ! new files with the same pathname as the base file, but with extensions
-   ! ".1", ".2" etc. appended to it. For example, with a backupCount of 5
+   ! ".1", ".2" etc. appended to it. For example, with a backup_count of 5
    ! and a base file name of "app.log", you would get "app.log",
    ! "app.log.1", "app.log.2", ... through to "app.log.5". The file being
    ! written to is always "app.log" - when it gets filled up, it is closed
@@ -209,7 +209,7 @@ contains
    ! exist, then they are renamed to "app.log.2", "app.log.3" etc.
    ! respectively.
    !---------------------------------------------------------------------------  
-   subroutine doRollover(this)
+   subroutine do_rollover(this)
       use PFL_FormatString_mod
       class (RotatingFileHandler), intent(inout) :: this
       
@@ -220,18 +220,18 @@ contains
       logical :: exists
       integer :: i
 
-      if (this%isOpen()) then
+      if (this%is_open()) then
          call this%close()
       end if
 
-      if (this%backupCount > 0) then
+      if (this%backup_count > 0) then
 
-         do i = this%backupCount, 1, -1
+         do i = this%backup_count, 1, -1
 
             write(suffix,'(i0)') i
-            srcFile = this%getFileName()//'.'//trim(suffix)
+            srcFile = this%get_file_name()//'.'//trim(suffix)
             write(suffix,'(i0)') i+1
-            dstFile = this%getFileName()//'.'//trim(suffix)
+            dstFile = this%get_file_name()//'.'//trim(suffix)
 
             inquire(FILE=srcFile, EXIST=exists)
 
@@ -243,7 +243,7 @@ contains
          end do
 
          dstFile = srcFile
-         srcFile = this%getFileName()
+         srcFile = this%get_file_name()
          call delete_if_exists(dstFile)
 
          call execute_command_line('mv ' // srcFile // ' ' // dstFile)
@@ -269,7 +269,7 @@ contains
 
       end subroutine delete_if_exists
       
-   end subroutine doRollover
+   end subroutine do_rollover
 
 
 end module PFL_RotatingFileHandler_mod

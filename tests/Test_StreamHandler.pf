@@ -55,8 +55,8 @@ contains
 
 
       handler = StreamHandler(unit=this%unit)
-      call handler%setLevel(INFO)
-      call initLogRecord(rec, name='SHname', messageformat='hello', level=INFO)
+      call handler%set_level(INFO)
+      call initLogRecord(rec, name='SHname', message_format='hello', level=INFO)
       call handler%handle(rec)
 
       rewind(this%unit)
@@ -85,13 +85,13 @@ contains
       fmt = Formatter('%(levelName)a~: %(name)a~: %(message)a')
 
       handler = StreamHandler(unit=this%unit)
-      call handler%setFormatter(fmt)
+      call handler%set_formatter(fmt)
       call initLogRecord(record, 'A', INFO, 'Goodbye %i1.1', args=args)
       call handler%handle(record)
       
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
-      @assertEqual('INFO: A: '//record%getMessage(), foundMessage)
+      @assertEqual('INFO: A: '//record%get_message(), foundMessage)
       
    end subroutine test_emitBasicWithFormat
 
@@ -117,11 +117,11 @@ contains
       ! Create a LogRecord
       record%name = 'someRec'
       record%level = INFO
-      record%messageformat = 'datefmt'
+      record%message_format = 'datefmt'
 
       call record%extra%insert('name', 'someRec')
       call record%extra%insert('level', INFO)
-      levelName = levelToName(INFO)
+      levelName = level_to_name(INFO)
       call record%extra%insert('levelName', levelName)
 
       call mockdf%fillDateAndTime(record)
@@ -130,12 +130,12 @@ contains
            datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
 
       handler = StreamHandler(unit=this%unit)
-      call handler%setFormatter(f)
+      call handler%set_formatter(f)
       call handler%handle(record)
       
       rewind(this%unit)
       read(this%unit,'(a)') foundMessage
-      @assertEqual('03-04-05 INFO: someRec: '//record%getMessage(), foundMessage)
+      @assertEqual('03-04-05 INFO: someRec: '//record%get_message(), foundMessage)
       
    end subroutine test_emitBasicWithFormatAndDate
 
@@ -156,7 +156,7 @@ contains
       type (LogRecord) :: record
       
       handler = StreamHandler(unit=this%unit)
-      call handler%setLevel(INFO)
+      call handler%set_level(INFO)
       call initLogRecord(record, 'name', DEBUG, 'hello')
       call handler%handle(record)
 
@@ -177,7 +177,7 @@ contains
       type (LogRecord) :: record
 
       handler = StreamHandler(unit=this%unit)
-      call handler%setLevel(INFO)
+      call handler%set_level(INFO)
       call initLogRecord(record, 'name', CRITICAL, 'hello')
       call handler%handle(record)
 
@@ -214,9 +214,9 @@ contains
       type (StreamHandler) :: b
 
       a = StreamHandler(unit=this%unit)
-      call a%setLevel(INFO)
+      call a%set_level(INFO)
       b = StreamHandler(unit=this%unit)
-      call b%setLevel(DEBUG)
+      call b%set_level(DEBUG)
 
       @assertFalse(a == b)
       @assertTrue(a /= b)
@@ -255,9 +255,9 @@ contains
       type (LogRecord) :: record
       
       handler = StreamHandler(unit=this%unit)
-      call handler%setLevel(INFO)
+      call handler%set_level(INFO)
       f = ConfigurableFilter(.false.)
-      call handler%addFilter(f)
+      call handler%add_filter(f)
       call initLogRecord(record, 'name', INFO, 'hello')
       call handler%handle(record)
 

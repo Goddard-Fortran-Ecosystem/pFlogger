@@ -23,20 +23,20 @@ module PFL_FileHandler_mod
 
    type, extends(StreamHandler) :: FileHandler
       private
-      logical :: isOpen_ = .false.
-      character(len=:), allocatable :: fileName
+      logical :: is_open_ = .false.
+      character(len=:), allocatable :: file_name
       class (AbstractLock), allocatable :: lock
    contains
-      procedure :: isOpen
+      procedure :: is_open
       procedure :: open
       procedure :: close
-      procedure :: setFileName
-      procedure :: getFileName
-      procedure :: emitMessage
-      procedure :: atomicEmitMessage
+      procedure :: set_file_name
+      procedure :: get_file_name
+      procedure :: emit_message
+      procedure :: atomic_emit_message
       procedure :: equal
-      procedure :: setLock
-      procedure :: isLockable
+      procedure :: set_lock
+      procedure :: is_lockable
    end type FileHandler
 
    interface FileHandler
@@ -56,9 +56,9 @@ contains
    ! set a level and a delay. If a delay is set to true then we
    ! don't open the stream.
    !---------------------------------------------------------------------------
-   function newFileHandler(fileName, delay) result(handler)
+   function newFileHandler(file_name, delay) result(handler)
       type (FileHandler) :: handler
-      character(len=*), intent(in) :: fileName
+      character(len=*), intent(in) :: file_name
       logical, optional, intent(in) :: delay
 
       logical :: delay_
@@ -70,7 +70,7 @@ contains
          delay_ = .false. ! backward compatibility
       end if
 
-      call handler%setFileName(fileName)
+      call handler%set_file_name(file_name)
 
       if (.not. delay_) call handler%open()
 
@@ -79,55 +79,55 @@ contains
     
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! emitMessage
+   ! emit_message
    !
    ! DESCRIPTION: 
    ! Write a formatted string to a file.
    !---------------------------------------------------------------------------  
-   subroutine emitMessage(this, record)
+   subroutine emit_message(this, record)
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
 
-      if (this%isLockable()) then
+      if (this%is_lockable()) then
          call this%lock%acquire()
          call this%open()
       end if
 
-      call this%atomicEmitMessage(record)
+      call this%atomic_emit_message(record)
 
-      if (this%isLockable()) then
+      if (this%is_lockable()) then
          call this%close()
          call this%lock%release()
       end if
 
-   end subroutine emitMessage
+   end subroutine emit_message
 
 
-   subroutine atomicEmitMessage(this, record)
+   subroutine atomic_emit_message(this, record)
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
 
-      if (.not. this%isOpen()) call this%open()
+      if (.not. this%is_open()) call this%open()
 
-      call this%StreamHandler%emitMessage(record)
+      call this%StreamHandler%emit_message(record)
 
-   end subroutine atomicEmitMessage
+   end subroutine atomic_emit_message
    
 
     
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! isOpen
+   ! is_open
    !
    ! DESCRIPTION: 
    ! Check if file unit is open. 
    !---------------------------------------------------------------------------  
-   logical function isOpen(this)
+   logical function is_open(this)
       class (FileHandler), intent(in) :: this
        
-      isOpen = this%isOpen_
+      is_open = this%is_open_
 
-   end function isOpen
+   end function is_open
 
 
    !---------------------------------------------------------------------------  
@@ -142,14 +142,14 @@ contains
       integer :: unit
       logical :: opened
 
-      if (this%isOpen()) return
+      if (this%is_open()) return
 
-      open(newunit=unit, file=this%getFileName(), &
+      open(newunit=unit, file=this%get_file_name(), &
            & status='unknown', form='formatted', position='append')
 
-      this%isOpen_ = .true.
+      this%is_open_ = .true.
 
-      call this%setUnit(unit)
+      call this%set_unit(unit)
        
    end subroutine open
 
@@ -168,44 +168,44 @@ contains
       call this%flush()
       call this%StreamHandler%close()
       ! workaround for NAG 6.0
-!!$      inquire(file=this%getFileName(), number=unit)
-      unit = this%StreamHandler%getUnit()
+!!$      inquire(file=this%get_file_name(), number=unit)
+      unit = this%StreamHandler%get_unit()
       close(unit)
-      this%isOpen_ = .false.
+      this%is_open_ = .false.
 
    end subroutine close
 
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! getFileName
+   ! get_file_name
    !
    ! DESCRIPTION: 
    ! Get the file name associated with this handler.
    !---------------------------------------------------------------------------  
-   function getFileName(this) result(fileName)
+   function get_file_name(this) result(file_name)
       class (FileHandler), intent(in) :: this
-      character(len=:), allocatable :: fileName
+      character(len=:), allocatable :: file_name
 
-      fileName = this%fileName
+      file_name = this%file_name
 
-   end function getFileName
+   end function get_file_name
 
 
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! setFileName
+   ! set_file_name
    !
    ! DESCRIPTION: 
    ! Set the file name associated with this handler.
    !---------------------------------------------------------------------------  
-   subroutine setFileName(this, fileName)
+   subroutine set_file_name(this, file_name)
       class (FileHandler), intent(inout) :: this
-      character(len=*), intent(in) :: fileName
+      character(len=*), intent(in) :: file_name
 
-      this%fileName = fileName
+      this%file_name = file_name
 
-   end subroutine setFileName
+   end subroutine set_file_name
 
 
    !---------------------------------------------------------------------------  
@@ -221,7 +221,7 @@ contains
 
       select type (b)
       class is (FileHandler)
-         equal = (a%StreamHandler == b%StreamHandler) .and. (a%fileName == b%fileName)
+         equal = (a%StreamHandler == b%StreamHandler) .and. (a%file_name == b%file_name)
       class default
          equal = .false.
       end select
@@ -229,27 +229,27 @@ contains
    end function equal
 
 
-   logical function isLockable(this)
+   logical function is_lockable(this)
       class (FileHandler), intent(in) :: this
 
-      isLockable = allocated(this%lock)
+      is_lockable = allocated(this%lock)
 
-   end function isLockable
+   end function is_lockable
 
 
 
-   subroutine setLock(this, lock)
+   subroutine set_lock(this, lock)
       class (FileHandler), intent(inout) :: this
       class (AbstractLock), intent(in) :: lock
       
-      if (this%isLockable()) then
+      if (this%is_lockable()) then
          deallocate(this%lock)
       end if
 
-      if (this%isOpen()) call this%close()
+      if (this%is_open()) call this%close()
 
       allocate(this%lock, source=lock)
 
-   end subroutine setLock
+   end subroutine set_lock
 
 end module PFL_FileHandler_mod

@@ -11,36 +11,36 @@ contains
 
    
 @test
-   subroutine test_getLogger()
+   subroutine test_get_logger()
       type (LoggerManager) :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
       class (Logger), pointer :: loggerC
 
       manager = LoggerManager(RootLogger(WARNING))
-      loggerA => manager%getLogger('A')
-      loggerB => manager%getLogger('B')
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('B')
       ! The previous step might invalidate loggerA,
       ! as the underlying vector resizes(). Check that
       ! it does not
 
-      loggerA => manager%getLogger('A')
-      loggerB => manager%getLogger('B')
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('B')
 
-      @assertEqual('A', loggerA%getName())
-      @assertEqual('B', loggerB%getName())
+      @assertEqual('A', loggerA%get_name())
+      @assertEqual('B', loggerB%get_name())
 
-   end subroutine test_getLogger
+   end subroutine test_get_logger
 
 @test
-   subroutine test_getParentPrefix()
+   subroutine test_get_parent_prefix()
       type (LoggerManager) :: manager
 
-      @assertEqual('A', manager%getParentPrefix('A.B'))
-      @assertEqual('A.B', manager%getParentPrefix('A.B.C'))
-      @assertEqual('A.B.C', manager%getParentPrefix('A.B.C.other'))
+      @assertEqual('A', manager%get_parent_prefix('A.B'))
+      @assertEqual('A.B', manager%get_parent_prefix('A.B.C'))
+      @assertEqual('A.B.C', manager%get_parent_prefix('A.B.C.other'))
 
-   end subroutine test_getParentPrefix
+   end subroutine test_get_parent_prefix
 
    
 @test
@@ -51,13 +51,13 @@ contains
       class (AbstractLogger), pointer :: parent
 
       manager = LoggerManager(RootLogger(WARNING))
-      loggerA => manager%getLogger('A')
-      loggerB => manager%getLogger('A.B')
-      parent => loggerB%getParent()
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('A.B')
+      parent => loggerB%get_parent()
       
       select type (parent)
       class is (Logger)
-         @assertEqual('A', parent%getName())
+         @assertEqual('A', parent%get_name())
       end select
 
    end subroutine test_parentage
@@ -71,10 +71,10 @@ contains
 
       manager = LoggerManager(RootLogger(WARNING))
       ! The next logger is created with a placeholder for its parent.
-      loggerAB => manager%getLogger('A.B')
-      parent => loggerAB%getParent()
+      loggerAB => manager%get_logger('A.B')
+      parent => loggerAB%get_parent()
 
-      @assertEqual('ROOT_LOGGER', parent%getName())
+      @assertEqual('ROOT_LOGGER', parent%get_name())
 
    end subroutine test_fixup
 
@@ -87,10 +87,10 @@ contains
 
       manager = LoggerManager(RootLogger(WARNING))
       ! The next logger is created with a placeholder for its parent.
-      loggerABC => manager%getLogger('A.B.C')
-      parent => loggerABC%getParent()
+      loggerABC => manager%get_logger('A.B.C')
+      parent => loggerABC%get_parent()
 
-      @assertEqual('ROOT_LOGGER', parent%getName())
+      @assertEqual('ROOT_LOGGER', parent%get_name())
 
    end subroutine test_fixup2
    
@@ -103,36 +103,36 @@ contains
 
       manager = LoggerManager(RootLogger(WARNING))
       ! The next logger is created with a placeholder for its parent and grandparent.
-      loggerABC => manager%getLogger('A.B.C')
-      loggerABD => manager%getLogger('A.B.D')
+      loggerABC => manager%get_logger('A.B.C')
+      loggerABD => manager%get_logger('A.B.D')
       ! And another orphan to the side ...
-      loggerAC => manager%getLogger('A.C')
+      loggerAC => manager%get_logger('A.C')
 
       ! The next step should replace the placeholder at 'A.B'
-      loggerAB => manager%getLogger('A.B')
+      loggerAB => manager%get_logger('A.B')
       ! Check that everyone has the right parents.
-!!$      parent => loggerAB%getParent()
-!!$      @assertEqual('ROOT_LOGGER', parent%getName())
-!!$      parent => loggerABC%getParent()
-!!$      @assertEqual('A.B', parent%getName())
-!!$      parent => loggerABD%getParent()
-!!$      @assertEqual('A.B', parent%getName())
+!!$      parent => loggerAB%get_parent()
+!!$      @assertEqual('ROOT_LOGGER', parent%get_name())
+!!$      parent => loggerABC%get_parent()
+!!$      @assertEqual('A.B', parent%get_name())
+!!$      parent => loggerABD%get_parent()
+!!$      @assertEqual('A.B', parent%get_name())
 !!$
 !!$
 !!$      ! Now replace the placeholder at 'A'
-!!$      loggerA => manager%getLogger('A')
+!!$      loggerA => manager%get_logger('A')
 !!$      ! Check that everyone has the right parents.
-!!$      parent => loggerA%getParent()
-!!$      @assertEqual('ROOT_LOGGER', parent%getName())
-!!$      parent => loggerAC%getParent()
-!!$      @assertEqual('A', parent%getName())
-!!$      parent => loggerAB%getParent()
-!!$      @assertEqual('A', parent%getName())
+!!$      parent => loggerA%get_parent()
+!!$      @assertEqual('ROOT_LOGGER', parent%get_name())
+!!$      parent => loggerAC%get_parent()
+!!$      @assertEqual('A', parent%get_name())
+!!$      parent => loggerAB%get_parent()
+!!$      @assertEqual('A', parent%get_name())
 !!$
-!!$      parent => loggerABC%getParent()
-!!$      @assertEqual('A.B', parent%getName())
-!!$      parent => loggerABD%getParent()
-!!$      @assertEqual('A.B', parent%getName())
+!!$      parent => loggerABC%get_parent()
+!!$      @assertEqual('A.B', parent%get_name())
+!!$      parent => loggerABD%get_parent()
+!!$      @assertEqual('A.B', parent%get_name())
 
    end subroutine test_fixup3
    
@@ -146,13 +146,13 @@ contains
 
       root_node = RootLogger(WARNING)
       manager = LoggerManager(root_node)
-      loggerA => manager%getLogger('A')
+      loggerA => manager%get_logger('A')
 
-      parent => loggerA%getParent()
+      parent => loggerA%get_parent()
       @assertTrue(same_type_as(parent, root_node))
       select type (parent)
       class is (RootLogger)
-         @assertEqual('ROOT_LOGGER', parent%getName())
+         @assertEqual('ROOT_LOGGER', parent%get_name())
       end select
 
    end subroutine test_parent_is_root
@@ -170,10 +170,10 @@ contains
       type (MockHandler) :: handlerB
 
       manager = LoggerManager(RootLogger(WARNING))
-      loggerA => manager%getLogger('A')
-      loggerB => manager%getLogger('A.B')
-      call loggerA%addHandler(handlerA)
-      call loggerB%addHandler(handlerB)
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('A.B')
+      call loggerA%add_handler(handlerA)
+      call loggerB%add_handler(handlerB)
 
    end subroutine test_passMessageToParent
 
@@ -185,12 +185,12 @@ contains
       class (Logger), pointer :: loggerB
 
       manager = LoggerManager(RootLogger(WARNING))
-      loggerA => manager%getLogger('A')
-      loggerB => manager%getLogger('a')
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('a')
       
-      ! loggerA pointer may become invalid because second getLogger() call
+      ! loggerA pointer may become invalid because second get_logger() call
       ! changes the data structure.  So we get it again
-      loggerA => manager%getLogger('A')
+      loggerA => manager%get_logger('A')
 
       @assertFalse(associated(loggerA, loggerB))
    end subroutine test_caseSensitiveName
@@ -209,13 +209,13 @@ contains
       type (MockBuffer), target :: buffer
 
       manager = LoggerManager(RootLogger(ERROR))
-      parent => manager%getLogger('parent')
-      child => manager%getLogger('parent.child')
+      parent => manager%get_logger('parent')
+      child => manager%get_logger('parent.child')
       
       h = MockHandler(buffer)
-      call h%setFormatter(Formatter('%(message)'))
+      call h%set_formatter(Formatter('%(message)'))
 
-      call parent%addHandler(h)
+      call parent%add_handler(h)
       buffer%buffer = ''
       call child%info('test_info') ! should invoke handler through parent
       @assertEqual('test_info', buffer%buffer)
@@ -234,14 +234,14 @@ contains
       type (MockBuffer), target :: buffer
 
       manager = LoggerManager(RootLogger(ERROR))
-      parent => manager%getLogger('parent')
-      child => manager%getLogger('parent.child')
-      call child%setPropagate(.false.)
+      parent => manager%get_logger('parent')
+      child => manager%get_logger('parent.child')
+      call child%set_propagate(.false.)
       
       h = MockHandler(buffer)
-      call h%setFormatter(Formatter('%(message)'))
+      call h%set_formatter(Formatter('%(message)'))
 
-      call parent%addHandler(h)
+      call parent%add_handler(h)
 
       buffer%buffer = ''
       call child%info('test_info') ! should invoke handler through parent

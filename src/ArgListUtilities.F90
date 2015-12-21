@@ -13,21 +13,21 @@ module PFL_ArgListUtilities_mod
    implicit none
    private
 
-   public :: makeArgVector
+   public :: make_arg_vector
 
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
 contains
 
 !---------------------------------------------------------------------------  
-!*FUNCTION: makeArgVector
+!*FUNCTION: make_arg_vector
 !
 !> @brief Budle optional arguments into a vector.   
 !> @details
 !> This function bundles a list of optional arguments into a vector container
 !> of unlimited polymorphic entities.
 !---------------------------------------------------------------------------
-   function makeArgVector(ARG_LIST) result(args)
+   function make_arg_vector(ARG_LIST) result(args)
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       type (UnlimitedVector) :: args
       include 'recordOptArgs.inc'  
@@ -44,6 +44,6 @@ contains
       if (present(arg8)) call args%push_back(arg8)
       if (present(arg9)) call args%push_back(arg9)
       
-   end function makeArgVector
+   end function make_arg_vector
 
 end module PFL_ArgListUtilities_mod

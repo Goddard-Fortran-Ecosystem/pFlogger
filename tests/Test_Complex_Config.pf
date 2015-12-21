@@ -89,7 +89,7 @@ contains
       type (LoggerManager) :: mgr
 
       call mgr%load_file(FILE)
-      lgr => mgr%getLogger('A')
+      lgr => mgr%get_logger('A')
 
       call lgr%debug('debug')
       call lgr%info('info')
@@ -97,7 +97,7 @@ contains
       call lgr%error('error')
       call lgr%critical('critical')
       
-      @assertEqual(DEBUG, lgr%getLevel())
+      @assertEqual(DEBUG, lgr%get_level())
 
    end subroutine test_config
 
