@@ -215,16 +215,16 @@ subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
    block
      type (c_ptr) :: loc
      logical, pointer :: buffer(:)
-#  ifdef SUPPORT_FOR_C_LOC_ASSUMED_SIZE
+#ifdef SUPPORT_FOR_C_LOC_ASSUMED_SIZE
      loc = c_loc(origin_addr(1))
      call c_f_pointer(loc, buffer, [1])
-#  endif
      select case (mocker%mpi_get_call_count)
      case (1)
         buffer = mocker%mpi_get_buffer
      case (2)
         buffer = mocker%mpi_get_buffer2
      end select
+#endif
    end block
 end subroutine MPI_Get
 
