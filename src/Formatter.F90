@@ -37,7 +37,6 @@ module PFL_Formatter_mod
 
    public :: Formatter
    public :: get_sim_time
-      
 
    type, extends(Object) :: Formatter
       private
@@ -186,6 +185,7 @@ contains
       type (StringUnlimitedMap) :: extra
       type (StringUnlimitedMapIterator) :: extraIter
       character(len=:), allocatable :: msg
+      type (StringUnlimitedMap) :: dict
 
       call extra%deepCopy(record%extra)
 !!$      extra = record%extra
@@ -209,17 +209,12 @@ contains
 #endif
       end if
       if(this%fmt_uses_simTime) then
-         block
-           type (StringUnlimitedMap) :: dict
-           if (allocated(this%datefmt)) then
-
-              call get_sim_time(dict)
-              simtime = FormatString(this%datefmt, dict)
-           else
-              simtime = FormatString(DEFAULT_DATE_FMT, dict)
-           end if
-         end block
-
+         if (allocated(this%datefmt)) then
+            call get_sim_time(dict)
+            simtime = FormatString(this%datefmt, dict)
+         else
+            simtime = FormatString(DEFAULT_DATE_FMT, dict)
+         end if
          
 #ifdef __GFORTRAN__
          call extra%insert('simtime', String(simtime))
