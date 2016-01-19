@@ -92,8 +92,10 @@ contains
       select case (class_name)
       case ('Formatter')
          call build_basic_formatter(fmtr, dict)
+#ifdef LOGGER_USE_MPI         
       case ('MpiFormatter')
          call build_mpi_formatter(fmtr, dict, extra=extra)
+#endif
       end select
 
    end subroutine build_formatter
@@ -128,12 +130,12 @@ contains
 
    end subroutine build_basic_formatter
 
-
+#ifdef LOGGER_USE_MPI
    subroutine build_mpi_formatter(fmtr, dict, unused, extra)
       use PFL_Formatter_mod
       use PFL_StringUnlimitedMap_mod, only: Map
-      use mpi
       use PFL_MpiCommConfig_mod
+      use mpi
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
       type (Unusable), optional, intent(in) :: unused
@@ -230,7 +232,7 @@ contains
       end if
 
    end subroutine build_mpi_formatter
-
+#endif
    
    subroutine build_locks(this, locksDict, unused, extra)
       use PFL_AbstractLock_mod
@@ -586,6 +588,7 @@ contains
       use PFL_MpiCommConfig_mod
       use PFL_StringUnlimitedMap_mod, only: Map
       use mpi
+
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
       type (Unusable), optional, intent(in) :: unused
