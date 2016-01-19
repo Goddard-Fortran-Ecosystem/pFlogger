@@ -115,17 +115,11 @@ end module MockMpi_mod
 module mpi
    use mpi_base
    use MockMpi_mod
+
    
-!!$   interface
-!!$      subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
-!!$         use iso_c_binding, only: c_ptr
-!!$         import MPI_ADDRESS_KIND
-!!$         integer info, ierror
-!!$         integer(kind=MPI_ADDRESS_KIND) size
-!!$         type (c_ptr), intent(out) :: baseptr
-!!$      end subroutine MPI_Alloc_mem_cptr
-!!$
-!!$   end interface
+   interface MPI_Alloc_mem
+      module procedure MPI_Alloc_mem_cptr
+   end interface
 
 end module mpi
 
