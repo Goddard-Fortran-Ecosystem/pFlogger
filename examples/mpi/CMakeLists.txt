@@ -12,8 +12,8 @@ if (MPI)
    add_executable(sharedFileHandle.x sharedFileHandle.F90)
    target_link_libraries(sharedFileHandle.x logger ftl ${MPI_Fortran_LIBRARIES})
 
-   add_executable(complexMPI.x complexMPI.F90)
-   target_link_libraries(complexMPI.x logger ftl ${MPI_Fortran_LIBRARIES})
+   add_executable(complexMpi.x complexMpi.F90)
+   target_link_libraries(complexMpi.x logger ftl ${MPI_Fortran_LIBRARIES})
    
 endif()
 
