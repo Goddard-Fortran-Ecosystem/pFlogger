@@ -117,8 +117,21 @@ module mpi
    use MockMpi_mod
 
    
-   interface MPI_Alloc_mem
-      module procedure MPI_Alloc_mem_cptr
+   interface
+      subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
+         use iso_c_binding, only: c_ptr
+         import MPI_ADDRESS_KIND
+         integer info, ierror
+         integer(kind=MPI_ADDRESS_KIND) size
+         type (c_ptr), intent(out) :: baseptr
+      end subroutine MPI_Alloc_mem_cptr
+      subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
+         use iso_c_binding, only: c_ptr
+         import MPI_ADDRESS_KIND
+         integer info, ierror
+         integer(kind=MPI_ADDRESS_KIND) size
+         type (c_ptr), intent(out) :: baseptr
+      end subroutine MPI_Alloc_mem
    end interface
 
 end module mpi
@@ -285,6 +298,20 @@ subroutine MPI_Free_mem(base, ierror)
    ierror = MPI_SUCCESS
 
 end subroutine MPI_Free_mem
+
+subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
+   use MockMpi_mod
+   use iso_c_binding, only: c_ptr, c_loc
+   use mpi_base
+   use iso_fortran_env, only: INT8
+   integer info, ierror
+   integer(kind=MPI_ADDRESS_KIND) size
+   type (c_ptr), intent(out) :: baseptr
+
+   integer(kind=INT8), pointer :: buffer(:)
+
+   call MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
+end subroutine MPI_Alloc_mem
 
 subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    use MockMpi_mod
