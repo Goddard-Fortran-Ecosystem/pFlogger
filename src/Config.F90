@@ -6,8 +6,13 @@ module PFL_Config_mod
    use PFL_SeverityLevels_mod
    use PFL_StringAbstractLoggerPolyMap_mod
    use PFL_StringFilterMap_mod
+   use PFL_StringLockMap_mod
    use PFL_StringHandlerMap_mod
    use PFL_StringFormatterMap_mod
+   use PFL_AbstractLock_mod
+   use PFL_AbstractHandler_mod
+   use PFL_Filterer_mod
+   use PFL_FileHandler_mod
 
    implicit none
    private
@@ -31,7 +36,9 @@ module PFL_Config_mod
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
       type (HandlerMap) :: handlers
+      type (LockMap) :: locks
    contains
+      procedure :: build_locks
       procedure :: build_filters
       procedure :: build_formatters
       procedure :: build_handlers
@@ -62,7 +69,7 @@ contains
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
          cfg => formattersDict%toConfigPtr(iter%key())
-         call build_formatter(f, cfg)
+         call build_formatter(f, cfg, extra=extra)
          call this%formatters%insert(iter%key(), f)
          deallocate(f)
          call iter%next()
@@ -71,9 +78,29 @@ contains
    end subroutine build_formatters
 
 
-   subroutine build_formatter(fmtr, dict)
+   subroutine build_formatter(fmtr, dict, unused, extra)
       use PFL_Formatter_mod
-      use PFL_AbstractHandler_mod
+      class (Formatter), allocatable, intent(out) :: fmtr
+      type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+
+      character(len=:), allocatable :: class_name
+
+      class_name = dict%toString('class', default='Formatter')
+      select case (class_name)
+      case ('Formatter')
+         call build_basic_formatter(fmtr, dict)
+      case ('MpiFormatter')
+         call build_mpi_formatter(fmtr, dict, extra=extra)
+      end select
+
+   end subroutine build_formatter
+
+
+   subroutine build_basic_formatter(fmtr, dict)
+      use PFL_Formatter_mod
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
 
@@ -85,6 +112,7 @@ contains
       ! strip beginning and trailing quotes
       fmt = trim(adjustl(fmt))
       fmt = fmt(2:len(fmt)-1)
+
       if (found) then
          datefmt = dict%toString('datefmt', found=found)
          if (found) then
@@ -98,7 +126,178 @@ contains
          allocate(fmtr, source=Formatter())
       end if
 
-   end subroutine build_formatter
+   end subroutine build_basic_formatter
+
+
+   subroutine build_mpi_formatter(fmtr, dict, unused, extra)
+      use PFL_Formatter_mod
+      use PFL_StringUnlimitedMap_mod, only: Map
+      use mpi
+      use PFL_MpiCommConfig_mod
+      class (Formatter), allocatable, intent(out) :: fmtr
+      type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      character(len=:), allocatable :: fmt
+      character(len=:), allocatable :: datefmt
+      character(len=:), allocatable :: fileName
+      integer :: unit
+      logical :: found
+      integer :: iostat
+      integer :: comm
+      integer, allocatable :: comms(:)
+      integer :: i, j, n
+
+      type (Map) :: commMap
+      character(len=:), allocatable :: communicator_name_list, communicator_name, name
+
+      communicator_name_list = dict%toString('comms:', found=found)
+      if (found) then
+         allocate(comms(0))
+         n = len_trim(communicator_name_list)
+         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
+            call throw("PFL::Config::build_mpi_formatter() - misformed list of communicators.")
+            return
+         end if
+
+         i = 2
+         do while (i < n)
+            j = index(communicator_name_list(i:n-1),',')
+            if (j == 0) then
+               if (i < n-1) then
+                  name = communicator_name_list(i:n-1)
+                  i = n
+               end if
+            else
+               name = communicator_name_list(i:i+j-2)
+               i = i + j
+            end if
+
+            select case (name)
+            case ('MPI_COMM_WORLD')
+               comms = [comms, MPI_COMM_WORLD]
+            case default
+               if (extra%count(name) == 1) then
+                  comms = [comms, extra%toInteger(name)]
+               else
+                  call throw("PFL::Config::build_mpi_formatter() - unknown communicator '"//name//"'.")
+                  return
+               end if
+            end select
+         end do
+
+         block
+           character(len=:), allocatable :: rank_prefix
+           character(len=:), allocatable :: size_prefix
+           rank_prefix = dict%toString('rank_prefix', default='mpi_rank')
+           size_prefix = dict%toString('size_prefix', default='mpi_size')
+           call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
+         end block
+      else
+         communicator_name = dict%toString('comm:', default='MPI_COMM_WORLD')
+         select case (communicator_name)
+         case ('MPI_COMM_WORLD')
+            comm = MPI_COMM_WORLD
+         case default
+            comm = extra%toInteger(communicator_name)
+         end select
+         block
+           character(len=:), allocatable :: rank_prefix
+           character(len=:), allocatable :: size_prefix
+           rank_prefix = dict%toString('rank_prefix', default='mpi_rank')
+           size_prefix = dict%toString('size_prefix', default='mpi_size')
+           call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
+         end block
+      end if
+
+      fmt = dict%toString('format', found=found)
+      ! strip beginning and trailing quotes
+      fmt = trim(adjustl(fmt))
+      fmt = fmt(2:len(fmt)-1)
+      
+      if (found) then
+         datefmt = dict%toString('datefmt', found=found)
+         if (found) then
+            datefmt = trim(adjustl(datefmt))
+            datefmt = datefmt(2:len(datefmt)-1)
+            allocate(fmtr,source=Formatter(fmt, datefmt=datefmt, extra=commMap))
+         else
+            allocate(fmtr,source=Formatter(fmt, extra=commMap))
+         end if
+      else
+         allocate(fmtr, source=Formatter(extra=commMap))
+      end if
+
+   end subroutine build_mpi_formatter
+
+   
+   subroutine build_locks(this, locksDict, unused, extra)
+      use PFL_AbstractLock_mod
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+#ifdef LOGGER_USE_MPI
+      use mpi
+      use PFL_MpiLock_mod
+#endif
+      class (ConfigElements), intent(inout) :: this
+      type (Config), intent(in) :: locksDict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      type (ConfigIterator) :: iter
+      type (Config), pointer :: cfg
+
+      iter = locksDict%begin()
+      do while (iter /= locksDict%end())
+         cfg => locksDict%toConfigPtr(iter%key())
+         call this%locks%insert(iter%key(), build_lock(cfg))
+         call iter%next()
+      end do
+
+   contains
+
+      function build_lock(cfg, unused, extra) result(lock)
+         class (AbstractLock), allocatable :: lock
+         type (Config), intent(in) :: cfg
+         type (Unusable), optional, intent(in) :: unused
+         type (Config), optional, intent(in) :: extra
+
+         logical :: found
+         character (len=:), allocatable :: class_name, comm_name
+         integer :: comm
+         
+         class_name = cfg%toString('class', found=found)
+         if (found) then
+            select case (class_name)
+#ifdef LOGGER_USE_MPI
+            case ('MpiLock')
+               comm_name = cfg%toString('comm', default='MPI_COMM_WORLD')
+               select case (comm_name)
+               case ('MPI_COMM_WORLD')
+                  comm = MPI_COMM_WORLD
+               case default
+                  if (present(extra)) then
+                     if (extra%count(comm_name) == 1) then
+                        comm = extra%toInteger(comm_name)
+                     end if
+                  else
+                     call throw("PFL::Config::build_lock() - unknown communicator '" &
+                          & //comm_name//"'.")
+                     return
+                  end if
+               end select
+               allocate(lock, source=MpiLock(comm))
+#endif
+            case default
+            end select
+         else
+            call throw('PFL::Config::build_lock() - unsupported class of lock.')
+         end if
+         
+         
+      end function build_lock
+
+   end subroutine build_locks
 
 
    subroutine build_filters(this, filtersDict, unused, extra)
@@ -142,7 +341,6 @@ contains
 
    subroutine build_handlers(this, handlersDict, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use PFL_AbstractHandler_mod
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: handlersDict
       type (Unusable), optional, intent(in) :: unused
@@ -164,7 +362,6 @@ contains
    end subroutine build_handlers
    
    subroutine build_handler(h, handlerDict, elements, unused, extra)
-      use PFL_AbstractHandler_mod
       use PFL_StringUtilities_mod, only: to_lower_case
       use PFL_Filter_mod
       class (AbstractHandler), allocatable, intent(out) :: h
@@ -180,11 +377,11 @@ contains
       call set_handler_level(h, handlerDict)
       call set_handler_formatter(h, handlerDict, elements%formatters)
       call set_handler_filters(h, handlerDict, elements%filters)
+      call set_handler_lock(h, handlerDict, elements%locks)
 
    contains
 
       subroutine allocate_concrete_handler(h, handlerDict)
-         use PFL_Filehandler_mod
          class (AbstractHandler), allocatable, intent(out) :: h
          type (Config), intent(in) :: handlerDict
 
@@ -299,6 +496,32 @@ contains
 
       end subroutine set_handler_filters
 
+      subroutine set_handler_lock(h, handlerDict, locks)
+         use PFL_StreamHandler_mod
+         class (AbstractHandler), intent(inout) :: h
+         type (Config), intent(in) :: handlerDict
+         type (LockMap), intent(in) :: locks
+
+         character(len=:), allocatable :: lock_name
+         logical :: found
+         class (AbstractLock), pointer :: lock
+
+         lock_name = handlerDict%toString('lock', found=found)
+         if (found) then
+            if (locks%count(lock_name) == 1) then
+               lock => locks%at(lock_name)
+               select type (h)
+               class is (FileHandler)
+                  call h%set_lock(lock)
+               class default
+                  call throw('PFL::Config::set_handler_lock() - unsupported Lock subclass.')
+               end select
+            else
+               call throw("PFL::Config::set_handler_lock() - unknown lock: '"//lock_name//"'.'")
+            end if
+         end if
+      end subroutine set_handler_lock
+      
 
    end subroutine build_handler
 
@@ -336,7 +559,6 @@ contains
    end function build_streamhandler
 
    subroutine build_filehandler(h, handlerDict)
-      use PFL_FileHandler_mod
       use PFL_StringUtilities_mod, only: to_lower_case
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -355,11 +577,11 @@ contains
 
       h = FileHandler(fileName)
 
+      
    end subroutine build_filehandler
 
 #ifdef LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unused, extra)
-      use PFL_FileHandler_mod
       use PFL_StringUtilities_mod, only: to_lower_case
       use PFL_MpiCommConfig_mod
       use PFL_StringUnlimitedMap_mod, only: Map
@@ -459,7 +681,6 @@ contains
 #endif
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
-      use PFL_AbstractHandler_mod
       use PFL_StringUtilities_mod, only: to_lower_case
       type (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict

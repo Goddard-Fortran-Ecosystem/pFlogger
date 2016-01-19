@@ -1,5 +1,5 @@
 program main
-   use pflogger_mod
+   use pflogger
    use timer_mod
    implicit none
 

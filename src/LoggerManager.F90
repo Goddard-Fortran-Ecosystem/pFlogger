@@ -325,6 +325,9 @@ contains
 
       call check_schema_version(cfg)
 
+      subcfg => cfg%toConfigPtr('locks', found=found)
+      if (found) call elements%build_locks(subcfg, extra=extra)
+
       subcfg => cfg%toConfigPtr('filters', found=found)
       if (found) call elements%build_filters(subcfg, extra=extra)
       

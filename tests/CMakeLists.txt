@@ -88,7 +88,7 @@ add_library(logger_tests STATIC ${ALL_SRCS})
 target_link_libraries(logger_tests logger ftl pfunit)
 
 set(EXE tests.x)
-add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
+add_executable (${EXE} EXCLUDE_FROM_ALL ${PFUNIT}/include/driver.F90 testSuites.inc)
 target_link_libraries(${EXE} logger_tests logger ftl pfunit)
 
 
@@ -98,3 +98,4 @@ add_custom_target(tests
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
    COMMENT "Run ${EXE}"
    )
+

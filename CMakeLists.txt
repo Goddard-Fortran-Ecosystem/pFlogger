@@ -25,14 +25,14 @@
 cmake_minimum_required (VERSION 3.0)
 project (logger Fortran)
 
-set(CMAKE_MODULE_PATH
+set (CMAKE_MODULE_PATH
    ${CMAKE_SOURCE_DIR}/cmake/modules
 )
 
-include(PreventInSourceBuild)
-include(DefineCMakeDefaults)
-include(DefinePlatformDefaults)
-include(FindFTL)
+include (PreventInSourceBuild)
+include (DefineCMakeDefaults)
+include (DefinePlatformDefaults)
+include (FindFTL)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)

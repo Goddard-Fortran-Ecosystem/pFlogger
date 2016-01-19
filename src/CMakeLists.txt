@@ -38,6 +38,7 @@ set(SRCS
    StringFormatterMap.F90
    StringFilterMap.F90
    StringHandlerMap.F90
+   StringLockMap.F90
    LoggerPolyVector.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
