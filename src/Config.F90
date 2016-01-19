@@ -215,8 +215,12 @@ contains
 
       fmt = dict%toString('format', found=found)
       ! strip beginning and trailing quotes
-      fmt = trim(adjustl(fmt))
-      fmt = fmt(2:len(fmt)-1)
+      block
+        character(len=:), allocatable :: tmp
+        tmp = trim(adjustl(fmt))
+        n = len(tmp)
+        fmt = tmp(2:n-1)
+      end block
       
       if (found) then
          datefmt = dict%toString('datefmt', found=found)
