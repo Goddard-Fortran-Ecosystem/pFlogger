@@ -196,13 +196,16 @@ subroutine MPI_Win_unlock(rank, win, ierror)
 
 end subroutine MPI_Win_unlock
 
-#ifdef SUPPORT_FOR_ASSUMED_TYPE
 subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
    use MockMpi_mod
    use mpi_base
    use iso_c_binding, only: c_ptr, c_loc, c_f_pointer
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: origin_addr(*)
+#else
+   logical :: origin_addr(*)
+#endif
    integer(kind=MPI_ADDRESS_KIND) target_disp
    integer origin_count, origin_datatype, target_rank, &
         & target_count, target_datatype, win, ierror
@@ -229,7 +232,11 @@ subroutine MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
    use MockMpi_mod
    use mpi_base
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: origin_addr(*)
+#else
+   logical :: origin_addr(*)
+#endif
    integer(kind=mpi_address_kind) target_disp
    integer origin_count, origin_datatype, target_rank, target_count, &
         & target_datatype, win, ierror
@@ -241,7 +248,11 @@ end subroutine MPI_Put
 subroutine MPI_Recv(buf, count, datatype, source, tag, comm, status, ierror)
    use MockMpi_mod
    use mpi_base
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: buf(*)
+#else
+   logical :: buf(*)
+#endif
    integer    count, datatype, source, tag, comm
    integer    status(MPI_STATUS_SIZE), ierror
 
@@ -254,7 +265,11 @@ end subroutine MPI_Recv
 subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
    use MockMpi_mod
    use mpi_base
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: buf(*)
+#else
+   logical :: buf(*)
+#endif
    integer    count, datatype, dest, tag, comm, ierror
 
    mocker%call_count = mocker%call_count + 1
@@ -265,7 +280,11 @@ end subroutine MPI_Send
 subroutine MPI_Free_mem(base, ierror)
    use MockMpi_mod
    use mpi_base
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: base(*)
+#else
+   logical :: base(*)
+#endif
    integer ierror
 
    mocker%call_count = mocker%call_count + 1
@@ -294,7 +313,11 @@ end subroutine MPI_Alloc_mem_cptr
 subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
    use MockMpi_mod
    use mpi_base
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: base(*)
+#else
+   logical :: base(*)
+#endif
    integer(kind=MPI_ADDRESS_KIND) size
    integer disp_unit, info, comm, win, ierror
 
@@ -302,9 +325,6 @@ subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
    mocker%call_count = mocker%call_count + 1
 
 end subroutine MPI_Win_create
-
-#endif
-
 
 
 ! This one is just a stub for now
