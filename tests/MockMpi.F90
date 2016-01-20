@@ -283,7 +283,7 @@ subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
 
 end subroutine MPI_Send
 
-subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
+subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
    use MockMpi_mod
    use mpi_base
    use iso_c_binding, only: c_ptr, c_loc
@@ -294,13 +294,30 @@ subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    type (c_ptr), intent(out) :: baseptr
    
    integer(kind=INT8), pointer :: buffer(:)
+  
+   call MPI_Alloc_mem_cptr(size, info, baseptr, ierror) 
    
+end subroutine MPI_Alloc_mem
+
+subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
+   use MockMpi_mod
+   use mpi_base
+   use iso_c_binding, only: c_ptr, c_loc
+   use iso_fortran_env, only: INT8
+
+   integer info, ierror
+   integer(kind=MPI_ADDRESS_KIND) size
+   type (c_ptr), intent(out) :: baseptr
+
+   integer(kind=INT8), pointer :: buffer(:)
+
    allocate(buffer(size))
    baseptr = c_loc(buffer)
-   
+
    mocker%call_count = mocker%call_count + 1
    ierror = MPI_SUCCESS
 end subroutine MPI_Alloc_mem_cptr
+
 
 subroutine MPI_Free_mem(base, ierror)
    use MockMpi_mod
