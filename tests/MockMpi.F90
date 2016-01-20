@@ -312,7 +312,9 @@ subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
    integer(kind=INT8), pointer :: buffer(:)
 
    allocate(buffer(size))
+#ifdef SUPPORT_FOR_C_LOC_ASSUMED_SIZE
    baseptr = c_loc(buffer)
+#endif
 
    mocker%call_count = mocker%call_count + 1
    ierror = MPI_SUCCESS
