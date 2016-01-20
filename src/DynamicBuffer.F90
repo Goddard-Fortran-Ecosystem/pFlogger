@@ -93,14 +93,19 @@ contains
       class (DynamicBuffer), intent(in) :: this
       character(len=:), allocatable :: string
 
-      integer :: i
+      integer :: i, n
+      character(len=1), parameter :: EOT = achar(003)
 
       i = 1
-      string = trim(this%buffer(1))
+      n = len_trim(this%buffer(1))
+      if (this%buffer(1)(n:n) == EOT) n = n - 1
+      string = this%buffer(1)(1:n)
 
       do i = 2, this%num_records
          if (this%buffer(i) /= C_NULL_CHAR) then
-            string = string // new_line('a') // trim(this%buffer(i))
+            n = len_trim(this%buffer(i))
+            if (this%buffer(i)(n:n) == EOT) n = n - 1
+            string = string // new_line('a') // this%buffer(i)(1:n)
          else
             exit
          end if
