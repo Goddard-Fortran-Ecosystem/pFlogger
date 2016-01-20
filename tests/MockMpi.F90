@@ -40,6 +40,7 @@ module MockMpi_mod
 contains
 
 
+
    subroutine reset(this)
       class (MockMpi), intent(inout) :: this
       this%call_count = 0
@@ -117,21 +118,19 @@ module mpi
    use MockMpi_mod
 
    
-   interface
+   ! Because this interface is overloaded (in theory), it cannot
+   ! be accessed through "include 'mpif.h'".
+   ! As such, we can include it in the mock implementation.
+
+   interface MPI_Alloc_mem
       subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
-         use iso_c_binding, only: c_ptr
-         import MPI_ADDRESS_KIND
+         use mpi_base
+         use iso_c_binding, only: c_ptr, c_loc
+         use iso_fortran_env, only: INT8
          integer info, ierror
          integer(kind=MPI_ADDRESS_KIND) size
          type (c_ptr), intent(out) :: baseptr
       end subroutine MPI_Alloc_mem_cptr
-      subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
-         use iso_c_binding, only: c_ptr
-         import MPI_ADDRESS_KIND
-         integer info, ierror
-         integer(kind=MPI_ADDRESS_KIND) size
-         type (c_ptr), intent(out) :: baseptr
-      end subroutine MPI_Alloc_mem
    end interface
 
 end module mpi
@@ -284,6 +283,25 @@ subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
 
 end subroutine MPI_Send
 
+subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
+   use MockMpi_mod
+   use mpi_base
+   use iso_c_binding, only: c_ptr, c_loc
+   use iso_fortran_env, only: INT8
+
+   integer info, ierror
+   integer(kind=MPI_ADDRESS_KIND) size
+   type (c_ptr), intent(out) :: baseptr
+   
+   integer(kind=INT8), pointer :: buffer(:)
+   
+   allocate(buffer(size))
+   baseptr = c_loc(buffer)
+   
+   mocker%call_count = mocker%call_count + 1
+   ierror = MPI_SUCCESS
+end subroutine MPI_Alloc_mem_cptr
+
 subroutine MPI_Free_mem(base, ierror)
    use MockMpi_mod
    use mpi_base
@@ -298,38 +316,6 @@ subroutine MPI_Free_mem(base, ierror)
    ierror = MPI_SUCCESS
 
 end subroutine MPI_Free_mem
-
-subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
-   use MockMpi_mod
-   use iso_c_binding, only: c_ptr, c_loc
-   use mpi_base
-   use iso_fortran_env, only: INT8
-   integer info, ierror
-   integer(kind=MPI_ADDRESS_KIND) size
-   type (c_ptr), intent(out) :: baseptr
-
-   integer(kind=INT8), pointer :: buffer(:)
-
-   call MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
-end subroutine MPI_Alloc_mem
-
-subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
-   use MockMpi_mod
-   use iso_c_binding, only: c_ptr, c_loc
-   use mpi_base
-   use iso_fortran_env, only: INT8
-   integer info, ierror
-   integer(kind=MPI_ADDRESS_KIND) size
-   type (c_ptr), intent(out) :: baseptr
-
-   integer(kind=INT8), pointer :: buffer(:)
-
-   allocate(buffer(size))
-   baseptr = c_loc(buffer)
-   
-   mocker%call_count = mocker%call_count + 1
-   ierror = MPI_SUCCESS
-end subroutine MPI_Alloc_mem_cptr
 
 subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
    use MockMpi_mod
