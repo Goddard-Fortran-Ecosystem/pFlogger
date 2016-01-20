@@ -293,11 +293,9 @@ contains
 
 
 
-
-
    subroutine load_file(this, file_name)
-      use FTL_Config_mod, only: Config
-      use FTL_YAML_Parser_mod, only: YAML_load_file => load_file
+      use FTL, only: SUCCESS, Config, YAML_load_file => load_file
+      use PFL_Exception_mod
       class (LoggerManager), intent(inout) :: this
       character(len=*), intent(in) :: file_name
 
@@ -305,6 +303,10 @@ contains
       integer :: rc
 
       cfg = YAML_load_file(file_name, rc)
+      if (rc /= SUCCESS) then
+         call throw('PFL_LoggerManager::load_file() - Failure opening file: <'//file_name//'>')
+         return
+      end if
       call this%load_config(cfg)
       
    end subroutine load_file
