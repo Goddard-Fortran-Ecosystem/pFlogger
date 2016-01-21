@@ -60,7 +60,7 @@ contains
       call extra%insert('f',.false.)
       call extra%insert('s','word')
 
-      found = formatString('i=%(i)i2 f=%(f)* s=%(s)a x=%(x)f6.2', extra)
+      found = formatString('i=%(i)i2 f=%(f)l2 s=%(s)a x=%(x)f6.2', extra)
       expected = 'i= 1 f= F s=word x=  1.23'
       @assertEqual(expected, found)
 
