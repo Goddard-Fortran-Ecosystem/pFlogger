@@ -201,9 +201,9 @@ contains
          select type (arg)
          type is (String)
             if (fmt == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg%get()
+               write(buffer%buffer,*,iostat=iostat) arg%get(), achar(003)
             else
-               write(buffer%buffer,'(' // fmt // ')',iostat=iostat) arg%get()
+               write(buffer%buffer,'(' // fmt // ',"'//achar(003)//'")',iostat=iostat) arg%get()
             end if
             intrinsic = .true.
          class default

@@ -34,7 +34,7 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
    set(CPPFLAGS "${CPPFLAGS} -cpp")
    set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
-   set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -ffpe-trap=invalid,zero,overflow -finit-real=snan")
+   set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -ffpe-trap=invalid,zero,overflow -finit-real=snan -ffree-line-length-255")
 
 # NAG compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)

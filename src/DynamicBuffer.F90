@@ -111,6 +111,7 @@ contains
          end if
       end do
 
+
    end function concatenate
 
    subroutine initialize()
