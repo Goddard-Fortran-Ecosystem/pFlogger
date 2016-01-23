@@ -573,6 +573,7 @@ contains
       integer :: unit
       logical :: found
       integer :: iostat
+      logical :: delay
 
       fileName = handlerDict%toString('filename', found=found)
       if (found) then
@@ -581,7 +582,8 @@ contains
          return
       end if
 
-      h = FileHandler(fileName)
+      delay = handlerDict%toLogical('delay', default=.false.)
+      h = FileHandler(fileName, delay=delay)
 
       
    end subroutine build_filehandler

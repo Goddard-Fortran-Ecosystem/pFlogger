@@ -44,6 +44,8 @@ module PFL_RotatingFileHandler_mod
       module procedure newRotatingFileHandler
    end interface
 
+   type Unusable
+   end type Unusable
    
 contains
 
@@ -57,10 +59,11 @@ contains
    ! set max_bytes, backupcount and level. Note max_bytes can be specified
    ! in kb, mb or gb. E.g. max_bytes=100mb.
    !---------------------------------------------------------------------------
-   function newRotatingFileHandler(fileName, max_bytes, backup_count, delay) &
+   function newRotatingFileHandler(fileName, max_bytes, unused, backup_count, delay) &
         result(handler)
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
+      type (Unusable), optional, intent(in) :: unused
       character(len=*), intent(in), optional :: max_bytes
       integer, intent(in), optional :: backup_count
       logical, intent(in), optional :: delay
@@ -86,7 +89,7 @@ contains
          delay_ = .false.
       end if
 
-      handler%FileHandler = FileHandler(fileName, delay)
+      handler%FileHandler = FileHandler(fileName, delay=delay)
 
       handler%max_bytes = max_bytes_
       handler%backup_count = backup_count_

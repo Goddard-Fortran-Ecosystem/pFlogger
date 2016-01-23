@@ -43,6 +43,8 @@ module PFL_FileHandler_mod
       module procedure newFileHandler
    end interface
 
+   type Unusable
+   end type Unusable
    
 contains
 
@@ -56,9 +58,10 @@ contains
    ! set a level and a delay. If a delay is set to true then we
    ! don't open the stream.
    !---------------------------------------------------------------------------
-   function newFileHandler(file_name, delay) result(handler)
+   function newFileHandler(file_name, unused, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: file_name
+      type (Unusable), optional, intent(in) :: unused
       logical, optional, intent(in) :: delay
 
       logical :: delay_
