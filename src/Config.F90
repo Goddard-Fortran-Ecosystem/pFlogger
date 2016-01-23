@@ -607,6 +607,7 @@ contains
       integer :: comm
       integer, allocatable :: comms(:)
       integer :: i, j, n
+      logical :: delay
 
       type (Map) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
@@ -684,7 +685,8 @@ contains
         fileName = formatString(filename, commMap)
       end block
 
-      h = FileHandler(fileName)
+      delay = handlerDict%toLogical('delay', default=.false.)
+      h = FileHandler(fileName, delay=delay)
       
    end subroutine build_mpifilehandler
 #endif
