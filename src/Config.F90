@@ -685,7 +685,11 @@ contains
         fileName = formatString(filename, commMap)
       end block
 
-      delay = handlerDict%toLogical('delay', default=.false.)
+      ! Note we have a different default for 'delay' for
+      ! the MPI case.  This way we avoid creating lots of
+      ! empty files in the usual case.
+      delay = handlerDict%toLogical('delay', default=.true.)
+
       h = FileHandler(fileName, delay=delay)
       
    end subroutine build_mpifilehandler
@@ -693,7 +697,7 @@ contains
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use PFL_StringUtilities_mod, only: to_lower_case
-      type (Logger), intent(inout) :: lgr
+      class (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused

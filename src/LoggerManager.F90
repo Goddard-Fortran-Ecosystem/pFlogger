@@ -44,6 +44,7 @@ module PFL_LoggerManager_mod
       procedure :: load_file
       procedure :: load_config
       procedure :: build_loggers
+      procedure :: build_root_logger
 
    end type LoggerManager
    
@@ -340,6 +341,7 @@ contains
       if (found)call elements%build_handlers(subcfg, extra=extra)
 
       call this%build_loggers(cfg, elements, extra=extra)
+      call this%build_root_logger(cfg, elements, extra=extra)
 
    end subroutine load_config
 
@@ -376,5 +378,25 @@ contains
    end subroutine build_loggers
 
 
+   subroutine build_root_logger(this, cfg, elements, unused, extra)
+      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use FTL_Config_mod
+      class (LoggerManager), intent(inout) :: this
+      type (Config), intent(in) :: cfg
+      type (ConfigElements), intent(in) :: elements
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      type (Config), pointer :: root_cfg
+      
+      logical :: found
+      character(len=:), allocatable :: name
+
+      root_cfg => cfg%toConfigPtr('root', found=found)
+      if (found) then
+         call build_logger(this%root_node, root_cfg, elements, extra=extra)
+      end if
+
+   end subroutine build_root_logger
 
 end module PFL_LoggerManager_mod
