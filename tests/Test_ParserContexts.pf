@@ -116,6 +116,8 @@ contains
            & , p( PSC,  'i',  '3',   PSC, 'i3')                               &
            & , p( PSC, 'i3',  ' ',    TXC, ' ',      FormatToken(POSITION, 'i3') ) &
            & , p( PSC, 'i3', '~',  TXC, '',      FormatToken(POSITION, 'i3') ) &
+           ! default empty edit
+           & , p( PSC, '', ' ',  TXC, '',      FormatToken(POSITION, '*') ) &
            ! looks like position but turns out to be a keyword
            & , p( PSC,   '',     '(',    KYC, '')                            & 
            & , p( PSC,   'i3',     "'",    SQC, "i3'")                       & 
@@ -139,8 +141,8 @@ contains
            & , p( DQC, 'a"b',  C_NULL_CHAR,    illegalContext, 'a"b', &
            &   errorMessage='FormatParser::doubleQuoteContext() - unclosed double quote') &
 
-           & , p( PSC,   '',  C_NULL_CHAR,     illegalContext, '', &
-           &   errorMessage='FormatParser::positionContext() - empty edit descriptor') &
+!!$           & , p( PSC,   '',  C_NULL_CHAR,     illegalContext, '', &
+!!$           &   errorMessage='FormatParser::positionContext() - empty edit descriptor') &
            & , p( KYC,   'abc',  C_NULL_CHAR,     illegalContext, 'abc', &
            &   errorMessage='FormatParser::keywordContext() - missing ")"')  &
 

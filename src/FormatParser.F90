@@ -295,8 +295,9 @@ contains
               pos = 0
               if (char == TERMINATOR) return ! discard char
            else
-              call this%set_context(illegalContext)
-              call throw('FormatParser::positionContext() - empty edit descriptor')
+              call this%push_back(FormatToken(POSITION, '*'))
+              pos = 0
+              call this%set_context(textContext)
               return
            end if
         case ("'")
