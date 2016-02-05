@@ -64,6 +64,7 @@ module PFL_FormatParser_mod
       procedure :: push_context
       procedure :: pop_context
       procedure :: push_char
+      procedure :: reset
    end type FormatParser
 
    !-----------------
@@ -416,5 +417,14 @@ contains
 
    end subroutine illegalContext
 
+   subroutine reset(this)
+      class (FormatParser), intent(inout) :: this
+
+      call this%clear() ! vector parent
+      this%currentPosition = 0
+      this%buffer = ''
+      nullify(this%context)
+      nullify(this%previousContext)
+   end subroutine reset
 
 end module PFL_FormatParser_mod

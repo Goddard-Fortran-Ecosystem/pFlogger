@@ -121,7 +121,9 @@ contains
       character(len=*), intent(in) :: fmt
       type(Vector), intent(in) :: args
 
-      type (FormatParser) :: p
+      type (FormatParser), save :: p
+      character(len=:), save, allocatable :: old_fmt
+
       type (TokenVectorIterator) :: tokenIter
       type (VectorIterator) :: argIter
       type (FormatToken), pointer :: token
@@ -133,8 +135,17 @@ contains
          return
       end if
 
+      if (.not. allocated(old_fmt)) then
+         old_fmt = fmt
+         call p%parse(fmt)
+      end if
+
       string = ''
-      call p%parse(fmt)
+      if (fmt /= old_fmt) then
+         old_fmt = fmt
+         call p%reset()
+         call p%parse(fmt)
+      end if
 
       tokenIter = p%begin()
       argIter = args%begin()
