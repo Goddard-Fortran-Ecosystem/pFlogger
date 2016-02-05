@@ -249,7 +249,7 @@ contains
       type(Unusable), optional, intent(in) :: unused
       type (map), optional, intent(in) :: extra
       
-      type (UnlimitedVector) :: args
+      type (UnlimitedVector), target :: args
       type (LogRecord) :: record
 
       args = make_arg_vector(ARG_LIST)

@@ -119,7 +119,7 @@ contains
       use PFL_UnlimitedVector_mod, only: VectorIterator
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
-      class(Vector), intent(in) :: args
+      type(Vector), intent(in) :: args
 
       type (FormatParser) :: p
       type (TokenVectorIterator) :: tokenIter
@@ -127,13 +127,13 @@ contains
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
 
-      string = ''
       ! Workaround for Gfortran problem with empty vectors
       if (args%size() == 0) then
          string = fmt
          return
       end if
 
+      string = ''
       call p%parse(fmt)
 
       tokenIter = p%begin()

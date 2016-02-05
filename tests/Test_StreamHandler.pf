@@ -76,7 +76,7 @@ contains
 
       type (LogRecord) :: record
       type(Formatter) :: fmt
-      type (UnlimitedVector) :: args
+      type (UnlimitedVector), target :: args
       
       args = UnlimitedVector()
       call args%push_back(1)
@@ -106,18 +106,17 @@ contains
       character(len=32) :: foundMessage
 
       type (LogRecord) :: record
-      type (UnlimitedVector) :: args
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: levelName
       type (Formatter) :: f
 
-      args = UnlimitedVector()
-      call args%push_back(1)
-
+      type (UnlimitedVector), target :: empty
+      
       ! Create a LogRecord
       record%name = 'someRec'
       record%level = INFO
       record%message_format = 'datefmt'
+      record%args => empty
 
       call record%extra%insert('name', 'someRec')
       call record%extra%insert('level', INFO)

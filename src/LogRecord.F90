@@ -33,7 +33,7 @@ module PFL_LogRecord_mod
       character(len=:), allocatable :: message_format
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
-      type (UnlimitedVector) :: args
+      type (UnlimitedVector), pointer :: args => null()
       type (StringUnlimitedMap) :: extra
       integer :: time_fields(8)
    contains
@@ -50,6 +50,7 @@ module PFL_LogRecord_mod
       module procedure newLogRecord
    end interface LogRecord
 
+   type (UnlimitedVector), target, save :: EMPTY
    
 contains
 
@@ -65,7 +66,7 @@ contains
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
-      type (UnlimitedVector), optional, intent(in) :: args
+      type (UnlimitedVector), optional, target, intent(in) :: args
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
       type (LogRecord) :: rec
@@ -75,9 +76,9 @@ contains
       rec%level = level
       rec%message_format = message_format
       if (present(args)) then
-         rec%args = args
+         rec%args => args
       else
-         rec%args = UnlimitedVector()
+         rec%args => EMPTY
       end if
 
       if (present(extra)) then
@@ -162,7 +163,7 @@ contains
       use PFL_FormatString_mod, only: formatString
       class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
-      
+
       message = formatString(this%message_format,  this%args)
       
    end function get_message
@@ -183,7 +184,7 @@ contains
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
-      type (UnlimitedVector), optional, intent(in) :: args
+      type (UnlimitedVector), optional, target, intent(in) :: args
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: levelName
@@ -193,9 +194,9 @@ contains
       rec%message_format = message_format
 
       if (present(args)) then
-         rec%args = args
+         rec%args => args
       else
-         rec%args = UnlimitedVector()
+         rec%args => EMPTY
       end if
 
       if (present(extra)) then
