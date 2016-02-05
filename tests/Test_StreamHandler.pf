@@ -118,11 +118,6 @@ contains
       record%message_format = 'datefmt'
       record%args => empty
 
-      call record%extra%insert('name', 'someRec')
-      call record%extra%insert('level', INFO)
-      levelName = level_to_name(INFO)
-      call record%extra%insert('levelName', levelName)
-
       call mockdf%fillDateAndTime(record)
       f = Formatter(&
            fmt='%(asctime)a %(levelName)a~: %(name)a~: %(message)a', &

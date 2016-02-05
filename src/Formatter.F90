@@ -43,11 +43,19 @@ module PFL_Formatter_mod
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       type (FormatParser) :: p
+      logical :: fmt_uses_message
+      logical :: fmt_uses_name
+      logical :: fmt_uses_level
+      logical :: fmt_uses_levelName
       logical :: fmt_uses_ascTime
       logical :: fmt_uses_simTime
    contains
       procedure :: format
       procedure :: format_time
+      procedure :: uses_message
+      procedure :: uses_name
+      procedure :: uses_level
+      procedure :: uses_levelName
       procedure :: uses_ascTime
       procedure :: uses_simTime
       procedure, private :: fill_extra_keywords
@@ -104,6 +112,10 @@ contains
          f%datefmt = datefmt
       end if
 
+      f%fmt_uses_message = f%uses_message()
+      f%fmt_uses_name = f%uses_name()
+      f%fmt_uses_level = f%uses_level()
+      f%fmt_uses_levelName = f%uses_levelName()
       f%fmt_uses_ascTime = f%uses_ascTime()
       f%fmt_uses_simTime = f%uses_simTime()
 
@@ -187,15 +199,47 @@ contains
       character(len=:), allocatable :: msg
       type (StringUnlimitedMap) :: dict
 
-      call extra%deepCopy(record%extra)
-!!$      extra = record%extra
-      msg = record%get_message()
+      if (associated(record%extra)) then
+         call extra%deepCopy(record%extra)
+      end if
 
+      if (this%fmt_uses_message) then
+         msg = record%get_message()
 #ifdef __GFORTRAN__
-      call extra%insert('message', String(msg))
+         call extra%insert('message', String(msg))
 #else
-      call extra%insert('message', msg)
+         call extra%insert('message', msg)
 #endif
+      end if
+
+      if (this%fmt_uses_name) then
+         block
+           character(len=:), allocatable :: name
+           name= record%get_name()
+#ifdef __GFORTRAN__
+           call extra%insert('name', String(name))
+#else
+           call extra%insert('name', name)
+#endif
+         end block
+      end if
+      
+      if (this%fmt_uses_level) then
+         call extra%insert('level', record%get_level())
+      end if
+
+      if (this%fmt_uses_levelName) then
+         block
+           character(len=:), allocatable :: name
+           name = record%get_level_name()
+#ifdef __GFORTRAN__
+         call extra%insert('levelName', String(name))
+#else
+         call extra%insert('levelName', name)
+#endif
+       end block
+      end if
+
       if(this%fmt_uses_ascTime) then
          if (allocated(this%datefmt)) then
             asctime = this%format_time(record, datefmt=this%datefmt)
@@ -208,6 +252,7 @@ contains
          call extra%insert('asctime', asctime)
 #endif
       end if
+
       if(this%fmt_uses_simTime) then
          if (allocated(this%datefmt)) then
             call get_sim_time(dict)
@@ -231,6 +276,57 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
+   ! uses_message
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the message (probably always yes)
+   !---------------------------------------------------------------------------
+   logical function uses_message(this)
+      class (Formatter), intent(in) :: this
+      uses_message = (index(this%fmt,'%(message)') > 0)
+   end function uses_message
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! uses_name
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the message (probably always yes)
+   !---------------------------------------------------------------------------
+   logical function uses_name(this)
+      class (Formatter), intent(in) :: this
+      uses_name = (index(this%fmt,'%(name)') > 0)
+   end function uses_name
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! uses_level
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the message (probably always yes)
+   !---------------------------------------------------------------------------
+   logical function uses_level(this)
+      class (Formatter), intent(in) :: this
+      uses_level = (index(this%fmt,'%(level)') > 0)
+   end function uses_level
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! uses_levelName
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the message (probably always yes)
+   !---------------------------------------------------------------------------
+   logical function uses_levelName(this)
+      class (Formatter), intent(in) :: this
+      uses_levelName = (index(this%fmt,'%(levelName)') > 0)
+   end function uses_levelName
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
    ! usesTime
    !
    ! DESCRIPTION: 
@@ -240,7 +336,7 @@ contains
       class (Formatter), intent(in) :: this
       uses_ascTime = (index(this%fmt,'%(asctime)') > 0)
    end function uses_ascTime
-
+   
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
    ! uses_simTime

@@ -34,11 +34,12 @@ module PFL_LogRecord_mod
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
       type (UnlimitedVector), pointer :: args => null()
-      type (StringUnlimitedMap) :: extra
+      type (StringUnlimitedMap), pointer :: extra => null()
       integer :: time_fields(8)
    contains
       procedure :: get_name
       procedure :: get_level
+      procedure :: get_level_name
       procedure :: get_message
       procedure, nopass :: fill_date_and_time
    end type LogRecord
@@ -50,7 +51,8 @@ module PFL_LogRecord_mod
       module procedure newLogRecord
    end interface LogRecord
 
-   type (UnlimitedVector), target, save :: EMPTY
+   type (UnlimitedVector), target, save :: EMPTY_VECTOR
+   type (StringUnlimitedMap), target, save :: EMPTY_MAP
    
 contains
 
@@ -67,7 +69,7 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, target, intent(in) :: args
-      type (StringUnlimitedMap), optional, intent(in) :: extra
+      type (StringUnlimitedMap), target, optional, intent(in) :: extra
 
       type (LogRecord) :: rec
       character(len=:), allocatable :: levelName
@@ -75,30 +77,19 @@ contains
       rec%name = name
       rec%level = level
       rec%message_format = message_format
+
       if (present(args)) then
          rec%args => args
       else
-         rec%args => EMPTY
+         rec%args => EMPTY_VECTOR
       end if
 
       if (present(extra)) then
-         call rec%extra%deepCopy(extra)
+         rec%extra => extra
+      else
+         rec%extra => EMPTY_MAP
       end if
 
-      call rec%extra%insert('level', level)
-#ifdef __GFORTRAN__
-      call rec%extra%insert('name', String(name))
-#else
-      call rec%extra%insert('name', name)
-#endif
-
-      levelName = level_to_name(level)
-      ! Compiler workarounds
-#ifdef __GFORTRAN__
-      call rec%extra%insert('levelName', String(levelName))
-#else
-      call rec%extra%insert('levelName', levelName)
-#endif
       call fill_date_and_time(rec)
 
    end function newLogRecord
@@ -153,6 +144,21 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
+   ! get_level_name
+   !
+   ! DESCRIPTION: 
+   ! Get the level associated with this log record. This is needed to 'handle'
+   ! a message (see AbstractHandler).
+   !---------------------------------------------------------------------------
+   function get_level_name(this) result(level_name)
+      character(len=:), allocatable :: level_name
+      class (LogRecord), intent(in) :: this
+      level_name = level_to_name(this%level)
+   end function get_level_name
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
    ! get_message
    !
    ! DESCRIPTION: 
@@ -185,7 +191,7 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, target, intent(in) :: args
-      type (StringUnlimitedMap), optional, intent(in) :: extra
+      type (StringUnlimitedMap), target, optional, intent(in) :: extra
 
       character(len=:), allocatable :: levelName
       
@@ -196,26 +202,15 @@ contains
       if (present(args)) then
          rec%args => args
       else
-         rec%args => EMPTY
+         rec%args => EMPTY_VECTOR
       end if
 
       if (present(extra)) then
-         call rec%extra%deepCopy(extra)
+         rec%extra => extra
+      else
+         rec%extra => EMPTY_MAP
       end if
 
-      call rec%extra%insert('level', level)
-#ifdef __GFORTRAN__
-      call rec%extra%insert('name', String(name))
-#else
-      call rec%extra%insert('name', name)
-#endif
-      levelName = level_to_name(level)
-#ifdef __GFORTRAN__
-      call rec%extra%insert('levelName', String(levelName))
-#else
-      call rec%extra%insert('levelName', levelName)
-#endif
-      
       call fill_date_and_time(rec)
       
    end subroutine initLogRecord
