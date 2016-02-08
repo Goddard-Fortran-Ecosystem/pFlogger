@@ -49,7 +49,7 @@ contains
 
       t => p%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(i3,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
       t => p%at(3)
       @assertEqual(TEXT, t%type)
@@ -58,7 +58,7 @@ contains
       t => p%at(4)
       @assertEqual(KEYWORD, t%type)
       @assertEqual('key', t%text, whitespace=KEEP_ALL)
-      @assertEqual('a', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(a,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
       t => p%at(5)
       @assertEqual(TEXT, t%type)
@@ -82,7 +82,7 @@ contains
 
       t => p%at(2)
       @assertEqual(POSITION, t%type)
-      @assertEqual('i3', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(i3,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
       t => p%at(3)
       @assertEqual(TEXT, t%type)
@@ -90,17 +90,17 @@ contains
 
       t => p%at(4)
       @assertEqual(POSITION, t%type)
-      @assertEqual('f6.8', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(f6.8,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
       t => p%at(5)
       @assertEqual(KEYWORD, t%type)
       @assertEqual('key', t%text, whitespace=KEEP_ALL)
-      @assertEqual('a', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(a,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
       t => p%at(6)
       @assertEqual(KEYWORD, t%type)
       @assertEqual('key2', t%text, whitespace=KEEP_ALL)
-      @assertEqual('a5', t%edit_descriptor, whitespace=KEEP_ALL)
+      @assertEqual('(a5,"'//EOT//'")', t%edit_descriptor, whitespace=KEEP_ALL)
 
    end subroutine test_multipleTokensB
    

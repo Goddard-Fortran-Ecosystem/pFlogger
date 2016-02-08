@@ -3,6 +3,7 @@ module Test_FormatString_mod
    use PFL_FormatString_mod
    use PFL_ArgListUtilities_mod
    use PFL_UnlimitedVector_mod
+   use PFL_FormatToken_mod, only: EOT
    implicit none
 
 contains
@@ -226,7 +227,7 @@ contains
       character(len=:), allocatable :: found
 
       found = formatString('%i2.2-',make_arg_vector(1))
-      @assertExceptionRaised('FormatString::format*() - bad format "i2.2-"')
+      @assertExceptionRaised('FormatString::format*() - bad format "(i2.2-,"'//EOT//'")"')
 
    end subroutine test_badFormat
 

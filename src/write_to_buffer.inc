@@ -1,5 +1,5 @@
-         if (fmt == LIST_DIRECTED_FORMAT) then
-            write(buffer%buffer,*,iostat=iostat) arg, achar(003)
+         if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
+            write(buffer%buffer,*,iostat=iostat) arg, EOT
          else
-            write(buffer%buffer,'('//fmt//',"'//achar(003)//'")',iostat=iostat) arg
+            write(buffer%buffer,fmt,iostat=iostat) arg
          end if

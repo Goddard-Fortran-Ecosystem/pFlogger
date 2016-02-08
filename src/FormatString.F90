@@ -24,6 +24,7 @@ module PFL_FormatString_mod
    use PFL_FormatParser_mod
    use PFL_WrapArray_mod
    use PFL_Exception_mod
+   use PFL_FormatToken_mod, only: EOT
    implicit none
    private
 
@@ -211,10 +212,10 @@ contains
 
          select type (arg)
          type is (String)
-            if (fmt == LIST_DIRECTED_FORMAT) then
+            if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
                write(buffer%buffer,*,iostat=iostat) arg%get(), achar(003)
             else
-               write(buffer%buffer,'(' // fmt // ',"'//achar(003)//'")',iostat=iostat) arg%get()
+               write(buffer%buffer,fmt,iostat=iostat) arg%get()
             end if
             intrinsic = .true.
          class default

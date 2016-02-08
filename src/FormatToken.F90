@@ -17,12 +17,14 @@ module PFL_FormatToken_mod
    public :: FormatToken
    public :: KEYWORD_SEPARATOR
    public :: TEXT, POSITION, KEYWORD
+   public :: EOT
 
    enum, bind(c)
       enumerator :: TEXT, POSITION, KEYWORD
    end enum
 
    character(len=1), parameter :: KEYWORD_SEPARATOR = ')'
+   character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
 
    type FormatToken
       integer :: type ! use enum
@@ -35,6 +37,7 @@ module PFL_FormatToken_mod
       module procedure newFormatToken
    end interface FormatToken
 
+   character(len=1), parameter :: EOT = achar(003)
 
 contains
 
@@ -54,7 +57,12 @@ contains
          token%text = string
 
       case (POSITION)
-         token%edit_descriptor = string
+         select case (string)
+         case (LIST_DIRECTED_FORMAT, '')
+            token%edit_descriptor = '*'
+         case default
+            token%edit_descriptor = '(' // string // ',"' // EOT // '")'
+         end select
 
       case (KEYWORD)
          idx = index(string, KEYWORD_SEPARATOR)
@@ -65,9 +73,11 @@ contains
          end if
          token%text = string(:idx-1)
          if (idx == len_trim(string)) then
-            token%edit_descriptor = '*'
+            token%edit_descriptor = LIST_DIRECTED_FORMAT
+         else if (string(idx+1:idx+1) == LIST_DIRECTED_FORMAT) then
+            token%edit_descriptor = LIST_DIRECTED_FORMAT
          else
-            token%edit_descriptor = string(idx+1:len_trim(string))
+            token%edit_descriptor = '(' // string(idx+1:len_trim(string)) // ',"' // EOT // '")'
          end if
 
       end select

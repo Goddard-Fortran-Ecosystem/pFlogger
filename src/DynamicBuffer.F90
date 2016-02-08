@@ -56,7 +56,7 @@ contains
       class (DynamicBuffer), intent(inout) :: this
 
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         call throw('DynamicBuffer::grow_num_records() - exceeded maximum permitted buffer size.')
+         call throw('DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
          return
       end if
 
@@ -93,19 +93,36 @@ contains
       class (DynamicBuffer), intent(in) :: this
       character(len=:), allocatable :: string
 
-      integer :: i, n
+      integer :: i, j, n, k
       character(len=1), parameter :: EOT = achar(003)
 
+      j = 0
+      do i = 1, this%num_records
+         if (this%buffer(i) /= C_NULL_CHAR) then
+            n = len_trim(this%buffer(i))
+            if (this%buffer(i)(n:n) == EOT) n = n - 1
+            j = j + n + 1
+         end if
+      end do
+      j = j - 1
+
+      allocate(character(len=j) :: string)
+      
+      j = 0
       i = 1
       n = len_trim(this%buffer(1))
       if (this%buffer(1)(n:n) == EOT) n = n - 1
-      string = this%buffer(1)(1:n)
+      string(j+1:j+n) = this%buffer(1)(1:n)
+      j = j + n
 
       do i = 2, this%num_records
          if (this%buffer(i) /= C_NULL_CHAR) then
             n = len_trim(this%buffer(i))
             if (this%buffer(i)(n:n) == EOT) n = n - 1
-            string = string // new_line('a') // this%buffer(i)(1:n)
+            string(j+1:j+1) = new_line('a')
+            j = j + 1
+            string(j+1:j+n) = this%buffer(i)(1:n)
+            j = j + n 
          else
             exit
          end if
