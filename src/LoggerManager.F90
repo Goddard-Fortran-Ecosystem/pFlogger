@@ -10,17 +10,18 @@
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
 module PFL_LoggerManager_mod
-   use PFL_RootLogger_mod
+   use PFL_RootLogger_mod, only: RootLogger
    use PFL_StringAbstractLoggerPolyMap_mod
    use PFL_SeverityLevels_mod
-   use PFL_Object_mod
-   use PFL_Logger_mod
+   use PFL_Logger_mod, only: Logger, newLogger
    use PFL_AbstractLogger_mod
    use PFL_LoggerPolyVector_mod
-   use PFL_Config_mod
 #ifdef LOGGER_USE_MPI
    use mpi
 #endif
+   use PFL_Exception_mod, only: throw
+   use FTL, only: SUCCESS, Config, YAML_load_file => load_file
+   use PFL_Config_mod, only: ConfigElements, build_logger, check_schema_version
    implicit none
    private
 
@@ -28,7 +29,8 @@ module PFL_LoggerManager_mod
    public :: initialize_logger_manager
    public :: logging ! singleton instance
 
-   type, extends(Object) :: LoggerManager
+!!$   type, extends(Object) :: LoggerManager
+   type :: LoggerManager
       private
       type (RootLogger) :: root_node
       type (LoggerMap) :: loggers
@@ -126,7 +128,6 @@ contains
    ! 2) 'name' is case insensitive.
    !---------------------------------------------------------------------------
    function get_logger(this, name) result(lgr)
-      use PFL_Exception_mod
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
@@ -187,7 +188,6 @@ contains
    end function get_logger
 
    subroutine fixup_ancestors(this, lgr)
-      use PFL_Exception_mod
       class (LoggerManager), target, intent(inout) :: this
       class (Logger), intent(inout), target :: lgr
 
@@ -295,8 +295,6 @@ contains
 
 
    subroutine load_file(this, file_name)
-      use FTL, only: SUCCESS, Config, YAML_load_file => load_file
-      use PFL_Exception_mod
       class (LoggerManager), intent(inout) :: this
       character(len=*), intent(in) :: file_name
 
@@ -315,7 +313,6 @@ contains
 
 
    subroutine load_config(this, cfg, unused, extra)
-      use FTL_Config_mod
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (Unusable), optional, intent(in) :: unused
@@ -348,7 +345,6 @@ contains
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use FTL_Config_mod
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -380,7 +376,6 @@ contains
 
    subroutine build_root_logger(this, cfg, elements, unused, extra)
       use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use FTL_Config_mod
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements

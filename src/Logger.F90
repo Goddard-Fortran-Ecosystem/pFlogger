@@ -20,17 +20,17 @@
 module PFL_Logger_mod
    use PFL_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
    use PFL_AbstractHandlerPolyVector_mod, only: HandlerVectorIterator => VectorIterator
-   use PFL_Exception_mod
+   use PFL_Exception_mod, only: throw
    use PFL_AbstractLogger_mod
    use PFL_AbstractHandler_mod
-   use PFL_StreamHandler_mod
    use PFL_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
    use PFL_SeverityLevels_mod, only: INFO_LEVEL => INFO
    use PFL_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
    use PFL_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use PFL_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use PFL_LogRecord_mod
-   use PFL_StringUnlimitedMap_mod
+   use PFL_StringUnlimitedMap_mod, only: Map
+   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
    implicit none
    private
 
@@ -199,7 +199,6 @@ contains
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
    subroutine make_record(this, record, level, message, unused, args, extra)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
@@ -240,7 +239,6 @@ contains
 !! The log method needs two parameters - a message and the severity level
 !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST, unused, extra)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       use PFL_ArgListUtilities_mod
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message

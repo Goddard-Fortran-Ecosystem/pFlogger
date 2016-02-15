@@ -24,8 +24,8 @@
 module PFL_AbstractHandler_mod
    use PFL_Filterer_mod
    use PFL_SeverityLevels_mod, only: NOTSET
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
+   use PFL_LogRecord_mod, only: LogRecord
+   use PFL_Formatter_mod, only: Formatter
    
    implicit none
    private

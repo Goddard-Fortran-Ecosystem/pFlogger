@@ -17,17 +17,17 @@
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_Filterer_mod
-   use PFL_Object_mod
-   use PFL_AbstractFilter_mod
-   use PFL_LogRecord_mod
+   use PFL_AbstractFilter_mod, only: AbstractFilter
+   use PFL_LogRecord_mod, only: LogRecord
    use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
    use PFL_AbstractFilterPolyVector_mod, only: FilterVectorIterator => VectorIterator
+   use PFL_Exception_mod, only: throw
    implicit none
    private
 
    public :: Filterer
 
-   type, extends(Object) :: Filterer
+   type :: Filterer
       private
       type (FilterVector) :: filters
    contains
@@ -125,7 +125,6 @@ contains
    ! Remove filter from 'this' handler.
    !---------------------------------------------------------------------------
    subroutine remove_filter(this, f)
-      use PFL_Exception_mod
       class(Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: f
 

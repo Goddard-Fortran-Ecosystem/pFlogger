@@ -10,12 +10,9 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_FileHandler_mod
-   use PFL_SeverityLevels_mod, only: INFO
-   use PFL_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
-   use PFL_StreamHandler_mod
-   use PFL_AbstractLock_mod
+   use PFL_StreamHandler_mod, only: StreamHandler
+   use PFL_AbstractLock_mod, only: AbstractLock
+   use PFL_LogRecord_mod, only: LogRecord
    implicit none
    private
 
@@ -219,6 +216,7 @@ contains
    ! Overloads 'equal' operation for file handlers.
    !---------------------------------------------------------------------------  
    logical function equal(a, b)
+      use PFL_AbstractHandler_mod, only: AbstractHandler
       class (FileHandler), intent(in) :: a
       class (AbstractHandler), intent(in) :: b
 

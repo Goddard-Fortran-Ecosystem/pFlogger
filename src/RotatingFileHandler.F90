@@ -16,12 +16,9 @@
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module PFL_RotatingFileHandler_mod
-   use iso_fortran_env
-   use PFL_SeverityLevels_mod, only: INFO
+   use, intrinsic :: iso_fortran_env, only: INT64
    use PFL_FileHandler_mod, only: FileHandler
-   use PFL_AbstractHandler_mod, only: BASIC_FORMAT
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
+   use PFL_LogRecord_mod, only: LogRecord
    
    implicit none
    private
@@ -31,7 +28,7 @@ module PFL_RotatingFileHandler_mod
 
    type, extends(FileHandler) :: RotatingFileHandler
       private
-      integer(int64) :: max_bytes = HUGE(1)
+      integer(INT64) :: max_bytes = HUGE(1)
       integer :: backup_count = 0
       logical :: delay = .false.
    contains
@@ -61,6 +58,8 @@ contains
    !---------------------------------------------------------------------------
    function newRotatingFileHandler(fileName, max_bytes, unused, backup_count, delay) &
         result(handler)
+      use PFL_AbstractHandler_mod, only: BASIC_FORMAT
+      use PFL_Formatter_mod
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       type (Unusable), optional, intent(in) :: unused
@@ -69,7 +68,7 @@ contains
       logical, intent(in), optional :: delay
       
       integer :: backup_count_
-      integer(int64) :: max_bytes_
+      integer(INT64) :: max_bytes_
       logical :: delay_
 
       if (present(max_bytes)) then
@@ -109,7 +108,7 @@ contains
    !---------------------------------------------------------------------------  
    function convertNumBytes_(max_bytes) result(nBytes)
       character(len=*), intent(in) :: max_bytes
-      integer(int64) :: nBytes
+      integer(INT64) :: nBytes
       
       character(len=16) :: fmt
       integer :: pos, n, nl
@@ -121,13 +120,13 @@ contains
         select case(max_bytes(pos:pos+1))
         case ('kb')
           read(max_bytes(1:pos-1), fmt) n
-          nBytes = n * (2_int64 ** 10)
+          nBytes = n * (2_INT64 ** 10)
         case ('mb')
           read(max_bytes(1:pos-1), fmt) n
-          nBytes = n * (2_int64 ** 20)
+          nBytes = n * (2_INT64 ** 20)
         case ('gb')
           read(max_bytes(1:pos-1), fmt) n
-          nBytes = n * (2_int64 ** 30)
+          nBytes = n * (2_INT64 ** 30)
         end select
       else
         nl = len(max_bytes)

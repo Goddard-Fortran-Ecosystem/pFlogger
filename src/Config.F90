@@ -1,18 +1,25 @@
 ! Singleton pattern for now
 module PFL_Config_mod
-   use FTL
+   use FTL, only: String, Config
    use PFL_Logger_mod
-   use PFL_Exception_mod
-   use PFL_SeverityLevels_mod
-   use PFL_StringAbstractLoggerPolyMap_mod
+   use PFL_Exception_mod, only: throw
+   use PFL_SeverityLevels_mod, only: name_to_level
+   use PFL_StringAbstractLoggerPolyMap_mod, only: LoggerMap
    use PFL_StringFilterMap_mod
    use PFL_StringLockMap_mod
+   use PFL_StreamHandler_mod
    use PFL_StringHandlerMap_mod
    use PFL_StringFormatterMap_mod
    use PFL_AbstractLock_mod
    use PFL_AbstractHandler_mod
+   use PFL_Formatter_mod
    use PFL_Filterer_mod
    use PFL_FileHandler_mod
+   
+   use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+   use PFL_StringUnlimitedMap_mod, only: Map
+   use PFL_Filter_mod
+   use PFL_StringUtilities_mod, only: to_lower_case
 
    implicit none
    private
@@ -55,8 +62,6 @@ module PFL_Config_mod
 contains
 
    subroutine build_formatters(this, formattersDict, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      use PFL_Formatter_mod
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: formattersDict
       type (Unusable), optional, intent(in) :: unused
@@ -79,7 +84,6 @@ contains
 
 
    subroutine build_formatter(fmtr, dict, unused, extra)
-      use PFL_Formatter_mod
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
       type (Unusable), optional, intent(in) :: unused
@@ -102,7 +106,6 @@ contains
 
 
    subroutine build_basic_formatter(fmtr, dict)
-      use PFL_Formatter_mod
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
 
@@ -132,8 +135,6 @@ contains
 
 #ifdef LOGGER_USE_MPI
    subroutine build_mpi_formatter(fmtr, dict, unused, extra)
-      use PFL_Formatter_mod
-      use PFL_StringUnlimitedMap_mod, only: Map
       use PFL_MpiCommConfig_mod
       use mpi
       class (Formatter), allocatable, intent(out) :: fmtr
@@ -240,7 +241,6 @@ contains
    
    subroutine build_locks(this, locksDict, unused, extra)
       use PFL_AbstractLock_mod
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
 #ifdef LOGGER_USE_MPI
       use mpi
       use PFL_MpiLock_mod
@@ -307,8 +307,6 @@ contains
 
 
    subroutine build_filters(this, filtersDict, unused, extra)
-      use PFL_Filter_mod
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: filtersDict
       type (Unusable), optional, intent(in) :: unused
@@ -329,7 +327,6 @@ contains
 
 
    function build_filter(dict) result(f)
-      use PFL_Filter_mod
       type (Filter) :: f
       type (Config), intent(in) :: dict
 
@@ -346,7 +343,6 @@ contains
    end function build_filter
 
    subroutine build_handlers(this, handlersDict, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: handlersDict
       type (Unusable), optional, intent(in) :: unused
@@ -368,8 +364,6 @@ contains
    end subroutine build_handlers
    
    subroutine build_handler(h, handlerDict, elements, unused, extra)
-      use PFL_StringUtilities_mod, only: to_lower_case
-      use PFL_Filter_mod
       class (AbstractHandler), allocatable, intent(out) :: h
       type (Config), intent(in) :: handlerDict
       type (ConfigElements), intent(in) :: elements
@@ -503,7 +497,6 @@ contains
       end subroutine set_handler_filters
 
       subroutine set_handler_lock(h, handlerDict, locks)
-         use PFL_StreamHandler_mod
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
          type (LockMap), intent(in) :: locks
@@ -532,8 +525,6 @@ contains
    end subroutine build_handler
 
    function build_streamhandler(handlerDict) result(h)
-      use PFL_StreamHandler_mod
-      use PFL_StringUtilities_mod, only: to_lower_case
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
       type (Config), intent(in) :: handlerDict
@@ -565,7 +556,6 @@ contains
    end function build_streamhandler
 
    subroutine build_filehandler(h, handlerDict)
-      use PFL_StringUtilities_mod, only: to_lower_case
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
 
@@ -590,9 +580,7 @@ contains
 
 #ifdef LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unused, extra)
-      use PFL_StringUtilities_mod, only: to_lower_case
       use PFL_MpiCommConfig_mod
-      use PFL_StringUnlimitedMap_mod, only: Map
       use mpi
 
       type (FileHandler), intent(out) :: h

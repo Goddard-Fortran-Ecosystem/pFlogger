@@ -32,6 +32,7 @@ module PFL_Formatter_mod
    use PFL_Object_mod
    use PFL_LogRecord_mod
    use PFL_FormatParser_mod
+   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
    implicit none
    private
 
@@ -71,8 +72,8 @@ module PFL_Formatter_mod
 
    abstract interface
       subroutine get_time(dict)
-         use PFL_StringUnlimitedMap_mod
-         type (Map), intent(out) :: dict
+         import StringUnlimitedMap
+         type (StringUnlimitedMap), intent(out) :: dict
       end subroutine get_time
    end interface
 
@@ -95,7 +96,6 @@ contains
    ! datefmt argument.
    !---------------------------------------------------------------------------
    function newFormatter(fmt, unused, datefmt, extra) result(f)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
       type (Formatter) :: f
       character(len=*), optional, intent(in) :: fmt
       type (Unusable), optional, intent(in) :: unused
@@ -137,7 +137,6 @@ contains
    !---------------------------------------------------------------------------
    function format_time(this, record, datefmt) result(asctime)
       use PFL_FormatString_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
 
       character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
@@ -183,9 +182,7 @@ contains
    ! "INFO: logName: Hello".
    ! ---------------------------------------------------------------------------
    function format(this, record) result(logMessage)
-      use FTL
       use PFL_FormatString_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
 
       character(len=:), allocatable :: logMessage

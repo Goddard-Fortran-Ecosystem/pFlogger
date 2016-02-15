@@ -15,18 +15,16 @@
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module PFL_LogRecord_mod
-   use FTL
    use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-   use PFL_Object_mod
-   use PFL_SeverityLevels_mod
+   use PFL_SeverityLevels_mod, only: level_to_name
    implicit none
    private
 
    public :: LogRecord
    public :: initLogRecord
 
-   type, extends(Object) :: LogRecord
+   type :: LogRecord
 !      private
       integer :: level
       character(len=:), allocatable :: name
@@ -184,8 +182,6 @@ contains
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
    subroutine initLogRecord(rec, name, level, message_format, args, extra)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level

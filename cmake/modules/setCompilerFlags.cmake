@@ -27,7 +27,7 @@ if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
    set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3 \
       -free -assume realloc_lhs -stand f08")
    set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -g -traceback \
-      -check uninit -free -assume realloc_lhs -stand f08")
+      -check uninit -free -assume realloc_lhs -stand f08 -save-temps")
 
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)

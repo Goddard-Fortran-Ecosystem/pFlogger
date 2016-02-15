@@ -13,15 +13,12 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_AbstractFilter_mod
-   use PFL_Object_mod
-   use PFL_LogRecord_mod
-   
    implicit none
    private
 
    public :: AbstractFilter
 
-   type, abstract, extends (Object) :: AbstractFilter
+   type, abstract :: AbstractFilter
       private
    contains
       procedure(do_filter), deferred :: do_filter
@@ -32,8 +29,8 @@ module PFL_AbstractFilter_mod
    abstract interface
 
       logical function do_filter(this, record)
+         use PFL_LogRecord_mod, only: LogRecord
          import AbstractFilter
-         import LogRecord
          class (AbstractFilter), intent(in) :: this
          class (LogRecord), intent(inout) :: record
       end function do_filter

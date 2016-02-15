@@ -14,10 +14,8 @@
 !------------------------------------------------------------------------------
 module PFL_StreamHandler_mod
    use iso_fortran_env, only: ERROR_UNIT
-   use PFL_SeverityLevels_mod, only: INFO
-   use PFL_AbstractHandler_mod, only: AbstractHandler, BASIC_FORMAT
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
+   use PFL_AbstractHandler_mod, only: AbstractHandler
+   use PFL_LogRecord_mod, only: LogRecord
    
    implicit none
    private

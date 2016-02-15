@@ -24,7 +24,9 @@ module PFL_FormatString_mod
    use PFL_FormatParser_mod
    use PFL_WrapArray_mod
    use PFL_Exception_mod
-   use PFL_FormatToken_mod, only: EOT
+   use PFL_FormatToken_mod
+   use PFL_StringUnlimitedMap_mod, only: Map
+   use FTL, only: String
    implicit none
    private
 
@@ -53,8 +55,6 @@ contains
 
 
    function format_map(fmt, dictionary) result(string)
-      use PFL_FormatToken_mod
-      use PFL_StringUnlimitedMap_mod, only: Map
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       class(Map), intent(in) :: dictionary
@@ -67,10 +67,8 @@ contains
    end function format_map
 
    function format_preparsed(parsed, dictionary) result(string)
-      use PFL_FormatToken_mod
       use PFL_FormatTokenVector_mod, only: TokenVector => Vector
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
-      use PFL_StringUnlimitedMap_mod, only: Map
       use PFL_StringUnlimitedMap_mod, only: MapIterator
       character(len=:), allocatable :: string
       type (FormatParser), intent(in) :: parsed
@@ -197,7 +195,6 @@ contains
    function handleScalar(arg, fmt) result(str)
       use PFL_DynamicBuffer_mod
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
-      use FTL
       character(len=:), allocatable :: str
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
