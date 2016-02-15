@@ -184,7 +184,9 @@ contains
    function format(this, record) result(logMessage)
       use PFL_FormatString_mod
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-
+#ifdef __GFORTRAN__
+      use FTL, only: String
+#endif
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
