@@ -89,10 +89,10 @@ contains
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
 
-
       character(len=:), allocatable :: class_name
 
       class_name = dict%toString('class', default='Formatter')
+
       select case (class_name)
       case ('Formatter')
          call build_basic_formatter(fmtr, dict)
@@ -111,6 +111,7 @@ contains
 
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
+      character(len=:), allocatable :: tmp
       logical :: found
 
       fmt = dict%toString('format', found=found)
@@ -122,11 +123,13 @@ contains
          datefmt = dict%toString('datefmt', found=found)
          if (found) then
             datefmt = trim(adjustl(datefmt))
-            datefmt = datefmt(2:len(datefmt)-1)
+            tmp = datefmt(2:len(datefmt)-1)
+            datefmt = tmp
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
          end if
+
       else
          allocate(fmtr, source=Formatter())
       end if
