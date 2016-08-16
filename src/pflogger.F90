@@ -62,8 +62,6 @@ module pflogger
 contains
 
    subroutine initialize(comm)
-      use PFL_SeverityLevels_mod
-      use PFL_RootLogger_mod
       integer, optional, intent(in) :: comm ! unused except with MPI
 
       call initialize_severity_levels()
@@ -73,7 +71,6 @@ contains
    
 
    subroutine finalize()
-      use PFL_SeverityLevels_mod
 
       call finalize_severity_levels()
 

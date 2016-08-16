@@ -29,8 +29,6 @@ module PFL_Logger_mod
    use PFL_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use PFL_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use PFL_LogRecord_mod
-   use PFL_StringUnlimitedMap_mod, only: Map
-   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
    implicit none
    private
 
@@ -199,6 +197,8 @@ contains
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
    subroutine make_record(this, record, level, message, unused, args, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
@@ -240,6 +240,8 @@ contains
 !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST, unused, extra)
       use PFL_ArgListUtilities_mod
+      use PFL_StringUnlimitedMap_mod, only: Map
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
@@ -301,6 +303,7 @@ contains
 !! to specify the level, because the level is implicit in the name.  
 !---------------------------------------------------------------------------
    subroutine log(this, level, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -329,6 +332,7 @@ contains
 !> @brief Log a message with severity level DEBUG.
 !---------------------------------------------------------------------------
    subroutine debug(this, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
@@ -348,6 +352,7 @@ contains
 !> @brief Log a message with severity level INFO.
 !---------------------------------------------------------------------------
    subroutine info(this, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
@@ -366,6 +371,7 @@ contains
 !> @brief Log a message with severity level WARNING.
 !---------------------------------------------------------------------------
    subroutine warning(this, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
@@ -384,6 +390,7 @@ contains
 !> @brief Log a message with severity level ERROR.
 !---------------------------------------------------------------------------
    subroutine error(this, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
@@ -402,6 +409,7 @@ contains
 !> @brief Log a message with severity level CRITICAL.
 !---------------------------------------------------------------------------
    subroutine critical(this, message, ARG_LIST, unused, extra)
+      use PFL_StringUnlimitedMap_mod, only: Map
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  

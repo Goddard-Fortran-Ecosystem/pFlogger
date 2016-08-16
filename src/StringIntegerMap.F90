@@ -15,7 +15,7 @@ module  PFL_StringIntegerMap_mod
 
 #define _alt
 #include "templates/map.inc"
-
+#undef _alt
 
 end module PFL_StringIntegerMap_mod
 
