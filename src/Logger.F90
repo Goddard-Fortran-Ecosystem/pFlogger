@@ -37,10 +37,10 @@ module PFL_Logger_mod
    type, extends(AbstractLogger) :: Logger
       private
       integer :: level
-      character(len=:), allocatable :: name
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
+      character(len=:), pointer :: name
    contains
 
       procedure :: set_name
@@ -98,12 +98,11 @@ contains
       character(len=:), allocatable :: name_
 
       name_ = name
-      if (name=='') then
+      if (name == '') then
       ! Initialize the logger with the name "ROOT"  
         name_ = 'ROOT'
       end if  
       call alog%set_name(name_)
-      aLog%name = name_
 
       level_ = INFO_LEVEL
       if (present (level)) level_ = level
@@ -124,7 +123,7 @@ contains
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: name
 
-      this%name = name
+      allocate(this%name, source=name)
 
    end subroutine set_name
 
@@ -137,7 +136,7 @@ contains
    function get_name(this) result(name)
       character(len=:), allocatable :: name
       class (Logger), intent(in) :: this
-      
+
       name = this%name
       
    end function get_name

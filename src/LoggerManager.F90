@@ -80,7 +80,7 @@ contains
    ! Initialize with the root node of the logger hierarchy.
    !---------------------------------------------------------------------------
    function newLoggerManager(root_node, comm) result(manager)
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       type (RootLogger), intent(in) :: root_node
       integer, optional, intent(in) :: comm
 
@@ -175,7 +175,7 @@ contains
          tmp => this%loggers%at(name)
          ! cast to Logger
          select type (tmp)
-            class is (Logger)
+         class is (Logger)
             lgr => tmp
             call this%fixup_ancestors(lgr)
             class default
@@ -236,7 +236,7 @@ contains
 
 
    subroutine fixup_children(this, ph, lgr)
-      class (LoggerManager), intent(in) :: this
+      class (LoggerManager), target, intent(in) :: this
       type (Placeholder), intent(in) :: ph
       class (Logger), intent(inout) :: lgr
 
