@@ -12,7 +12,7 @@ contains
    
 @test
    subroutine test_get_logger()
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
       class (Logger), pointer :: loggerC

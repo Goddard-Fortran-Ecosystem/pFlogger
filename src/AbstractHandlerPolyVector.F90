@@ -18,6 +18,8 @@ module PFL_AbstractHandlerPolyVector_mod
 #define _type class (AbstractHandler)
 #define _allocatable
 #define _equal_defined
+#define _vector HandlerVector
+#define _iterator HandlerVectorIterator
 
 #include "templates/vector.inc"
 

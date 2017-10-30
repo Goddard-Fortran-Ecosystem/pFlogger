@@ -18,8 +18,7 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_Logger_mod
-   use PFL_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
-   use PFL_AbstractHandlerPolyVector_mod, only: HandlerVectorIterator => VectorIterator
+   use PFL_AbstractHandlerPolyVector_mod
    use PFL_Exception_mod, only: throw
    use PFL_AbstractLogger_mod
    use PFL_AbstractHandler_mod

@@ -284,7 +284,7 @@ contains
 
 @test
    subroutine test_add_handler_noDups(this)
-      use PFL_AbstractHandlerPolyVector_mod, only: HandlerVector => Vector
+      use PFL_AbstractHandlerPolyVector_mod
       class (Test_Logger), intent(inout) :: this
 
       type (Logger), target :: lgr
