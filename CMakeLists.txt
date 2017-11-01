@@ -62,9 +62,11 @@ endif ()
 # Compiler flags
 include(setCompilerFlags)
 
-add_subdirectory(doc)
 add_subdirectory(src)
-add_subdirectory(tests)
-add_subdirectory(examples)
-add_subdirectory(benchmarks)
+add_subdirectory(doc EXCLUDE_FROM_ALL)
+if (PFUNIT)
+  add_subdirectory(tests EXCLUDE_FROM_ALL)
+endif ()
+add_subdirectory(examples EXCLUDE_FROM_ALL)
+add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 

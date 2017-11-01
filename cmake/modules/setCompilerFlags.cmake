@@ -1,14 +1,12 @@
 # Add flags for PFUNIT
-if (DEFINED ENV{PFUNIT})
-   include_directories($ENV{PFUNIT}/mod)
-   include_directories($ENV{PFUNIT}/include)
-   link_directories($ENV{PFUNIT}/lib)
-   set(PFUNIT $ENV{PFUNIT})
-   message(STATUS " +++ PFUNIT is set to $ENV{PFUNIT}") 
+if (PFUNIT)
+   include_directories(${PFUNIT}/mod)
+   include_directories(${PFUNIT}/include)
+   link_directories(${PFUNIT}/lib)
+   set(PFUNIT ${PFUNIT})
+   message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
 else()
-   message(STATUS " +++ PFUNIT is NOT set. PFUNIT is needed for code development.")
-   message(STATUS " +++ Example: export PFUNIT=/myLibraries/pFUnit")
-
+   message(STATUS " +++ PFUNIT is NOT set. PFUNIT is needed for testing.")
 endif()
 
 # Intel compiler flags

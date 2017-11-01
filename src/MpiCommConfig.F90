@@ -30,7 +30,6 @@ contains
    
 
    function MpiCommConfig_comm(mpi_communicator, unused, rank_keyword, size_keyword) result(m)
-      use ftl_string_mod
       integer, intent(in) :: mpi_communicator
       type (Map) :: m
       type (Unusable), optional, intent(in) :: unused
