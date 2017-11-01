@@ -20,7 +20,8 @@ module PFL_LoggerManager_mod
    use mpi
 #endif
    use PFL_Exception_mod, only: throw
-   use FTL, only: SUCCESS, Config, YAML_load_file => load_file
+   use PFL_YAML_Parser_mod, only: SUCCESS, YAML_load_file => load_file
+   use FTL_Config_mod, only: Config
    use PFL_Config_mod, only: ConfigElements, build_logger, check_schema_version
    implicit none
    private
@@ -80,7 +81,7 @@ contains
    ! Initialize with the root node of the logger hierarchy.
    !---------------------------------------------------------------------------
    function newLoggerManager(root_node, comm) result(manager)
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       type (RootLogger), intent(in) :: root_node
       integer, optional, intent(in) :: comm
 
@@ -175,7 +176,7 @@ contains
          tmp => this%loggers%at(name)
          ! cast to Logger
          select type (tmp)
-            class is (Logger)
+         class is (Logger)
             lgr => tmp
             call this%fixup_ancestors(lgr)
             class default
@@ -236,7 +237,7 @@ contains
 
 
    subroutine fixup_children(this, ph, lgr)
-      class (LoggerManager), intent(in) :: this
+      class (LoggerManager), target, intent(in) :: this
       type (Placeholder), intent(in) :: ph
       class (Logger), intent(inout) :: lgr
 
@@ -344,7 +345,7 @@ contains
 
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -375,7 +376,7 @@ contains
 
 
    subroutine build_root_logger(this, cfg, elements, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements

@@ -80,7 +80,7 @@ contains
 
    @test
    subroutine test_config()
-      use FTL
+      use FTL_Config_mod
       type (Config) :: cfg
       type (Config) :: loggers
 

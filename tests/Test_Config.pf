@@ -4,6 +4,7 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config_mod
+   use FTL_Config_mod
    use pfunit_mod
    use PFL_Logger_mod
    use PFL_LoggerManager_mod
@@ -13,9 +14,8 @@ module Test_Config_mod
    use PFL_StringHandlerMap_mod
 
    use PFL_Config_mod
-   use FTL
 #ifdef __GFORTRAN__
-   use FTL, only: String
+   use PFL_String_mod, only: String
 #endif
 
    implicit none
@@ -179,7 +179,7 @@ contains
 
       open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
            & form='formatted')
-     
+
       write(unitStr,'(i0)') unit
       handler_cfg = Config([ &
            & P('class', 'StreamHandler'), &
@@ -199,7 +199,6 @@ contains
         @assertEqual('DEBUG: A: hello', str)
       end block
       close(unit, status='delete')
-      
 
    end subroutine test_build_streamhandler
 

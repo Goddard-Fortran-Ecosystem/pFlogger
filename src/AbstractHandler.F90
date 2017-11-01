@@ -34,7 +34,7 @@ module PFL_AbstractHandler_mod
    public :: BASIC_FORMAT
    
    type, extends(Filterer), abstract :: AbstractHandler
-      private
+!!$      private
       integer :: level = NOTSET ! default
       class (Formatter), allocatable :: fmt
    contains

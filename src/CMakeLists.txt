@@ -29,7 +29,10 @@ set(SRCS
    StreamHandler.F90
    FileHandler.F90
    RotatingFileHandler.F90
+   String.F90
    StringUtilities.F90
+   StringUnlimitedPolyMap.F90
+   FTL_Config.F90
    WrapArray.F90
 # FTL containers
    StringIntegerMap.F90
@@ -46,6 +49,7 @@ set(SRCS
    StringUnlimitedMap.F90
    FormatTokenVector.F90
    StringVector.F90
+   YAML_Parser.F90
 )
 
 if (MPI) 
@@ -66,5 +70,4 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories (${FTL}/include)
 include_directories (${FTL}/mod)
 add_library (${THIS} STATIC ${SRCS})
-target_link_libraries(${THIS} ftl)
 
