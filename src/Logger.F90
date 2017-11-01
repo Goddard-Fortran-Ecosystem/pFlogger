@@ -41,6 +41,7 @@ module PFL_Logger_mod
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
       character(len=:), pointer :: name
+!!$      character(len=:), allocatable :: name
    contains
 
       procedure :: set_name

@@ -1,6 +1,7 @@
 ! Singleton pattern for now
 module PFL_Config_mod
-   use FTL, only: String, Config
+   use PFL_String_mod, only: String
+   use FTL_Config_mod, only: config
    use PFL_Logger_mod
    use PFL_Exception_mod, only: throw
    use PFL_SeverityLevels_mod, only: name_to_level
@@ -16,7 +17,7 @@ module PFL_Config_mod
    use PFL_Filterer_mod
    use PFL_FileHandler_mod
    
-   use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+   use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
    use PFL_StringUnlimitedMap_mod, only: Map
    use PFL_Filter_mod
    use PFL_StringUtilities_mod, only: to_lower_case

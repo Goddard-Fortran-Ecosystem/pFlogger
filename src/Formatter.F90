@@ -40,7 +40,7 @@ module PFL_Formatter_mod
    public :: get_sim_time
 
    type, extends(Object) :: Formatter
-      private
+!!$      private
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       type (FormatParser) :: p
@@ -184,9 +184,9 @@ contains
    function format(this, record) result(logMessage)
       use PFL_FormatString_mod
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-#ifdef __GFORTRAN__
-      use FTL, only: String
-#endif
+!!$#ifdef __GFORTRAN__
+      use PFL_String_mod, only: String
+!!$#endif
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
@@ -204,22 +204,22 @@ contains
 
       if (this%fmt_uses_message) then
          msg = record%get_message()
-#ifdef __GFORTRAN__
+!!$#ifdef __GFORTRAN__
          call extra%insert('message', String(msg))
-#else
-         call extra%insert('message', msg)
-#endif
+!!$#else
+!!$         call extra%insert('message', msg)
+!!$#endif
       end if
 
       if (this%fmt_uses_name) then
          block
            character(len=:), allocatable :: name
            name= record%get_name()
-#ifdef __GFORTRAN__
+!!$#ifdef __GFORTRAN__
            call extra%insert('name', String(name))
-#else
-           call extra%insert('name', name)
-#endif
+!!$#else
+!!$           call extra%insert('name', name)
+!!$#endif
          end block
       end if
       
@@ -231,11 +231,11 @@ contains
          block
            character(len=:), allocatable :: name
            name = record%get_level_name()
-#ifdef __GFORTRAN__
+!!$#ifdef __GFORTRAN__
          call extra%insert('levelName', String(name))
-#else
-         call extra%insert('levelName', name)
-#endif
+!!$#else
+!!$         call extra%insert('levelName', name)
+!!$#endif
        end block
       end if
 
@@ -245,11 +245,11 @@ contains
          else
             asctime = this%format_time(record)
          end if
-#ifdef __GFORTRAN__
+!!$#ifdef __GFORTRAN__
          call extra%insert('asctime', String(asctime))
-#else
-         call extra%insert('asctime', asctime)
-#endif
+!!$#else
+!!$         call extra%insert('asctime', asctime)
+!!$#endif
       end if
 
       if(this%fmt_uses_simTime) then
@@ -260,11 +260,11 @@ contains
             simtime = FormatString(DEFAULT_DATE_FMT, dict)
          end if
          
-#ifdef __GFORTRAN__
+!!$#ifdef __GFORTRAN__
          call extra%insert('simtime', String(simtime))
-#else
-         call extra%insert('simtime', simtime)
-#endif
+!!$#else
+!!$         call extra%insert('simtime', simtime)
+!!$#endif
       end if
 
       logMessage = FormatString(this%p, extra)

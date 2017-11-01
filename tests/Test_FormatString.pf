@@ -52,6 +52,7 @@ contains
 @test
    subroutine test_format_map()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_String_mod
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
@@ -59,7 +60,7 @@ contains
       call extra%insert('i',1)
       call extra%insert('x',1.234)
       call extra%insert('f',.false.)
-      call extra%insert('s','word')
+      call extra%insert('s',String('word'))
 
       found = formatString('i=%(i)i2 f=%(f)l2 s=%(s)a x=%(x)f6.2', extra)
       expected = 'i= 1 f= F s=word x=  1.23'
@@ -112,13 +113,14 @@ contains
 @test
    subroutine test_defaultFormat_keyword()
       use PFL_StringUnlimitedMap_mod
+      use PFL_String_mod
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
       type (Map) :: extra
 
-      call extra%insert('dog','fido')
-      call extra%insert('cat','tabby')
+      call extra%insert('dog',String('fido'))
+      call extra%insert('cat',String('tabby'))
 
       found = formatString('%(dog) %(cat)', extra)
       expected = ' fido  tabby'
@@ -146,7 +148,8 @@ contains
 
    end subroutine test_formatArray
 
-@test
+#ifndef __GFORTRAN__
+   @test(ifndef=__GFORTRAN__)
    subroutine test_formatArray2d()
       use PFL_WrapArray_mod
       character(len=:), allocatable :: expected
@@ -163,7 +166,7 @@ contains
    end subroutine test_formatArray2d
 
 
-@test
+@test(ifndef=__GFORTRAN__)
    subroutine test_formatArray3d()
       use PFL_WrapArray_mod
       character(len=:), allocatable :: expected
@@ -181,7 +184,7 @@ contains
    end subroutine test_formatArray3d
 
 
-@test
+@test(ifndef=__GFORTRAN__)
    subroutine test_formatArray4d()
       use PFL_WrapArray_mod
       character(len=:), allocatable :: expected
@@ -200,7 +203,7 @@ contains
    end subroutine test_formatArray4d
 
 
-@test
+@test(ifndef=__GFORTRAN__)
    subroutine test_formatArray5d()
       use PFL_WrapArray_mod
       character(len=:), allocatable :: expected
@@ -217,7 +220,7 @@ contains
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
    end subroutine test_formatArray5d
-
+#endif
 
    ! Intentionally provide bad format and check that 
    ! an appropriate error message is generated.

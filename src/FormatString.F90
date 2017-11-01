@@ -26,7 +26,7 @@ module PFL_FormatString_mod
    use PFL_Exception_mod
    use PFL_FormatToken_mod
    use PFL_StringUnlimitedMap_mod, only: Map
-   use FTL, only: String
+   use PFL_String_mod, only: String
    implicit none
    private
 

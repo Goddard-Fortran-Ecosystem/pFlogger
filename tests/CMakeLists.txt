@@ -77,7 +77,6 @@ include_directories(
 
 # Targets:
 
-link_directories(${FTL}/lib)
 add_definitions (-DPFUNIT_EXTRA_INITIALIZE=init_tests)
 
 # Can this be made to work?
@@ -85,11 +84,11 @@ add_definitions (-DPFUNIT_EXTRA_INITIALIZE=init_tests)
 #  PROPERTIES DEFINE_SYMBOL -DPFUNIT_EXTRA_INITIALIZE=initTests )
 
 add_library(logger_tests STATIC ${ALL_SRCS})
-target_link_libraries(logger_tests logger ftl pfunit)
+target_link_libraries(logger_tests logger pfunit)
 
 set(EXE tests.x)
 add_executable (${EXE} EXCLUDE_FROM_ALL ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} logger_tests logger ftl pfunit)
+target_link_libraries(${EXE} logger_tests logger pfunit)
 
 
 add_custom_target(tests

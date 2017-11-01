@@ -29,7 +29,6 @@ contains
       mockHandler_ = MockHandler(this%mockBuffer)
 
       call this%basicLogger%add_handler(mockHandler_)
-
    end subroutine setUp
 
 

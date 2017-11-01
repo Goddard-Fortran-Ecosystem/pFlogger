@@ -20,7 +20,8 @@ module PFL_LoggerManager_mod
    use mpi
 #endif
    use PFL_Exception_mod, only: throw
-   use FTL, only: SUCCESS, Config, YAML_load_file => load_file
+   use PFL_YAML_Parser_mod, only: SUCCESS, YAML_load_file => load_file
+   use FTL_Config_mod, only: Config
    use PFL_Config_mod, only: ConfigElements, build_logger, check_schema_version
    implicit none
    private
@@ -344,7 +345,7 @@ contains
 
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -375,7 +376,7 @@ contains
 
 
    subroutine build_root_logger(this, cfg, elements, unused, extra)
-      use ftl_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
