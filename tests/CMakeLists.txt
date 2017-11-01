@@ -70,6 +70,7 @@ set_source_files_properties(
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
+   ${CMAKE_BINARY_DIR}/src/include
    ${FTL}/include
    ${FTL}/mod
    ${PFUNIT}/include
@@ -83,12 +84,12 @@ add_definitions (-DPFUNIT_EXTRA_INITIALIZE=init_tests)
 #set_target_properties (${EXE}
 #  PROPERTIES DEFINE_SYMBOL -DPFUNIT_EXTRA_INITIALIZE=initTests )
 
-add_library(logger_tests STATIC ${ALL_SRCS})
-target_link_libraries(logger_tests logger pfunit)
+add_library(pflogger_tests STATIC ${ALL_SRCS})
+target_link_libraries(pflogger_tests pflogger pfunit)
 
 set(EXE tests.x)
 add_executable (${EXE} EXCLUDE_FROM_ALL ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} logger_tests logger pfunit)
+target_link_libraries(${EXE} pflogger_tests pflogger pfunit)
 
 
 add_custom_target(tests

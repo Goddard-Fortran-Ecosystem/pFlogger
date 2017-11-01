@@ -1,7 +1,8 @@
 # CMakeLists.txt for logger src
 
+set (CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS logger)
+set(THIS pflogger)
 
 set(SRCS
    ArgListUtilities.F90
@@ -70,4 +71,9 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories (${FTL}/include)
 include_directories (${FTL}/mod)
 add_library (${THIS} STATIC ${SRCS})
+
+INSTALL(TARGETS ${THIS} DESTINATION lib)
+INSTALL(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
+
+
 
