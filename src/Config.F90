@@ -689,6 +689,7 @@ contains
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use PFL_StringUtilities_mod, only: to_lower_case
+      use MPI
       class (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
@@ -710,8 +711,33 @@ contains
          integer :: level
          integer :: iostat
          logical :: found
-
+#ifdef LOGGER_USE_MPI
+         integer :: root, rank, ierror, comm
+         character(len=:), allocatable :: communicator_name
+#endif
+         
          levelName = loggerDict%toString('level', found=found)
+#ifdef LOGGER_USE_MPI
+         communicator_name = loggerDict%toString('comm:', default='MPI_COMM_WORLD')
+         select case (communicator_name)
+         case ('MPI_COMM_WORLD')
+            comm = MPI_COMM_WORLD
+         case default
+            if (present(extra)) then
+               comm = extra%toInteger(communicator_name, found=found)
+            else
+               call throw('PFL::Config::build_logger() - MPI communicator not found <'//communicator_name//'.')
+               return
+            end if
+         end select
+         root = loggerDict%toInteger('root:', default=0)
+         call MPI_Comm_rank(comm, rank, ierror)
+         if (rank == root) then
+            levelName = loggerDict%toString('root_level', default=levelName)
+         else
+            ! same as on other PEs
+         end if
+#endif
          if (found) then
             ! Try as integer
             read(levelName,*, iostat=iostat) level
@@ -719,9 +745,8 @@ contains
                level = name_to_level(levelName)
             end if
             call lgr%set_level(level)
-         else
-            ! leave as default level
          end if
+
 
       end subroutine set_logger_level
       

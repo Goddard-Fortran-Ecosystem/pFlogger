@@ -501,5 +501,39 @@ contains
 
    end subroutine test_basic_loggers
 
+   subroutine test_logger_root_level()
+      use MockMpi_mod
+      use mpi
+      type (Config) :: cfg
+      type (Config) :: loggers
+
+      type (LoggerManager) :: mgr
+      class (Logger), pointer :: lgr
+
+      cfg = Config([ &
+           &      p('schema_version', 1), &
+           &      p('loggers', Config([p('A', Config([P('level','INFO'),P('root',1),P('root_level','DEBUG')]))])) &
+           &     ])
+
+      ! configure the mock layer
+      call set_mpi_rank(1) ! is root
+      call set_mpi_size(2)
+
+      call mgr%load_config(cfg)
+      lgr => mgr%get_logger('A')
+
+      @assertEqual(DEBUG, lgr%get_level())
+
+      ! configure the mock layer
+      call set_mpi_rank(0) ! not root
+      call set_mpi_size(2)
+
+      call mgr%load_config(cfg)
+      lgr => mgr%get_logger('A')
+
+      @assertEqual(INFO, lgr%get_level())
+      
+   end subroutine test_logger_root_level
+
    
 end module Test_Config_mod
