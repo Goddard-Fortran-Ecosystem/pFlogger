@@ -402,6 +402,7 @@ contains
       cfg = Config([P('handlers','[handlerA]')])
 
       lgr => logging%get_logger('serial')
+      call lgr%set_level(INFO)
       call build_logger(lgr, cfg, elements)
 
       buffer%buffer = ''
