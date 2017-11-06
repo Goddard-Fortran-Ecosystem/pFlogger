@@ -211,6 +211,7 @@ contains
       manager = LoggerManager(RootLogger(ERROR))
       parent => manager%get_logger('parent')
       child => manager%get_logger('parent.child')
+      call child%set_level(INFO)
       
       h = MockHandler(buffer)
       call h%set_formatter(Formatter('%(message)'))

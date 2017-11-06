@@ -25,7 +25,7 @@ contains
       class (Test_Logger), intent(inout) :: this
       type (MockHandler) :: mockHandler_
       
-      this%basicLogger = Logger('A')
+      this%basicLogger = Logger('A', INFO)
       mockHandler_ = MockHandler(this%mockBuffer)
 
       call this%basicLogger%add_handler(mockHandler_)
@@ -354,6 +354,34 @@ contains
 
    end subroutine test_extra
 
+   @test
+   subroutine test_getEffectiveLevel_self(this)
+      class (Test_Logger), intent(inout) :: this
+      type (Logger) :: lgr
+
+      lgr = Logger('A')
+      @assertEqual(NOTSET, lgr%getEffectiveLevel())
+
+      lgr = Logger('A')
+      call lgr%set_level(WARNING)
+      @assertEqual(WARNING, lgr%getEffectiveLevel())
+
+   end subroutine test_getEffectiveLevel_self
+
+   ! If logger level is NOTSET, search ancestors
+   ! for first higher severity ancestor.
+   @test
+   subroutine test_getEffectiveLevel_ancestor(this)
+      class (Test_Logger), intent(inout) :: this
+      type (Logger), target :: lgr_A, lgr_B
+
+      lgr_A = Logger('A')
+      lgr_B = Logger('A.B')
+      call lgr_B%set_parent(lgr_A)
+      call lgr_A%set_level(INFO)
+      @assertEqual(INFO, lgr_B%getEffectiveLevel())
+
+   end subroutine test_getEffectiveLevel_ancestor
 
 end module Test_Logger_mod
 

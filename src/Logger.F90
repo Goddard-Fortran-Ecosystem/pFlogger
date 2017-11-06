@@ -22,6 +22,7 @@ module PFL_Logger_mod
    use PFL_Exception_mod, only: throw
    use PFL_AbstractLogger_mod
    use PFL_AbstractHandler_mod
+   use PFL_SeverityLevels_mod, only: NOTSET
    use PFL_SeverityLevels_mod, only: DEBUG_LEVEL => DEBUG
    use PFL_SeverityLevels_mod, only: INFO_LEVEL => INFO
    use PFL_SeverityLevels_mod, only: WARNING_LEVEL => WARNING
@@ -36,7 +37,7 @@ module PFL_Logger_mod
 
    type, extends(AbstractLogger) :: Logger
       private
-      integer :: level
+      integer :: level = NOTSET
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
@@ -47,6 +48,7 @@ module PFL_Logger_mod
       procedure :: set_name
       procedure :: get_name
       procedure :: isEnabledFor
+      procedure :: getEffectiveLevel
       procedure :: log
       procedure :: debug
       procedure :: info
@@ -105,9 +107,8 @@ contains
       end if  
       call alog%set_name(name_)
 
-      level_ = INFO_LEVEL
+      level_ = NOTSET
       if (present (level)) level_ = level
-! TODO: Need to NOTSET when inheritance is working
       call aLog%set_level(level_)
 
       alog%handlers = HandlerVector()
@@ -223,9 +224,37 @@ contains
       class (Logger), intent(in) :: this
       integer, intent(in) :: level
 
-      isEnabledFor = (level >= this%level)
+      isEnabledFor = (level >= this%getEffectiveLevel())
       
    end function isEnabledFor
+   
+!---------------------------------------------------------------------------  
+!*FUNCTION: getEffectiveLevelnewLogger
+!
+!> @brief Get the effective severity level of a logger.
+!> @details
+!! If a logger's actual level is NOTSET, it searches ancestors for
+!! the first ancestor that has a level that is NOTSET.  The effective
+!! level is the effective level of that ancestor.
+!! If the search reaches ROOT, then the effective level is NOTSET.
+!---------------------------------------------------------------------------
+   integer function getEffectiveLevel(this) result(level)
+      class (Logger), target, intent(in) :: this
+
+      class (Logger), pointer :: lgr
+
+      lgr => this
+      do while (associated(lgr))
+         if (lgr%level > NOTSET) then
+            level = lgr%level
+            return
+         end if
+         lgr => lgr%parent
+      end do
+
+      level = NOTSET
+      
+   end function getEffectiveLevel
    
 !---------------------------------------------------------------------------  
 !*ROUTINE: log_
@@ -306,21 +335,13 @@ contains
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
-      integer, optional, intent(in) :: level     
+      integer, intent(in) :: level     
       include 'recordOptArgs.inc'
       type(Unusable), optional, intent(in) :: unused
       type (map), optional, intent(in) :: extra
       
-      integer :: level_
-
-      if (present(level)) then
-        level_ = level
-      else
-        level_ = INFO_LEVEL
-      end if
-
-      if (this%isEnabledFor(level_)) &
-           call this%log_(level_, message, ARG_LIST)
+      if (this%isEnabledFor(level)) &
+           call this%log_(level, message, ARG_LIST)
 
    end subroutine log
 
