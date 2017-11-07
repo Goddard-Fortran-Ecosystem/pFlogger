@@ -16,7 +16,7 @@ module PFL_LoggerManager_mod
    use PFL_Logger_mod, only: Logger, newLogger
    use PFL_AbstractLogger_mod
    use PFL_LoggerPolyVector_mod
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
    use mpi
 #endif
    use PFL_Exception_mod, only: throw
@@ -35,9 +35,6 @@ module PFL_LoggerManager_mod
       private
       type (RootLogger) :: root_node
       type (LoggerMap) :: loggers
-      integer :: mpi_communicator
-      integer :: mpi_world_rank
-      integer :: mpi_world_size
    contains
       procedure :: get_logger
       procedure, private :: fixup_ancestors
@@ -53,7 +50,7 @@ module PFL_LoggerManager_mod
    
    
    interface LoggerManager
-      module procedure newLoggerManager
+      module procedure new_LoggerManager
    end interface LoggerManager
    
    type (LoggerManager), target, save :: logging
@@ -75,46 +72,18 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! get_logger
+   ! new_LoggerManager
    !
    ! DESCRIPTION: 
    ! Initialize with the root node of the logger hierarchy.
    !---------------------------------------------------------------------------
-   function newLoggerManager(root_node, comm) result(manager)
+   function new_LoggerManager(root_node) result(manager)
       type (LoggerManager), target :: manager
       type (RootLogger), intent(in) :: root_node
-      integer, optional, intent(in) :: comm
 
       manager%root_node = root_node
 
-#ifdef LOGGER_USE_MPI
-      call init_mpi_info(comm)
-#else
-        manager%mpi_communicator = 0
-        manager%mpi_world_rank = 0
-        manager%mpi_world_size = 1
-#endif
-
-#ifdef LOGGER_USE_MPI        
-   contains
-
-      subroutine init_mpi_info(comm)
-         integer, optional, intent(in) :: comm
-         integer :: comm_, ierror
-         if (present(comm)) then
-            comm_ = comm
-         else
-            comm_ = MPI_COMM_WORLD
-         end if
-         
-         call MPI_Comm_dup(comm_, manager%mpi_communicator, ierror)
-         call MPI_Comm_rank(manager%mpi_communicator, manager%mpi_world_rank, ierror)
-         call MPI_Comm_size(manager%mpi_communicator, manager%mpi_world_size, ierror)
-      end subroutine init_mpi_info
-#endif
-     
-
-   end function newLoggerManager
+   end function new_LoggerManager
 
 
    !---------------------------------------------------------------------------  
@@ -292,38 +261,51 @@ contains
    end function get_parent_prefix
 
 
-   subroutine initialize_logger_manager(comm)
-      integer, optional, intent(in) :: comm
+   subroutine initialize_logger_manager()
       
-      logging = newLoggerManager(RootLogger(WARNING), comm)
+      logging = LoggerManager(RootLogger(WARNING))
 
    end subroutine initialize_logger_manager
 
 
 
-   subroutine load_file(this, file_name)
+   subroutine load_file(this, file_name, unused, extra, comm)
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: file_name
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+      integer, optional, intent(in) :: comm
 
       type (Config) :: cfg
       integer :: rc
+      type (Config) :: extra_
+
+      if (present(extra)) then
+         extra_ = extra
+      end if
+
+      if (present(comm)) then
+         call extra_%insert('_GLOBAL_COMMUNICATOR',comm)
+      end if
+
 
       cfg = YAML_load_file(file_name, rc)
       if (rc /= SUCCESS) then
          call throw('PFL_LoggerManager::load_file() - Failure opening file: <'//file_name//'>')
          return
       end if
-      call this%load_config(cfg)
+      call this%load_config(cfg, extra=extra_, comm=comm)
       
    end subroutine load_file
 
 
 
-   subroutine load_config(this, cfg, unused, extra)
+   subroutine load_config(this, cfg, unused, extra, comm)
       class (LoggerManager), target, intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
+      integer, optional, intent(in) :: comm
 
       type (ConfigElements) :: elements
       
@@ -331,6 +313,8 @@ contains
       type (Config), pointer :: subcfg
 
       call check_schema_version(cfg)
+
+      call elements%set_global_communicator(comm)
 
       subcfg => cfg%toConfigPtr('locks', found=found)
       if (found) call elements%build_locks(subcfg, extra=extra)
