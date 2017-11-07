@@ -179,18 +179,19 @@ contains
          class is (Logger)
             lgr => tmp
             call this%fixup_ancestors(lgr)
-            class default
+         class default
             lgr => null()
             call throw('LoggerManager::get_logger() - Illegal type of logger <' &
                  & // name // '>')
          end select
+
       end if
 
    end function get_logger
 
    subroutine fixup_ancestors(this, lgr)
       class (LoggerManager), target, intent(inout) :: this
-      class (Logger), intent(inout), target :: lgr
+      class (Logger), intent(inout), pointer :: lgr
 
       integer :: i
       character(len=:), allocatable :: name
@@ -216,11 +217,16 @@ contains
             end select
          else ! create placeholder
             block
-              type (Placeholder) :: ph
+              type (Placeholder), pointer :: ph
+              allocate(ph)
               counter = counter + 1
               ph%counter = counter
-              call ph%children%push_back(lgr)
               call this%loggers%insert(ancestor_name, ph)
+              tmp => this%loggers%at(ancestor_name)
+              select type (tmp); class is (PlaceHolder); ph => tmp; end select
+              tmp => this%loggers%at(name)
+              select type (tmp); class is (Logger); lgr => tmp; end select
+              call ph%children%push_back(lgr)
             end block
          end if
 
@@ -296,7 +302,7 @@ contains
 
 
    subroutine load_file(this, file_name)
-      class (LoggerManager), intent(inout) :: this
+      class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: file_name
 
       type (Config) :: cfg
@@ -314,7 +320,7 @@ contains
 
 
    subroutine load_config(this, cfg, unused, extra)
-      class (LoggerManager), intent(inout) :: this
+      class (LoggerManager), target, intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
@@ -346,7 +352,7 @@ contains
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
       use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
-      class (LoggerManager), intent(inout) :: this
+      class (LoggerManager), target, intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused

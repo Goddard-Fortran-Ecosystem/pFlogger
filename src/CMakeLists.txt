@@ -68,6 +68,7 @@ endif ()
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories (${FTL}/include)
 include_directories (${FTL}/mod)
 add_library (${THIS} STATIC ${SRCS})

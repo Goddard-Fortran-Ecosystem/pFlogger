@@ -39,7 +39,7 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
 
    set (CPPFLAGS "${CPPFLAGS} -fpp")
    set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
-   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline")
+   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline -C=all")
 
 else()
 

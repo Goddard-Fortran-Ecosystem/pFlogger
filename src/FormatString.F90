@@ -71,8 +71,8 @@ contains
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use PFL_StringUnlimitedMap_mod, only: MapIterator
       character(len=:), allocatable :: string
-      type (FormatParser), intent(in) :: parsed
-      class(Map), intent(in) :: dictionary
+      type (FormatParser), target, intent(in) :: parsed
+      class(Map), target, intent(in) :: dictionary
 
       type (TokenVectorIterator) :: tokenIter
       type (FormatToken), pointer :: token

@@ -20,7 +20,7 @@ module Test_ParserContexts_mod
       type (FormatToken) :: token
       character(len=:), allocatable :: errorMessage
 
-      procedure (ContextInterface), nopass, pointer :: prevContext
+      procedure (ContextInterface), nopass, pointer :: prevContext => null()
    contains
       procedure :: toString
    end type TestParam
@@ -270,7 +270,7 @@ contains
    subroutine test_outBuffer(this)
       class (ContextsTestCase), intent(inout) :: this
 
-      character(len=:), pointer :: buffer
+      character(len=:), allocatable :: buffer
 
       call this%parser%get_buffer(buffer)
       @assertEqual(this%param%outBuffer, buffer, whiteSpace=KEEP_ALL)

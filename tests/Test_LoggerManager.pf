@@ -65,7 +65,7 @@ contains
 
 @test
    subroutine test_fixup()
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: loggerAB
       class (Logger), pointer :: parent
 
@@ -139,7 +139,7 @@ contains
    
 @test
    subroutine test_parent_is_root()
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: loggerA
       class (AbstractLogger), pointer :: parent
       type (RootLogger) :: root_node
@@ -162,7 +162,7 @@ contains
 @test
    subroutine test_passMessageToParent()
       use MockHandler_mod
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: loggerA
       class (Logger), pointer :: loggerB
 
@@ -201,7 +201,7 @@ contains
    subroutine test_propagate()
       use MockHandler_mod
       use PFL_Formatter_mod
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child
 
@@ -227,7 +227,7 @@ contains
    subroutine test_propagate_off()
       use MockHandler_mod
       use PFL_Formatter_mod
-      type (LoggerManager) :: manager
+      type (LoggerManager), target :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child
 

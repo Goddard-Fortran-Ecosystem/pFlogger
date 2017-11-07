@@ -86,11 +86,10 @@ contains
 
       class (Logger), pointer :: lgr
       integer :: rc
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
 
       call mgr%load_file(FILE)
       lgr => mgr%get_logger('A')
-
       call lgr%debug('debug')
       call lgr%info('info')
       call lgr%warning('warning')

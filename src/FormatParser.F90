@@ -178,11 +178,12 @@ contains
    ! This should be a function that returns a pointer.
    ! Unfortunately gfortran 4.9.1 munges string pointers in
    ! that context.
-   subroutine get_buffer(this, buffer)
-      character(:), pointer :: buffer
+   subroutine get_buffer(this, buffer2)
+      character(:), allocatable :: buffer2
       class (FormatParser), target, intent(in) :: this
 
-      buffer => this%buffer(1:this%currentPosition)
+      buffer2 = this%buffer(1:this%currentPosition)
+
    end subroutine get_buffer
 
 
