@@ -10,7 +10,7 @@ module pflogger
    use PFL_FastFormatter_mod
    use PFL_WrapArray_mod
    use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    use PFL_MpiLock_mod
 #  endif   
@@ -51,7 +51,7 @@ module pflogger
    public :: initialize_severity_levels
    public :: finalize_severity_levels
 
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    public :: MpiLock
 #  endif
@@ -61,11 +61,10 @@ module pflogger
 
 contains
 
-   subroutine initialize(comm)
-      integer, optional, intent(in) :: comm ! unused except with MPI
+   subroutine initialize()
 
       call initialize_severity_levels()
-      call initialize_logger_manager(comm)
+      call initialize_logger_manager()
 
    end subroutine initialize
    

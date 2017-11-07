@@ -367,8 +367,8 @@ contains
 
    end subroutine test_build_logger
 
-#ifdef LOGGER_USE_MPI
-@test(ifdef=LOGGER_USE_MPI)
+#ifdef _LOGGER_USE_MPI
+@test(ifdef=_LOGGER_USE_MPI)
    subroutine test_build_logger_serial_in_mpi_context()
       use mpi
       use MockHandler_mod
@@ -389,28 +389,26 @@ contains
 
       integer :: comm = 0
       
-      call set_mpi_rank(1)
+      call set_mpi_rank(1) ! i.e., not root
       call set_mpi_size(2)
 
       h = MockHandler(buffer, level=INFO)
-!!$      call elements%set_global_comm(0)
+
       handlers => elements%get_handlers()
       call handlers%insert('handlerA', h)
 
       cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
 
-!!$      lgr => logging%get_logger('serial')
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
       call build_logger(lgr, cfg, elements)
 
-      call assertFalse(allocated(buffer%buffer))
       call lgr%info('message')
-      call assertFalse(allocated(buffer%buffer))
+      @assertFalse(allocated(buffer%buffer))
 
    end subroutine test_build_logger_serial_in_mpi_context
 
-@test(ifdef=LOGGER_USE_MPI)
+@test(ifdef=_LOGGER_USE_MPI)
    subroutine test_build_logger_serial_comm()
       use mpi
       use PFL_RootLogger_mod
@@ -453,7 +451,7 @@ contains
       call build_logger(lgr, cfg, elements, extra=extra)
 
       call lgr%info('message')
-      call assertEqual('message',buffer2%buffer)
+      @assertEqual('message',buffer2%buffer)
       
    end subroutine test_build_logger_serial_comm
 #endif

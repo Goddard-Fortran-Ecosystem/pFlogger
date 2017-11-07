@@ -21,7 +21,9 @@ module PFL_Config_mod
    use PFL_StringUnlimitedMap_mod, only: Map
    use PFL_Filter_mod
    use PFL_StringUtilities_mod, only: to_lower_case
-
+#ifdef _LOGGER_USE_MPI
+      use MPI
+#endif
    implicit none
    private
 
@@ -41,6 +43,7 @@ module PFL_Config_mod
 
    type ConfigElements
       private
+      integer :: global_communicator = -1 ! not used in serial
       type (FilterMap) :: filters
       type (FormatterMap) :: formatters
       type (HandlerMap) :: handlers
@@ -52,6 +55,7 @@ module PFL_Config_mod
       procedure :: build_handlers
 
       ! accessors
+      procedure :: set_global_communicator
       procedure :: get_filters
       procedure :: get_formatters
       procedure :: get_handlers
@@ -75,7 +79,7 @@ contains
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
          cfg => formattersDict%toConfigPtr(iter%key())
-         call build_formatter(f, cfg, extra=extra)
+         call build_formatter(f, cfg, extra=extra, global_communicator=this%global_communicator)
          call this%formatters%insert(iter%key(), f)
          deallocate(f)
          call iter%next()
@@ -84,11 +88,12 @@ contains
    end subroutine build_formatters
 
 
-   subroutine build_formatter(fmtr, dict, unused, extra)
+   subroutine build_formatter(fmtr, dict, unused, extra, global_communicator)
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
       type (Unusable), optional, intent(in) :: unused
       type (Config), optional, intent(in) :: extra
+      integer, optional, intent(in) :: global_communicator
 
       character(len=:), allocatable :: class_name
 
@@ -97,7 +102,7 @@ contains
       select case (class_name)
       case ('Formatter')
          call build_basic_formatter(fmtr, dict)
-#ifdef LOGGER_USE_MPI         
+#ifdef _LOGGER_USE_MPI         
       case ('MpiFormatter')
          call build_mpi_formatter(fmtr, dict, extra=extra)
 #endif
@@ -137,10 +142,9 @@ contains
 
    end subroutine build_basic_formatter
 
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
    subroutine build_mpi_formatter(fmtr, dict, unused, extra)
       use PFL_MpiCommConfig_mod
-      use mpi
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
       type (Unusable), optional, intent(in) :: unused
@@ -182,8 +186,8 @@ contains
             end if
 
             select case (name)
-            case ('MPI_COMM_WORLD')
-               comms = [comms, MPI_COMM_WORLD]
+            case ('MPI_COMM_WORLD','LOGGGER_COMM')
+               comms = [comms, extra%toInteger('_GLOBAL_COMMUNICATOR')]
             case default
                if (extra%count(name) == 1) then
                   comms = [comms, extra%toInteger(name)]
@@ -202,13 +206,8 @@ contains
            call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
          end block
       else
-         communicator_name = dict%toString('comm:', default='MPI_COMM_WORLD')
-         select case (communicator_name)
-         case ('MPI_COMM_WORLD')
-            comm = MPI_COMM_WORLD
-         case default
-            comm = extra%toInteger(communicator_name)
-         end select
+         communicator_name = dict%toString('comm:', default='COMM_LOGGER')
+         comm = get_communicator(communicator_name, extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
@@ -245,8 +244,7 @@ contains
    
    subroutine build_locks(this, locksDict, unused, extra)
       use PFL_AbstractLock_mod
-#ifdef LOGGER_USE_MPI
-      use mpi
+#ifdef _LOGGER_USE_MPI
       use PFL_MpiLock_mod
 #endif
       class (ConfigElements), intent(inout) :: this
@@ -279,23 +277,10 @@ contains
          class_name = cfg%toString('class', found=found)
          if (found) then
             select case (class_name)
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
             case ('MpiLock')
-               comm_name = cfg%toString('comm', default='MPI_COMM_WORLD')
-               select case (comm_name)
-               case ('MPI_COMM_WORLD')
-                  comm = MPI_COMM_WORLD
-               case default
-                  if (present(extra)) then
-                     if (extra%count(comm_name) == 1) then
-                        comm = extra%toInteger(comm_name)
-                     end if
-                  else
-                     call throw("PFL::Config::build_lock() - unknown communicator '" &
-                          & //comm_name//"'.")
-                     return
-                  end if
-               end select
+               comm_name = cfg%toString('comm', default='COMM_LOGGER')
+               comm = get_communicator(comm_name, extra=extra)
                allocate(lock, source=MpiLock(comm))
 #endif
             case default
@@ -400,7 +385,7 @@ contains
          case ('filehandler')
               call build_filehandler(fh, handlerDict)
               allocate(h, source=fh)
-#ifdef LOGGER_USE_MPI              
+#ifdef _LOGGER_USE_MPI              
          case ('mpifilehandler')
               call build_mpifilehandler(fh, handlerDict)
               allocate(h, source=fh)
@@ -582,10 +567,9 @@ contains
       
    end subroutine build_filehandler
 
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unused, extra)
       use PFL_MpiCommConfig_mod
-      use mpi
 
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -632,18 +616,8 @@ contains
                name = communicator_name_list(i:i+j-2)
                i = i + j
             end if
-
-            select case (name)
-            case ('MPI_COMM_WORLD')
-               comms = [comms, MPI_COMM_WORLD]
-            case default
-               if (extra%count(name) == 1) then
-                  comms = [comms, extra%toInteger(name)]
-               else
-                  call throw("PFL::Config::build_mpifilehandler() - unknown communicator '"//name//"'.")
-                  return
-               end if
-            end select
+            
+            comms = [comms, get_communicator(name)]
          end do
 
          block
@@ -655,13 +629,8 @@ contains
 !!$           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
          end block
       else
-         communicator_name = handlerDict%toString('comm:', default='MPI_COMM_WORLD')
-         select case (communicator_name)
-         case ('MPI_COMM_WORLD')
-            comm = MPI_COMM_WORLD
-         case default
-            comm = extra%toInteger(communicator_name)
-         end select
+         communicator_name = handlerDict%toString('comm:', default='COMM_LOGGER')
+         comm = get_communicator(communicator_name, extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
@@ -689,7 +658,6 @@ contains
 
    subroutine build_logger(lgr, loggerDict, elements, unused, extra)
       use PFL_StringUtilities_mod, only: to_lower_case
-      use MPI
       class (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
@@ -711,25 +679,16 @@ contains
          integer :: level
          integer :: iostat
          logical :: found
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
          integer :: root, rank, ierror, comm
          character(len=:), allocatable :: communicator_name
 #endif
          
          levelName = loggerDict%toString('level', found=found)
-#ifdef LOGGER_USE_MPI
-         communicator_name = loggerDict%toString('comm:', default='MPI_COMM_WORLD')
-         select case (communicator_name)
-         case ('MPI_COMM_WORLD')
-            comm = MPI_COMM_WORLD
-         case default
-            if (present(extra)) then
-               comm = extra%toInteger(communicator_name, found=found)
-            else
-               call throw('PFL::Config::build_logger() - MPI communicator not found <'//communicator_name//'.')
-               return
-            end if
-         end select
+#ifdef _LOGGER_USE_MPI
+         communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
+         comm = get_communicator(communicator_name, extra=extra)
+
          root = loggerDict%toInteger('root:', default=0)
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
@@ -815,9 +774,6 @@ contains
 
 
       subroutine set_logger_handlers(lgr, loggerDict, handlers, unused, extra)
-#ifdef LOGGER_USE_MPI
-         use mpi
-#endif
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
          type (HandlerMap), intent(in) :: handlers
@@ -833,7 +789,7 @@ contains
          class (AbstractHandler), pointer :: h
 
 
-#ifdef LOGGER_USE_MPI
+#ifdef _LOGGER_USE_MPI
          block
            logical :: parallel
            character(len=:), allocatable :: communicator_name
@@ -842,18 +798,8 @@ contains
            parallel = loggerDict%toLogical('parallel', default=.false.)
 
            if (.not. parallel) then
-              communicator_name = loggerDict%toString('comm:', default='MPI_COMM_WORLD')
-              select case (communicator_name)
-              case ('MPI_COMM_WORLD')
-                 comm = MPI_COMM_WORLD
-              case default
-                 if (present(extra)) then
-                    comm = extra%toInteger(communicator_name, found=found)
-                 else
-                    call throw('PFL::Config::build_logger() - MPI communicator not found.')
-                    return
-                 end if
-              end select
+              communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
+              comm = get_communicator(communicator_name, extra=extra)
               call MPI_Comm_rank(comm, rank, ier)
               if (rank /= 0) return
            end if
@@ -898,6 +844,35 @@ contains
 
    end subroutine build_logger
 
+#ifdef _LOGGER_USE_MPI
+   integer function get_communicator(name, extra) result(comm)
+      character(len=*), intent(in) :: name
+      type (Config), optional, intent(in) :: extra
+
+      character(len=:), allocatable :: name_
+      logical :: found
+      
+      name_ = name
+      if (name == 'MPI_COMM_WORLD') then
+         name_ = 'COMM_LOGGER'
+      end if
+
+      if (present(extra)) then
+         comm = extra%toInteger(name_, found=found, default=MPI_COMM_NULL)
+         if (.not. found) then
+            if (name == 'MPI_COMM_WORLD' .or. name == 'COMM_LOGGER') then
+               comm = MPI_COMM_WORLD
+            else
+               call throw('PFL::Config::build_logger() - MPI communicator ' // name // ' not found.')
+            end if
+         end if
+      else
+         comm = MPI_COMM_WORLD
+      end if
+
+   end function get_communicator
+#endif
+
 
    ! Including a version number is crucial for providing non-backward
    ! compatible updates in the future.
@@ -941,5 +916,20 @@ contains
       class (ConfigElements), target, intent(in) :: this
       ptr => this%handlers
    end function get_handlers
-   
+
+   subroutine set_global_communicator(this, comm)
+      class (ConfigElements), intent(inout) :: this
+      integer, optional, intent(in) :: comm
+
+#ifdef _LOGGER_USE_MPI      
+      if (present(comm)) then
+         this%global_communicator = comm
+      else
+         this%global_communicator = MPI_COMM_WORLD
+      end if
+#endif
+
+   end subroutine set_global_communicator
+
+
 end module PFL_Config_mod

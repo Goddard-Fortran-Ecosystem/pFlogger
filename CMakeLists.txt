@@ -36,7 +36,7 @@ include (FindFTL)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)
-  add_definitions (-DLOGGER_USE_MPI)
+  add_definitions (-D_LOGGER_USE_MPI)
   find_package (MPI REQUIRED)
   include_directories (${MPI_Fortran_INCLUDE_PATH})
   message( STATUS "MPI enabled")
