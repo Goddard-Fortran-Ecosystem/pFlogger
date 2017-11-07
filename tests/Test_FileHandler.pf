@@ -11,7 +11,7 @@ module Test_FileHandler_mod
    type, extends(TestCase) :: Test_FileHandler
       type (LogRecord) :: record
       type (LogRecord) :: record2
-      type (UnlimitedVector) :: args
+      type (UnlimitedVector), pointer :: args
    contains
       procedure :: setUp   
       procedure :: tearDown 
@@ -27,6 +27,7 @@ contains
 
       call initLogRecord(this%record, "logName", INFO, 'hello')
 
+      allocate(this%args)
       this%args = UnlimitedVector()
       call this%args%push_back(1)
       call initLogRecord(this%record2, "Aname", INFO, 'Goodbye %i1.1', args=this%args)
@@ -42,7 +43,8 @@ contains
       ! delete file
       open(newunit=unit, file=LOG_FILE, status='unknown')
       close(unit, status='delete')
-
+      deallocate(this%args)
+      
    end subroutine tearDown
 
    

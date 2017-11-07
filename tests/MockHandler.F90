@@ -16,7 +16,7 @@ module MockHandler_mod
    end type MockBuffer
 
    type, extends (AbstractHandler) :: MockHandler
-      type (MockBuffer), pointer :: buffer
+      type (MockBuffer), pointer :: buffer => null()
    contains
       procedure :: emit_message
       procedure :: close ! noop

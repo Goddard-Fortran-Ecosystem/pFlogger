@@ -12,7 +12,7 @@ module Test_Logger_mod
    type, extends(TestCase) :: Test_Logger
       type (Logger) :: basicLogger
       ! Here we use a mock handler that collects data in a 'mock buffer'
-      type (MockBuffer) :: mockBuffer
+      type (MockBuffer), pointer :: mockBuffer
    contains
       procedure :: setUp    
       procedure :: tearDown 
@@ -26,6 +26,7 @@ contains
       type (MockHandler) :: mockHandler_
       
       this%basicLogger = Logger('A', INFO)
+      allocate(this%mockBuffer)
       mockHandler_ = MockHandler(this%mockBuffer)
 
       call this%basicLogger%add_handler(mockHandler_)
@@ -37,6 +38,7 @@ contains
 
       ! Clean up mock handler's buffer 
       if (allocated(this%mockBuffer%buffer)) deallocate(this%mockBuffer%buffer)
+      deallocate(this%mockBuffer)
       
    end subroutine tearDown
    
@@ -46,7 +48,7 @@ contains
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
-      type (UnlimitedVector) :: args
+      type (UnlimitedVector), target :: args
       
       call this%basicLogger%make_record(record, INFO, 'hi')
       @assertEqual('hi', record%get_message())
@@ -244,13 +246,15 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
-      type (MockHandler) :: mockHandler_
-      type (MockBuffer) :: buffer
+      type (MockHandler), target :: mockHandler_
+      type (MockBuffer), pointer :: buffer
 
       lgr = Logger('A')
+      allocate(buffer)
       mockHandler_ = MockHandler(buffer, level=DEBUG)
       call lgr%add_handler(mockHandler_)
       call lgr%remove_handler(mockHandler_)
+      deallocate(buffer)
       
       ! no exception should have been thrown
    end subroutine test_remove_handler_present
@@ -263,8 +267,8 @@ contains
 
       type (Logger) :: lgr
       type (MockHandler) :: mockHandler_
-      type (MockBuffer) :: bufferA
-      type (MockBuffer) :: bufferB
+      type (MockBuffer), target :: bufferA
+      type (MockBuffer), target :: bufferB
 
       lgr = Logger('A')
       mockHandler_ = MockHandler(bufferA, level=DEBUG)
@@ -339,7 +343,7 @@ contains
       use PFL_StringUnlimitedMap_mod
       class (Test_Logger), intent(inout) :: this
 
-      type (map) :: extra
+      type (map), target :: extra
       type (Logger) :: lgr
       type (MockHandler) :: h
 

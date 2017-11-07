@@ -187,7 +187,7 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, target, intent(in) :: args
-      type (StringUnlimitedMap), target, optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
 
       character(len=:), allocatable :: levelName
       

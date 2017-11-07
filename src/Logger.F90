@@ -36,7 +36,7 @@ module PFL_Logger_mod
    public :: newLogger
 
    type, extends(AbstractLogger) :: Logger
-      private
+!      private
       integer :: level = NOTSET
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
@@ -204,8 +204,8 @@ contains
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       type(Unusable), optional, intent(in) :: unused
-      type (UnlimitedVector), optional, intent(in) :: args
-      type (map), optional, intent(in) :: extra
+      type (UnlimitedVector), target, optional, intent(in) :: args
+      type (map), optional, target, intent(in) :: extra
 
       character(len=:), allocatable :: name
 
@@ -270,12 +270,12 @@ contains
       use PFL_ArgListUtilities_mod
       use PFL_StringUnlimitedMap_mod, only: Map
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      class (Logger), intent(inout) :: this
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
       
       type (UnlimitedVector), target :: args
       type (LogRecord) :: record
@@ -338,7 +338,7 @@ contains
       integer, intent(in) :: level     
       include 'recordOptArgs.inc'
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
       
       if (this%isEnabledFor(level)) &
            call this%log_(level, message, ARG_LIST)
@@ -354,11 +354,11 @@ contains
    subroutine debug(this, message, ARG_LIST, unused, extra)
       use PFL_StringUnlimitedMap_mod, only: Map
       ! Log message with the integer severity 'DEBUG'.
-      class (Logger), intent(inout) :: this
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
 
       if (this%isEnabledFor(DEBUG_LEVEL)) &
          call this%log_(DEBUG_LEVEL, message, ARG_LIST, extra=extra)
@@ -377,7 +377,7 @@ contains
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
 
       if (this%isEnabledFor(INFO_LEVEL)) &
            call this%log_(INFO_LEVEL, message, ARG_LIST, extra=extra)
@@ -415,7 +415,7 @@ contains
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
       
       if (this%isEnabledFor(ERROR_LEVEL)) &
            call this%log_(ERROR_LEVEL, message, ARG_LIST, extra=extra)
@@ -434,7 +434,7 @@ contains
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      type (map), optional, target, intent(in) :: extra
       
       if (this%isEnabledFor(CRITICAL_LEVEL)) &
            call this%log_(CRITICAL_LEVEL, message, ARG_LIST, extra=extra)

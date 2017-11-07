@@ -21,7 +21,7 @@ module Test_Config_mod
    implicit none
 
 #ifdef __GFORTRAN__   
-#define P(k,v) p(k,String(v))
+#  define P(k,v) p(k,String(v))
 #endif
    
 contains
@@ -328,7 +328,7 @@ contains
       type (HandlerMap) :: handlers
 
       type (ConfigElements), target :: elements
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
       lgr => mgr%get_logger('A')
@@ -350,7 +350,7 @@ contains
       type (ConfigElements), target :: elements
 
       type (Config) :: cfg
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
       filters => elements%get_filters()
@@ -374,60 +374,61 @@ contains
       use MockHandler_mod
       use MockMpi_mod
       use PFL_SeverityLevels_mod
+      use PFL_RootLogger_mod
+
+      type (LoggerManager), target :: mgr
+      type (Config) :: cfg
+      type (MockBuffer), target :: buffer
+      class (Logger), pointer :: lgr
+      type (MockHandler) :: h
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
 
-      type (Config) :: cfg
-
-      type (MockBuffer) :: buffer
-      class (Logger), pointer :: lgr
-      type (MockHandler) :: h
-
+      integer :: comm = 0
+      
       call set_mpi_rank(1)
       call set_mpi_size(2)
 
-      ! loggers:
-      !     serial:
-      !         handlers: [A, B]
-
-      ! When not root, serial logger should get no handlers
-
       h = MockHandler(buffer, level=INFO)
+!!$      call elements%set_global_comm(0)
       handlers => elements%get_handlers()
       call handlers%insert('handlerA', h)
 
-      cfg = Config([P('handlers','[handlerA]')])
+      cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
 
-      lgr => logging%get_logger('serial')
-      call lgr%set_level(INFO)
+!!$      lgr => logging%get_logger('serial')
+      mgr = LoggerManager(RootLogger(WARNING))
+      lgr => mgr%get_logger('serial')
       call build_logger(lgr, cfg, elements)
 
-      buffer%buffer = ''
+      call assertFalse(allocated(buffer%buffer))
       call lgr%info('message')
-      call assertEqual('',buffer%buffer)
+      call assertFalse(allocated(buffer%buffer))
 
    end subroutine test_build_logger_serial_in_mpi_context
 
 @test(ifdef=LOGGER_USE_MPI)
    subroutine test_build_logger_serial_comm()
       use mpi
+      use PFL_RootLogger_mod
       use MockHandler_mod
       use MockMpi_mod
       use PFL_SeverityLevels_mod
 
       type (Config) :: cfg
-      type (MockBuffer) :: buffer
+      type (MockBuffer), target :: buffer2
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
-      type (Config) :: extra
+      type (Config), target :: extra
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
+      type (LoggerManager), target :: mgr
       
 
       integer :: comm ! fake comm
@@ -437,24 +438,22 @@ contains
 
       ! loggers:
       !     serial:
-      !         handlers: [A, B]
+      !         handlers: [A]
 
-      ! When not root, serial logger should get no handlers
-
-      
-      h = MockHandler(buffer, level=INFO)
+      h = MockHandler(buffer2, level=INFO)
+!!$      call elements%set_global_comm(0)
       handlers => elements%get_handlers()
       call handlers%insert('handlerA', h)
 
-      cfg = Config([P('handlers','[handlerA]')])
+      cfg = Config([P('handlers','[handlerA]'),P('level','INFO')])
       extra = Config([p('comm', comm)])
 
-      lgr => logging%get_logger('serial')
+      mgr = LoggerManager(RootLogger(WARNING))
+      lgr => mgr%get_logger('serial')
       call build_logger(lgr, cfg, elements, extra=extra)
 
-      buffer%buffer = ''
       call lgr%info('message')
-      call assertEqual('message',buffer%buffer)
+      call assertEqual('message',buffer2%buffer)
       
    end subroutine test_build_logger_serial_comm
 #endif
@@ -464,7 +463,7 @@ contains
       type (Config) :: cfg
       type (Config) :: loggers
 
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
 
@@ -486,7 +485,7 @@ contains
       type (Config) :: cfg
       type (Config) :: loggers
 
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
       cfg = Config([ &
@@ -507,7 +506,7 @@ contains
       type (Config) :: cfg
       type (Config) :: loggers
 
-      type (LoggerManager) :: mgr
+      type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
       cfg = Config([ &
