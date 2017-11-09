@@ -327,6 +327,8 @@ contains
       select case (to_lower_case(class_name))
       case ('filter')
          allocate(f, source=build_basic_filter(dict))
+      case ('levelfilter')
+         allocate(f, source=build_LevelFilter(dict))
 #ifdef _LOGGER_USE_MPI              
       case ('mpifilter')
          allocate(f, source=build_MpiFilter(dict, extra=extra))
@@ -347,27 +349,49 @@ contains
       if (found) then
          f = Filter(name)
       else
-         call throw('PFL::Config::build_filter() - empty list of filters or nameless filter.')
+         call throw('PFL::Config::build_filter() - missing "name".')
       end if
 
     end function build_basic_filter
 
+    function build_LevelFilter(dict) result(f)
+       use PFL_LevelFilter_mod
+       type (LevelFilter) :: f
+       type (Config), intent(in) :: dict
+       
+       integer :: min_level, max_level
+       logical :: found
+
+       min_level = dict%toInteger('min_level', found=found)
+       if (.not. found) then
+          call throw('PFL::Config::build_LevelFilter() - missing "min_level".')
+          return
+       end if
+       max_level = dict%toInteger('max_level', found=found)
+       if (.not. found) then
+          call throw('PFL::Config::build_LevelFilter() - missing "max_level".')
+          return
+       end if
+       f = LevelFilter(min_level, max_level)
+       
+    end function build_LevelFilter
+
 #ifdef _LOGGER_USE_MPI
     function build_MpiFilter(dict, unused, extra) result(f)
-      use PFL_MpiFilter_mod
-      type (MpiFilter) :: f
-      type (Config), intent(in) :: dict
-      type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
+       use PFL_MpiFilter_mod
+       type (MpiFilter) :: f
+       type (Config), intent(in) :: dict
+       type (Unusable), optional, intent(in) :: unused
+       type (Config), optional, intent(in) :: extra
       
-      character(len=:), allocatable :: comm_name
-      integer :: comm
-      integer :: rank, root, ierror
+       character(len=:), allocatable :: comm_name
+       integer :: comm
+       integer :: rank, root, ierror
 
-      comm_name = dict%toString('comm', default='COMM_LOGGER')
-      comm = get_communicator(comm_name, extra=extra)
-      root = dict%toInteger('root:', default=0)
-      f = MpiFilter(comm, root)
+       comm_name = dict%toString('comm', default='COMM_LOGGER')
+       comm = get_communicator(comm_name, extra=extra)
+       root = dict%toInteger('root:', default=0)
+       f = MpiFilter(comm, root)
     end function build_MpiFilter
 #endif
     
