@@ -360,20 +360,34 @@ contains
        type (Config), intent(in) :: dict
        
        integer :: min_level, max_level
-       logical :: found
 
-       min_level = dict%toInteger('min_level', found=found)
-       if (.not. found) then
-          call throw('PFL::Config::build_LevelFilter() - missing "min_level".')
-          return
-       end if
-       max_level = dict%toInteger('max_level', found=found)
-       if (.not. found) then
-          call throw('PFL::Config::build_LevelFilter() - missing "max_level".')
-          return
-       end if
+       min_level = get_level('min_level')
+       max_level = get_level('max_level')
+ 
        f = LevelFilter(min_level, max_level)
+
+    contains
        
+       integer function get_level(key) result(level)
+          character(len=*), intent(in) :: key
+
+          character(len=:), allocatable :: level_name
+          logical :: found
+          integer :: iostat
+
+          level_name = dict%toString('max_level', found=found)
+          if (.not. found) then
+             call throw('PFL::Config::build_LevelFilter() - missing "max_level".')
+             level = -1
+             return
+          end if
+          read(level_name,*,iostat=iostat) level
+          if (iostat /= 0) then
+             level = name_to_level(level_name)
+          end if
+
+        end function get_level
+        
     end function build_LevelFilter
 
 #ifdef _LOGGER_USE_MPI
