@@ -136,15 +136,21 @@ contains
 
    @test
    subroutine test_build_filter()
+      use PFL_AbstractFilter_mod
       use PFL_Filter_mod
       type (Config) :: cfg
-      type (Filter) :: f
+      class (AbstractFilter), allocatable :: f
       character(len=:), allocatable :: logMessage
 
       cfg = Config([P('name', 'A')])
-      f = build_filter(cfg)
+      allocate(f, source=build_filter(cfg))
 
-      @assertEqual('A', f%get_name())
+      select type (f)
+      type is (Filter)
+         @assertEqual('A', f%get_name())
+      class default
+         @assertFalse(.true.)
+      end select
 
    end subroutine test_build_filter
 
@@ -498,6 +504,8 @@ contains
 
    end subroutine test_basic_loggers
 
+#ifdef _LOGGER_USE_MPI
+@test(ifdef=_LOGGER_USE_MPI)
    subroutine test_logger_root_level()
       use MockMpi_mod
       use mpi
@@ -531,6 +539,6 @@ contains
       @assertEqual(INFO, lgr%get_level())
       
    end subroutine test_logger_root_level
-
+#endif
    
 end module Test_Config_mod
