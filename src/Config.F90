@@ -258,7 +258,7 @@ contains
       iter = locksDict%begin()
       do while (iter /= locksDict%end())
          cfg => locksDict%toConfigPtr(iter%key())
-         call this%locks%insert(iter%key(), build_lock(cfg))
+         call this%locks%insert(iter%key(), build_lock(cfg, extra=extra))
          call iter%next()
       end do
 
@@ -273,7 +273,7 @@ contains
          logical :: found
          character (len=:), allocatable :: class_name, comm_name
          integer :: comm
-         
+
          class_name = cfg%toString('class', found=found)
          if (found) then
             select case (class_name)
@@ -288,7 +288,6 @@ contains
          else
             call throw('PFL::Config::build_lock() - unsupported class of lock.')
          end if
-         
          
       end function build_lock
 
@@ -684,7 +683,7 @@ contains
          character(len=:), allocatable :: communicator_name
 #endif
          
-         levelName = loggerDict%toString('level', found=found)
+         levelName = loggerDict%toString('level', found=found,default='NOTSET')
 #ifdef _LOGGER_USE_MPI
          communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
          comm = get_communicator(communicator_name, extra=extra)
@@ -693,6 +692,8 @@ contains
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
             levelName = loggerDict%toString('root_level', default=levelName)
+            print*,'Root level name:  ' // levelName
+            found=.true.
          else
             ! same as on other PEs
          end if
@@ -788,24 +789,6 @@ contains
          logical :: found
          class (AbstractHandler), pointer :: h
 
-
-#ifdef _LOGGER_USE_MPI
-         block
-           logical :: parallel
-           character(len=:), allocatable :: communicator_name
-           integer :: comm, rank, ier
-
-           parallel = loggerDict%toLogical('parallel', default=.false.)
-
-           if (.not. parallel) then
-              communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
-              comm = get_communicator(communicator_name, extra=extra)
-              call MPI_Comm_rank(comm, rank, ier)
-              if (rank /= 0) return
-           end if
-         end block
-
-#endif
 
          handlerNamesList = loggerDict%toString('handlers', found=found)
          if (found) then
