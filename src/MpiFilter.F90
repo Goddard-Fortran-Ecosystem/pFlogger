@@ -76,7 +76,7 @@ contains
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! Filter
+   ! do_filter
    !
    ! DESCRIPTION: 
    ! Determine if LogRecord can be logged.

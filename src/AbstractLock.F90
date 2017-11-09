@@ -8,6 +8,8 @@ module PFL_AbstractLock_mod
    contains
       procedure(lock), deferred :: acquire
       procedure(lock), deferred :: release
+      procedure(lock), deferred :: init
+      procedure(lock), deferred :: destroy
    end type AbstractLock
 
    abstract interface

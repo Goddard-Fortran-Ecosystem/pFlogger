@@ -244,12 +244,14 @@ contains
       class (AbstractLock), intent(in) :: lock
       
       if (this%is_lockable()) then
+         call this%lock%destroy()
          deallocate(this%lock)
       end if
 
       if (this%is_open()) call this%close()
 
       allocate(this%lock, source=lock)
+      call this%lock%init()
 
    end subroutine set_lock
 
