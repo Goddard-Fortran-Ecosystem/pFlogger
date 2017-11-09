@@ -27,9 +27,11 @@ contains
       
       this%basicLogger = Logger('A', INFO)
       allocate(this%mockBuffer)
-      mockHandler_ = MockHandler(this%mockBuffer)
+!!$      mockHandler_ = MockHandler(this%mockBuffer)
+!!$      print*,__FILE__,__LINE__,allocated(mockHandler_%fmt)
 
-      call this%basicLogger%add_handler(mockHandler_)
+!!$      call this%basicLogger%add_handler(mockHandler_)
+      call this%basicLogger%add_handler(MockHandler(this%mockBuffer))
    end subroutine setUp
 
 
@@ -271,12 +273,15 @@ contains
       type (MockBuffer), target :: bufferB
 
       lgr = Logger('A')
-      mockHandler_ = MockHandler(bufferA, level=DEBUG)
-      call lgr%add_handler(mockHandler_)
-      mockHandler_ = MockHandler(bufferB, level=INFO)
-      call lgr%add_handler(mockHandler_)
-      mockHandler_ = MockHandler(bufferA, level=DEBUG)
-      call lgr%remove_handler(mockHandler_)
+!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+!!$      call lgr%add_handler(mockHandler_)
+      call lgr%add_handler(MockHandler(bufferA, level=DEBUG))
+!!$      mockHandler_ = MockHandler(bufferB, level=INFO)
+!!$      call lgr%add_handler(mockHandler_)
+      call lgr%add_handler(MockHandler(bufferB, level=INFO))
+!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+!!$      call lgr%remove_handler(mockHandler_)
+      call lgr%remove_handler(Mockhandler(bufferA, level=DEBUG))
 
       call lgr%info('Hello')
       @assertEqual('Hello', bufferB%buffer)

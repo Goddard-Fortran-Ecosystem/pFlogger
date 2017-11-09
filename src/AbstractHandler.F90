@@ -148,7 +148,7 @@ contains
    !---------------------------------------------------------------------------
    subroutine set_formatter(this, fmt)
       class (AbstractHandler), intent(inout) :: this
-      class (Formatter) :: fmt
+      class (Formatter), intent(in) :: fmt
 
       if (allocated(this%fmt)) deallocate(this%fmt)
 

@@ -101,12 +101,11 @@ contains
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
-      character(len=:), allocatable :: parentName
 
       class (AbstractLogger), pointer :: tmp, tmp2
-      class (AbstractLogger), allocatable :: rv
 
       tmp => this%loggers%at(name)
+
       if (associated(tmp)) then
 
          ! cast to Logger

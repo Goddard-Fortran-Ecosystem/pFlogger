@@ -19,6 +19,10 @@ module  PFL_StringHandlerMap_mod
 #define _value class(AbstractHandler)
 #define _value_allocatable
 
+#define _ASSIGN(dest,src) allocate(dest%key,source=src%key); if(allocated(src%value)) allocate(dest%value,source=src%value)
+#define _MOVE(dest,src) call move_alloc(from=src%key,to=dest%key); if (allocated(src%value)) call move_alloc(from=src%value,to=dest%value)
+#define _FREE(x) deallocate(x%key,x%value)
+
 #define _alt
 #include "templates/map.inc"
 

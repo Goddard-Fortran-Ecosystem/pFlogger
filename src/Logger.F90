@@ -36,13 +36,13 @@ module PFL_Logger_mod
    public :: newLogger
 
    type, extends(AbstractLogger) :: Logger
-!      private
+      private
       integer :: level = NOTSET
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
-      character(len=:), pointer :: name
-!!$      character(len=:), allocatable :: name
+!!$      character(len=:), pointer :: name
+      character(len=:), allocatable :: name
    contains
 
       procedure :: set_name
