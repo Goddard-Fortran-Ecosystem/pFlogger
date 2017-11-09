@@ -10,13 +10,13 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module  PFL_StringFilterMap_mod
-   use PFL_Filter_mod
+   use PFL_AbstractFilter_mod
 #define _map FilterMap
 #define _iterator FilterIterator
    
 #include "types/key_deferredLengthString.inc"
 
-#define _value class(Filter)
+#define _value class(AbstractFilter)
 #define _value_allocatable
 
 #define _alt

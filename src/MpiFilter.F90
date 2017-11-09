@@ -24,13 +24,13 @@ module PFL_MpiFilter_mod
    type, extends(AbstractFilter) :: MpiFilter
       private
       integer :: communicator
-      integer :: rank
+      integer :: root
       logical :: shouldFilter
    contains
       procedure :: do_filter
       procedure :: equal
-      procedure :: set_rank
-      procedure :: get_rank
+      procedure :: set_root
+      procedure :: get_root
    end type MpiFilter
 
    interface MpiFilter
@@ -50,26 +50,26 @@ contains
    ! specified then print to root rank.
    !---------------------------------------------------------------------------
    ! Initialize filter with the name of the Logger
-   function newMpiFilter(communicator, rank) result(f)
+   function newMpiFilter(communicator, root) result(f)
       type (MpiFilter) :: f
       integer, intent(in) :: communicator
-      integer, optional, intent(in) :: rank
-      integer :: rank_, myRank
+      integer, optional, intent(in) :: root
+      integer :: root_, myRank
       integer :: ier
 
       f%communicator = communicator
 
-      if (present(rank)) then
-         rank_ = rank
+      if (present(root)) then
+         root_ = root
       else  
-         rank_ = 0
+         root_ = 0
       end if
-      f%rank = rank_
+      f%root = root_
       
       f%shouldFilter = .false.
       call MPI_Comm_rank(communicator, myRank, ier)
       
-      if (myRank == rank_) f%shouldFilter = .true.
+      if (myRank == root_) f%shouldFilter = .true.
       
    end function newMpiFilter
 
@@ -112,7 +112,7 @@ contains
 
       select type (b)
       type is (MpiFilter)
-         equal = (a%rank == b%rank)
+         equal = (a%root == b%root)
       class default
          equal = .false.
       end select
@@ -122,33 +122,33 @@ contains
    
    !---------------------------------------------------------------------------  
    ! ROUTINE: 
-   ! set_rank
+   ! set_root
    !
    ! DESCRIPTION: 
-   ! Set the MPI rank associated with this MPI filter.
+   ! Set the MPI root rank associated with this MPI filter.
    !---------------------------------------------------------------------------  
-   subroutine set_rank(this, rank)
+   subroutine set_root(this, root)
       class (MpiFilter) :: this
-      integer, intent(in) :: rank
+      integer, intent(in) :: root
 
-      this%rank = rank
+      this%root = root
       
-   end subroutine set_rank
+   end subroutine set_root
 
    
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! get_rank
+   ! get_root
    !
    ! DESCRIPTION: 
-   ! Get the MPI rank associated with this MPI filter.
+   ! Get the MPI root rank associated with this MPI filter.
    !---------------------------------------------------------------------------  
-   function get_rank(this) result(rank)
+   function get_root(this) result(root)
       class (MpiFilter) :: this
-      integer :: rank
+      integer :: root
 
-      rank = this%rank
-   end function get_rank
+      root = this%root
+   end function get_root
 
 
 end module PFL_MpiFilter_mod
