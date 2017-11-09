@@ -12,6 +12,7 @@ module PFL_Config_mod
    use PFL_StringHandlerMap_mod
    use PFL_StringFormatterMap_mod
    use PFL_AbstractLock_mod
+   use PFL_AbstractFilter_mod
    use PFL_AbstractHandler_mod
    use PFL_Formatter_mod
    use PFL_Filterer_mod
@@ -302,22 +303,43 @@ contains
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
-      type (Filter) :: f
 
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
          cfg => filtersDict%toConfigPtr(iter%key())
-         call this%filters%insert(iter%key(), build_filter(cfg))
+         call this%filters%insert(iter%key(), build_filter(cfg, extra=extra))
          call iter%next()
       end do
 
    end subroutine build_filters
 
 
-   function build_filter(dict) result(f)
+   function build_filter(dict, unused, extra) result(f)
+      class (AbstractFilter), allocatable :: f
+      type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+
+      character(len=:), allocatable :: class_name
+
+      class_name = dict%toString('class', default='filter')
+
+      select case (to_lower_case(class_name))
+      case ('filter')
+         allocate(f, source=build_basic_filter(dict))
+#ifdef _LOGGER_USE_MPI              
+      case ('mpifilter')
+         allocate(f, source=build_MpiFilter(dict, extra=extra))
+#endif
+      case default
+         call throw('PFL::Config::build_filter() - unknow filter type: '//class_name//'.')
+      end select
+    end function build_filter
+
+    function build_basic_filter(dict) result(f)
       type (Filter) :: f
       type (Config), intent(in) :: dict
-
+      
       character(len=:), allocatable :: name
       logical :: found
 
@@ -328,7 +350,27 @@ contains
          call throw('PFL::Config::build_filter() - empty list of filters or nameless filter.')
       end if
 
-   end function build_filter
+    end function build_basic_filter
+
+#ifdef _LOGGER_USE_MPI
+    function build_MpiFilter(dict, unused, extra) result(f)
+      use PFL_MpiFilter_mod
+      type (MpiFilter) :: f
+      type (Config), intent(in) :: dict
+      type (Unusable), optional, intent(in) :: unused
+      type (Config), optional, intent(in) :: extra
+      
+      character(len=:), allocatable :: comm_name
+      integer :: comm
+      integer :: rank, root, ierror
+
+      comm_name = dict%toString('comm', default='COMM_LOGGER')
+      comm = get_communicator(comm_name, extra=extra)
+      root = dict%toInteger('root:', default=0)
+      f = MpiFilter(comm, root)
+    end function build_MpiFilter
+#endif
+    
 
    subroutine build_handlers(this, handlersDict, unused, extra)
       class (ConfigElements), intent(inout) :: this
@@ -470,7 +512,7 @@ contains
                   i = i + j
                end if
                block
-                 class (Filter), pointer :: f
+                 class (AbstractFilter), pointer :: f
                  f => filters%at(name)
                  if (associated(f)) then
                     call h%add_filter(f)
