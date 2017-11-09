@@ -8,6 +8,7 @@ module Test_MpiFilter_mod
    
 contains
 
+
    @test
    subroutine Test_MpiFilter_defaultRank()
       use MockMpi_mod
@@ -39,12 +40,12 @@ contains
 
       call set_mpi_rank(0)
       
-      f = MpiFilter(comm, rank=1)
+      f = MpiFilter(comm, root=1)
       @assertFalse(f%do_filter(record))
       
       call set_mpi_rank(1)
       
-      f = MpiFilter(comm, rank=1)
+      f = MpiFilter(comm, root=1)
       @assertTrue(f%do_filter(record))
       
    end subroutine Test_MpiFilter_withRank
