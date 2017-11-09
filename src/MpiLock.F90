@@ -19,7 +19,8 @@ module PFL_MpiLock_mod
    contains
       procedure :: acquire
       procedure :: release
-      procedure :: free_mpi_resources
+      procedure :: init
+      procedure :: destroy
    end type MpiLock
 
    integer, parameter :: LOCK_TAG = 10
@@ -31,59 +32,73 @@ module PFL_MpiLock_mod
 contains
 
 
+   !------------
+   ! Constructor defers action until init() so that copies of an
+   ! MpiLock object act independently.
+   ! Otherwise, simple copies would all share the same Mpi window.
+   !------------
    function newMpiLock(comm) result(lock)
       type (MpiLock) :: lock
       integer, intent(in) :: comm
 
+      lock%comm = comm  ! will duplicate during init()
+
+   end function newMpiLock
+
+
+   subroutine init(this)
+      class (MpiLock), intent(inout) :: this
+
       integer :: ierror
       integer :: sizeof_logical
       integer(kind=MPI_ADDRESS_KIND) :: sz
+      integer :: old_comm
 
-      call MPI_Comm_dup(comm, lock%comm, ierror)
-      call MPI_Comm_rank(lock%comm, lock%rank, ierror)
-      call MPI_Comm_size(lock%comm, lock%npes, ierror)
+      old_comm = this%comm
+      call MPI_Comm_dup(old_comm, this%comm, ierror)
+      call MPI_Comm_rank(this%comm, this%rank, ierror)
+      call MPI_Comm_size(this%comm, this%npes, ierror)
 
       ! This type is used to copy the status of locks on other PE's
       ! into a table that can be examined on the local process.
       block
         integer :: blklens(2)
         integer :: displs(2)
-        blklens = [lock%rank, lock%npes - lock%rank - 1]
-        displs = [0, lock%rank + 1]
-        call MPI_Type_indexed(2, blklens, displs, MPI_LOGICAL, lock%pe_locks_type, ierror);
-        call MPI_Type_commit(lock%pe_locks_type, ierror)
+        blklens = [this%rank, this%npes - this%rank - 1]
+        displs = [0, this%rank + 1]
+        call MPI_Type_indexed(2, blklens, displs, MPI_LOGICAL, this%pe_locks_type, ierror);
+        call MPI_Type_commit(this%pe_locks_type, ierror)
       end block
 
       ! Create windows
-      if (lock%rank == 0) then
+      if (this%rank == 0) then
 
          block
            logical, pointer :: scratchpad(:)
            integer :: sizeof_logical
 
            call MPI_Type_extent(MPI_LOGICAL, sizeof_logical, ierror)
-           sz = lock%npes * sizeof_logical
-           call MPI_Alloc_mem(sz, MPI_INFO_NULL, lock%locks_ptr, ierror)
+           sz = this%npes * sizeof_logical
+           call MPI_Alloc_mem(sz, MPI_INFO_NULL, this%locks_ptr, ierror)
 
-           call c_f_pointer(lock%locks_ptr, scratchpad, [lock%npes])
+           call c_f_pointer(this%locks_ptr, scratchpad, [this%npes])
            scratchpad = .false.
 
            call MPI_Win_create(scratchpad, sz, sizeof_logical, &
-                & MPI_INFO_NULL, lock%comm, lock%window, ierror)
+                & MPI_INFO_NULL, this%comm, this%window, ierror)
          end block
 
       else ! local window memory is size 0, but have to pass something
          block
            logical :: buffer(1)
            sz = 0
-           call MPI_Win_create(buffer, sz, 1, MPI_INFO_NULL, lock%comm, lock%window, ierror)
+           call MPI_Win_create(buffer, sz, 1, MPI_INFO_NULL, this%comm, this%window, ierror)
          end block
       end if
 
-      allocate(lock%local_data(lock%npes-1))
+      allocate(this%local_data(this%npes-1))
 
-   end function newMpiLock
-
+    end subroutine init
 
 
    subroutine acquire(this)
@@ -152,7 +167,7 @@ contains
 
    end subroutine release
 
-   subroutine free_mpi_resources(this)
+   subroutine destroy(this)
       class (MpiLock), intent(inout) :: this
 
       logical, pointer :: scratchpad(:)
@@ -167,6 +182,8 @@ contains
          call MPI_Free_mem(scratchpad, ierror)
       end if
 
-   end subroutine free_mpi_resources
+      call MPI_Comm_free(this%comm, ierror)
+
+   end subroutine destroy
 
 end module PFL_MpiLock_mod
