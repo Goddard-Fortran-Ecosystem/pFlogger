@@ -22,11 +22,13 @@
 #  cmake -DMPI=YES .. : build/run mpi examples ONLY
 #
 # ------------------------------------------------------------------------ #
-cmake_minimum_required (VERSION 3.0)
-project (logger Fortran)
+cmake_minimum_required (VERSION 3.8.0)
+project (pFlogger
+  VERSION 1.0
+  LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
-   ${CMAKE_SOURCE_DIR}/cmake/modules
+   ${CMAKE_SOURCE_DIR}/cmake
 )
 
 include (PreventInSourceBuild)
@@ -44,6 +46,14 @@ elseif ()
   message (FATAL_ERROR
     "MPI support not available - MPI implementation"
     )
+endif()
+
+#-----------------------------------
+# Set default Fortran compiler flags
+#-----------------------------------
+include(${CMAKE_Fortran_COMPILER_ID} RESULT_VARIABLE found)
+if(NOT found)
+  message( FATAL_ERROR "Unrecognized Fortran compiler. Please use Intel (ifort), GCC (gfortran), or NAG (nagfor).")
 endif()
 
 include(CheckCompilerCapabilities)
@@ -65,8 +75,13 @@ include(setCompilerFlags)
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 if (PFUNIT)
+   include_directories(${PFUNIT}/mod)
+   include_directories(${PFUNIT}/include)
+   link_directories(${PFUNIT}/lib)
+   message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
   add_subdirectory(tests EXCLUDE_FROM_ALL)
-endif ()
+endif()
+
 add_subdirectory(examples EXCLUDE_FROM_ALL)
 add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 

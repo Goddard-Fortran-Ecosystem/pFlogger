@@ -20,10 +20,6 @@ module Test_Config_mod
 
    implicit none
 
-#ifdef __GFORTRAN__   
-#  define P(k,v) p(k,String(v))
-#endif
-   
 contains
 
 
@@ -521,7 +517,7 @@ contains
            &     ])
 
       ! configure the mock layer
-      call set_mpi_rank(1) ! is root
+      call set_mpi_rank(0) ! is root
       call set_mpi_size(2)
 
       call mgr%load_config(cfg)
@@ -530,7 +526,7 @@ contains
       @assertEqual(DEBUG, lgr%get_level())
 
       ! configure the mock layer
-      call set_mpi_rank(0) ! not root
+      call set_mpi_rank(1) ! not root
       call set_mpi_size(2)
 
       call mgr%load_config(cfg)
