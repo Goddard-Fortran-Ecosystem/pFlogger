@@ -20,6 +20,7 @@ contains
       manager = LoggerManager(RootLogger(WARNING))
       loggerA => manager%get_logger('A')
       loggerB => manager%get_logger('B')
+
       ! The previous step might invalidate loggerA,
       ! as the underlying vector resizes(). Check that
       ! it does not
@@ -111,28 +112,28 @@ contains
       ! The next step should replace the placeholder at 'A.B'
       loggerAB => manager%get_logger('A.B')
       ! Check that everyone has the right parents.
-!!$      parent => loggerAB%get_parent()
-!!$      @assertEqual('ROOT_LOGGER', parent%get_name())
-!!$      parent => loggerABC%get_parent()
-!!$      @assertEqual('A.B', parent%get_name())
-!!$      parent => loggerABD%get_parent()
-!!$      @assertEqual('A.B', parent%get_name())
-!!$
-!!$
-!!$      ! Now replace the placeholder at 'A'
-!!$      loggerA => manager%get_logger('A')
-!!$      ! Check that everyone has the right parents.
-!!$      parent => loggerA%get_parent()
-!!$      @assertEqual('ROOT_LOGGER', parent%get_name())
-!!$      parent => loggerAC%get_parent()
-!!$      @assertEqual('A', parent%get_name())
-!!$      parent => loggerAB%get_parent()
-!!$      @assertEqual('A', parent%get_name())
-!!$
-!!$      parent => loggerABC%get_parent()
-!!$      @assertEqual('A.B', parent%get_name())
-!!$      parent => loggerABD%get_parent()
-!!$      @assertEqual('A.B', parent%get_name())
+      parent => loggerAB%get_parent()
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+      parent => loggerABC%get_parent()
+      @assertEqual('A.B', parent%get_name())
+      parent => loggerABD%get_parent()
+      @assertEqual('A.B', parent%get_name())
+
+
+      ! Now replace the placeholder at 'A'
+      loggerA => manager%get_logger('A')
+      ! Check that everyone has the right parents.
+      parent => loggerA%get_parent()
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+      parent => loggerAC%get_parent()
+      @assertEqual('A', parent%get_name())
+      parent => loggerAB%get_parent()
+      @assertEqual('A', parent%get_name())
+
+      parent => loggerABC%get_parent()
+      @assertEqual('A.B', parent%get_name())
+      parent => loggerABD%get_parent()
+      @assertEqual('A.B', parent%get_name())
 
    end subroutine test_fixup3
    

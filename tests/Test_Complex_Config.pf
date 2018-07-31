@@ -82,10 +82,8 @@ contains
    subroutine test_config()
       use FTL_Config_mod
       type (Config) :: cfg
-      type (Config) :: loggers
 
       class (Logger), pointer :: lgr
-      integer :: rc
       type (LoggerManager), target :: mgr
 
       call mgr%load_file(FILE)

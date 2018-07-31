@@ -498,17 +498,20 @@ contains
       
 
       subroutine set_handler_formatter(h, handlerDict, formatters)
+         use PFL_Formatter_mod
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
-         type (FormatterMap), intent(in) :: formatters
+         type (FormatterMap), target, intent(in) :: formatters
 
          character(len=:), allocatable :: formatterName
          logical :: found
 
+         class (Formatter), pointer :: p_fmt
          formatterName = handlerDict%toString('formatter', found=found)
 
          if (found) then  ! OK if no formatter
             if (formatters%count(formatterName) == 1) then
+               p_fmt => formatters%at(formatterName)
                call h%set_formatter(formatters%at(formatterName))
             else
                call throw("PFL::Config::build_handler() - formatter '"//formatterName//"' not found.")

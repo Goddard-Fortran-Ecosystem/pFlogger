@@ -39,7 +39,10 @@ elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
 
    set (CPPFLAGS "${CPPFLAGS} -fpp")
    set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
-   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline -C=all")
+   
+   #  set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline -C=all")
+   # workaround for nag 6.2
+   set(CMAKE_Fortran_FLAGS_DEBUG "-C=array -C=alias -C=bits -C=calls -C=do -C=intovf -C=present -C=pointer -gline -O0")
 
 else()
 
