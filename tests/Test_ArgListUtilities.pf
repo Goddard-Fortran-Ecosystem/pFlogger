@@ -1,0 +1,114 @@
+module Test_ArgListUtilities_mod
+   use pFUnit_mod
+   use PFL_ArgListUtilities_mod
+   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   implicit none
+
+contains
+
+   @test
+   subroutine test_oneArg()
+      type (UnlimitedVector) :: args
+      class(*), pointer :: p
+
+      args = make_arg_vector(1)
+      @assertEqual(1, args%size())
+      p => args%at(1)
+      select type (p)
+      type is (integer)
+         @assertEqual(1, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+   end subroutine test_oneArg
+
+
+   @test
+   subroutine test_nineArgs()
+      use iso_fortran_env
+      type (UnlimitedVector) :: args
+      class(*), pointer :: p
+
+      args = make_arg_vector( &
+           & 1_int32, 2_int64, 3._real32, 4._real64, &
+           & 5_int32, 6_int64, 7._real32, 8._real64, &
+           & .true.)
+      @assertEqual(9, args%size())
+
+      p => args%at(1)
+      select type (p)
+      type is (integer(kind=int32))
+         @assertEqual(1, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(2)
+      select type (p)
+      type is (integer(kind=int64))
+         @assertTrue(2 == p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(3)
+      select type (p)
+      type is (real(kind=real32))
+         @assertEqual(3, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(4)
+      select type (p)
+      type is (real(kind=real64))
+         @assertEqual(4, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(5)
+      select type (p)
+      type is (integer(kind=int32))
+         @assertEqual(5, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(6)
+      select type (p)
+      type is (integer(kind=int64))
+         @assertTrue(6 == p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(7)
+      select type (p)
+      type is (real(kind=real32))
+         @assertEqual(7, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(8)
+      select type (p)
+      type is (real(kind=real64))
+         @assertEqual(8, p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+      p => args%at(9)
+      select type (p)
+      type is (logical)
+         @assertTrue(p)
+      class default
+         @assertFail('incorrect type')
+      end select
+
+   end subroutine test_nineArgs
+
+
+end module Test_ArgListUtilities_mod

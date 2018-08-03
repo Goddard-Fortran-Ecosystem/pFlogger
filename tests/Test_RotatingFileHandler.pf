@@ -1,0 +1,184 @@
+module Test_RotatingFileHandler_mod
+   use iso_fortran_env
+   use PFL_SeverityLevels_mod
+   use PFL_RotatingFileHandler_mod
+   use PFL_LogRecord_mod
+   use pfunit_mod
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_RotatingFileHandler
+
+      type (LogRecord) :: record_0
+      type (LogRecord) :: record_1
+      type (LogRecord) :: record_2
+
+   contains
+
+      procedure :: setUp   
+      procedure :: tearDown 
+
+   end type Test_RotatingFileHandler
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_RotatingFileHandler), intent(inout) :: this
+
+      call initLogRecord(this%record_0, 'name', INFO, 'A')
+      call initLogRecord(this%record_1, 'name', INFO, 'B')
+      call initLogRecord(this%record_2, 'name', INFO, 'C')
+
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_RotatingFileHandler), intent(inout) :: this
+
+      integer :: unit
+
+      call delete('logFile')
+      call delete('logFile.1')
+      call delete('logFile.2')
+      call delete('logFile')
+
+   contains
+
+      subroutine delete(name)
+         character(len=*), intent(in) :: name
+
+         integer :: unit
+
+         open(newunit=unit, file=name, status='unknown')
+         close(unit, status='delete')
+
+      end subroutine delete
+
+   end subroutine tearDown
+
+   
+@Test
+   subroutine test_emitBasic(this)
+      ! Make sure RotatingFileHandler defaults to FileHandler when
+      ! max_bytes and backup_count are not specified
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=32) :: foundMessage
+      type (RotatingFileHandler) :: h
+
+      h = RotatingFileHandler('logFile')
+      call h%handle(this%record_0)
+      call h%close()
+      
+      open(newunit=unit, file='logFile', status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      close(unit)
+
+      @assertEqual('INFO: name: A', foundMessage)
+
+   end subroutine test_emitBasic
+
+
+! TODO   
+!@Test
+   subroutine test_should_rollover(this)
+      ! The RFH should signal that it's time to rollover when 'max_bytes'
+      ! has been exceeded
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      type (RotatingFileHandler) :: h
+      integer :: unit
+
+      h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
+      ! Each record is 14 bytes, and default 
+      ! Since max_bytes=30, h should rollOver after 3 records = 42 bytes
+
+      @assertFalse(h%should_rollover())
+
+      call h%handle(this%record_0)
+      @assertFalse(h%should_rollover())
+
+      call h%handle(this%record_0)
+      @assertFalse(h%should_rollover())
+
+      ! This one should trip the threshold...
+      call h%handle(this%record_0)
+      @assertTrue(h%should_rollover())
+
+   end subroutine test_should_rollover
+
+   
+@Test
+   subroutine test_do_rollover(this)
+      ! The RFH should roll over every time 'max_bytes' is exceeded and should
+      ! create a maximum of 'backup_count' files
+      class (Test_RotatingFileHandler), intent(inout) :: this   
+
+      type (RotatingFileHandler) :: h
+      integer :: unit
+      integer :: fSize
+      logical :: exists
+      character(len=32) :: foundMessage
+
+      h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
+
+      ! First set
+      call h%handle(this%record_0)
+      call h%handle(this%record_0)
+      call h%handle(this%record_0)
+
+      ! Second set
+      call h%handle(this%record_1)
+      call h%handle(this%record_1)
+      call h%handle(this%record_1)
+
+      ! Third set
+      call h%handle(this%record_2)
+      call h%handle(this%record_2)
+      call h%close()
+
+      inquire(FILE='logFile', exist=exists)
+      @assertTrue(exists)
+      inquire(FILE='logFile.1', exist=exists, size=fSize)
+      @assertTrue(exists)
+      @assertEqual(42, fSize)
+      inquire(FILE='logFile.2', exist=exists, size=fSize)
+      @assertTrue(exists)
+      @assertEqual(42, fSize)
+      
+      ! First set should be in 'logFile.2'
+      open(file='logFile.2',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: A', foundMessage)
+      close(unit)
+
+      ! Second set should be in 'logFile.1'
+      open(file='logFile.1',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: B', foundMessage)
+      close(unit)
+      
+      ! Third set should be in 'logFile'
+      open(file='logFile',newunit=unit, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: C', foundMessage)
+      read(unit, '(a)') foundMessage
+      @assertEqual('INFO: name: C', foundMessage)
+      close(unit)
+      
+      
+   end subroutine test_do_rollover
+
+      
+end module Test_RotatingFileHandler_mod
+

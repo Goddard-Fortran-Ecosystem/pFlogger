@@ -1,0 +1,544 @@
+!
+! Note that at the time this module was created, gfortran 5.1 did not correctly
+! retain lengths of strings when treated as unlimited polymorphic entities.
+! Hence, character in such maps must be quoted inside a String object.
+!
+module Test_Config_mod
+   use FTL_Config_mod
+   use pfunit_mod
+   use PFL_Logger_mod
+   use PFL_LoggerManager_mod
+   use PFL_SeverityLevels_mod
+   use PFL_StringFilterMap_mod
+   use PFL_StringFormatterMap_mod
+   use PFL_StringHandlerMap_mod
+
+   use PFL_Config_mod
+#ifdef __GFORTRAN__
+   use PFL_String_mod, only: String
+#endif
+
+   implicit none
+
+#ifdef __GFORTRAN__   
+#  define P(k,v) p(k,String(v))
+#endif
+   
+contains
+
+
+   @test
+   subroutine test_check_schema_specified()
+      type (Config) :: dict
+
+      call check_schema_version(dict) ! Empty config
+      @assertExceptionRaised("PFL::Config::check_schema_version() - must specify a schema_version for Config.")
+
+   end subroutine test_check_schema_specified
+
+
+   @test
+   subroutine test_check_schema_version_unsupported()
+      type (Config) :: dict
+
+      call dict%insert('schema_version', 2)
+      call check_schema_version(dict) ! Empty config
+      @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
+
+   end subroutine test_check_schema_version_unsupported
+
+
+   @test
+   subroutine test_check_schema_version_valid()
+      type (Config) :: dict
+
+      call dict%insert('schema_version', 1) ! currently only valid option
+      call check_schema_version(dict) ! Empty config
+
+      ! simply should not throw an exception ...
+
+   end subroutine test_check_schema_version_valid
+
+
+   @test
+   subroutine test_build_formatter_noargs()
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
+      type (Config) :: cfg
+      class (Formatter), allocatable :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      call build_formatter(fmtr, cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('hello', logMessage)
+
+   end subroutine test_build_formatter_noargs
+
+   
+   @test
+   subroutine test_build_formatter_withFmt()
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
+      type (Config) :: cfg
+      class (Formatter), allocatable :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      cfg = Config([P('format',"'---'")])
+      call build_formatter(fmtr, cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('---', logMessage)
+
+   end subroutine test_build_formatter_withFmt
+
+   @test
+   subroutine test_build_formatter_withDateFmt()
+      use PFL_Formatter_mod
+      use PFL_LogRecord_mod
+      type (Config) :: cfg
+      class (Formatter), allocatable :: fmtr
+      type (LogRecord) :: record
+      character(len=:), allocatable :: logMessage
+
+      cfg = Config([P('format',"'%(asctime)a %(message)a'"), &
+           & P('datefmt',"'date'")])
+      call build_formatter(fmtr, cfg)
+
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      logMessage = fmtr%format(record)
+      @assertEqual('date hello', logMessage)
+
+   end subroutine test_build_formatter_withDateFmt
+
+   @test
+   subroutine test_build_formatters()
+      type (Config) :: formattersDict
+      type (FormatterMap), pointer :: formatters
+      type (ConfigElements), target :: elements
+
+      formattersDict = &
+           & Config([ &
+           &       p('A', Config([P('format',"'---'")]) ), &
+           &       p('B', Config([P('format',"'---'"), &
+           &       P('datefmt', "'hello'")])) &
+           &     ])
+
+      call elements%build_formatters(formattersDict)
+      formatters => elements%get_formatters()
+      @assertEqual(2, formatters%size())
+
+   end subroutine test_build_formatters
+
+   @test
+   subroutine test_build_filter()
+      use PFL_AbstractFilter_mod
+      use PFL_Filter_mod
+      type (Config) :: cfg
+      class (AbstractFilter), allocatable :: f
+      character(len=:), allocatable :: logMessage
+
+      cfg = Config([P('name', 'A')])
+      allocate(f, source=build_filter(cfg))
+
+      select type (f)
+      type is (Filter)
+         @assertEqual('A', f%get_name())
+      class default
+         @assertFalse(.true.)
+      end select
+
+   end subroutine test_build_filter
+
+   @test
+   subroutine test_build_filters()
+      type (Config) :: filtersDict
+      type (FilterMap), pointer :: filters
+      type (ConfigElements), target :: elements
+
+      filtersDict = &
+           & Config([ &
+           &       p('A', Config([P('name', 'A')])), &
+           &       p('B', Config([P('name', 'B')])) &
+           &     ])
+
+      call elements%build_filters(filtersDict)
+      filters => elements%get_filters()
+      @assertEqual(2, filters%size())
+
+   end subroutine test_build_filters
+
+
+   @test
+   subroutine test_build_streamhandler()
+      use PFL_StreamHandler_mod
+      use PFL_LogRecord_mod
+      type (Config) :: handler_cfg
+      type (StreamHandler) :: h
+      integer :: unit
+      character(len=16) :: unitStr
+      type (LogRecord) :: record
+
+      open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
+           & form='formatted')
+
+      write(unitStr,'(i0)') unit
+      handler_cfg = Config([ &
+           & P('class', 'StreamHandler'), &
+           & P('unit', unitStr), &
+           & P('level', 'INFO') &
+           & ])
+
+      ! Note that, level, filters, and format are added at a higher level.
+      h = build_streamhandler(handler_cfg)
+      call initLogRecord(record, 'A', DEBUG, 'hello')
+      call h%handle(record)
+
+      rewind(unit)
+      block
+        character(len=80) :: str
+        read(unit,'(a)') str
+        @assertEqual('DEBUG: A: hello', str)
+      end block
+      close(unit, status='delete')
+
+   end subroutine test_build_streamhandler
+
+   @test
+   subroutine test_build_handler()
+      use PFL_StreamHandler_mod
+      use PFL_Filter_mod
+      use PFL_Formatter_mod
+      use PFL_AbstractHandler_mod
+      use PFL_LogRecord_mod
+      type (Config) :: handler_cfg
+      class (AbstractHandler), allocatable :: h
+
+      integer :: unit
+      character(len=16) :: unitStr
+      type (LogRecord) :: record
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+
+      filters => elements%get_filters()
+      formatters => elements%get_formatters()
+
+      call filters%insert('filterA',Filter('A'))
+      call filters%insert('filterB',Filter('B'))
+
+      call formatters%insert('formatterA', Formatter('%(message)a'))
+      call formatters%insert('formatterB', Formatter('%(levelName)a~: %(message)a'))
+
+      open(newunit=unit, file='test_build_handler.txt', status='unknown', &
+           & form='formatted')
+
+      write(unitStr,'(i0)') unit
+      handler_cfg = Config([ &
+           & P('class', 'StreamHandler'), &
+           & P('unit', unitStr), &
+           & P('formatter', 'formatterB'), &
+           & P('filters', '[filterA]'), &
+           & P('level', 'INFO') &
+           & ])
+
+      call build_handler(h, handler_cfg, elements)
+      @assertEqual(INFO, h%get_level(),'incorrect level')
+
+      block
+        character(len=80) :: str
+        type (LogRecord) :: record
+        
+        call initLogRecord(record, 'B', INFO, 'hello')
+        call h%handle(record) ! skip - filter 'A'
+        
+        call initLogRecord(record, 'A', DEBUG, 'goodbye')
+        call h%handle(record) ! skip - level is INFO
+        
+        call initLogRecord(record, 'A', INFO, 'ciao')
+        call h%handle(record) ! keep
+        
+        rewind(unit)
+
+        read(unit,'(a)') str
+        @assertEqual('INFO: ciao', str)
+      end block
+      close(unit, status='delete')
+      
+
+   end subroutine test_build_handler
+
+   @test
+   subroutine test_build_handlers()
+      use PFL_Filter_mod
+      use PFL_StreamHandler_mod
+      use PFL_Formatter_mod
+
+      type (Config) :: handlersDict
+      type (Config) :: h1_cfg, h2_cfg
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+      filters => elements%get_filters()
+      formatters => elements%get_formatters()
+
+      call filters%insert('filterA',Filter('A'))
+      call filters%insert('filterB',Filter('B'))
+
+      call formatters%insert('formatterA', Formatter('%(message)'))
+      call formatters%insert('formatterB', Formatter('%(levelname)'))
+
+      h1_cfg = Config([ &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'formatterA'), &
+           & P('filters', '[filterA]'), &
+           & P('level', 'INFO') &
+           & ])
+
+      h2_cfg = Config([ &
+           & P('class', 'StreamHandler'), &
+           & P('unit', 'OUTPUT_UNIT'), &
+           & P('formatter', 'formatterB'), &
+           & P('filters', '[filterA,filterB]'), &
+           & P('level', 'CRITICAL') &
+           & ])
+
+      handlersDict = &
+           & Config([ &
+           &       p('A', h1_cfg), &
+           &       p('B', h2_cfg) &
+           &     ])
+
+      call elements%build_handlers(handlersDict)
+      handlers => elements%get_handlers()
+      @assertEqual(2, handlers%size())
+
+   end subroutine test_build_handlers
+
+@test
+   subroutine test_build_logger_trivial()
+
+      type (Config) :: cfg
+      type (FilterMap) :: filters
+      type (HandlerMap) :: handlers
+
+      type (ConfigElements), target :: elements
+      type (LoggerManager), target :: mgr
+      class (Logger), pointer :: lgr
+
+      lgr => mgr%get_logger('A')
+      ! cfg is empty by default
+      call build_logger(lgr, cfg, elements)
+
+   end subroutine test_build_logger_trivial
+
+   @test
+   subroutine test_build_logger()
+
+      use PFL_Filter_mod
+      use PFL_AbstractHandler_mod
+      use PFL_FileHandler_mod
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+      type (Config) :: cfg
+      type (LoggerManager), target :: mgr
+      class (Logger), pointer :: lgr
+
+      filters => elements%get_filters()
+      handlers => elements%get_handlers()
+
+      call handlers%insert('handlerA', FileHandler('A', delay=.true.))
+      call handlers%insert('handlerB', FileHandler('B', delay=.true.))
+
+      call filters%insert('filterA', Filter('A'))
+      call filters%insert('filterB', Filter('B'))
+
+      lgr => mgr%get_logger('A')
+      call build_logger(lgr, cfg, elements)
+
+   end subroutine test_build_logger
+
+#ifdef _LOGGER_USE_MPI
+@test(ifdef=_LOGGER_USE_MPI)
+   subroutine test_build_logger_serial_in_mpi_context()
+      use mpi
+      use MockHandler_mod
+      use MockMpi_mod
+      use PFL_SeverityLevels_mod
+      use PFL_RootLogger_mod
+
+      type (LoggerManager), target :: mgr
+      type (Config) :: cfg
+      type (MockBuffer), target :: buffer
+      class (Logger), pointer :: lgr
+      type (MockHandler) :: h
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+
+      integer :: comm = 0
+      
+      call set_mpi_rank(1) ! i.e., not root
+      call set_mpi_size(2)
+
+      h = MockHandler(buffer, level=INFO)
+
+      handlers => elements%get_handlers()
+      call handlers%insert('handlerA', h)
+
+      cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
+
+      mgr = LoggerManager(RootLogger(WARNING))
+      lgr => mgr%get_logger('serial')
+      call build_logger(lgr, cfg, elements)
+
+      call lgr%info('message')
+      @assertFalse(allocated(buffer%buffer))
+
+   end subroutine test_build_logger_serial_in_mpi_context
+
+@test(ifdef=_LOGGER_USE_MPI)
+   subroutine test_build_logger_serial_comm()
+      use mpi
+      use PFL_RootLogger_mod
+      use MockHandler_mod
+      use MockMpi_mod
+      use PFL_SeverityLevels_mod
+
+      type (Config) :: cfg
+      type (MockBuffer), target :: buffer2
+      class (Logger), pointer :: lgr
+      type (MockHandler) :: h
+      type (Config), target :: extra
+
+      type (FilterMap), pointer :: filters
+      type (FormatterMap), pointer :: formatters
+      type (HandlerMap), pointer :: handlers
+      type (ConfigElements), target :: elements
+      type (LoggerManager), target :: mgr
+      
+
+      integer :: comm ! fake comm
+
+      call set_mpi_rank(0)
+      call set_mpi_size(2)
+
+      ! loggers:
+      !     serial:
+      !         handlers: [A]
+
+      h = MockHandler(buffer2, level=INFO)
+!!$      call elements%set_global_comm(0)
+      handlers => elements%get_handlers()
+      call handlers%insert('handlerA', h)
+
+      cfg = Config([P('handlers','[handlerA]'),P('level','INFO')])
+      extra = Config([p('comm', comm)])
+
+      mgr = LoggerManager(RootLogger(WARNING))
+      lgr => mgr%get_logger('serial')
+      call build_logger(lgr, cfg, elements, extra=extra)
+
+      call lgr%info('message')
+      @assertEqual('message',buffer2%buffer)
+      
+   end subroutine test_build_logger_serial_comm
+#endif
+   
+   @test
+   subroutine test_basic_loggers_invalid_cfg()
+      type (Config) :: cfg
+      type (Config) :: loggers
+
+      type (LoggerManager), target :: mgr
+      class (Logger), pointer :: lgr
+      character(len=:), allocatable :: expectedMessage
+
+      cfg = Config([ &
+           &      p('schema_version', 1), &
+           &      p('loggers', 1) &
+           &     ])
+
+      call mgr%load_config(cfg)
+
+      lgr => mgr%get_logger('A')
+      expectedMessage = "FTL::Config::toConfigPtr() - type of 'loggers' is not a Config."
+      @assertExceptionRaised(expectedMessage)
+
+   end subroutine test_basic_loggers_invalid_cfg
+
+   @test
+   subroutine test_basic_loggers()
+      type (Config) :: cfg
+      type (Config) :: loggers
+
+      type (LoggerManager), target :: mgr
+      class (Logger), pointer :: lgr
+
+      cfg = Config([ &
+           &      p('schema_version', 1), &
+           &      p('loggers', Config([p('A', Config([P('level','DEBUG')]))])) &
+           &     ])
+
+      call mgr%load_config(cfg)
+      lgr => mgr%get_logger('A')
+
+      @assertEqual(DEBUG, lgr%get_level())
+
+   end subroutine test_basic_loggers
+
+#ifdef _LOGGER_USE_MPI
+@test(ifdef=_LOGGER_USE_MPI)
+   subroutine test_logger_root_level()
+      use MockMpi_mod
+      use mpi
+      type (Config) :: cfg
+      type (Config) :: loggers
+
+      type (LoggerManager), target :: mgr
+      class (Logger), pointer :: lgr
+
+      cfg = Config([ &
+           &      p('schema_version', 1), &
+           &      p('loggers', Config([p('A', Config([P('level','INFO'),P('root',1),P('root_level','DEBUG')]))])) &
+           &     ])
+
+      ! configure the mock layer
+      call set_mpi_rank(1) ! is root
+      call set_mpi_size(2)
+
+      call mgr%load_config(cfg)
+      lgr => mgr%get_logger('A')
+
+      @assertEqual(DEBUG, lgr%get_level())
+
+      ! configure the mock layer
+      call set_mpi_rank(0) ! not root
+      call set_mpi_size(2)
+
+      call mgr%load_config(cfg)
+      lgr => mgr%get_logger('A')
+
+      @assertEqual(INFO, lgr%get_level())
+      
+   end subroutine test_logger_root_level
+#endif
+   
+end module Test_Config_mod

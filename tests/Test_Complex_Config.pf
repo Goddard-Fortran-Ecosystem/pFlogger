@@ -1,0 +1,103 @@
+module Test_Complex_Config_mod
+   use pfunit_mod
+   use PFL_Config_mod
+   use PFL_Logger_mod
+   use PFL_LoggerManager_mod
+   use PFL_SeverityLevels_mod
+   implicit none
+
+#ifdef __GFORTRAN__   
+#define P(k,v) p(k,String(v))
+#endif
+   
+   character(len=*), parameter :: FILE = 'test_config.txt'
+
+contains
+
+   @before
+   subroutine setUp()
+      integer :: unit
+      open(newunit=unit, file=FILE, form='formatted', status='unknown')
+      write(unit,*) 'schema_version:  1'
+      write(unit,*) 'handlers:'
+      write(unit,*) '   debug1:'
+      write(unit,*) '      class:  FileHandler'
+      write(unit,*) '      filename:   a.log'
+      write(unit,*) '      level:  DEBUG'
+      write(unit,*) '   info2:'
+      write(unit,*) '      class:  FileHandler'
+      write(unit,*) '      filename:   b.log'
+      write(unit,*) '      level:  INFO'
+      write(unit,*) '   warning3:'
+      write(unit,*) '      class:  FileHandler'
+      write(unit,*) '      filename:   c.log'
+      write(unit,*) '      level:  WARNING'
+      write(unit,*) '   error4:'
+      write(unit,*) '      class:  FileHandler'
+      write(unit,*) '      filename:   d.log'
+      write(unit,*) '      level:  ERROR'
+      write(unit,*) '   critical5:'
+      write(unit,*) '      class:  FileHandler'
+      write(unit,*) '      filename:   e.log'
+      write(unit,*) '      level:  CRITICAL'
+      write(unit,*) 'loggers:'
+      write(unit,*) '   A:'
+      write(unit,*) '      handlers: [debug1,info2,warning3,error4,critical5]'
+      write(unit,*) '      level: DEBUG'
+      write(unit,*) ' '
+      close(unit)
+   end subroutine setUp
+
+
+   @after
+   subroutine tearDown()
+
+      call delete_if_exists(FILE)
+      call delete_if_exists('a.log')
+      call delete_if_exists('b.log')
+      call delete_if_exists('c.log')
+      call delete_if_exists('d.log')
+      call delete_if_exists('e.log')
+
+   contains
+
+      subroutine delete_if_exists(f)
+         character(len=*), intent(in) :: f
+
+         integer :: unit
+         logical :: exists
+
+         inquire(file='f', exist=exists)
+         if (exists) then
+            open(newunit=unit, file=f)
+            close(unit, status='delete')
+         end if
+
+      end subroutine delete_if_exists
+      
+   end subroutine tearDown
+    
+
+   @test
+   subroutine test_config()
+      use FTL_Config_mod
+      type (Config) :: cfg
+
+      class (Logger), pointer :: lgr
+      type (LoggerManager), target :: mgr
+
+      call mgr%load_file(FILE)
+      lgr => mgr%get_logger('A')
+      call lgr%debug('debug')
+      call lgr%info('info')
+      call lgr%warning('warning')
+      call lgr%error('error')
+      call lgr%critical('critical')
+      
+      @assertEqual(DEBUG, lgr%get_level())
+
+   end subroutine test_config
+
+end module Test_Complex_Config_mod
+
+

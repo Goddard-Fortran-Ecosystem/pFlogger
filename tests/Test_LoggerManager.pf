@@ -1,0 +1,255 @@
+module Test_LoggerManager_mod
+   use pfunit_mod
+   use PFL_LoggerManager_mod 
+   use PFL_AbstractLogger_mod
+   use PFL_Logger_mod
+   use PFL_RootLogger_mod
+   use PFL_SeverityLevels_mod
+   implicit none
+
+contains
+
+   
+@test
+   subroutine test_get_logger()
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+      class (Logger), pointer :: loggerC
+
+      manager = LoggerManager(RootLogger(WARNING))
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('B')
+
+      ! The previous step might invalidate loggerA,
+      ! as the underlying vector resizes(). Check that
+      ! it does not
+
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('B')
+
+      @assertEqual('A', loggerA%get_name())
+      @assertEqual('B', loggerB%get_name())
+
+   end subroutine test_get_logger
+
+@test
+   subroutine test_get_parent_prefix()
+      type (LoggerManager) :: manager
+
+      @assertEqual('A', manager%get_parent_prefix('A.B'))
+      @assertEqual('A.B', manager%get_parent_prefix('A.B.C'))
+      @assertEqual('A.B.C', manager%get_parent_prefix('A.B.C.other'))
+
+   end subroutine test_get_parent_prefix
+
+   
+@test
+   subroutine test_parentage()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+      class (AbstractLogger), pointer :: parent
+
+      manager = LoggerManager(RootLogger(WARNING))
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('A.B')
+      parent => loggerB%get_parent()
+      
+      select type (parent)
+      class is (Logger)
+         @assertEqual('A', parent%get_name())
+      end select
+
+   end subroutine test_parentage
+
+
+@test
+   subroutine test_fixup()
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerAB
+      class (Logger), pointer :: parent
+
+      manager = LoggerManager(RootLogger(WARNING))
+      ! The next logger is created with a placeholder for its parent.
+      loggerAB => manager%get_logger('A.B')
+      parent => loggerAB%get_parent()
+
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+
+   end subroutine test_fixup
+
+
+@test
+   subroutine test_fixup2()
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerABC
+      class (Logger), pointer :: parent
+
+      manager = LoggerManager(RootLogger(WARNING))
+      ! The next logger is created with a placeholder for its parent.
+      loggerABC => manager%get_logger('A.B.C')
+      parent => loggerABC%get_parent()
+
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+
+   end subroutine test_fixup2
+   
+
+@test
+   subroutine test_fixup3()
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerA, loggerAB, loggerABC, loggerABD, loggerAC
+      class (Logger), pointer :: parent
+
+      manager = LoggerManager(RootLogger(WARNING))
+      ! The next logger is created with a placeholder for its parent and grandparent.
+      loggerABC => manager%get_logger('A.B.C')
+      loggerABD => manager%get_logger('A.B.D')
+      ! And another orphan to the side ...
+      loggerAC => manager%get_logger('A.C')
+
+      ! The next step should replace the placeholder at 'A.B'
+      loggerAB => manager%get_logger('A.B')
+      ! Check that everyone has the right parents.
+      parent => loggerAB%get_parent()
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+      parent => loggerABC%get_parent()
+      @assertEqual('A.B', parent%get_name())
+      parent => loggerABD%get_parent()
+      @assertEqual('A.B', parent%get_name())
+
+
+      ! Now replace the placeholder at 'A'
+      loggerA => manager%get_logger('A')
+      ! Check that everyone has the right parents.
+      parent => loggerA%get_parent()
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+      parent => loggerAC%get_parent()
+      @assertEqual('A', parent%get_name())
+      parent => loggerAB%get_parent()
+      @assertEqual('A', parent%get_name())
+
+      parent => loggerABC%get_parent()
+      @assertEqual('A.B', parent%get_name())
+      parent => loggerABD%get_parent()
+      @assertEqual('A.B', parent%get_name())
+
+   end subroutine test_fixup3
+   
+   
+@test
+   subroutine test_parent_is_root()
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerA
+      class (AbstractLogger), pointer :: parent
+      type (RootLogger) :: root_node
+
+      root_node = RootLogger(WARNING)
+      manager = LoggerManager(root_node)
+      loggerA => manager%get_logger('A')
+
+      parent => loggerA%get_parent()
+      @assertTrue(same_type_as(parent, root_node))
+      select type (parent)
+      class is (RootLogger)
+         @assertEqual('ROOT_LOGGER', parent%get_name())
+      end select
+
+   end subroutine test_parent_is_root
+
+! TODO: what is this testing?
+! TODO: Most of these tests should be in Test_Logger   
+@test
+   subroutine test_passMessageToParent()
+      use MockHandler_mod
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+
+      type (MockHandler) :: handlerA
+      type (MockHandler) :: handlerB
+
+      manager = LoggerManager(RootLogger(WARNING))
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('A.B')
+      call loggerA%add_handler(handlerA)
+      call loggerB%add_handler(handlerB)
+
+   end subroutine test_passMessageToParent
+
+   
+@test
+   subroutine test_caseSensitiveName()
+      type (LoggerManager) :: manager
+      class (Logger), pointer :: loggerA
+      class (Logger), pointer :: loggerB
+
+      manager = LoggerManager(RootLogger(WARNING))
+      loggerA => manager%get_logger('A')
+      loggerB => manager%get_logger('a')
+      
+      ! loggerA pointer may become invalid because second get_logger() call
+      ! changes the data structure.  So we get it again
+      loggerA => manager%get_logger('A')
+
+      @assertFalse(associated(loggerA, loggerB))
+   end subroutine test_caseSensitiveName
+
+
+
+   @test
+   subroutine test_propagate()
+      use MockHandler_mod
+      use PFL_Formatter_mod
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: parent
+      class (Logger), pointer :: child
+
+      type (MockHandler) :: h
+      type (MockBuffer), target :: buffer
+
+      manager = LoggerManager(RootLogger(ERROR))
+      parent => manager%get_logger('parent')
+      child => manager%get_logger('parent.child')
+      call child%set_level(INFO)
+      
+      h = MockHandler(buffer)
+      call h%set_formatter(Formatter('%(message)'))
+
+      call parent%add_handler(h)
+      buffer%buffer = ''
+      call child%info('test_info') ! should invoke handler through parent
+      @assertEqual('test_info', buffer%buffer)
+
+   end subroutine test_propagate
+   
+   @test
+   subroutine test_propagate_off()
+      use MockHandler_mod
+      use PFL_Formatter_mod
+      type (LoggerManager), target :: manager
+      class (Logger), pointer :: parent
+      class (Logger), pointer :: child
+
+      type (MockHandler) :: h
+      type (MockBuffer), target :: buffer
+
+      manager = LoggerManager(RootLogger(ERROR))
+      parent => manager%get_logger('parent')
+      child => manager%get_logger('parent.child')
+      call child%set_propagate(.false.)
+      
+      h = MockHandler(buffer)
+      call h%set_formatter(Formatter('%(message)'))
+
+      call parent%add_handler(h)
+
+      buffer%buffer = ''
+      call child%info('test_info') ! should invoke handler through parent
+      @assertEqual('', buffer%buffer)
+
+   end subroutine test_propagate_off
+   
+
+end module Test_LoggerManager_mod

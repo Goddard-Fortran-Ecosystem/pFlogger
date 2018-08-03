@@ -1,0 +1,89 @@
+module Test_Filter_mod
+   use pFUnit_mod
+   use PFL_Filter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod, only: INFO
+
+contains
+
+   @test
+   subroutine test_defaultFilterNameMismatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+      logical :: flag
+
+      f = Filter('A')
+      call initLogRecord(record, 'B', INFO, 'some message')
+      flag = f%do_filter(record)
+
+      @assertFalse(flag)
+
+   end subroutine test_defaultFilterNameMismatch
+
+
+   @test
+   subroutine test_defaultFilterNameMatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      call initFilter(f, 'A')
+      call initLogRecord(record, 'A', INFO, 'some message')
+
+      @assertTrue(f%do_filter(record))
+      
+   end subroutine test_defaultFilterNameMatch
+
+
+   @test
+   subroutine test_defaultFilterPartialMatch()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      call initFilter(f, 'A')
+      call initLogRecord(record, 'AB', INFO, 'some message')
+      @assertTrue(f%do_filter(record))
+
+      call initFilter(f, 'AB')
+      call initLogRecord(record, 'A', INFO, 'some message')
+      @assertFalse(f%do_filter(record))
+      
+
+   end subroutine test_defaultFilterPartialMatch
+
+   @test
+   subroutine test_equal_same()
+      type (Filter) :: f
+
+      call initFilter(f, 'A')
+      @assertEqualUserDefined(f,f)
+      @assertFalse(f /= f)
+
+   end subroutine test_equal_same
+
+
+   @test
+   subroutine test_equal_different()
+      type (Filter) :: fa, fb
+
+      call initFilter(fa, 'A')
+      call initFilter(fb, 'B')
+
+      @assertFalse(fa == fb)
+      @assertTrue(fa /= fb)
+
+   end subroutine test_equal_different
+
+
+   @test
+   subroutine test_filterCaseInsensitive()
+      type (Filter) :: f
+      type (LogRecord) :: record
+
+      call initFilter(f, 'A')
+      call initLogRecord(record, 'a', INFO, 'some message')
+      @assertTrue(f%do_filter(record))
+
+   end subroutine test_filterCaseInsensitive
+
+
+end module Test_Filter_mod

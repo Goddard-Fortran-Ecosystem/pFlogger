@@ -1,0 +1,185 @@
+module Test_Formatter_mod
+   use pFUnit_mod
+   use iso_fortran_env
+   use PFL_Formatter_mod
+   use PFL_SeverityLevels_mod
+   use PFL_LogRecord_mod
+   use MockDateFormat_mod
+   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   
+   implicit none
+
+   public :: Test_Formatter
+   
+@TestCase
+   type, extends(TestCase) :: Test_Formatter
+      type (LogRecord) :: rec
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_Formatter
+
+   type (UnlimitedVector), target :: empty
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_Formatter), intent(inout) :: this
+
+      mockdf%Y = 2015
+      mockdf%M = 1
+      mockdf%D = 2
+      mockdf%HH = 3
+      mockdf%MM = 4
+      mockdf%SS = 5
+      mockdf%MS = 123
+
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_Formatter), intent(inout) :: this
+   end subroutine tearDown
+
+
+   @Test
+   subroutine test_formatDefault(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_Formatter), intent(inout) :: this
+      type (Formatter) :: f
+
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye')
+      f = Formatter('%(message)')
+      @assertEqual('Goodbye', f%format(this%rec))
+      
+   end subroutine test_formatDefault
+   
+
+@Test
+   subroutine test_formatint32(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_Formatter), intent(inout) :: this
+
+      type (UnlimitedVector), target :: args
+      type (Formatter) :: f
+      
+      args = UnlimitedVector()
+      call args%push_back(1)
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
+
+      f = Formatter('Hello %(message)a')
+      @assertEqual('Hello Goodbye 1', f%format(this%rec))
+      
+   end subroutine test_formatint32
+   
+
+@test
+   subroutine test_datefmtMessage_default(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this
+      type (StringUnlimitedMap) :: extra
+      character(len=32) :: date
+      type (Formatter) :: f
+
+      ! Create a LogRecord
+      this%rec%name = 'someRec'
+      this%rec%level = INFO
+      this%rec%message_format = 'datefmt'
+      this%rec%args => empty
+
+      ! record has name, level and message + opt args and/or extra
+      ! Format the specified record as text: format(record)
+      call mockdf%fillDateAndTime(this%rec)
+      f = Formatter('%(asctime)a')
+      date = '2015-01-02 03:04:05.123'
+      @assertEqual(date, f%format(this%rec))
+
+   end subroutine test_datefmtMessage_default
+
+@test
+   subroutine test_datefmtMessage(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this
+      type (StringUnlimitedMap) :: extra
+      character(len=20) :: date
+      type (Formatter) :: f
+
+      ! Create a LogRecord
+      this%rec%name = 'someRec'
+      this%rec%level = INFO
+      this%rec%message_format = 'datefmt'
+      this%rec%args => empty
+
+      ! record has name, level and message + opt args and/or extra
+      ! Format the specified record as text: format(record)
+      call mockdf%fillDateAndTime(this%rec)
+      f = Formatter(fmt='%(asctime)', datefmt='%(Y)i4.4~-%(M)i2.2~-%(D)i2.2')
+      write(date,'(i4.4,a,i2.2,a,i2.2)') mockdf%Y,'-',mockdf%M,'-',mockdf%D
+      @assertEqual(date, f%format(this%rec))
+
+   end subroutine test_datefmtMessage
+
+
+@test
+   subroutine test_datefmt(this)
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this
+      type (StringUnlimitedMap) :: extra
+      character(len=20) :: date
+      type (Formatter) :: f
+
+      ! Create a LogRecord
+      this%rec%name = 'someRec'
+      this%rec%level = INFO
+      this%rec%message_format = 'datefmt'
+      this%rec%args => empty
+
+      ! record has name, level and message + opt args and/or extra
+      ! Format the specified record as text: format(record)
+      call mockdf%fillDateAndTime(this%rec)
+      f = Formatter(fmt='%(asctime)a', &
+                         datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
+      write(date,'(i2.2,a,i2.2,a,i2.2)') mockdf%HH,'-',mockdf%MM,'-',mockdf%SS
+      @assertEqual(date, f%format(this%rec))
+
+   end subroutine test_datefmt
+
+
+@Test
+   subroutine test_formatWithName(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_Formatter), intent(inout) :: this
+      type (UnlimitedVector), target :: args
+      type (Formatter) :: f
+
+      args = UnlimitedVector()
+      call args%push_back(1)
+
+      call initLogRecord(this%rec, 'A', INFO, 'Goodbye %i1.1', args=args)
+      f = Formatter('%(name)a %(message)a')
+      @assertEqual('A Goodbye 1', f%format(this%rec))
+      
+   end subroutine test_formatWithName
+   
+
+@test
+   subroutine test_format_with_extra(this)
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
+      type (StringUnlimitedMap) :: dictionary
+      type (Formatter) :: f
+
+      call dictionary%insert('one',1)
+      call dictionary%insert('two',2)
+      f = Formatter('Hello %(one)i1.1 %(two)i1.1', extra=dictionary)
+
+      logMessage = f%format(LogRecord('name', INFO, 'Hello'))
+      @assertEqual('Hello 1 2', logMessage)
+   end subroutine test_format_with_extra
+   
+
+end module Test_Formatter_mod

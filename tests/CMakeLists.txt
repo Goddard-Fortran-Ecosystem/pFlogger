@@ -1,7 +1,6 @@
 # CMakeLists.txt for logger tests
 
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS loggerTests)
 
 # Pre-process pf files
 file(GLOB pfSources "*.pf")
@@ -16,53 +15,87 @@ foreach(file ${pfSources})
    )
 endforeach()
 
-set(TEST_SRCS 
-   Test_Logger.F90
+set (SRCS
+   init_tests.F90
+   MockHandler.F90
+   MockDateFormat.F90
+   MockSimTime.F90
+   ConfigurableFilter.F90
 )
 
-set(SRCS
-   ${TEST_SRCS}
+set(TEST_SRCS 
+   Test_Filter.F90
+   Test_Filterer.F90
+   Test_StreamHandler.F90
+   Test_RotatingFileHandler.F90
+   Test_FileHandler.F90
+   Test_Logger.F90
+   Test_LogRecord.F90
+   Test_LoggerManager.F90
+   Test_Formatter.F90
+   Test_ParserContexts.F90
+   Test_FormatParser.F90
+   Test_FormatString.F90
+   Test_ArgListUtilities.F90
+   Test_SeverityLevels.F90
+   Test_Config.F90
+   Test_Complex_Config.F90
+   Test_SimTime.F90
 )
+
+if (MPI)
+  list (APPEND SRCS
+    MockMpi.F90
+    )
+  list (APPEND TEST_SRCS
+    Test_MpiFilter.F90
+    Test_MpiFormatter.F90
+    Test_MpiCommConfig.F90
+    )
+  if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
+    list (APPEND TEST_SRCS
+       Test_MpiLock.F90
+       )
+   endif ()
+endif ()
+
+
+set(ALL_SRCS ${SRCS} ${TEST_SRCS} )
 
 set_source_files_properties(
-    ${TEST_SRCS}
-    PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS} ${F90FLAGS}"
-    GENERATED TRUE
+   ${TEST_SRCS}
+   PROPERTIES GENERATED TRUE
 )
 
 include_directories(
+   ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
+   ${CMAKE_BINARY_DIR}/src/include
+   ${FTL}/include
+   ${FTL}/mod
    ${PFUNIT}/include
 )
 
 # Targets:
 
-add_library(${THIS}
-   STATIC ${SRCS}
-)
-target_link_libraries(${THIS}
-   logger
-   pfunit
-)
+add_definitions (-DPFUNIT_EXTRA_INITIALIZE=init_tests)
 
-set(EXE ${THIS}.x)
-add_executable (${EXE} ${PFUNIT}/include/driver.F90 testSuites.inc)
-target_link_libraries(${EXE} ${THIS} logger pfunit)
+# Can this be made to work?
+#set_target_properties (${EXE}
+#  PROPERTIES DEFINE_SYMBOL -DPFUNIT_EXTRA_INITIALIZE=initTests )
 
-if (MPI)
-   target_link_libraries(${EXE} ${MPI_Fortran_LIBRARIES} )
-   add_custom_target(tests 
-     COMMAND mpirun -np 4 tests/${EXE} 
-     DEPENDS ${EXE} 
-     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-     COMMENT "Run MPI ${EXE}"
+add_library(pflogger_tests STATIC ${ALL_SRCS})
+target_link_libraries(pflogger_tests pflogger pfunit)
+
+set(EXE tests.x)
+add_executable (${EXE} EXCLUDE_FROM_ALL ${PFUNIT}/include/driver.F90 testSuites.inc)
+target_link_libraries(${EXE} pflogger_tests pflogger pfunit)
+
+
+add_custom_target(tests
+   COMMAND ${EXE} 
+   DEPENDS ${EXE} 
+   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+   COMMENT "Run ${EXE}"
    )
-else()
-    add_custom_target(tests
-      COMMAND ${EXE} 
-      DEPENDS ${EXE} 
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMENT "Run SERIAL ${EXE}"
-    )
-endif()
-add_dependencies(tests ${THIS})
+

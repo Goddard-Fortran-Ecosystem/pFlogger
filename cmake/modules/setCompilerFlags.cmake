@@ -1,95 +1,53 @@
-if (MPI MATCHES YES)
-   # Add CPP flags for MPI=YES
-   add_definitions(-DUSE_MPI)
-   find_package(MPI REQUIRED)
-   include_directories(${MPI_INCLUDE_PATH})
-   set (COMPILER_WRAPPER mpif90)
-endif()
-
 # Add flags for PFUNIT
-if(EXISTS $ENV{PFUNIT})
-   include_directories($ENV{PFUNIT}/mod)
-   include_directories($ENV{PFUNIT}/include)
-   link_directories($ENV{PFUNIT}/lib)
-   set(CPPFLAGS -DUSE_PFUNIT)
-   set(WITH_PFUNIT YES)
-   set(PFUNIT $ENV{PFUNIT})
+if (PFUNIT)
+   include_directories(${PFUNIT}/mod)
+   include_directories(${PFUNIT}/include)
+   link_directories(${PFUNIT}/lib)
+   set(PFUNIT ${PFUNIT})
+   message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
+else()
+   message(STATUS " +++ PFUNIT is NOT set. PFUNIT is needed for testing.")
 endif()
-
-set (CPPFLAGS 
-  "-cpp ${CPPFLAGS}"
-  )
-
-include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Intel compiler flags
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 
-   if (CMAKE_SYSTEM_NAME MATCHES Linux)
-      set (CPPFLAGS 
-         "${CPPFLAGS}"
-      )
+   # CMake 3.3 will have CMAKE_Fortran_COMPILER_VERSION. 
+   # For now,we need this hack:
+   exec_program(ifort ARGS "--version" OUTPUT_VARIABLE ver)
+   string(REGEX REPLACE "^.*[ ]([0-9]+)\\.[0-9].*$" "\\1" IFORT_MAJOR "${ver}")
+   if (${IFORT_MAJOR} MATCHES 14)
+      set(CPPFLAGS "${CPPFLAGS} -DINTEL_14 -cpp")
    else()
-      set (CPPFLAGS 
-         "${CPPFLAGS}"
-      )
+      set(CPPFLAGS "${CPPFLAGS} -cpp")
    endif()
 
-
-   set(F90FLAGS 
-      "${CPPFLAGS} ${FFLAGS_RELEASE} -g -O2 -free"
-   )
-
-   if (COMPILE_WITH_DEBUG MATCHES YES)
-      set(FFLAGS 
-         "${FFLAGS} -g -O0 -traceback"
-      )
-      set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -traceback"
-      )
-   endif()
-
-   if (WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "-g -O0 -traceback"
-      )
-   endif()
-
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3 \
+      -free -assume realloc_lhs -stand f08")
+   set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -g -traceback \
+      -check uninit -free -assume realloc_lhs -stand f08 -save-temps")
 
 # GNU compiler flags
 elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL GNU)
 
-   if (CMAKE_SYSTEM_NAME MATCHES Linux)
-      set (CPPFLAGS "${CPPFLAGS}")
-   else()
-      set (CPPFLAGS "${CPPFLAGS}")
-   endif()
+   set(CPPFLAGS "${CPPFLAGS} -cpp")
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
+   set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fcheck=pointer -fcheck=mem -fcheck=bounds -ffpe-trap=invalid,zero,overflow -finit-real=snan -ffree-line-length-255")
 
-   # Base flags
-   set(F90FLAGS 
-      "${CPPFLAGS} -cpp -O2 -ffree-line-length-none"
-   )
-   if (COMPILE_WITH_DEBUG MATCHES YES)
-      set(FFLAGS 
-         "${FFLAGS} -g -O0 -fbacktrace"
-      )
-      set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -fbacktrace"
-      )
-   endif()
+# NAG compiler flags
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL NAG)
 
-   if (WITH_PFUNIT MATCHES YES)
-      set(F90FLAGS 
-         "${F90FLAGS} -g -O0 -fbacktrace"
-      )
-   endif()
+   set (CPPFLAGS "${CPPFLAGS} -fpp")
+   set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O3")
+   
+   #  set (CMAKE_Fortran_FLAGS_DEBUG   "${CPPFLAGS} -O0 -gline -C=all")
+   # workaround for nag 6.2
+   set(CMAKE_Fortran_FLAGS_DEBUG "-C=array -C=alias -C=bits -C=calls -C=do -C=intovf -C=present -C=pointer -gline -O0")
 
 else()
 
-   message( FATAL_ERROR "Unrecognized compiler. Please use ifort or gfortran" )
+   message(FATAL_ERROR "Unrecognized compiler ${CMAKE_Fortran_COMPILER_ID}. \
+      Valid vendors are INTEL, GNU or NAG" )
 
 endif()
-
-set(CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS "")
-set(CMAKE_SKIP_RPATH ON)
 

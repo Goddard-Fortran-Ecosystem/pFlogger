@@ -1,0 +1,165 @@
+module Test_Filterer_mod
+   use pFUnit_mod
+   use PFL_Filterer_mod
+   use PFL_Filter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod, only: INFO
+   implicit none
+
+
+contains
+
+   @test
+   subroutine test_filterNoFilters()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call initLogRecord(record, 'A', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+   end subroutine test_filterNoFilters
+   
+
+   @test
+   subroutine test_filterMismatch()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call initLogRecord(record, 'B', INFO, 'message')
+     
+      @assertFalse(f%do_filter(record))
+
+   end subroutine test_filterMismatch
+
+
+   @test
+   subroutine test_filterMatch()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call initLogRecord(record, 'A', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+   end subroutine test_filterMatch
+
+   @test
+   subroutine test_filterCombo()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
+
+      call initLogRecord(record, 'A', INFO, 'message')
+      @assertFalse(f%do_filter(record))
+
+      call initLogRecord(record, 'B', INFO, 'message')
+      @assertFalse(f%do_filter(record))
+
+   end subroutine test_filterCombo
+
+
+   @test
+   subroutine test_filterComboB()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('AB'))
+
+      call initLogRecord(record, 'AB', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+      call initLogRecord(record, 'B', INFO, 'message')
+      @assertFalse(f%do_filter(record))
+
+   end subroutine test_filterComboB
+
+
+   @test
+   subroutine test_remove_filter_absent()
+      type (Filterer) :: f
+
+      f = Filterer()
+
+      call f%remove_filter(Filter('A'))
+      @assertExceptionRaised('Filterer::remove_filter() - no such filter.')
+
+      call f%add_filter(Filter('A'))
+
+      call f%remove_filter(Filter('B'))
+      @assertExceptionRaised('Filterer::remove_filter() - no such filter.')
+
+
+   end subroutine test_remove_filter_absent
+
+
+   @test
+   subroutine test_remove_filter_simple()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call f%remove_filter(Filter('A'))
+
+      ! no filters left
+      call initLogRecord(record, 'A', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+      call initLogRecord(record, 'B', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+   end subroutine test_remove_filter_simple
+   
+
+   @test
+   subroutine test_remove_filter_nontrivial()
+      type (Filterer) :: f
+      type (LogRecord) :: record
+
+      f = Filterer()
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
+
+      call f%remove_filter(Filter('A'))
+      
+      ! only 'B' left
+      call initLogRecord(record, 'A', INFO, 'message')
+      @assertFalse(f%do_filter(record))
+
+      call initLogRecord(record, 'B', INFO, 'message')
+      @assertTrue(f%do_filter(record))
+
+   end subroutine test_remove_filter_nontrivial
+   
+
+   @test
+   subroutine test_add_filter_noDups()
+      use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
+
+      type (Filterer), target :: f
+      type (FilterVector), pointer :: filters
+
+      f = Filterer()
+
+      call f%add_filter(Filter('A'))
+      call f%add_filter(Filter('B'))
+
+      ! Duplicate - do not add.
+      call f%add_filter(Filter('A'))
+
+      filters => f%get_filters()
+      @assertEqual(2, filters%size())
+
+   end subroutine test_add_filter_noDups
+
+
+end module Test_Filterer_mod

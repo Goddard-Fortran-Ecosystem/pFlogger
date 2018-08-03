@@ -1,0 +1,200 @@
+module Test_FileHandler_mod
+   use PFL_SeverityLevels_mod
+   use PFL_FileHandler_mod
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
+   use pfunit_mod
+   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_FileHandler
+      type (LogRecord) :: record
+      type (LogRecord) :: record2
+      type (UnlimitedVector), pointer :: args
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_FileHandler
+
+   character(len=*), parameter :: LOG_FILE = 'log.txt'
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      call initLogRecord(this%record, "logName", INFO, 'hello')
+
+      allocate(this%args)
+      this%args = UnlimitedVector()
+      call this%args%push_back(1)
+      call initLogRecord(this%record2, "Aname", INFO, 'Goodbye %i1.1', args=this%args)
+
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      integer :: unit
+
+      ! delete file
+      open(newunit=unit, file=LOG_FILE, status='unknown')
+      close(unit, status='delete')
+      deallocate(this%args)
+      
+   end subroutine tearDown
+
+   
+@Test
+   subroutine test_emitBasic(this)
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=32) :: foundMessage
+      type (FileHandler) :: h
+      logical :: opened
+
+      h = FileHandler(LOG_FILE)
+      inquire(file=h%get_file_name(), opened=opened)
+      call h%handle(this%record)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      close(unit)
+
+      @assertEqual('INFO: logName: '//this%record%get_message(), foundMessage)
+
+   end subroutine test_emitBasic
+
+
+@Test
+   subroutine test_emitBasicWithFormat(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      character(len=32) :: foundMessage
+      type (FileHandler) :: h
+      
+      h = FileHandler(LOG_FILE)
+      call h%handle(this%record2)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      close(unit)
+
+      @assertEqual('INFO: Aname: '//this%record2%get_message(), foundMessage)
+
+   end subroutine test_emitBasicWithFormat
+
+
+@Test
+   subroutine test_emitBasicWithFormatter(this)
+      class (Test_FileHandler), intent(inout) :: this   
+
+      integer :: unit
+      type(Formatter) :: fmt
+      character(len=32) :: foundMessage
+      type (FileHandler) :: h
+      
+      ! Create a logging format
+      fmt = Formatter('%(levelName)a~- %(name)a~- %(message)a')
+
+      h = FileHandler(LOG_FILE)
+      call h%set_formatter(fmt)
+      call h%handle(this%record2)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)') foundMessage
+      close(unit)
+
+      @assertEqual('INFO- Aname- '//this%record2%get_message(), foundMessage)
+
+   end subroutine test_emitBasicWithFormatter
+
+   
+@Test
+   subroutine test_emitBelowThreshold(this)
+      use iso_fortran_env, only: IOSTAT_END
+      class (Test_FileHandler), intent(inout) :: this
+
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      type (FileHandler) :: h
+      integer :: unit
+      
+
+      h = FileHandler(LOG_FILE)
+      call h%set_level(ERROR)
+      call h%handle(this%record)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)', IOSTAT=iostatus) foundMessage
+      close(unit)
+
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_emitBelowThreshold
+
+   
+@Test
+   subroutine test_emitAboveThreshold(this)
+      class (Test_FileHandler), intent(inout) :: this
+
+      type (FileHandler) :: h
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      integer :: unit
+      
+      h = FileHandler(LOG_FILE)
+      call h%set_level(DEBUG)
+      call h%handle(this%record)
+      call h%close()
+
+      open(newunit=unit, file=LOG_FILE, status='old', form='formatted')
+      read(unit, '(a)', IOSTAT=iostatus) foundMessage
+      close(unit)
+
+      @assertEqual('INFO: logName: '//this%record%get_message(), foundMessage)
+
+   end subroutine test_emitAboveThreshold
+
+
+   ! Often it is desirable for the log file not to be created until/if
+   ! a message is sent.  The optional logical argument 'delay' on the
+   ! contstructor is used to indicate that configuration.
+   @test
+   subroutine test_delay(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_FileHandler), intent(inout) :: this
+
+      type (LogRecord) :: record
+      type (FileHandler) :: handler
+      character(len=*), parameter :: FILE_NAME = 'delayLog'
+      logical :: exist
+      integer :: unit
+
+      handler = FileHandler(FILE_NAME, delay=.true.)
+      inquire(file=FILE_NAME, exist=exist)
+      @assertFalse(exist)
+
+      call handler%handle(this%record)
+      inquire(file=FILE_NAME, exist=exist)
+      @assertTrue(exist)
+      
+      call handler%close()
+      ! delete file
+      open(newunit=unit, file=FILE_NAME, status='unknown')
+      close(unit, status='delete')
+
+   end subroutine test_delay
+
+end module Test_FileHandler_mod
+

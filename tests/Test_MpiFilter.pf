@@ -1,0 +1,54 @@
+module Test_MpiFilter_mod
+   use pFUnit_mod
+   use PFL_MpiFilter_mod
+   use PFL_LogRecord_mod
+   use PFL_SeverityLevels_mod, only: INFO
+
+   implicit none
+   
+contains
+
+
+   @test
+   subroutine Test_MpiFilter_defaultRank()
+      use MockMpi_mod
+      integer :: comm
+      type (MpiFilter) :: f
+      type (LogRecord) :: record
+      integer :: rank, ier
+
+      comm = 12345
+      call set_mpi_rank(0)
+      f = MpiFilter(comm)
+      call initLogRecord(record,'A', INFO, 'some message')
+      @assertTrue(f%do_filter(record))
+      
+      call set_mpi_rank(1)
+      f = MpiFilter(comm)
+      @assertFalse(f%do_filter(record))
+      
+   end subroutine Test_MpiFilter_defaultRank
+
+   @test
+   subroutine Test_MpiFilter_withRank
+      use MockMpi_mod
+      integer :: comm
+      type (MpiFilter) :: f
+      type (LogRecord) :: record
+      
+      call initLogRecord(record, 'A', INFO, 'some message')
+
+      call set_mpi_rank(0)
+      
+      f = MpiFilter(comm, root=1)
+      @assertFalse(f%do_filter(record))
+      
+      call set_mpi_rank(1)
+      
+      f = MpiFilter(comm, root=1)
+      @assertTrue(f%do_filter(record))
+      
+   end subroutine Test_MpiFilter_withRank
+
+
+end module Test_MpiFilter_mod

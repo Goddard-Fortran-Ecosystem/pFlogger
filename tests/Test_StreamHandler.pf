@@ -1,0 +1,265 @@
+module Test_StreamHandler_mod
+   use pFUnit_mod
+   use PFL_SeverityLevels_mod
+   use PFL_StreamHandler_mod
+   use PFL_LogRecord_mod
+   use PFL_Formatter_mod
+   use MockDateFormat_mod
+   use PFL_AbstractFilter_mod
+   implicit none
+
+@TestCase
+   type, extends(TestCase) :: Test_StreamHandler
+      type (Formatter) :: f
+      integer :: unit
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_StreamHandler
+
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+      open(newunit=this%unit, file='testStreamHandler.txt', form='formatted', &
+           status='new')
+
+      mockdf%Y = 2015
+      mockdf%M = 1
+      mockdf%D = 2
+      mockdf%HH = 3
+      mockdf%MM = 4
+      mockdf%SS = 5
+      mockdf%MS = 123
+
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+      close(this%unit, status='delete')
+
+   end subroutine tearDown
+
+   
+@Test
+   subroutine test_handleBasic(this)
+      class (Test_StreamHandler), intent(inout) :: this
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+      type (LogRecord) :: rec
+
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_level(INFO)
+      call initLogRecord(rec, name='SHname', message_format='hello', level=INFO)
+      call handler%handle(rec)
+
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      
+      @assertEqual('INFO: SHname: hello', foundMessage)
+
+   end subroutine test_handleBasic
+
+@Test
+   subroutine test_emitBasicWithFormat(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_Formatter_mod
+      class (Test_StreamHandler), intent(inout) :: this
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+
+      type (LogRecord) :: record
+      type(Formatter) :: fmt
+      type (UnlimitedVector), target :: args
+      
+      args = UnlimitedVector()
+      call args%push_back(1)
+
+      ! Create a logging format
+      fmt = Formatter('%(levelName)a~: %(name)a~: %(message)a')
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_formatter(fmt)
+      call initLogRecord(record, 'A', INFO, 'Goodbye %i1.1', args=args)
+      call handler%handle(record)
+      
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      @assertEqual('INFO: A: '//record%get_message(), foundMessage)
+      
+   end subroutine test_emitBasicWithFormat
+
+   
+@Test
+   subroutine test_emitBasicWithFormatAndDate(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_Formatter_mod
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_StreamHandler), intent(inout) :: this
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+
+      type (LogRecord) :: record
+      type (StringUnlimitedMap) :: extra
+      character(len=:), allocatable :: levelName
+      type (Formatter) :: f
+
+      type (UnlimitedVector), target :: empty
+      
+      ! Create a LogRecord
+      record%name = 'someRec'
+      record%level = INFO
+      record%message_format = 'datefmt'
+      record%args => empty
+
+      call mockdf%fillDateAndTime(record)
+      f = Formatter(&
+           fmt='%(asctime)a %(levelName)a~: %(name)a~: %(message)a', &
+           datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_formatter(f)
+      call handler%handle(record)
+      
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      @assertEqual('03-04-05 INFO: someRec: '//record%get_message(), foundMessage)
+      
+   end subroutine test_emitBasicWithFormatAndDate
+
+   
+! The python implementation only checks the handler level at
+! within Logger.   Seems that it is better to check in Handler,
+! with possibly a very small bit of overhead.  SHould only matter
+! if there are many handlers and only a few actually emit.
+   
+@Test
+   subroutine test_handleBelowThreshold(this)
+      use iso_fortran_env, only: IOSTAT_END
+      class (Test_StreamHandler), intent(inout) :: this
+
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+      integer :: iostatus
+      type (LogRecord) :: record
+      
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_level(INFO)
+      call initLogRecord(record, 'name', DEBUG, 'hello')
+      call handler%handle(record)
+
+      rewind(this%unit)
+      read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
+      
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_handleBelowThreshold
+
+   
+@Test
+   subroutine test_handleAboveThreshold(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+      type (LogRecord) :: record
+
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_level(INFO)
+      call initLogRecord(record, 'name', CRITICAL, 'hello')
+      call handler%handle(record)
+
+      rewind(this%unit)
+      read(this%unit,'(a)') foundMessage
+      
+      @assertEqual('CRITICAL: name: hello', foundMessage)
+
+   end subroutine test_handleAboveThreshold
+   
+
+   @test
+   subroutine test_equal(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler(unit=this%unit)
+      b = StreamHandler(unit=this%unit)
+
+      @assertTrue(a == b)
+      @assertFalse(a /= b)
+
+   end subroutine test_equal
+
+
+   @test
+   subroutine test_equalDifferentLevel(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler(unit=this%unit)
+      call a%set_level(INFO)
+      b = StreamHandler(unit=this%unit)
+      call b%set_level(DEBUG)
+
+      @assertFalse(a == b)
+      @assertTrue(a /= b)
+
+   end subroutine test_equalDifferentLevel
+
+
+   @test
+   subroutine test_equalDifferentUnit(this)
+      class (Test_StreamHandler), intent(inout) :: this
+
+
+      type (StreamHandler) :: a
+      type (StreamHandler) :: b
+
+      a = StreamHandler()
+      b = StreamHandler(unit=this%unit)
+
+      @assertFalse(a == b)
+      @assertTrue(a /= b)
+
+   end subroutine test_equalDifferentUnit
+
+   ! This next test is to ensure that filtering beyond level checking
+   ! is working in the handler hierarchy.
+   @test
+   subroutine test_doFilter_off(this)
+      use iso_fortran_env, only: IOSTAT_END
+      use ConfigurableFilter_mod
+      class (Test_StreamHandler), intent(inout) :: this
+
+      integer :: iostatus
+      type (StreamHandler) :: handler
+      character(len=32) :: foundMessage
+      type (ConfigurableFilter) :: f
+      type (LogRecord) :: record
+      
+      handler = StreamHandler(unit=this%unit)
+      call handler%set_level(INFO)
+      f = ConfigurableFilter(.false.)
+      call handler%add_filter(f)
+      call initLogRecord(record, 'name', INFO, 'hello')
+      call handler%handle(record)
+
+      rewind(this%unit)
+      read(this%unit,'(a)', IOSTAT=iostatus) foundMessage
+      @assertEqual(IOSTAT_END, iostatus)
+
+   end subroutine test_doFilter_off
+
+
+end module Test_StreamHandler_mod

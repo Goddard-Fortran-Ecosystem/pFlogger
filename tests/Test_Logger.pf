@@ -1,34 +1,396 @@
 module Test_Logger_mod
-   use Logger_mod
    use pfunit_mod
+   use MockHandler_mod
+   use PFL_Logger_mod
+   use PFL_SeverityLevels_mod
+   use PFL_LogRecord_mod
    implicit none
 
    public :: Test_Logger
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
-      type (Logger) :: log
+      type (Logger) :: basicLogger
+      ! Here we use a mock handler that collects data in a 'mock buffer'
+      type (MockBuffer), pointer :: mockBuffer
    contains
-      procedure :: setUp     ! overides generic
-      procedure :: tearDown  ! overrides generic
+      procedure :: setUp    
+      procedure :: tearDown 
    end type Test_Logger
 
 contains
 
+
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      this%log = newLogger()
+      type (MockHandler) :: mockHandler_
+      
+      this%basicLogger = Logger('A', INFO)
+      allocate(this%mockBuffer)
+!!$      mockHandler_ = MockHandler(this%mockBuffer)
+!!$      print*,__FILE__,__LINE__,allocated(mockHandler_%fmt)
+
+!!$      call this%basicLogger%add_handler(mockHandler_)
+      call this%basicLogger%add_handler(MockHandler(this%mockBuffer))
    end subroutine setUp
+
 
    subroutine tearDown(this)
       class (Test_Logger), intent(inout) :: this
-   end subroutine tearDown
 
-! Placeholder: to be edited
+      ! Clean up mock handler's buffer 
+      if (allocated(this%mockBuffer%buffer)) deallocate(this%mockBuffer%buffer)
+      deallocate(this%mockBuffer)
+      
+   end subroutine tearDown
+   
+
 @Test
-   subroutine test_foo(this)
-      class (Test_Logger), intent(inout) :: this   
-   end subroutine test_foo
+   subroutine test_make_record(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_Logger), intent(inout) :: this
+      type(LogRecord) :: record
+      type (UnlimitedVector), target :: args
+      
+      call this%basicLogger%make_record(record, INFO, 'hi')
+      @assertEqual('hi', record%get_message())
+      
+      call this%basicLogger%make_record(record, INFO, 'hi', args=args)
+      @assertEqual('hi', record%get_message())
+
+   end subroutine test_make_record
+   
+
+@Test
+   subroutine test_isEnabledFor(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(DEBUG)
+      @assertTrue(this%basicLogger%isEnabledFor(DEBUG))
+
+      call this%basicLogger%set_level(INFO)
+      @assertTrue(this%basicLogger%isEnabledFor(INFO))
+      @assertFalse(this%basicLogger%isEnabledFor(DEBUG))
+
+      call this%basicLogger%set_level(WARNING)
+      @assertTrue(this%basicLogger%isEnabledFor(WARNING))
+      @assertFalse(this%basicLogger%isEnabledFor(INFO))
+
+      call this%basicLogger%set_level(ERROR)
+      @assertTrue(this%basicLogger%isEnabledFor(ERROR))
+      @assertFalse(this%basicLogger%isEnabledFor(WARNING))
+
+      call this%basicLogger%set_level(CRITICAL)
+      @assertTrue(this%basicLogger%isEnabledFor(CRITICAL))
+      @assertFalse(this%basicLogger%isEnabledFor(ERROR))
+
+      
+   end subroutine test_isEnabledFor
+
+   
+@Test
+   subroutine test_logBasic(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Log message with INFO level
+      call this%basicLogger%log(INFO, 'test_logBasic')
+      @assertEqual('test_logBasic', this%mockBuffer%buffer)
+
+      ! Log message with CRITICAL level
+      call this%basicLogger%log(CRITICAL, 'test_logBasic')
+      @assertEqual('test_logBasic', this%mockBuffer%buffer)
+
+   end subroutine test_logBasic
+
+
+@Test
+   subroutine test_logBelowThreshold(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Log a message at DEBUG level
+      call this%basicLogger%log(DEBUG, 'test_logBelowThreshold')
+      ! Message WILL NOT be logged because DEBUG<INFO
+      ! Thus buffer will be empty (unallocated)
+      @assertFalse(allocated(this%mockBuffer%buffer))
+
+   end subroutine test_logBelowThreshold
+
+   
+@Test
+   subroutine test_logAboveThreshold(this)
+      class (Test_Logger), intent(inout) :: this
+
+      ! Log a message at CRITICAL level
+      call this%basicLogger%log(CRITICAL, 'test_logAboveThreshold')
+      ! Message WILL be logged because CRITICAL>INFO
+      @assertEqual('test_logAboveThreshold', this%mockBuffer%buffer)
+
+   end subroutine test_logAboveThreshold
+
+   
+@Test
+   subroutine test_debug(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(DEBUG)
+      call this%basicLogger%debug('test_debug')
+      @assertEqual('test_debug', this%mockBuffer%buffer)
+
+   end subroutine test_debug
+   
+@Test
+   subroutine test_debugNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(INFO)
+      ! Here debug() will not emit message because DEBUG<INFO
+      call this%basicLogger%debug('test_debug')
+      @assertFalse(allocated(this%mockBuffer%buffer))
+
+   end subroutine test_debugNoEmit
+   
+@Test
+   subroutine test_info(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%info('test_info')
+      @assertEqual('test_info', this%mockBuffer%buffer)
+
+   end subroutine test_info
+
+
+@Test
+   subroutine test_infoNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(WARNING)
+      call this%basicLogger%info('test_info')
+      @assertFalse(allocated(this%mockBuffer%buffer))
+
+   end subroutine test_infoNoEmit
+
+
+
+@Test
+   subroutine test_warning(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(WARNING)
+      call this%basicLogger%warning('test_warning')
+      @assertEqual('test_warning', this%mockBuffer%buffer)
+
+   end subroutine test_warning
+   
+
+@Test
+   subroutine test_warningNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(ERROR)
+      call this%basicLogger%warning('test_warning')
+      @assertFalse(allocated(this%mockBuffer%buffer))
+
+   end subroutine test_warningNoEmit
+
+
+@Test
+   subroutine test_error(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(ERROR)
+      call this%basicLogger%error('test_error')
+      @assertEqual('test_error', this%mockBuffer%buffer)
+
+   end subroutine test_error
+    
+
+@Test
+   subroutine test_errorNoEmit(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(CRITICAL)
+      call this%basicLogger%error('test_error')
+      @assertFalse(allocated(this%mockBuffer%buffer))
+
+   end subroutine test_errorNoEmit
+
+
+@Test
+   subroutine test_critical(this)
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%set_level(CRITICAL)
+      call this%basicLogger%critical('test_critical')
+      @assertEqual('test_critical', this%mockBuffer%buffer)
+
+   end subroutine test_critical
+
+
+@test
+   subroutine test_remove_handler_missing(this)
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler) :: mockHandler_
+      type (MockBuffer) :: buffer
+
+      lgr = Logger('A')
+      mockHandler_ = MockHandler(buffer, level=DEBUG)
+
+      call lgr%remove_handler(mockHandler_)
+      @assertExceptionRaised('PFL::Logger%remove_handler() called - logger has no such handler.')
+
+   end subroutine test_remove_handler_missing
+
+
+@test
+   subroutine test_remove_handler_present(this)
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler), target :: mockHandler_
+      type (MockBuffer), pointer :: buffer
+
+      lgr = Logger('A')
+      allocate(buffer)
+      mockHandler_ = MockHandler(buffer, level=DEBUG)
+      call lgr%add_handler(mockHandler_)
+      call lgr%remove_handler(mockHandler_)
+      deallocate(buffer)
+      
+      ! no exception should have been thrown
+   end subroutine test_remove_handler_present
+
+
+@test
+   subroutine test_remove_handler_remove1st(this)
+      use PFL_AbstractHandlerPolyVector_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger) :: lgr
+      type (MockHandler) :: mockHandler_
+      type (MockBuffer), target :: bufferA
+      type (MockBuffer), target :: bufferB
+
+      lgr = Logger('A')
+!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+!!$      call lgr%add_handler(mockHandler_)
+      call lgr%add_handler(MockHandler(bufferA, level=DEBUG))
+!!$      mockHandler_ = MockHandler(bufferB, level=INFO)
+!!$      call lgr%add_handler(mockHandler_)
+      call lgr%add_handler(MockHandler(bufferB, level=INFO))
+!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
+!!$      call lgr%remove_handler(mockHandler_)
+      call lgr%remove_handler(Mockhandler(bufferA, level=DEBUG))
+
+      call lgr%info('Hello')
+      @assertEqual('Hello', bufferB%buffer)
+      @assertTrue(.not. allocated(bufferA%buffer))
+
+   end subroutine test_remove_handler_remove1st
+
+
+@test
+   subroutine test_add_handler_noDups(this)
+      use PFL_AbstractHandlerPolyVector_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (Logger), target :: lgr
+      type (MockBuffer), target :: bufA
+      type (MockBuffer), target :: bufB
+      type (HandlerVector), pointer :: handlers
+
+      lgr = Logger('A')
+
+      call lgr%add_handler(MockHandler(bufA))
+      call lgr%add_handler(MockHandler(bufB))
+
+      ! Duplicate - do not add.
+      call lgr%add_handler(MockHandler(bufA))
+
+      handlers => lgr%get_handlers()
+      @assertEqual(2, handlers%size())
+
+   end subroutine test_add_handler_noDups
+
+
+   ! This next test is to ensure that filtering beyond level checking
+   ! is working for loggers
+   @test
+   subroutine test_doFilter_off(this)
+      use iso_fortran_env, only: IOSTAT_END
+      use ConfigurableFilter_mod
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%add_filter(ConfigurableFilter(.false.))
+      call this%basicLogger%warning('hello')
+
+      @assertFalse(allocated(this%mockbuffer%buffer))
+
+   end subroutine test_doFilter_off
+
+   @test
+   subroutine test_doFilter_on(this)
+      use iso_fortran_env, only: IOSTAT_END
+      use ConfigurableFilter_mod
+      class (Test_Logger), intent(inout) :: this
+
+      call this%basicLogger%add_filter(ConfigurableFilter(.true.))
+      call this%basicLogger%warning('hello')
+
+      @assertEqual('hello', this%mockBuffer%buffer)
+
+   end subroutine test_doFilter_on
+
+   @test
+   subroutine test_extra(this)
+      use PFL_Formatter_mod, only: Formatter
+      use PFL_StringUnlimitedMap_mod
+      class (Test_Logger), intent(inout) :: this
+
+      type (map), target :: extra
+      type (Logger) :: lgr
+      type (MockHandler) :: h
+
+      call extra%insert('option', 1)
+
+      lgr = Logger('A')
+      h = MockHandler(this%mockBuffer)
+      call h%set_formatter(Formatter('%(option)i1.1'))
+      call lgr%add_handler(h)
+      call lgr%info('test_info', extra=extra)
+      @assertEqual('1', this%mockBuffer%buffer)
+
+   end subroutine test_extra
+
+   @test
+   subroutine test_getEffectiveLevel_self(this)
+      class (Test_Logger), intent(inout) :: this
+      type (Logger) :: lgr
+
+      lgr = Logger('A')
+      @assertEqual(NOTSET, lgr%getEffectiveLevel())
+
+      lgr = Logger('A')
+      call lgr%set_level(WARNING)
+      @assertEqual(WARNING, lgr%getEffectiveLevel())
+
+   end subroutine test_getEffectiveLevel_self
+
+   ! If logger level is NOTSET, search ancestors
+   ! for first higher severity ancestor.
+   @test
+   subroutine test_getEffectiveLevel_ancestor(this)
+      class (Test_Logger), intent(inout) :: this
+      type (Logger), target :: lgr_A, lgr_B
+
+      lgr_A = Logger('A')
+      lgr_B = Logger('A.B')
+      call lgr_B%set_parent(lgr_A)
+      call lgr_A%set_level(INFO)
+      @assertEqual(INFO, lgr_B%getEffectiveLevel())
+
+   end subroutine test_getEffectiveLevel_ancestor
 
 end module Test_Logger_mod
 

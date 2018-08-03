@@ -1,0 +1,24 @@
+include (${CMAKE_SOURCE_DIR}/cmake/modules/CheckFortranSource.cmake)
+
+CHECK_FORTRAN_SOURCE_COMPILE (
+  ${CMAKE_SOURCE_DIR}/cmake/modules/supportForAssumedType.F90
+  SUPPORT_FOR_ASSUMED_TYPE
+)
+
+CHECK_FORTRAN_SOURCE_COMPILE (
+  ${CMAKE_SOURCE_DIR}/cmake/modules/supportFor_c_loc_assumed_size.F90
+  SUPPORT_FOR_C_LOC_ASSUMED_SIZE
+)
+
+set (EXTRA1 "-DCOMPILE_DEFINITIONS:STRING=${MPI_Fortran_Flags}")
+set (EXTRA2 "-DINCLUDE_DIRECTORIES:LIST=${MPI_Fortran_INCLUDE_PATH}")
+set (EXTRA3 "-DLINK_LIBRARIES:LIST=${MPI_Fortran_LIBRARIES}")
+
+CHECK_FORTRAN_SOURCE_COMPILE (
+  ${CMAKE_SOURCE_DIR}/cmake/modules/support_for_mpi_alloc_mem_cptr.F90
+  SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
+  MPI
+ )
+
+
+

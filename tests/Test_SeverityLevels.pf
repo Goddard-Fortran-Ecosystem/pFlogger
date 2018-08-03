@@ -1,0 +1,47 @@
+module Test_SeverityLevels_mod
+   use pFUnit_mod
+   use PFL_SeverityLevels_mod
+   use iso_fortran_env
+   
+   implicit none
+
+contains
+
+   
+   @test
+   subroutine test_level_to_name()
+      
+      ! Level numeric values range from NOTSET=0 to CRITICAL=50
+      @assertEqual('NOTSET', level_to_name(NOTSET))
+      @assertEqual('CRITICAL', level_to_name(CRITICAL))
+
+   end subroutine test_level_to_name
+
+   @test
+   subroutine test_name_to_level()
+      
+      ! Level numeric values range from NOTSET=0 to CRITICAL=50
+      @assertEqual(NOTSET, name_to_level('NOTSET'))
+      @assertEqual(DEBUG, name_to_level('DEBUG'))
+      @assertEqual(INFO, name_to_level('INFO'))
+      @assertEqual(WARNING, name_to_level('WARNING'))
+      @assertEqual(ERROR, name_to_level('ERROR'))
+      @assertEqual(CRITICAL, name_to_level('CRITICAL'))
+
+   end subroutine test_name_to_level
+
+
+   @test
+   subroutine test_level_to_name_unnamedLevel()
+      
+      character(len=:), allocatable :: levelName
+
+      ! The following should throw an exception, because
+      ! it is a level that is not named.
+      levelName = level_to_name(CRITICAL + 100)
+      ! Catch it here:
+      @assertExceptionRaised('PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.')
+      
+   end subroutine test_level_to_name_unnamedLevel
+
+end module Test_SeverityLevels_mod

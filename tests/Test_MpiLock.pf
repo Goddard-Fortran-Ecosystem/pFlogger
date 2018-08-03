@@ -1,0 +1,118 @@
+module Test_MpiLock_mod
+   use pfunit_mod
+   use PFL_MpiLock_mod
+   use mpi
+   use MockMpi_mod
+   implicit none
+
+contains
+
+   ! Testing locks is a bit subtle because the effects are indirect.
+   ! We use the mock layer to simulate the conditions in which one
+   ! process has already aquired (but not released) the lock.
+   ! We need acquire() on 'this' process to nonetheless return
+   ! so that we can probe the status.
+   
+   @test
+   subroutine test_acquire_wait()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+      call set_MPI_Get([.true.])
+      call set_Mpi_Recv(is_called=.true.)
+
+      lock = MpiLock(comm)
+
+      call lock%acquire()
+      call verify()
+      
+   end subroutine test_acquire_wait
+
+   @test
+   subroutine test_acquire_nowait()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+
+      call set_MPI_Get([.false.])
+      lock = MpiLock(comm)
+
+      call lock%acquire()
+      call verify()
+      
+   end subroutine test_acquire_nowait
+   
+
+   @test
+   subroutine test_release_nowaiter()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+      call set_MPI_Get([.false.])
+      call set_MPI_Get([.false.],2)
+
+      lock = MpiLock(comm)
+      call lock%acquire()
+      call lock%release()
+      
+      call verify()
+      
+   end subroutine test_release_nowaiter
+
+
+   @test
+   subroutine test_release_waiter()
+      type (MpiLock) :: lock
+      real, parameter :: DT = 0.01 !seconds
+      integer, parameter :: LOCK_TAG = 10
+
+      integer :: comm, ierr
+      integer :: buffer = 1
+      integer :: status(MPI_STATUS_SIZE)
+      logical :: flag
+      
+      ! configure the mock layer
+      call set_mpi_rank(1)
+      call set_mpi_size(2)
+      call set_MPI_Get([.false.])
+      call set_MPI_Get([.true.], 2)
+      call set_MPI_Recv(is_called = .false.)
+      call set_MPI_Send(is_called = .true.)
+
+      lock = MpiLock(comm)
+      call lock%acquire()
+      call lock%release()
+      
+      call verify()
+      
+   end subroutine test_release_waiter
+   
+end module Test_MpiLock_mod

@@ -1,0 +1,61 @@
+module Test_LogRecord_mod
+   use pFUnit_mod
+   use PFL_SeverityLevels_mod
+   use PFL_LogRecord_mod
+   use iso_fortran_env
+   
+   implicit none
+
+   public :: Test_LogRecord
+   
+@TestCase
+   type, extends(TestCase) :: Test_LogRecord
+      type (LogRecord) :: record
+   contains
+      procedure :: setUp   
+      procedure :: tearDown 
+   end type Test_LogRecord
+
+contains
+
+   
+   subroutine setUp(this)
+      class (Test_LogRecord), intent(inout) :: this
+
+      
+   end subroutine setUp
+
+   
+   subroutine tearDown(this)
+      class (Test_LogRecord), intent(inout) :: this
+
+   end subroutine tearDown
+
+
+@Test
+   subroutine test_intRecord(this)
+      class (Test_LogRecord), intent(inout) :: this
+      
+      call initLogRecord(this%record, 'A', INFO, 'Hello')
+!!$      this%record = LogRecord('A', INFO, 'Hello')
+      @assertEqual('A', this%record%get_name())
+      @assertEqual(INFO, this%record%get_level())
+      @assertEqual('Hello', this%record%get_message())
+      
+   end subroutine test_intRecord
+
+@Test
+   subroutine test_args(this)
+      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      class (Test_LogRecord), intent(inout) :: this
+      type (UnlimitedVector) :: args
+      
+      call initLogRecord(this%record, 'A', INFO, 'Hello')
+!!$      this%record = LogRecord('A', INFO, 'Hello')
+      @assertEqual('A', this%record%get_name())
+      @assertEqual(INFO, this%record%get_level())
+      @assertEqual('Hello', this%record%get_message())
+      
+   end subroutine test_args
+
+end module Test_LogRecord_mod
