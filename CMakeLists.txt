@@ -69,17 +69,16 @@ if (MPI MATCHES YES)
   endif ()
 endif ()
 
-# Compiler flags
-include(setCompilerFlags)
 
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
+set(PFUNIT "" CACHE PATH "(optional) path to installed testing framework")
 if (PFUNIT)
    include_directories(${PFUNIT}/mod)
    include_directories(${PFUNIT}/include)
    link_directories(${PFUNIT}/lib)
    message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
-  add_subdirectory(tests EXCLUDE_FROM_ALL)
+   add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
 add_subdirectory(examples EXCLUDE_FROM_ALL)
