@@ -74,8 +74,8 @@ include_directories (${FTL}/include)
 include_directories (${FTL}/mod)
 add_library (${THIS} STATIC ${SRCS})
 
-INSTALL(TARGETS ${THIS} DESTINATION lib)
-INSTALL(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
+install(TARGETS ${THIS} DESTINATION lib)
+install(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
 
 
 

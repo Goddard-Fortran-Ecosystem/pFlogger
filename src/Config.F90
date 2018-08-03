@@ -775,7 +775,6 @@ contains
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
             levelName = loggerDict%toString('root_level', default=levelName)
-            print*,'Root level name:  ' // levelName
             found=.true.
          else
             ! same as on other PEs
