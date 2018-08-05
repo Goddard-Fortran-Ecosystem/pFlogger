@@ -97,7 +97,8 @@ contains
       integer, optional, intent(in) :: global_communicator
 
       character(len=:), allocatable :: class_name
-
+      type (Config) :: extra_
+      
       class_name = dict%toString('class', default='Formatter')
 
       select case (class_name)
@@ -105,7 +106,11 @@ contains
          call build_basic_formatter(fmtr, dict)
 #ifdef _LOGGER_USE_MPI         
       case ('MpiFormatter')
-         call build_mpi_formatter(fmtr, dict, extra=extra)
+         call extra_%deepcopy(extra)
+         if (present(global_communicator)) then
+            call extra_%insert('_GLOBAL_COMMUNICATOR', global_communicator)
+         end if
+         call build_mpi_formatter(fmtr, dict, extra=extra_)
 #endif
       end select
 
@@ -164,11 +169,11 @@ contains
       type (Map) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
 
-      communicator_name_list = dict%toString('comms:', found=found)
+      communicator_name_list = dict%toString('comms', found=found)
       if (found) then
          allocate(comms(0))
          n = len_trim(communicator_name_list)
-         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
+         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list(n:n) /= ']') then
             call throw("PFL::Config::build_mpi_formatter() - misformed list of communicators.")
             return
          end if
@@ -187,7 +192,7 @@ contains
             end if
 
             select case (name)
-            case ('MPI_COMM_WORLD','LOGGGER_COMM')
+            case ('MPI_COMM_WORLD','COMM_LOGGER')
                comms = [comms, extra%toInteger('_GLOBAL_COMMUNICATOR')]
             case default
                if (extra%count(name) == 1) then
