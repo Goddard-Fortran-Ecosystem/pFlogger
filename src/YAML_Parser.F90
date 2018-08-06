@@ -149,7 +149,7 @@ module PFL_YAML_Parser_mod
   integer, parameter :: DONE = 1
   integer, parameter :: FAIL = 2
 
-  integer, parameter :: MAX_LEN_LINE = 80
+  integer, parameter :: MAX_LEN_LINE = 255
 
 
 contains
