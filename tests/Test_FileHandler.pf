@@ -103,7 +103,7 @@ contains
       type (FileHandler) :: h
       
       ! Create a logging format
-      fmt = Formatter('%(levelName)a~- %(name)a~- %(message)a')
+      fmt = Formatter('%(level_name)a~- %(name)a~- %(message)a')
 
       h = FileHandler(LOG_FILE)
       call h%set_formatter(fmt)

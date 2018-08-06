@@ -231,7 +231,7 @@ contains
       call filters%insert('filterB',Filter('B'))
 
       call formatters%insert('formatterA', Formatter('%(message)a'))
-      call formatters%insert('formatterB', Formatter('%(levelName)a~: %(message)a'))
+      call formatters%insert('formatterB', Formatter('%(level_name)a~: %(message)a'))
 
       open(newunit=unit, file='test_build_handler.txt', status='unknown', &
            & form='formatted')

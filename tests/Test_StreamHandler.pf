@@ -82,7 +82,7 @@ contains
       call args%push_back(1)
 
       ! Create a logging format
-      fmt = Formatter('%(levelName)a~: %(name)a~: %(message)a')
+      fmt = Formatter('%(level_name)a~: %(name)a~: %(message)a')
 
       handler = StreamHandler(unit=this%unit)
       call handler%set_formatter(fmt)
@@ -107,7 +107,7 @@ contains
 
       type (LogRecord) :: record
       type (StringUnlimitedMap) :: extra
-      character(len=:), allocatable :: levelName
+      character(len=:), allocatable :: level_name
       type (Formatter) :: f
 
       type (UnlimitedVector), target :: empty
@@ -120,7 +120,7 @@ contains
 
       call mockdf%fillDateAndTime(record)
       f = Formatter(&
-           fmt='%(asctime)a %(levelName)a~: %(name)a~: %(message)a', &
+           fmt='%(asctime)a %(level_name)a~: %(name)a~: %(message)a', &
            datefmt='%(HH)i2.2~-%(MM)i2.2~-%(SS)i2.2')
 
       handler = StreamHandler(unit=this%unit)

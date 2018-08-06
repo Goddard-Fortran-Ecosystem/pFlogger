@@ -23,7 +23,15 @@
    type is (logical)
       include 'write_to_buffer.inc'
    type is (character(len=*))
-      include 'write_to_buffer.inc'
+      if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
+         if (scalar) then
+            write(buffer%buffer,'(a,a1)',iostat=iostat) arg, EOT ! avoid leading space
+         else
+            write(buffer%buffer,*,iostat=iostat) arg, EOT ! avoid leading space
+         end if
+      else
+         write(buffer%buffer,fmt,iostat=iostat) arg
+      end if
    class default
       intrinsic = .false.
    end select

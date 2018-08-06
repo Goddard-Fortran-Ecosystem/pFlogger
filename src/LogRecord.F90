@@ -70,7 +70,7 @@ contains
       type (StringUnlimitedMap), target, optional, intent(in) :: extra
 
       type (LogRecord) :: rec
-      character(len=:), allocatable :: levelName
+      character(len=:), allocatable :: level_name
       
       rec%name = name
       rec%level = level
@@ -189,7 +189,7 @@ contains
       type (UnlimitedVector), optional, target, intent(in) :: args
       type (StringUnlimitedMap), optional, target, intent(in) :: extra
 
-      character(len=:), allocatable :: levelName
+      character(len=:), allocatable :: level_name
       
       rec%name = name
       rec%level = level
