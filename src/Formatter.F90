@@ -19,12 +19,16 @@
 !> attributes in a LogRecord are described by:
 !>
 !> %(name)a            Name of the logger
-!> %(short_name)a       Short name of the logger
-!> %(level_name)a       Text logging level for the message ("DEBUG", "INFO",
+!> %(short_name)a      Short name of the logger
+!> %(level_number)i    Integer severity level of the message. (DEBUG, INFO, ...)
+!> %(level_name)a      Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
 !> %(asctime)a         Textual time when the LogRecord was created
 !> %(message)a         The result of record%get_message(), computed just as
 !>                        the record is emitted
+!> %(line)i            Integer line number of recorded in the record.
+!> %(file)a            Text file recorded in the record.
+!> %(basename)a        Text basename of file recorded in the record.
 !
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
@@ -52,16 +56,13 @@ module PFL_Formatter_mod
       logical :: fmt_uses_level_name
       logical :: fmt_uses_ascTime
       logical :: fmt_uses_simTime
+      logical :: fmt_uses_line
+      logical :: fmt_uses_file
+      logical :: fmt_uses_basename
    contains
       procedure :: format
       procedure :: format_time
-      procedure :: uses_message
-      procedure :: uses_name
-      procedure :: uses_short_name
-      procedure :: uses_level_number
-      procedure :: uses_level_name
-      procedure :: uses_ascTime
-      procedure :: uses_simTime
+      procedure :: uses_keyword
       procedure, private :: fill_extra_keywords
    end type Formatter
 
@@ -115,13 +116,16 @@ contains
          f%datefmt = datefmt
       end if
 
-      f%fmt_uses_message = f%uses_message()
-      f%fmt_uses_name = f%uses_name()
-      f%fmt_uses_short_name = f%uses_short_name()
-      f%fmt_uses_level_number = f%uses_level_number()
-      f%fmt_uses_level_name = f%uses_level_name()
-      f%fmt_uses_ascTime = f%uses_ascTime()
-      f%fmt_uses_simTime = f%uses_simTime()
+      f%fmt_uses_message = f%uses_keyword('message')
+      f%fmt_uses_name = f%uses_keyword('name')
+      f%fmt_uses_short_name = f%uses_keyword('short_name')
+      f%fmt_uses_level_number = f%uses_keyword('level_number')
+      f%fmt_uses_level_name = f%uses_keyword('level_name')
+      f%fmt_uses_ascTime = f%uses_keyword('asctime')
+      f%fmt_uses_simTime = f%uses_keyword('simtime')
+      f%fmt_uses_line = f%uses_keyword('line')
+      f%fmt_uses_file = f%uses_keyword('file')
+      f%fmt_uses_basename = f%uses_keyword('basename')
 
       call f%p%parse(f%fmt)
 
@@ -221,7 +225,7 @@ contains
          block
            character(len=:), allocatable :: name, short_name
            name = record%get_name()
-           short_name = name(scan(name, '.', back=.true.) + 1:)
+           short_name = name(scan(name, '.', back=.true.)+1:)
            call extra%insert('short_name', String(short_name))
          end block
       end if
@@ -258,9 +262,34 @@ contains
          call extra%insert('simtime', String(simtime))
       end if
 
+      if (this%fmt_uses_line) then
+         call extra%insert('line', record%get_line())
+      end if
+
+      if (this%fmt_uses_file) then
+         call extra%insert('file', String(record%get_file()))
+      end if
+
+      if (this%fmt_uses_basename) then
+         call extra%insert('basename', String(record%get_basename()))
+      end if
+
       logMessage = FormatString(this%p, extra)
-    
+
    end function format
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! uses_keyword
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the keyword
+   !---------------------------------------------------------------------------
+   logical function uses_keyword(this, keyword)
+      class (Formatter), intent(in) :: this
+      character(*), intent(in) :: keyword
+      uses_keyword = (index(this%fmt,'%('//keyword//')') > 0)
+   end function uses_keyword
 
 
 
@@ -305,14 +334,14 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! uses_level
+   ! uses_level_number
    !
    ! DESCRIPTION: 
    ! Check if the format uses the level
    !---------------------------------------------------------------------------
    logical function uses_level_number(this)
       class (Formatter), intent(in) :: this
-      uses_level_number = (index(this%fmt,'%(level)') > 0)
+      uses_level_number = (index(this%fmt,'%(level_number)') > 0)
    end function uses_level_number
 
    !---------------------------------------------------------------------------  
@@ -340,19 +369,6 @@ contains
       uses_ascTime = (index(this%fmt,'%(asctime)') > 0)
    end function uses_ascTime
    
-   !---------------------------------------------------------------------------  
-   ! FUNCTION: 
-   ! uses_simTime
-   !
-   ! DESCRIPTION: 
-   ! Check if the format uses the creation time of the record.
-   !---------------------------------------------------------------------------
-   logical function uses_simTime(this)
-      class (Formatter), intent(in) :: this
-      uses_simTime = (index(this%fmt,'%(simtime)') > 0)
-   end function uses_simTime
-
-
 
    subroutine fill_extra_keywords(this, extra)
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
