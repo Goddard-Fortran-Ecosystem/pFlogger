@@ -24,13 +24,17 @@ module PFL_LogRecord_mod
    public :: LogRecord
    public :: initLogRecord
 
+   integer, public, parameter :: UNKNOWN_LINE = -1
+
    type :: LogRecord
 !      private
       integer :: level
+      integer :: line = UNKNOWN_LINE
       character(len=:), allocatable :: name
       character(len=:), allocatable :: message_format
       character(len=:), allocatable :: str
       character(len=:), allocatable :: fmt
+      character(len=:), allocatable :: file
       type (UnlimitedVector), pointer :: args => null()
       type (StringUnlimitedMap), pointer :: extra => null()
       integer :: time_fields(8)
@@ -39,6 +43,9 @@ module PFL_LogRecord_mod
       procedure :: get_level
       procedure :: get_level_name
       procedure :: get_message
+      procedure :: get_line
+      procedure :: get_file
+      procedure :: get_basename
       procedure, nopass :: fill_date_and_time
    end type LogRecord
 
@@ -176,19 +183,72 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
+   ! get_line
+   !
+   ! DESCRIPTION: 
+   ! Get the level associated with this log record. This is needed to 'handle'
+   ! a message (see AbstractHandler).
+   !---------------------------------------------------------------------------
+   integer function get_line(this) result(line)
+      class (LogRecord), intent(in) :: this
+      line = this%line
+   end function get_line
+
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! get_file
+   !
+   ! DESCRIPTION: 
+   ! Get the file name associated with this log record. This is needed to 'handle'
+   ! a message (see AbstractHandler).
+   !---------------------------------------------------------------------------
+   function get_file(this) result(file)
+      character(:), allocatable :: file
+      class (LogRecord), intent(in) :: this
+      if (allocated(this%file)) then
+         file = this%file
+      else
+         file = '<unknown-file>'
+      end if
+   end function get_file
+   
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! get_basename
+   !
+   ! DESCRIPTION: 
+   ! Get the basename of the file associated with this log record. This
+   ! is needed to 'handle' a message (see AbstractHandler).
+   !---------------------------------------------------------------------------
+   function get_basename(this) result(basename)
+      character(:), allocatable :: basename
+      class (LogRecord), intent(in) :: this
+      
+      character(1), parameter :: DIR_SEPARATOR = '/' ! at least on Unix
+      
+      basename = this%file(scan(this%file,DIR_SEPARATOR,back=.true.)+1:)
+   end function get_basename
+    
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
    ! initLogRecord
    !
    ! DESCRIPTION:
    ! Initialize a logging record with interesting information.
    !---------------------------------------------------------------------------
-   subroutine initLogRecord(rec, name, level, message_format, args, extra)
+   subroutine initLogRecord(rec, name, level, message_format, args, extra, line, file)
       type (LogRecord), intent(out) :: rec
       character(len=*), intent(in) :: name
       integer, intent(in) :: level
       character(len=*), intent(in) :: message_format
       type (UnlimitedVector), optional, target, intent(in) :: args
       type (StringUnlimitedMap), optional, target, intent(in) :: extra
-
+      integer, optional, intent(in) :: line
+      character(*), optional, intent(in) :: file
+      
       character(len=:), allocatable :: level_name
       
       rec%name = name
@@ -205,6 +265,18 @@ contains
          rec%extra => extra
       else
          rec%extra => EMPTY_MAP
+      end if
+
+      if (present(line)) then
+         rec%line = line
+      else
+         rec%line = UNKNOWN_LINE
+      end if
+
+      if (present(file)) then
+         rec%file = file
+      else
+         ! filename component remains unallocated
       end if
 
       call fill_date_and_time(rec)

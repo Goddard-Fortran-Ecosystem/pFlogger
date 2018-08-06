@@ -182,7 +182,7 @@ contains
    end subroutine test_format_with_extra
    
 @test
-   subroutine test_format_with_shortName(this)
+   subroutine test_format_with_short_name(this)
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
@@ -194,7 +194,54 @@ contains
       f = Formatter('%(short_name)')
       logMessage = f%format(this%rec)
       @assertEqual('D', logMessage)
-   end subroutine test_format_with_shortName
+   end subroutine test_format_with_short_name
+   
+@test
+   subroutine test_format_with_line_number(this)
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
+      type (StringUnlimitedMap) :: dictionary
+      type (Formatter) :: f
+
+      call initLogRecord(this%rec, 'name', INFO, 'message', line=15)
+
+      f = Formatter('Line: %(line)i5')
+      logMessage = f%format(this%rec)
+      @assertEqual('Line:    15', logMessage)
+   end subroutine test_format_with_line_number
+   
+
+@test
+   subroutine test_format_with_filename(this)
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
+      type (StringUnlimitedMap) :: dictionary
+      type (Formatter) :: f
+
+      call initLogRecord(this%rec, 'name', INFO, 'message', file='foo.F90')
+
+      f = Formatter('File: %(file)a20')
+      logMessage = f%format(this%rec)
+      @assertEqual('File:              foo.F90', logMessage)
+   end subroutine test_format_with_filename
+   
+@test
+   subroutine test_format_with_basename(this)
+      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      class (Test_Formatter), intent(inout) :: this      
+      character(len=:), allocatable :: logMessage
+      type (StringUnlimitedMap) :: dictionary
+      type (Formatter) :: f
+
+      call initLogRecord(this%rec, 'name', INFO, 'message', file='bar/cat/foo.F90')
+
+      f = Formatter('File: %(basename)a20')
+      logMessage = f%format(this%rec)
+      @assertEqual('File:              foo.F90', logMessage)
+   end subroutine test_format_with_basename
+   
    
 
 end module Test_Formatter_mod
