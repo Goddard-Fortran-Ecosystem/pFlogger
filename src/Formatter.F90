@@ -19,7 +19,8 @@
 !> attributes in a LogRecord are described by:
 !>
 !> %(name)a            Name of the logger
-!> %(levelname)a       Text logging level for the message ("DEBUG", "INFO",
+!> %(short_name)a       Short name of the logger
+!> %(level_name)a       Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
 !> %(asctime)a         Textual time when the LogRecord was created
 !> %(message)a         The result of record%get_message(), computed just as
@@ -46,8 +47,9 @@ module PFL_Formatter_mod
       type (FormatParser) :: p
       logical :: fmt_uses_message
       logical :: fmt_uses_name
-      logical :: fmt_uses_level
-      logical :: fmt_uses_levelName
+      logical :: fmt_uses_short_name
+      logical :: fmt_uses_level_number
+      logical :: fmt_uses_level_name
       logical :: fmt_uses_ascTime
       logical :: fmt_uses_simTime
    contains
@@ -55,8 +57,9 @@ module PFL_Formatter_mod
       procedure :: format_time
       procedure :: uses_message
       procedure :: uses_name
-      procedure :: uses_level
-      procedure :: uses_levelName
+      procedure :: uses_short_name
+      procedure :: uses_level_number
+      procedure :: uses_level_name
       procedure :: uses_ascTime
       procedure :: uses_simTime
       procedure, private :: fill_extra_keywords
@@ -114,8 +117,9 @@ contains
 
       f%fmt_uses_message = f%uses_message()
       f%fmt_uses_name = f%uses_name()
-      f%fmt_uses_level = f%uses_level()
-      f%fmt_uses_levelName = f%uses_levelName()
+      f%fmt_uses_short_name = f%uses_short_name()
+      f%fmt_uses_level_number = f%uses_level_number()
+      f%fmt_uses_level_name = f%uses_level_name()
       f%fmt_uses_ascTime = f%uses_ascTime()
       f%fmt_uses_simTime = f%uses_simTime()
 
@@ -208,20 +212,29 @@ contains
       if (this%fmt_uses_name) then
          block
            character(len=:), allocatable :: name
-           name= record%get_name()
+           name = record%get_name()
            call extra%insert('name', String(name))
          end block
       end if
       
-      if (this%fmt_uses_level) then
-         call extra%insert('level', record%get_level())
+      if (this%fmt_uses_short_name) then
+         block
+           character(len=:), allocatable :: name, short_name
+           name = record%get_name()
+           short_name = name(scan(name, '.', back=.true.) + 1:)
+           call extra%insert('short_name', String(short_name))
+         end block
+      end if
+      
+      if (this%fmt_uses_level_number) then
+         call extra%insert('level_number', record%get_level())
       end if
 
-      if (this%fmt_uses_levelName) then
+      if (this%fmt_uses_level_name) then
          block
            character(len=:), allocatable :: name
            name = record%get_level_name()
-         call extra%insert('levelName', String(name))
+         call extra%insert('level_name', String(name))
        end block
       end if
 
@@ -256,7 +269,7 @@ contains
    ! uses_message
    !
    ! DESCRIPTION: 
-   ! Check if the format uses the message (probably always yes)
+   ! Check if the format uses the message (probably always true)
    !---------------------------------------------------------------------------
    logical function uses_message(this)
       class (Formatter), intent(in) :: this
@@ -269,7 +282,7 @@ contains
    ! uses_name
    !
    ! DESCRIPTION: 
-   ! Check if the format uses the message (probably always yes)
+   ! Check if the format uses the name
    !---------------------------------------------------------------------------
    logical function uses_name(this)
       class (Formatter), intent(in) :: this
@@ -279,27 +292,40 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! uses_level
+   ! uses_short_name
    !
    ! DESCRIPTION: 
-   ! Check if the format uses the message (probably always yes)
+   ! Check if the format uses the short_name
    !---------------------------------------------------------------------------
-   logical function uses_level(this)
+   logical function uses_short_name(this)
       class (Formatter), intent(in) :: this
-      uses_level = (index(this%fmt,'%(level)') > 0)
-   end function uses_level
+      uses_short_name = (index(this%fmt,'%(short_name)') > 0)
+   end function uses_short_name
+
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! uses_levelName
+   ! uses_level
    !
    ! DESCRIPTION: 
-   ! Check if the format uses the message (probably always yes)
+   ! Check if the format uses the level
    !---------------------------------------------------------------------------
-   logical function uses_levelName(this)
+   logical function uses_level_number(this)
       class (Formatter), intent(in) :: this
-      uses_levelName = (index(this%fmt,'%(levelName)') > 0)
-   end function uses_levelName
+      uses_level_number = (index(this%fmt,'%(level)') > 0)
+   end function uses_level_number
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! uses_level_name
+   !
+   ! DESCRIPTION: 
+   ! Check if the format uses the level_name
+   !---------------------------------------------------------------------------
+   logical function uses_level_name(this)
+      class (Formatter), intent(in) :: this
+      uses_level_name = (index(this%fmt,'%(level_name)') > 0)
+   end function uses_level_name
 
 
    !---------------------------------------------------------------------------  

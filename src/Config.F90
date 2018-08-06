@@ -97,7 +97,8 @@ contains
       integer, optional, intent(in) :: global_communicator
 
       character(len=:), allocatable :: class_name
-
+      type (Config) :: extra_
+      
       class_name = dict%toString('class', default='Formatter')
 
       select case (class_name)
@@ -105,7 +106,11 @@ contains
          call build_basic_formatter(fmtr, dict)
 #ifdef _LOGGER_USE_MPI         
       case ('MpiFormatter')
-         call build_mpi_formatter(fmtr, dict, extra=extra)
+         call extra_%deepcopy(extra)
+         if (present(global_communicator)) then
+            call extra_%insert('_GLOBAL_COMMUNICATOR', global_communicator)
+         end if
+         call build_mpi_formatter(fmtr, dict, extra=extra_)
 #endif
       end select
 
@@ -164,11 +169,11 @@ contains
       type (Map) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
 
-      communicator_name_list = dict%toString('comms:', found=found)
+      communicator_name_list = dict%toString('comms', found=found)
       if (found) then
          allocate(comms(0))
          n = len_trim(communicator_name_list)
-         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
+         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list(n:n) /= ']') then
             call throw("PFL::Config::build_mpi_formatter() - misformed list of communicators.")
             return
          end if
@@ -187,7 +192,7 @@ contains
             end if
 
             select case (name)
-            case ('MPI_COMM_WORLD','LOGGGER_COMM')
+            case ('MPI_COMM_WORLD','COMM_LOGGER')
                comms = [comms, extra%toInteger('_GLOBAL_COMMUNICATOR')]
             case default
                if (extra%count(name) == 1) then
@@ -479,17 +484,17 @@ contains
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
 
-         character(len=:), allocatable :: levelName
+         character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
 
-         levelName = handlerDict%toString('level', default='NOTSET')
+         level_name = handlerDict%toString('level', default='NOTSET')
          ! Try as integer
-         read(levelName,*, iostat=iostat) level
+         read(level_name,*, iostat=iostat) level
 
          ! If that failed - interpret as a name from SeverityLevels.
          if (iostat /= 0) then
-            level = name_to_level(levelName)
+            level = name_to_level(level_name)
          end if
 
          call h%set_level(level)
@@ -757,7 +762,7 @@ contains
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
 
-         character(len=:), allocatable :: levelName
+         character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
          logical :: found
@@ -766,7 +771,7 @@ contains
          character(len=:), allocatable :: communicator_name
 #endif
          
-         levelName = loggerDict%toString('level', found=found,default='NOTSET')
+         level_name = loggerDict%toString('level', found=found,default='NOTSET')
 #ifdef _LOGGER_USE_MPI
          communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
          comm = get_communicator(communicator_name, extra=extra)
@@ -774,8 +779,7 @@ contains
          root = loggerDict%toInteger('root:', default=0)
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            levelName = loggerDict%toString('root_level', default=levelName)
-            print*,'Root level name:  ' // levelName
+            level_name = loggerDict%toString('root_level', default=level_name)
             found=.true.
          else
             ! same as on other PEs
@@ -783,9 +787,9 @@ contains
 #endif
          if (found) then
             ! Try as integer
-            read(levelName,*, iostat=iostat) level
+            read(level_name,*, iostat=iostat) level
             if (iostat /= 0) then
-               level = name_to_level(levelName)
+               level = name_to_level(level_name)
             end if
             call lgr%set_level(level)
          end if

@@ -123,7 +123,7 @@ contains
       call extra%insert('cat',String('tabby'))
 
       found = formatString('%(dog) %(cat)', extra)
-      expected = ' fido  tabby'
+      expected = 'fido tabby'
       @assertEqual(expected, found)
 
    end subroutine test_defaultFormat_keyword

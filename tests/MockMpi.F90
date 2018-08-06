@@ -321,6 +321,17 @@ subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
 end subroutine MPI_Alloc_mem_cptr
 
 
+! just a stub
+subroutine MPI_Comm_free(comm, ierror)
+   use MockMpi_mod
+   use mpi_base
+   integer, intent(in) :: comm
+   integer ierror
+
+   ierror = MPI_SUCCESS
+
+end subroutine MPI_Comm_free
+
 subroutine MPI_Free_mem(base, ierror)
    use MockMpi_mod
    use mpi_base

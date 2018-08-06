@@ -19,7 +19,7 @@
 !> attributes in a LogRecord are described by:
 !>
 !> %(name)a            Name of the logger
-!> %(levelname)a       Text logging level for the message ("DEBUG", "INFO",
+!> %(level_name)a       Text logging level for the message ("DEBUG", "INFO",
 !>                        "WARNING", "ERROR", "CRITICAL")
 !> %(asctime)a         Textual time when the LogRecord was created
 !> %(message)a         The result of record.getMessage(), computed just as
