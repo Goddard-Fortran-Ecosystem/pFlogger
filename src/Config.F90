@@ -484,17 +484,17 @@ contains
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
 
-         character(len=:), allocatable :: levelName
+         character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
 
-         levelName = handlerDict%toString('level', default='NOTSET')
+         level_name = handlerDict%toString('level', default='NOTSET')
          ! Try as integer
-         read(levelName,*, iostat=iostat) level
+         read(level_name,*, iostat=iostat) level
 
          ! If that failed - interpret as a name from SeverityLevels.
          if (iostat /= 0) then
-            level = name_to_level(levelName)
+            level = name_to_level(level_name)
          end if
 
          call h%set_level(level)
@@ -762,7 +762,7 @@ contains
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
 
-         character(len=:), allocatable :: levelName
+         character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
          logical :: found
@@ -771,7 +771,7 @@ contains
          character(len=:), allocatable :: communicator_name
 #endif
          
-         levelName = loggerDict%toString('level', found=found,default='NOTSET')
+         level_name = loggerDict%toString('level', found=found,default='NOTSET')
 #ifdef _LOGGER_USE_MPI
          communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
          comm = get_communicator(communicator_name, extra=extra)
@@ -779,7 +779,7 @@ contains
          root = loggerDict%toInteger('root:', default=0)
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            levelName = loggerDict%toString('root_level', default=levelName)
+            level_name = loggerDict%toString('root_level', default=level_name)
             found=.true.
          else
             ! same as on other PEs
@@ -787,9 +787,9 @@ contains
 #endif
          if (found) then
             ! Try as integer
-            read(levelName,*, iostat=iostat) level
+            read(level_name,*, iostat=iostat) level
             if (iostat /= 0) then
-               level = name_to_level(levelName)
+               level = name_to_level(level_name)
             end if
             call lgr%set_level(level)
          end if

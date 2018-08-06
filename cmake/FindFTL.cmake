@@ -40,6 +40,7 @@ else()
     BUILD_COMMAND make
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${FTL_INSTALL_DIR}  -DCMAKE_INSTALL_MESSAGE=LAZY
     INSTALL_COMMAND make install)
+
 endif()
 
 #-------------------------

@@ -34,11 +34,11 @@ contains
    @test
    subroutine test_level_to_name_unnamedLevel()
       
-      character(len=:), allocatable :: levelName
+      character(len=:), allocatable :: level_name
 
       ! The following should throw an exception, because
       ! it is a level that is not named.
-      levelName = level_to_name(CRITICAL + 100)
+      level_name = level_to_name(CRITICAL + 100)
       ! Catch it here:
       @assertExceptionRaised('PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.')
       

@@ -71,8 +71,7 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/tests
    ${CMAKE_BINARY_DIR}/src
    ${CMAKE_BINARY_DIR}/src/include
-   ${FTL}/include
-   ${FTL}/mod
+   ${FTL_INSTALL_DIR}/include
    ${PFUNIT}/include
 )
 

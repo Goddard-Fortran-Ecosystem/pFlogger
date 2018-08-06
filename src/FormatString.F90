@@ -202,6 +202,7 @@ contains
       type (DynamicBuffer) :: buffer
       integer :: iostat
       logical :: intrinsic
+      logical, parameter :: SCALAR = .true.
 
       iostat = -1
       call buffer%allocate()
@@ -210,7 +211,7 @@ contains
          select type (arg)
          type is (String)
             if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer,*,iostat=iostat) arg%get(), achar(003)
+               write(buffer%buffer(1),'(a,a1)',iostat=iostat) arg%get(), achar(003)
             else
                write(buffer%buffer,fmt,iostat=iostat) arg%get()
             end if
@@ -277,6 +278,7 @@ contains
       integer, intent(inout) :: iostat
 
       logical :: intrinsic
+      logical, parameter :: SCALAR = .false.
 
       include 'write_if_intrinsic.inc'
       
@@ -305,6 +307,7 @@ contains
       integer, intent(inout) :: iostat
 
       logical :: intrinsic
+      logical, parameter :: SCALAR = .false.
 
       include 'write_if_intrinsic.inc'
 
@@ -333,6 +336,7 @@ contains
       integer, intent(inout) :: iostat
 
       logical :: intrinsic
+      logical, parameter :: SCALAR = .false.
 
       include 'write_if_intrinsic.inc'
 
@@ -361,6 +365,7 @@ contains
       integer, intent(inout) :: iostat
 
       logical :: intrinsic
+      logical, parameter :: SCALAR = .false.
 
       include 'write_if_intrinsic.inc'
 
@@ -389,6 +394,7 @@ contains
       integer, intent(inout) :: iostat
 
       logical :: intrinsic
+      logical, parameter :: SCALAR = .false.
 
       include 'write_if_intrinsic.inc'
 

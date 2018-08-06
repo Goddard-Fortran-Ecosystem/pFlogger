@@ -85,7 +85,7 @@ module PFL_AbstractHandler_mod
    end interface
 
    character(len=*), parameter :: BASIC_FORMAT = &
-        '%(levelName)a~: %(name)a~: %(message)a'
+        '%(level_name)a~: %(name)a~: %(message)a'
 
 
 contains

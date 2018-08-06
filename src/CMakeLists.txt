@@ -69,10 +69,15 @@ endif ()
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
+
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories (${FTL_INSTALL_DIR}/include)
 
 add_library (${THIS} STATIC ${SRCS})
+
+if (NOT FTL)
+  add_dependencies(pflogger gFTL)
+endif()
 
 install(TARGETS ${THIS} DESTINATION lib)
 install(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
