@@ -209,7 +209,7 @@ contains
       if (allocated(this%file)) then
          file = this%file
       else
-         file = '<unknown-file>'
+         file = 'unknown'
       end if
    end function get_file
    
