@@ -1,4 +1,5 @@
 module pflogger
+   use Pfl_Exception_mod
    use PFL_LoggerManager_mod
    use PFL_Logger_mod
    use Pfl_String_mod
@@ -64,6 +65,7 @@ module pflogger
 #  endif
 #endif   
 
+   public :: set_throw_fptr
 
 
 contains

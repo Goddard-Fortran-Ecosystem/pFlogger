@@ -61,7 +61,7 @@ contains
          case (LIST_DIRECTED_FORMAT, '')
             token%edit_descriptor = '*'
          case default
-            token%edit_descriptor = '(' // string // ',"' // EOT // '")'
+            token%edit_descriptor = '(' // replace_newline(string) // ')'
          end select
 
       case (KEYWORD)
@@ -77,13 +77,42 @@ contains
          else if (string(idx+1:idx+1) == LIST_DIRECTED_FORMAT) then
             token%edit_descriptor = LIST_DIRECTED_FORMAT
          else
-            token%edit_descriptor = '(' // string(idx+1:len_trim(string)) // ',"' // EOT // '")'
+            token%edit_descriptor = '(' // replace_newline(string(idx+1:len_trim(string))) // ')'
          end if
 
       end select
       
    end function newFormatToken
 
+   function replace_newline(string) result(new_string)
+      character(:), allocatable :: new_string
+      character(*), intent(in) :: string
+
+      integer :: idx, n
+      character(len=*), parameter :: FPP_SAFE_ESCAPE = '\\'
+      character(len=1), parameter :: ESCAPE = FPP_SAFE_ESCAPE(1:1)
+
+      new_string = string
+      n = len(new_string)
+      do
+         idx = index(new_string,ESCAPE)
+         if (idx == 0) exit
+
+         if (idx == n) then
+            call throw(__FILE__,__LINE__,'FormatToken - no such escape sequence: ' // ESCAPE)
+            return
+         end if
+         if (any(new_string(idx+1:idx+1) == ['n','N'])) then ! replace with newline
+            new_string = new_string(1:idx-1) // new_line('a') // new_string(idx+2:)
+         else
+            call throw(__FILE__,__LINE__,'FormatToken - no such escape sequence: ' // ESCAPE // new_string(idx+1:idx+1))
+            return
+         end if
+         
+      end do
+   end function replace_newline
+
+      
 
 end module PFL_FormatToken_mod
    
