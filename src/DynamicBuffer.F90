@@ -9,16 +9,24 @@ module PFL_DynamicBuffer_mod
 
    type :: DynamicBuffer
       integer :: record_size = 16 ! default
+      integer, private :: num_records = 1
+#ifdef __GFORTRAN__
       character(len=:), allocatable :: buffer
+#else
+      character(len=:), allocatable :: buffer(:)
+#endif      
    contains
       procedure :: grow_record_size
+      procedure :: grow_num_records
       procedure :: allocate
+      procedure :: concatenate
    end type DynamicBuffer
 
    logical, save :: initialized = .false.
 
    integer, protected :: INTERNAL_FILE_EOR
    integer, protected :: INTERNAL_FILE_EOF
+   character(len=1), parameter :: EOT = achar(003)
 
    integer, parameter :: MAX_BUFFER_SIZE = 2**20 ! 1 MB
    
@@ -27,7 +35,7 @@ contains
    subroutine grow_record_size(this)
       class (DynamicBuffer), intent(inout) :: this
 
-      if (this%record_size > MAX_BUFFER_SIZE/2) then
+      if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
          call throw(__FILE__,__LINE__,'DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
          return
       end if
@@ -35,6 +43,27 @@ contains
       call this%allocate()
 
    end subroutine grow_record_size
+
+
+   subroutine grow_num_records(this)
+      class (DynamicBuffer), intent(inout) :: this
+
+#ifdef __GFORTRAN__
+      call throw(__FILE__,__LINE__, &
+           & 'DynamicBuffer::grow_num_records() - GFortran cannot support dynamically sized multiline records for internal files.')
+      return
+#else
+      if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
+         call throw(__FILE__,__LINE__, &
+              & 'DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
+         return
+      end if
+
+      this%num_records = this%num_records * 2
+      call this%allocate()
+#endif
+
+   end subroutine grow_num_records
 
 
    subroutine allocate(this)
@@ -48,10 +77,61 @@ contains
          deallocate(this%buffer)
       end if
 
+#ifdef __GFORTRAN__
       allocate(character(len=this%record_size) :: this%buffer)
+#else
+      allocate(character(len=this%record_size) :: this%buffer(this%num_records))
+      do i = 1, this%num_records
+         this%buffer(i) = EOT
+      end do
+#endif
 
    end subroutine allocate
 
+
+   function concatenate(this) result(string)
+      use iso_c_binding, only: C_NULL_CHAR
+      class (DynamicBuffer), intent(in) :: this
+      character(len=:), allocatable :: string
+
+      integer :: i, j, n, k
+
+#ifdef __GFORTRAN__
+      string = trim(this%buffer)
+#else
+
+      j = 0
+      do i = 1, this%num_records
+         if (this%buffer(i) /= C_NULL_CHAR) then
+            if (this%buffer(i)(1:1) == EOT) then ! done
+               exit
+            endif
+            n = len_trim(this%buffer(i))
+            j = j + n + 1
+         end if
+      end do
+      j = j - 1 ! no newline for last record
+
+      allocate(character(len=j) :: string)
+      
+      j = 0
+      do i = 1, this%num_records
+         if (this%buffer(i)(1:1) == EOT) then ! done
+            exit
+         end if
+
+         if (i > 1) then
+            string(j+1:j+1) = new_line('a')
+            j = j + 1
+         end if
+
+         n = len_trim(this%buffer(i))
+         string(j+1:j+n) = this%buffer(i)(1:n)
+         j = j + n
+      end do
+#endif
+
+   end function concatenate
 
    ! This procedure dynamically determines the compiler-dependent
    ! values of the iostat return value of end-of-record and

@@ -233,10 +233,10 @@ contains
             call buffer%grow_record_size()
             cycle
          end if
-!!$         if (iostat == INTERNAL_FILE_EOF) then
-!!$            call buffer%grow_num_records()
-!!$            cycle
-!!$         end if
+         if (iostat == INTERNAL_FILE_EOF) then
+            call buffer%grow_num_records()
+            cycle
+         end if
          
          ! unrecoverable iostat
          call throw(__FILE__,__LINE__,'FormatString::format*() - bad format "'//fmt//'"')
@@ -245,7 +245,7 @@ contains
          
       end do
 
-      str = trim(buffer%buffer)
+      str = buffer%concatenate()
 
    end function handleScalar
 

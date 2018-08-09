@@ -135,17 +135,24 @@ contains
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      integer :: m(3) = [1,2,3]
+      integer :: m(5) = [1,2,3,4,5]
       real :: x(3) = [1.2,2.3,3.4]
 
       found = formatString('%4(f3.1,1x)', make_arg_vector(wrapArray(x)))
       expected = '1.2 2.3 3.4'  ! note never has a trailing space
       @assertEqual(expected, found, whitespace=KEEP_ALL)
       
-      found = formatString('%5(I3.3:,"\n")', make_arg_vector(wrapArray(m)))
+      found = formatString('%10(I3.3:,"\n")', make_arg_vector(wrapArray(m(1:3))))
       expected = '001' // new_line('a') // '002' // new_line('a') // '003'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
+#ifndef __GFORTRAN__
+      print*,__FILE__,__LINE__
+      found = formatString('%I2.2', make_arg_vector(wrapArray(m)))
+      expected = '01' // new_line('a') // '02' // new_line('a') // '03' // new_line('a') // '04' // new_line('a') // '05'
+      print*,__FILE__,__LINE__
+      @assertEqual(expected, found, whitespace=KEEP_ALL)
+#endif
    end subroutine test_formatArray
 
 #ifndef __GFORTRAN__
