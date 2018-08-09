@@ -174,7 +174,7 @@ contains
          allocate(comms(0))
          n = len_trim(communicator_name_list)
          if (communicator_name_list(1:1) /= '[' .or. communicator_name_list(n:n) /= ']') then
-            call throw("PFL::Config::build_mpi_formatter() - misformed list of communicators.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_mpi_formatter() - misformed list of communicators.")
             return
          end if
 
@@ -198,7 +198,7 @@ contains
                if (extra%count(name) == 1) then
                   comms = [comms, extra%toInteger(name)]
                else
-                  call throw("PFL::Config::build_mpi_formatter() - unknown communicator '"//name//"'.")
+                  call throw(__FILE__,__LINE__,"PFL::Config::build_mpi_formatter() - unknown communicator '"//name//"'.")
                   return
                end if
             end select
@@ -292,7 +292,7 @@ contains
             case default
             end select
          else
-            call throw('PFL::Config::build_lock() - unsupported class of lock.')
+            call throw(__FILE__,__LINE__,'PFL::Config::build_lock() - unsupported class of lock.')
          end if
          
       end function build_lock
@@ -339,7 +339,7 @@ contains
          allocate(f, source=build_MpiFilter(dict, extra=extra))
 #endif
       case default
-         call throw('PFL::Config::build_filter() - unknow filter type: '//class_name//'.')
+         call throw(__FILE__,__LINE__,'PFL::Config::build_filter() - unknow filter type: '//class_name//'.')
       end select
     end function build_filter
 
@@ -354,7 +354,7 @@ contains
       if (found) then
          f = Filter(name)
       else
-         call throw('PFL::Config::build_filter() - missing "name".')
+         call throw(__FILE__,__LINE__,'PFL::Config::build_filter() - missing "name".')
       end if
 
     end function build_basic_filter
@@ -382,7 +382,7 @@ contains
 
           level_name = dict%toString('max_level', found=found)
           if (.not. found) then
-             call throw('PFL::Config::build_LevelFilter() - missing "max_level".')
+             call throw(__FILE__,__LINE__,'PFL::Config::build_LevelFilter() - missing "max_level".')
              level = -1
              return
           end if
@@ -475,7 +475,7 @@ contains
               allocate(h, source=fh)
 #endif              
          case default
-            call throw("PFL::Config::build_handler() - unsupported class: '" // className //"'.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unsupported class: '" // className //"'.")
          end select
 
       end subroutine allocate_concrete_handler
@@ -519,7 +519,7 @@ contains
                p_fmt => formatters%at(formatterName)
                call h%set_formatter(formatters%at(formatterName))
             else
-               call throw("PFL::Config::build_handler() - formatter '"//formatterName//"' not found.")
+               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - formatter '"//formatterName//"' not found.")
             end if
          end if
 
@@ -541,7 +541,7 @@ contains
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw("PFL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
+               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -563,7 +563,7 @@ contains
                  if (associated(f)) then
                     call h%add_filter(f)
                  else
-                    call throw("PFL::Config::build_handler() - unknown filter'"//name//"'.")
+                    call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unknown filter'"//name//"'.")
                  end if
                end block
             end do
@@ -589,10 +589,10 @@ contains
                class is (FileHandler)
                   call h%set_lock(lock)
                class default
-                  call throw('PFL::Config::set_handler_lock() - unsupported Lock subclass.')
+                  call throw(__FILE__,__LINE__,'PFL::Config::set_handler_lock() - unsupported Lock subclass.')
                end select
             else
-               call throw("PFL::Config::set_handler_lock() - unknown lock: '"//lock_name//"'.'")
+               call throw(__FILE__,__LINE__,"PFL::Config::set_handler_lock() - unknown lock: '"//lock_name//"'.'")
             end if
          end if
       end subroutine set_handler_lock
@@ -623,7 +623,7 @@ contains
          case ('error_unit')
             unit = ERROR_UNIT
          case default
-            call throw("PFL::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
             return
          end select
       end if
@@ -644,7 +644,7 @@ contains
       fileName = handlerDict%toString('filename', found=found)
       if (found) then
       else
-         call throw("PFL::Config::build_FileHandler() - must provide file name.")
+         call throw(__FILE__,__LINE__,"PFL::Config::build_FileHandler() - must provide file name.")
          return
       end if
 
@@ -678,7 +678,7 @@ contains
       fileName = handlerDict%toString('filename', found=found)
       if (found) then
       else
-         call throw("PFL::Config::build_MpiFileHandler() - must provide file name.")
+         call throw(__FILE__,__LINE__,"PFL::Config::build_MpiFileHandler() - must provide file name.")
          return
       end if
 
@@ -687,7 +687,7 @@ contains
          allocate(comms(0))
          n = len_trim(communicator_name_list)
          if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
-            call throw("PFL::Config::build_mpifilehandler() - misformed list of communicators.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_mpifilehandler() - misformed list of communicators.")
             return
          end if
 
@@ -832,7 +832,7 @@ contains
 
             n = len_trim(filterNamesList)
             if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw("PFL::Config::build_logger() - filters is not of the form '[a,b,...,c]'")
+               call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - filters is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -852,7 +852,7 @@ contains
                if (iter /= filters%end()) then
                   call lgr%add_filter(iter%value())
                else
-                  call throw("PFL::Config::build_logger() - unknown filter'"//name//"'.")
+                  call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - unknown filter'"//name//"'.")
                end if
             end do
             
@@ -881,7 +881,7 @@ contains
          if (found) then
             n = len_trim(handlerNamesList)
             if (handlerNamesList(1:1) /= '[' .or. handlerNamesList(n:n) /= ']') then
-               call throw("PFL::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
+               call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
                return
             end if
 
@@ -903,7 +903,7 @@ contains
                   h => iter%value()
                   call lgr%add_handler(h)
                else
-                  call throw("PFL::Config::build_logger() - unknown handler'"//name//"'.")
+                  call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - unknown handler'"//name//"'.")
                end if
             end do
             
@@ -933,7 +933,7 @@ contains
             if (name == 'MPI_COMM_WORLD' .or. name == 'COMM_LOGGER') then
                comm = MPI_COMM_WORLD
             else
-               call throw('PFL::Config::build_logger() - MPI communicator ' // name // ' not found.')
+               call throw(__FILE__,__LINE__,'PFL::Config::build_logger() - MPI communicator ' // name // ' not found.')
             end if
          end if
       else
@@ -955,12 +955,12 @@ contains
       version = dict%toInteger('schema_version', found=found)
       if (found) then
          if (version /= 1) then
-            call throw('PFL::Config::check_schema_version() -' // &
+            call throw(__FILE__,__LINE__,'PFL::Config::check_schema_version() -' // &
                  & ' unsupported schema_version. Allowed values are [1].')
             return
          end if
       else
-         call throw('PFL::Config::check_schema_version() -' // &
+         call throw(__FILE__,__LINE__,'PFL::Config::check_schema_version() -' // &
               & ' must specify a schema_version for Config.')
       end if
 

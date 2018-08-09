@@ -185,7 +185,7 @@ contains
          call this%handlers%erase(this%handlers%begin() + i - 1)
       else
          ! Only can get here if handler not found
-         call throw('PFL::Logger%remove_handler() called - logger has no such handler.')
+         call throw(__FILE__,__LINE__,'PFL::Logger%remove_handler() called - logger has no such handler.')
       end if
 
    end subroutine remove_handler

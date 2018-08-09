@@ -63,7 +63,7 @@ contains
       iter = level_to_name_%find(level)
       if (iter == level_to_name_%end()) then
          name = ''
-         call throw('PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.')
+         call throw(__FILE__,__LINE__,'PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.')
          return
       end if
 
@@ -89,7 +89,7 @@ contains
       iter = name_to_level_%find(name)
       if (iter == name_to_level_%end()) then
          level = NOTSET
-         call throw('PFL::SeverityLevels::name_to_level - unknown level name. Please use a valid name.')
+         call throw(__FILE__,__LINE__,'PFL::SeverityLevels::name_to_level - unknown level name. Please use a valid name.')
          return
       end if
 
