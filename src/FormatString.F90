@@ -31,9 +31,7 @@ module PFL_FormatString_mod
    private
 
    public :: FormatString
-#ifndef __GFORTRAN__
    public :: operator(.fmt.)
-#endif
 
    interface FormatString
       module procedure format_map
@@ -41,13 +39,11 @@ module PFL_FormatString_mod
       module procedure format_preparsed
    end interface FormatString
 
-#ifndef __GFORTRAN__
    interface operator(.fmt.)
       module procedure format_map
       module procedure format_vector
       module procedure format_preparsed
    end interface operator(.fmt.)
-#endif
 
    character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
 
@@ -128,12 +124,6 @@ contains
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
 
-      ! Workaround for Gfortran problem with empty vectors
-      if (args%size() == 0) then
-         string = fmt
-         return
-      end if
-
       if (.not. allocated(old_fmt)) then
          old_fmt = fmt
          call p%parse(fmt)
@@ -211,7 +201,7 @@ contains
          select type (arg)
          type is (String)
             if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer(1),'(a,a1)',iostat=iostat) arg%get(), achar(003)
+               write(buffer%buffer,'(a)',iostat=iostat) arg%get()
             else
                write(buffer%buffer,fmt,iostat=iostat) arg%get()
             end if
@@ -233,7 +223,7 @@ contains
             type is (WrapArray5D)
                call handleArray5D(arg%array, fmt, buffer, iostat=iostat)
             class default ! other
-               buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+               buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
                iostat = 0
             end select
          end if
@@ -243,10 +233,10 @@ contains
             call buffer%grow_record_size()
             cycle
          end if
-         if (iostat == INTERNAL_FILE_EOF) then
-            call buffer%grow_num_records()
-            cycle
-         end if
+!!$         if (iostat == INTERNAL_FILE_EOF) then
+!!$            call buffer%grow_num_records()
+!!$            cycle
+!!$         end if
          
          ! unrecoverable iostat
          call throw(__FILE__,__LINE__,'FormatString::format*() - bad format "'//fmt//'"')
@@ -255,7 +245,7 @@ contains
          
       end do
 
-      str = buffer%concatenate()
+      str = trim(buffer%buffer)
 
    end function handleScalar
 
@@ -283,7 +273,7 @@ contains
       include 'write_if_intrinsic.inc'
       
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -312,7 +302,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -341,7 +331,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -370,7 +360,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -399,7 +389,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 

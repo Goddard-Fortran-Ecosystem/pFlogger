@@ -142,7 +142,7 @@ contains
       expected = '1.2 2.3 3.4'  ! note never has a trailing space
       @assertEqual(expected, found, whitespace=KEEP_ALL)
       
-      found = formatString('%5(I3.3:/)', make_arg_vector(wrapArray(m)))
+      found = formatString('%5(I3.3:,"\n")', make_arg_vector(wrapArray(m)))
       expected = '001' // new_line('a') // '002' // new_line('a') // '003'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
@@ -177,7 +177,7 @@ contains
 
       arr = reshape([(i,i=1,6)],[2,1,3])
 
-      found = formatString('%3i3', make_arg_vector(wrapArray(arr)))
+      found = formatString('%10(3i3:,"\n")', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3' // new_line('a') // '  4  5  6'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
@@ -195,7 +195,7 @@ contains
 
       arr = reshape([(i,i=1,12)],[2,1,3,2])
 
-      found = formatString('%6i3', make_arg_vector(wrapArray(arr)))
+      found = formatString('%10(6i3:,"\n")', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3  4  5  6' // new_line('a') // &
            &  '  7  8  9 10 11 12'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
@@ -214,7 +214,7 @@ contains
 
       arr = reshape([(i,i=1,12)],[2,1,3,2,1])
 
-      found = formatString('%6i3', make_arg_vector(wrapArray(arr)))
+      found = formatString('%10(6i3:,"\n")', make_arg_vector(wrapArray(arr)))
       expected = '  1  2  3  4  5  6' // new_line('a') // &
            &  '  7  8  9 10 11 12'
       @assertEqual(expected, found, whitespace=KEEP_ALL)
@@ -230,7 +230,7 @@ contains
       character(len=:), allocatable :: found
 
       found = formatString('%i2.2-',make_arg_vector(1))
-      @assertExceptionRaised('FormatString::format*() - bad format "(i2.2-,"'//EOT//'")"')
+      @assertExceptionRaised('FormatString::format*() - bad format "(i2.2-)"')
 
    end subroutine test_badFormat
 
@@ -249,5 +249,35 @@ contains
    end subroutine test_formatArray_withQuote
 
 
+@test
+   subroutine test_newline_noargs()
+      type (Vector) :: v
+      character(:), allocatable :: found
+
+      found = formatString('\n', v)
+      @assertEqual(new_line('A'), found)
+
+   end subroutine test_newline_noargs
+
+   ! The following test was from a use case that was breaking because
+   ! of a hardwired record size in gfortran.  Unfortunately, all that
+   ! could be done was to increase the size of the buffer.
+   ! Need to file a bug report regarding dynamic buffer size to GCC.
+@test
+   subroutine test_long_string()
+      use PFL_Logger_mod
+      use PFL_SeverityLevels_mod
+      type (Vector) :: v
+      character(:), allocatable :: fields
+      type (Logger) :: lgr
+
+      lgr = Logger('A', INFO)
+      
+      fields = 'fields: PHIS SGH VARFLT TROPPV TROPPT TROPPB TROPT TROPQ QVFILL OXFILL TA QA US VS PS SPEED PBLH TS QS THAT QHAT CU2DRAINMOVE CU2DSNOWMOVE RAS_TIME RASPBLQ CNPRCP LSPRCP ANPRCP LSORIG CNORIG SNO PLS PCU LWP CCWP TAUTT TAULO TAUMD TAUHI CLDTT CLDLO CLDMD CLDHI SPLAND SPWATR RUNOFF BASEFLOW EMIS CT CQ CN CM RISFC LAI GRN SNOMAS VEGTYPE WET1 WET2 WET3 TSOIL1 TSOIL2 FRLAND FRLANDICE FRLAKE FRSEAICE FROCEAN USTAR Z0 Z0H LHFX SHFX EVAP TAUX TAUY RHOS U2M V2M T2M Q2M U10N V10N U10M V10M T10M Q10M U50M V50M GUST VENT ASNOW RADSRF FLNS FLNSC FLNSCNA OLR OLRC OLRCC5 OLRCNA LWS LWSC LWSCC5 LWSCNA SFCEM SWCLDTMP SWCLDPRS OSR OSRCLR SWTNET SWTNETC SWTNETCNA SWTNETNA RADSWT SWGDWN SWGDWNC SWGNET SWGNETC SWGNETNA SWGNETCNA ALBEDO ALBVR ALBVF ALBNR ALBNF EVLAND LHLAND SHLAND SWLAND LWLAND GHLAND SMLAND TWLAND TELAND EVAPOUT COSZ DCOOL DWARM DELT_COOL BULK_SST TDEL BCOOL LCOOL TBAR USTARW SWCOOL QCOOL DELTS QWARM SWWARM LANGM PHIW TAUTW ZETA_W'
+
+      call lgr%info('      Fields: ' // fields)
+
+   end subroutine test_long_string
+   
 end module Test_FormatString_mod
 
