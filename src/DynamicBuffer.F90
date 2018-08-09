@@ -39,14 +39,14 @@ contains
       class (DynamicBuffer), intent(inout) :: this
 
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         call throw('DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
+         call throw(__FILE__,__LINE__,'DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
          return
       end if
       this%record_size = this%record_size * 2
       call this%allocate()
 
 #ifdef __GFORTRAN__
-      call throw('Compiler limitation for GFORTRAN. Try increasing RECORD_SIZE.')
+      call throw(__FILE__,__LINE__,'Compiler limitation for GFORTRAN. Try increasing RECORD_SIZE.')
 #endif
 
    end subroutine grow_record_size
@@ -56,7 +56,7 @@ contains
       class (DynamicBuffer), intent(inout) :: this
 
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         call throw('DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
+         call throw(__FILE__,__LINE__,'DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
          return
       end if
 

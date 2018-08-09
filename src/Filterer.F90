@@ -138,7 +138,7 @@ contains
          call this%filters%erase(this%filters%begin() + i - 1)
       else
          ! Only can get here if filter not found
-         call throw('Filterer::remove_filter() - no such filter.')
+         call throw(__FILE__,__LINE__,'Filterer::remove_filter() - no such filter.')
       end if
 
    end subroutine remove_filter

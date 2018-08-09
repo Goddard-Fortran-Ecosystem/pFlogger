@@ -244,7 +244,7 @@ contains
          call this%pop_context()
       case (C_NULL_CHAR)
          call this%set_context(illegalContext)
-         call throw('FormatParser::singleQuoteContext() - unclosed single quote')
+         call throw(__FILE__,__LINE__,'FormatParser::singleQuoteContext() - unclosed single quote')
          return
       case default
          ! stay single quote
@@ -269,7 +269,7 @@ contains
          call this%pop_context()
       case (C_NULL_CHAR)
          call this%set_context(illegalContext)
-         call throw('FormatParser::doubleQuoteContext() - unclosed double quote')
+         call throw(__FILE__,__LINE__,'FormatParser::doubleQuoteContext() - unclosed double quote')
          return
       case default
          ! stay double quote
@@ -340,17 +340,17 @@ contains
         case (KEYWORD_SEPARATOR)
            if (pos == 0) then
               call this%set_context(illegalContext)
-              call throw('FormatParser::keywordContext() - missing keyword?')
+              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword?')
            end if
         case (C_NULL_CHAR)
            call this%set_context(illegalContext)
            idx = index(this%buffer, KEYWORD_SEPARATOR)
            if (pos == 0) then
-              call throw('FormatParser::keywordContext() - missing keyword')
+              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword')
            elseif (idx == 0) then
-              call throw('FormatParser::keywordContext() - missing ")"')
+              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing ")"')
            elseif (idx == 1) then
-              call throw('FormatParser::keywordContext() - missing keyword?')
+              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword?')
            elseif (idx == pos) then
               call this%set_context(textContext)
               call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos) // '*'))
@@ -369,7 +369,7 @@ contains
               if (char == TERMINATOR) return ! discard char
            else
               call this%set_context(illegalContext)
-              call throw('FormatParser::keywordContext() - empty edit descriptor')
+              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - empty edit descriptor')
               return
            end if
         case default
@@ -397,7 +397,7 @@ contains
            call this%set_context(textContext)
         case default
            call this%set_context(illegalContext)
-           call throw('FormatParser::escapeContext() - ' // &
+           call throw(__FILE__,__LINE__,'FormatParser::escapeContext() - ' // &
                 & 'no such escape sequence: ' // ESCAPE // char)
         end select
 
@@ -412,7 +412,7 @@ contains
       character(len=1), intent(in) :: char
 
       associate ( pos => this%currentPosition )
-        call throw('FormatParser - illegal format specification <' // &
+        call throw(__FILE__,__LINE__,'FormatParser - illegal format specification <' // &
              & this%buffer(1:pos) // '>')
       end associate
 
