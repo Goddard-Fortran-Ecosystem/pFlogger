@@ -31,9 +31,7 @@ module PFL_FormatString_mod
    private
 
    public :: FormatString
-#ifndef __GFORTRAN__
    public :: operator(.fmt.)
-#endif
 
    interface FormatString
       module procedure format_map
@@ -41,13 +39,11 @@ module PFL_FormatString_mod
       module procedure format_preparsed
    end interface FormatString
 
-#ifndef __GFORTRAN__
    interface operator(.fmt.)
       module procedure format_map
       module procedure format_vector
       module procedure format_preparsed
    end interface operator(.fmt.)
-#endif
 
    character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
 
@@ -92,14 +88,14 @@ contains
          case (KEYWORD)
             dictionaryIter = dictionary%find(token%text)
             if (dictionaryIter == dictionary%end()) then
-               call throw('FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
+               call throw(__FILE__,__LINE__,'FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
                return
             end if
             arg => dictionaryIter%value()
             string = string // handleScalar(arg, token%edit_descriptor)
 
          case (POSITION)
-            call throw('FormatString::format_map() - position arguments not allowed.')
+            call throw(__FILE__,__LINE__,'FormatString::format_map() - position arguments not allowed.')
             return
          end select
 
@@ -128,12 +124,6 @@ contains
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
 
-      ! Workaround for Gfortran problem with empty vectors
-      if (args%size() == 0) then
-         string = fmt
-         return
-      end if
-
       if (.not. allocated(old_fmt)) then
          old_fmt = fmt
          call p%parse(fmt)
@@ -160,7 +150,7 @@ contains
          case (POSITION)
             if (argIter == args%end()) then
                ! check other ranks
-               call throw('FormatString::format_vector() - not enough values for format string.')
+               call throw(__FILE__,__LINE__,'FormatString::format_vector() - not enough values for format string.')
                return
             else
                arg => argIter%get()
@@ -169,7 +159,7 @@ contains
             end if
 
          case (KEYWORD)
-            call throw('FormatString::format_vector() - keyword arguments not allowed.')
+            call throw(__FILE__,__LINE__,'FormatString::format_vector() - keyword arguments not allowed.')
             return
          end select
 
@@ -178,7 +168,7 @@ contains
       end do
 
       if (argIter /= args%end()) then
-         call throw('FormatString::format_vector() - not all arguments converted during string formatting.')
+         call throw(__FILE__,__LINE__,'FormatString::format_vector() - not all arguments converted during string formatting.')
       end if
 
    end function format_vector
@@ -211,7 +201,7 @@ contains
          select type (arg)
          type is (String)
             if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
-               write(buffer%buffer(1),'(a,a1)',iostat=iostat) arg%get(), achar(003)
+               write(buffer%buffer,'(a)',iostat=iostat) arg%get()
             else
                write(buffer%buffer,fmt,iostat=iostat) arg%get()
             end if
@@ -233,7 +223,7 @@ contains
             type is (WrapArray5D)
                call handleArray5D(arg%array, fmt, buffer, iostat=iostat)
             class default ! other
-               buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+               buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
                iostat = 0
             end select
          end if
@@ -249,7 +239,7 @@ contains
          end if
          
          ! unrecoverable iostat
-         call throw('FormatString::format*() - bad format "'//fmt//'"')
+         call throw(__FILE__,__LINE__,'FormatString::format*() - bad format "'//fmt//'"')
          str=''
          return
          
@@ -283,7 +273,7 @@ contains
       include 'write_if_intrinsic.inc'
       
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -312,7 +302,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -341,7 +331,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -370,7 +360,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
@@ -399,7 +389,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer(1) = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
          iostat = 0
       end if
 
