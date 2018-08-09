@@ -28,21 +28,26 @@ contains
 !> @brief Throws exception with explanation for the error.
 !---------------------------------------------------------------------------
 
-   subroutine throw(message)
+   subroutine throw(file, line, message)
+      character(len=*), intent(in) :: file
+      integer, intent(in) :: line
       character(len=*), intent(in) :: message
 
       if (.not. associated(throw_fptr)) then
          throw_fptr => print_and_stop
       end if
 
-      call throw_fptr(message)
+      call throw_fptr(file, line, message)
       
    end subroutine throw
 
-   subroutine print_and_stop(message)
+   subroutine print_and_stop(file, line, message)
       use iso_fortran_env, only: OUTPUT_UNIT
+      character(len=*), intent(in) :: file
+      integer, intent(in) :: line
       character(len=*), intent(in) :: message
 
+      write(OUTPUT_UNIT,*) file, line
       write(OUTPUT_UNIT,*) message
       stop 1
       

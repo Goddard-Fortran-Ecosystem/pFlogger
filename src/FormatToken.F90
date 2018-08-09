@@ -68,7 +68,7 @@ contains
          idx = index(string, KEYWORD_SEPARATOR)
          if (idx == 1) then
             token%text = ''
-            call throw('FormatParser::keywordFormatHandler() - missing keyword in format specifier')
+            call throw(__FILE__,__LINE__,'FormatParser::keywordFormatHandler() - missing keyword in format specifier')
             return
          end if
          token%text = string(:idx-1)

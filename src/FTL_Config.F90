@@ -79,7 +79,7 @@ contains
             if (iostat /= 0) then
                flag = DEFAULT_LOGICAL
                if (.not. present(found)) then
-                  call throw("FTL::Config::toLogical() - failure converting "//key//": '"//ptr//"' to logical.")
+                  call throw(__FILE__,__LINE__,"FTL::Config::toLogical() - failure converting "//key//": '"//ptr//"' to logical.")
                else
                   found = .false.
                end if
@@ -92,7 +92,7 @@ contains
             if (iostat /= 0) then
                flag = DEFAULT_LOGICAL
                if (.not. present(found)) then
-                  call throw("FTL::Config::toLogical() - failure converting "// &
+                  call throw(__FILE__,__LINE__,"FTL::Config::toLogical() - failure converting "// &
                        & key//": '"//str//"' to logical.")
                else
                   found = .false.
@@ -103,7 +103,7 @@ contains
          class default
             if (present(found)) found = .true.
             flag = DEFAULT_LOGICAL
-            call throw("FTL::Config::toLogical() - type of "//key//" must be logical.")
+            call throw(__FILE__,__LINE__,"FTL::Config::toLogical() - type of "//key//" must be logical.")
          end select
 
       else
@@ -114,7 +114,7 @@ contains
          else
             flag = DEFAULT_LOGICAL
             if (.not. present(found)) then
-               call throw("FTL::Config::toLogical() - '" // key // "' not found and default not provided.")
+               call throw(__FILE__,__LINE__,"FTL::Config::toLogical() - '" // key // "' not found and default not provided.")
             end if
          end if
 
@@ -155,7 +155,7 @@ contains
         class default
            if (present(found)) found = .true.
            i = DEFAULT_INTEGER
-           call throw("FTL::Config::toInteger() - type of "//key//" must be integer.")
+           call throw(__FILE__,__LINE__,"FTL::Config::toInteger() - type of "//key//" must be integer.")
         end select
 
      else
@@ -167,7 +167,7 @@ contains
         else
            i = DEFAULT_INTEGER
            if (.not. present(found)) then
-               call throw("FTL::Config::toInteger() - '" // key // "' not found and default not provided.")
+               call throw(__FILE__,__LINE__,"FTL::Config::toInteger() - '" // key // "' not found and default not provided.")
             end if
          end if
       end if
@@ -182,7 +182,7 @@ contains
          if (iostat /= 0) then
             i = DEFAULT_INTEGER
             if (.not. present(found)) then
-               call throw("FTL::Config::toInteger() - failure converting " // &
+               call throw(__FILE__,__LINE__,"FTL::Config::toInteger() - failure converting " // &
                     & key //": '"//str//"' to integer.")
             else
                found = .false.
@@ -233,7 +233,7 @@ contains
         class default
            if (present(found)) found = .true.
            x = DEFAULT_REAL32
-           call throw("FTL::Config::toReal32() - type of "//key//" must be REAL32.")
+           call throw(__FILE__,__LINE__,"FTL::Config::toReal32() - type of "//key//" must be REAL32.")
         end select
 
      else
@@ -245,7 +245,7 @@ contains
         else
            x = DEFAULT_REAL32
            if (.not. present(found)) then
-               call throw("FTL::Config::toReal32() - '" // key // "' not found and default not provided.")
+               call throw(__FILE__,__LINE__,"FTL::Config::toReal32() - '" // key // "' not found and default not provided.")
             end if
          end if
       end if
@@ -261,7 +261,7 @@ contains
          if (iostat /= 0) then
             x = DEFAULT_REAL32
             if (.not. present(found)) then
-               call throw("FTL::Config::toREAL32() - failure converting " // &
+               call throw(__FILE__,__LINE__,"FTL::Config::toREAL32() - failure converting " // &
                     & key //": '"//str//"' to REAL32.")
             else
                found = .false.
@@ -309,7 +309,7 @@ contains
                found = .true.
             end if
             str = DEFAULT_STRING
-            call throw("FTL::Config::toString() - type of '"//key//"' is not string.")
+            call throw(__FILE__,__LINE__,"FTL::Config::toString() - type of '"//key//"' is not string.")
          end select
          
       else
@@ -321,7 +321,7 @@ contains
          else
             str = DEFAULT_STRING
             if (.not. present(found)) then
-               call throw("FTL::Config::toString() - '" // key // "' not found and default not provided.")
+               call throw(__FILE__,__LINE__,"FTL::Config::toString() - '" // key // "' not found and default not provided.")
             end if
          end if
       end if
@@ -347,7 +347,7 @@ contains
        class default
           cfgPtr => null()
           if (present(found)) found = .false.
-           call throw("FTL::Config::toConfigPtr() - type of '"//key//"' is not a Config.")
+           call throw(__FILE__,__LINE__,"FTL::Config::toConfigPtr() - type of '"//key//"' is not a Config.")
        end select
        
     else
@@ -356,7 +356,7 @@ contains
        if (present(found)) then
           found = .false.
        else
-          call throw("FTL::Config::toConfigPtr() - '" // key // "' not found.")
+          call throw(__FILE__,__LINE__,"FTL::Config::toConfigPtr() - '" // key // "' not found.")
        end if
 
     end if

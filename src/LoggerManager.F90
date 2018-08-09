@@ -127,12 +127,12 @@ contains
                  call this%fixup_children(ph, lgr)
                  call this%fixup_ancestors(lgr)
                  class default
-                 call throw('should not get here')
+                 call throw(__FILE__,__LINE__,'should not get here')
               end select
             end block
             class default
             lgr => null()
-            call throw('LoggerManager::get_logger() - Illegal type of logger <' &
+            call throw(__FILE__,__LINE__,'LoggerManager::get_logger() - Illegal type of logger <' &
                  & // name // '>')
          end select
          return
@@ -149,7 +149,7 @@ contains
             call this%fixup_ancestors(lgr)
          class default
             lgr => null()
-            call throw('LoggerManager::get_logger() - Illegal type of logger <' &
+            call throw(__FILE__,__LINE__,'LoggerManager::get_logger() - Illegal type of logger <' &
                  & // name // '>')
          end select
 
@@ -181,7 +181,7 @@ contains
             type is (Placeholder)
                call tmp%children%push_back(lgr)
                class default
-               call throw("LoggerManager::fixup_ancestors() - illegal type for name '"//ancestor_name//"'.")
+               call throw(__FILE__,__LINE__,"LoggerManager::fixup_ancestors() - illegal type for name '"//ancestor_name//"'.")
             end select
          else ! create placeholder
             block
@@ -290,7 +290,7 @@ contains
 
       cfg = YAML_load_file(file_name, rc)
       if (rc /= SUCCESS) then
-         call throw('PFL_LoggerManager::load_file() - Failure opening file: <'//file_name//'>')
+         call throw(__FILE__,__LINE__,'PFL_LoggerManager::load_file() - Failure opening file: <'//file_name//'>')
          return
       end if
       call this%load_config(cfg, extra=extra_, comm=comm)

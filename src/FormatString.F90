@@ -92,14 +92,14 @@ contains
          case (KEYWORD)
             dictionaryIter = dictionary%find(token%text)
             if (dictionaryIter == dictionary%end()) then
-               call throw('FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
+               call throw(__FILE__,__LINE__,'FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
                return
             end if
             arg => dictionaryIter%value()
             string = string // handleScalar(arg, token%edit_descriptor)
 
          case (POSITION)
-            call throw('FormatString::format_map() - position arguments not allowed.')
+            call throw(__FILE__,__LINE__,'FormatString::format_map() - position arguments not allowed.')
             return
          end select
 
@@ -160,7 +160,7 @@ contains
          case (POSITION)
             if (argIter == args%end()) then
                ! check other ranks
-               call throw('FormatString::format_vector() - not enough values for format string.')
+               call throw(__FILE__,__LINE__,'FormatString::format_vector() - not enough values for format string.')
                return
             else
                arg => argIter%get()
@@ -169,7 +169,7 @@ contains
             end if
 
          case (KEYWORD)
-            call throw('FormatString::format_vector() - keyword arguments not allowed.')
+            call throw(__FILE__,__LINE__,'FormatString::format_vector() - keyword arguments not allowed.')
             return
          end select
 
@@ -178,7 +178,7 @@ contains
       end do
 
       if (argIter /= args%end()) then
-         call throw('FormatString::format_vector() - not all arguments converted during string formatting.')
+         call throw(__FILE__,__LINE__,'FormatString::format_vector() - not all arguments converted during string formatting.')
       end if
 
    end function format_vector
@@ -249,7 +249,7 @@ contains
          end if
          
          ! unrecoverable iostat
-         call throw('FormatString::format*() - bad format "'//fmt//'"')
+         call throw(__FILE__,__LINE__,'FormatString::format*() - bad format "'//fmt//'"')
          str=''
          return
          

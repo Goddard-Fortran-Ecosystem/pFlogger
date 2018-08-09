@@ -1,9 +1,11 @@
-subroutine pfunit_throw(message)
-   use pFUnit_mod, only: throw
+subroutine pfunit_throw(file, line, message)
+   use pFUnit_mod, only: throw, SourceLocation
    implicit none
+   character(len=*), intent(in) :: file
+   integer, intent(in) :: line
    character(len=*), intent(in) :: message
 
-   call throw(message)
+   call throw(message, location=SourceLocation(file,line))
 
 end subroutine pfunit_throw
 
