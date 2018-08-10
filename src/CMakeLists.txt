@@ -19,6 +19,7 @@ set(SRCS
    FormatParser.F90
    FormatString.F90
    Formatter.F90
+   KeywordEnforcer.F90
    LevelFilter.F90
    LogRecord.F90
    Logger.F90

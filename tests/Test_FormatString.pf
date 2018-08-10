@@ -31,21 +31,19 @@ contains
 
 @test
    subroutine test_format_vector_tooFewArgs()
-      character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
       found = formatString('i %i3.3 %i2.2', make_arg_vector(1))
-      @assertExceptionRaised('FormatString::format_vector() - not enough values for format string.')
+      @assertExceptionRaised('format_vector() - not enough position arguments for format string.')
 
    end subroutine test_format_vector_tooFewArgs
 
 @test
    subroutine test_format_vector_tooManyArgs()
-      character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
       found = formatString('i %i3.3', make_arg_vector(1,2))
-      @assertExceptionRaised('FormatString::format_vector() - not all arguments converted during string formatting.')
+      @assertExceptionRaised('format_vector() - additional unprocessed arguments.')
       
    end subroutine test_format_vector_tooManyArgs
 
@@ -72,13 +70,14 @@ contains
    subroutine test_format_map_missingKey()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
-      character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
       call extra%insert('i',1)
 
       found = formatString('i=%(i)i2 f=%(f)*', extra)
-      @assertExceptionRaised('FormatString::format_map() - no such keyword: <f> in "extra".')
+      call assertExceptionRaised('format_preparsed() - no such keyword: <f> in "extra".', &
+           & location=SourceLocation(__FILE__,__LINE__))
+      call assertExceptionRaised('', location=SourceLocation(__FILE__,__LINE__))
 
    end subroutine test_format_map_missingKey
 
@@ -86,13 +85,14 @@ contains
    subroutine test_format_map_illegalPositionToken()
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
-      character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
       call extra%insert('i',1)
 
       found = formatString('i=%(i)i2 %i', extra)
-      @assertExceptionRaised('FormatString::format_map() - position arguments not allowed.')
+      call assertExceptionRaised('format_map() - position arguments not allowed.', &
+           & location=SourceLocation(__FILE__,__LINE__))
+      call assertExceptionRaised('', location=SourceLocation(__FILE__,__LINE__))
 
    end subroutine test_format_map_illegalPositionToken
 
@@ -147,10 +147,8 @@ contains
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 
 #ifndef __GFORTRAN__
-      print*,__FILE__,__LINE__
       found = formatString('%I2.2', make_arg_vector(wrapArray(m)))
       expected = '01' // new_line('a') // '02' // new_line('a') // '03' // new_line('a') // '04' // new_line('a') // '05'
-      print*,__FILE__,__LINE__
       @assertEqual(expected, found, whitespace=KEEP_ALL)
 #endif
    end subroutine test_formatArray
@@ -233,11 +231,10 @@ contains
    ! an appropriate error message is generated.
 @test
     subroutine test_badFormat()
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
       character(len=:), allocatable :: found
 
       found = formatString('%i2.2-',make_arg_vector(1))
-      @assertExceptionRaised('FormatString::format*() - bad format "(i2.2-)"')
+      @assertExceptionRaised('handleScalar() - bad format "(i2.2-)"')
 
    end subroutine test_badFormat
 
@@ -274,7 +271,6 @@ contains
    subroutine test_long_string()
       use PFL_Logger_mod
       use PFL_SeverityLevels_mod
-      type (Vector) :: v
       character(:), allocatable :: fields
       type (Logger) :: lgr
 

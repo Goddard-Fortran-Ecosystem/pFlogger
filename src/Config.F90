@@ -1,4 +1,4 @@
-! Singleton pattern for now
+#include "error_handling_macros.fh"
 module PFL_Config_mod
    use PFL_String_mod, only: String
    use FTL_Config_mod, only: config
@@ -22,6 +22,7 @@ module PFL_Config_mod
    use PFL_StringUnlimitedMap_mod, only: Map
    use PFL_Filter_mod
    use PFL_StringUtilities_mod, only: to_lower_case
+   use Pfl_KeywordEnforcer_Mod
 #ifdef _LOGGER_USE_MPI
       use MPI
 #endif
@@ -62,21 +63,21 @@ module PFL_Config_mod
       procedure :: get_handlers
    end type ConfigElements
 
-   type Unusable
-   end type Unusable
 
 contains
 
-   subroutine build_formatters(this, formattersDict, unused, extra)
+   subroutine build_formatters(this, formattersDict, unusable, extra)
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: formattersDict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
       class (Formatter), allocatable :: f
       
+      _UNUSED_DUMMY(unusable)
+
       iter = formattersDict%begin()
       do while (iter /= formattersDict%end())
          cfg => formattersDict%toConfigPtr(iter%key())
@@ -89,16 +90,18 @@ contains
    end subroutine build_formatters
 
 
-   subroutine build_formatter(fmtr, dict, unused, extra, global_communicator)
+   subroutine build_formatter(fmtr, dict, unusable, extra, global_communicator)
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
       integer, optional, intent(in) :: global_communicator
 
       character(len=:), allocatable :: class_name
       type (Config) :: extra_
       
+      _UNUSED_DUMMY(unusable)
+
       class_name = dict%toString('class', default='Formatter')
 
       select case (class_name)
@@ -149,17 +152,16 @@ contains
    end subroutine build_basic_formatter
 
 #ifdef _LOGGER_USE_MPI
-   subroutine build_mpi_formatter(fmtr, dict, unused, extra)
+   subroutine build_mpi_formatter(fmtr, dict, unusable, extra)
       use PFL_MpiCommConfig_mod
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       character(len=:), allocatable :: fileName
-      integer :: unit
       logical :: found
       integer :: iostat
       integer :: comm
@@ -168,6 +170,8 @@ contains
 
       type (Map) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
+
+      _UNUSED_DUMMY(unusable)
 
       communicator_name_list = dict%toString('comms', found=found)
       if (found) then
@@ -248,18 +252,20 @@ contains
    end subroutine build_mpi_formatter
 #endif
    
-   subroutine build_locks(this, locksDict, unused, extra)
+   subroutine build_locks(this, locksDict, unusable, extra)
       use PFL_AbstractLock_mod
 #ifdef _LOGGER_USE_MPI
       use PFL_MpiLock_mod
 #endif
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: locksDict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
+
+      _UNUSED_DUMMY(unusable)
 
       iter = locksDict%begin()
       do while (iter /= locksDict%end())
@@ -270,15 +276,17 @@ contains
 
    contains
 
-      function build_lock(cfg, unused, extra) result(lock)
+      function build_lock(cfg, unusable, extra) result(lock)
          class (AbstractLock), allocatable :: lock
          type (Config), intent(in) :: cfg
-         type (Unusable), optional, intent(in) :: unused
+         class (KeywordEnforcer), optional, intent(in) :: unusable
          type (Config), optional, intent(in) :: extra
 
          logical :: found
          character (len=:), allocatable :: class_name, comm_name
          integer :: comm
+
+      _UNUSED_DUMMY(unusable)
 
          class_name = cfg%toString('class', found=found)
          if (found) then
@@ -300,14 +308,16 @@ contains
    end subroutine build_locks
 
 
-   subroutine build_filters(this, filtersDict, unused, extra)
+   subroutine build_filters(this, filtersDict, unusable, extra)
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: filtersDict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
       type (Config), pointer :: cfg
+
+      _UNUSED_DUMMY(unusable)
 
       iter = filtersDict%begin()
       do while (iter /= filtersDict%end())
@@ -319,13 +329,15 @@ contains
    end subroutine build_filters
 
 
-   function build_filter(dict, unused, extra) result(f)
+   function build_filter(dict, unusable, extra) result(f)
       class (AbstractFilter), allocatable :: f
       type (Config), intent(in) :: dict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       character(len=:), allocatable :: class_name
+
+      _UNUSED_DUMMY(unusable)
 
       class_name = dict%toString('class', default='filter')
 
@@ -396,16 +408,18 @@ contains
     end function build_LevelFilter
 
 #ifdef _LOGGER_USE_MPI
-    function build_MpiFilter(dict, unused, extra) result(f)
+    function build_MpiFilter(dict, unusable, extra) result(f)
        use PFL_MpiFilter_mod
        type (MpiFilter) :: f
        type (Config), intent(in) :: dict
-       type (Unusable), optional, intent(in) :: unused
+       class (KeywordEnforcer), optional, intent(in) :: unusable
        type (Config), optional, intent(in) :: extra
       
        character(len=:), allocatable :: comm_name
        integer :: comm
        integer :: rank, root, ierror
+
+      _UNUSED_DUMMY(unusable)
 
        comm_name = dict%toString('comm', default='COMM_LOGGER')
        comm = get_communicator(comm_name, extra=extra)
@@ -415,10 +429,10 @@ contains
 #endif
     
 
-   subroutine build_handlers(this, handlersDict, unused, extra)
+   subroutine build_handlers(this, handlersDict, unusable, extra)
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: handlersDict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       type (ConfigIterator) :: iter
@@ -436,13 +450,14 @@ contains
 
    end subroutine build_handlers
    
-   subroutine build_handler(h, handlerDict, elements, unused, extra)
+   subroutine build_handler(h, handlerDict, elements, unusable, extra)
       class (AbstractHandler), allocatable, intent(out) :: h
       type (Config), intent(in) :: handlerDict
       type (ConfigElements), intent(in) :: elements
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
+      _UNUSED_DUMMY(unusable)
 
       call allocate_concrete_handler(h, handlerDict)
       if (.not. allocated(h)) return
@@ -512,6 +527,9 @@ contains
          logical :: found
 
          class (Formatter), pointer :: p_fmt
+
+         _UNUSED_DUMMY(unusable)
+
          formatterName = handlerDict%toString('formatter', found=found)
 
          if (found) then  ! OK if no formatter
@@ -631,6 +649,7 @@ contains
 
    end function build_streamhandler
 
+
    subroutine build_filehandler(h, handlerDict)
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -655,12 +674,12 @@ contains
    end subroutine build_filehandler
 
 #ifdef _LOGGER_USE_MPI
-   subroutine build_mpifilehandler(h, handlerDict, unused, extra)
+   subroutine build_mpifilehandler(h, handlerDict, unusable, extra)
       use PFL_MpiCommConfig_mod
 
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
       character(len=:), allocatable :: fileName
@@ -743,14 +762,16 @@ contains
    end subroutine build_mpifilehandler
 #endif
 
-   subroutine build_logger(lgr, loggerDict, elements, unused, extra)
+   subroutine build_logger(lgr, loggerDict, elements, unusable, extra)
       use PFL_StringUtilities_mod, only: to_lower_case
       class (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (Config), optional, intent(in) :: extra
 
+      _UNUSED_DUMMY(unusable)
+         
       call set_logger_level(lgr, loggerDict)
       call set_logger_propagate(lgr, loggerDict)
       call set_logger_filters(lgr, loggerDict, elements%filters)
@@ -814,11 +835,11 @@ contains
       end subroutine set_logger_propagate
       
 
-      subroutine set_logger_filters(lgr, loggerDict, filters, unused, extra)
+      subroutine set_logger_filters(lgr, loggerDict, filters, unusable, extra)
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
          type (FilterMap), intent(in) :: filters
-         type (Unusable), optional, intent(in) :: unused
+         class (KeywordEnforcer), optional, intent(in) :: unusable
          type (Config), optional, intent(in) :: extra
       
          character(len=:), allocatable :: filterNamesList ! '[ str1, str2, ..., strn ]'
@@ -826,6 +847,8 @@ contains
          type (FilterIterator) :: iter
          integer :: i, j, n
          logical :: found
+
+         _UNUSED_DUMMY(unusable)
 
          filterNamesList = loggerDict%toString('filters', found=found)
          if (found) then
@@ -861,11 +884,11 @@ contains
       end subroutine set_logger_filters
 
 
-      subroutine set_logger_handlers(lgr, loggerDict, handlers, unused, extra)
+      subroutine set_logger_handlers(lgr, loggerDict, handlers, unusable, extra)
          class (Logger), intent(inout) :: lgr
          type (Config), intent(in) :: loggerDict
          type (HandlerMap), intent(in) :: handlers
-         type (Unusable), optional, intent(in) :: unused
+         class (KeywordEnforcer), optional, intent(in) :: unusable
          type (Config), optional, intent(in) :: extra
 
          character(len=:), allocatable :: handlerNamesList ! '[ str1, str2, ..., strn ]'
@@ -876,6 +899,8 @@ contains
          logical :: found
          class (AbstractHandler), pointer :: h
 
+
+         _UNUSED_DUMMY(unusable)
 
          handlerNamesList = loggerDict%toString('handlers', found=found)
          if (found) then

@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -29,6 +30,7 @@ module PFL_Logger_mod
    use PFL_SeverityLevels_mod, only: ERROR_LEVEL => ERROR
    use PFL_SeverityLevels_mod, only: CRITICAL_LEVEL => critical
    use PFL_LogRecord_mod
+   use PFL_KeywordEnforcer_mod
    implicit none
    private
 
@@ -41,10 +43,8 @@ module PFL_Logger_mod
       type (HandlerVector) :: handlers
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
-!!$      character(len=:), pointer :: name
       character(len=:), allocatable :: name
    contains
-
       procedure :: set_name
       procedure :: get_name
       procedure :: isEnabledFor
@@ -67,7 +67,6 @@ module PFL_Logger_mod
       procedure :: get_parent
       procedure :: set_propagate
       procedure :: get_propagate
-
    end type Logger
 
    interface Logger
@@ -77,8 +76,6 @@ module PFL_Logger_mod
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
 
-   type Unusable
-   end type Unusable
 contains
 
    
@@ -196,14 +193,14 @@ contains
 !
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
-   subroutine make_record(this, record, level, message, unused, args, extra, line, file)
+   subroutine make_record(this, record, level, message, unusable, args, extra, line, file)
       use PFL_StringUnlimitedMap_mod, only: Map
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (UnlimitedVector), target, optional, intent(in) :: args
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
@@ -211,6 +208,8 @@ contains
 
       character(len=:), allocatable :: name
 
+      _UNUSED_DUMMY(unusable)
+      
       name = this%get_name()
       call initLogRecord(record, name, level, message, args=args, extra=extra, line=line, file=file)
       
@@ -268,7 +267,7 @@ contains
 !! appropriate handler of this logger to handle the record.
 !! The log method needs two parameters - a message and the severity level
 !---------------------------------------------------------------------------
-   subroutine log_(this, level, message, ARG_LIST, unused, extra, line, file)
+   subroutine log_(this, level, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_ArgListUtilities_mod
       use PFL_StringUnlimitedMap_mod, only: Map
       use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
@@ -276,38 +275,47 @@ contains
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
       
       type (UnlimitedVector), target :: args
       type (LogRecord) :: record
 
+      integer :: status
+      
       args = make_arg_vector(ARG_LIST)
       call this%make_record(record, level, message, args=args, extra=extra, line=line, file=file)
 
       if (this%do_filter(record)) then
-         call this%emit(record)
+         call this%emit(record, rc=status)
+         _VERIFY(status,'',rc)
       end if
 
+      _RETURN(_SUCCESS,rc)
    end subroutine log_
 
-   subroutine emit(this, record)
+   subroutine emit(this, record, unusable, rc)
       class (Logger), target, intent(in) :: this
       type (LogRecord), intent(inout) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: h
 
       class (Logger), pointer :: current
-
+      integer :: status
+      
       current => this
       do while (associated(current))
          iter = current%handlers%begin()
          do while (iter /= current%handlers%end())
             h => iter%get()
-            call h%handle(record)
+            call h%handle(record, rc=status)
+            _VERIFY(status,'',rc)
             call iter%next()
          end do
 
@@ -317,6 +325,8 @@ contains
             exit
          end if
       end do
+
+      _RETURN(_SUCCESS,rc)
       
    end subroutine emit
 
@@ -334,20 +344,27 @@ contains
 !! These methods are identical to the log method except that you don’t have
 !! to specify the level, because the level is implicit in the name.  
 !---------------------------------------------------------------------------
-   subroutine log(this, level, message, ARG_LIST, unused, extra, line, file)
+   subroutine log(this, level, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level     
       include 'recordOptArgs.inc'
-      type(Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
-      
-      if (this%isEnabledFor(level)) &
-           call this%log_(level, message, ARG_LIST)
+      integer, optional, intent(out) :: rc
+
+      integer :: status
+
+      if (this%isEnabledFor(level)) then
+         call this%log_(level, message, ARG_LIST,rc=status)
+         _VERIFY(status,'',rc)
+      end if
+
+      _RETURN(_SUCCESS,rc)
 
    end subroutine log
 
@@ -357,19 +374,24 @@ contains
 !
 !> @brief Log a message with severity level DEBUG.
 !---------------------------------------------------------------------------
-   subroutine debug(this, message, ARG_LIST, unused, extra, line, file)
+   subroutine debug(this, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
 
-      if (this%isEnabledFor(DEBUG_LEVEL)) &
-         call this%log_(DEBUG_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file)
+      integer :: status
+      if (this%isEnabledFor(DEBUG_LEVEL)) then
+         call this%log_(DEBUG_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      _RETURN(_SUCCESS,rc)
 
    end subroutine debug
 
@@ -379,18 +401,24 @@ contains
 !
 !> @brief Log a message with severity level INFO.
 !---------------------------------------------------------------------------
-   subroutine info(this, message, ARG_LIST, unused, extra, line, file)
+   subroutine info(this, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
-      class (Logger), intent(inout) :: this
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
 
-      if (this%isEnabledFor(INFO_LEVEL)) &
-           call this%log_(INFO_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file)
+      integer :: status
+      if (this%isEnabledFor(INFO_LEVEL)) then
+         call this%log_(INFO_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      _RETURN(_SUCCESS,rc)
 
    end subroutine info
 
@@ -400,18 +428,24 @@ contains
 !
 !> @brief Log a message with severity level WARNING.
 !---------------------------------------------------------------------------
-   subroutine warning(this, message, ARG_LIST, unused, extra, line, file)
+   subroutine warning(this, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
-      class (Logger), intent(inout) :: this
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
-      type(Unusable), optional, intent(in) :: unused
-      type (map), optional, intent(in) :: extra
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
       
-      if (this%isEnabledFor(WARNING_LEVEL)) &
-           call this%log_(WARNING_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file)
+      integer :: status
+      if (this%isEnabledFor(WARNING_LEVEL)) then
+         call this%log_(WARNING_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      _RETURN(_SUCCESS,rc)
 
    end subroutine warning
 
@@ -421,18 +455,25 @@ contains
 !
 !> @brief Log a message with severity level ERROR.
 !---------------------------------------------------------------------------
-   subroutine error(this, message, ARG_LIST, unused, extra, line, file)
+   subroutine error(this, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
-      class (Logger), intent(inout) :: this
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
       
-      if (this%isEnabledFor(ERROR_LEVEL)) &
-           call this%log_(ERROR_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file)
+      integer :: status
+      if (this%isEnabledFor(ERROR_LEVEL)) then
+         call this%log_(ERROR_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      _RETURN(_SUCCESS,rc)
+
 
    end subroutine error
 
@@ -442,18 +483,24 @@ contains
 !
 !> @brief Log a message with severity level CRITICAL.
 !---------------------------------------------------------------------------
-   subroutine critical(this, message, ARG_LIST, unused, extra, line, file)
+   subroutine critical(this, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_StringUnlimitedMap_mod, only: Map
-      class (Logger), intent(inout) :: this
+      ! Log message with the integer severity 'DEBUG'.
+      class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
-      type(Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       type (map), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
+      integer, optional, intent(out) :: rc
       
-      if (this%isEnabledFor(CRITICAL_LEVEL)) &
-           call this%log_(CRITICAL_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file)
+      integer :: status
+      if (this%isEnabledFor(CRITICAL_LEVEL)) then
+         call this%log_(CRITICAL_LEVEL, message, ARG_LIST, extra=extra, line=line, file=file, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      _RETURN(_SUCCESS,rc)
 
    end subroutine critical
 

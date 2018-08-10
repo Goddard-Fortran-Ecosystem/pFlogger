@@ -1,3 +1,11 @@
+#define _UNUSED_DUMMY(x) if(.false.)print*,shape(x)
+#define _SUCCESS 0
+#define _FAILURE 1
+#define _RETURN(status,rc) if (present(rc))rc=status; return
+#define _THROW(msg) call throw(__FILE__,__LINE__,msg)
+#define _ASSERT(cond,msg,rc) if(.not.(cond))then; _THROW(msg);_RETURN(_FAILURE,rc);endif
+#define _VERIFY(status,msg,rc) _ASSERT(status==_SUCCESS,msg,rc)
+
 !!------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -18,6 +26,8 @@ module PFL_LogRecord_mod
    use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
    use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
    use PFL_SeverityLevels_mod, only: level_to_name
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -170,12 +180,18 @@ contains
    ! Return the message for this LogRecord after parsing any user-supplied
    ! arguments associated with message.
    !---------------------------------------------------------------------------
-   function get_message(this) result(message)
+   function get_message(this, unusable, rc) result(message)
       use PFL_FormatString_mod, only: formatString
-      class (LogRecord), intent(in) :: this
       character(len=:), allocatable :: message
+      class (LogRecord), intent(in) :: this
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
-      message = formatString(this%message_format,  this%args)
+      integer :: status
+      
+      message = formatString(this%message_format,  this%args, rc=status)
+      _VERIFY(status,'',rc)
+      _RETURN(_SUCCESS,rc)
       
    end function get_message
 
