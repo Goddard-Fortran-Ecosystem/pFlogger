@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -26,7 +27,8 @@ module PFL_AbstractHandler_mod
    use PFL_SeverityLevels_mod, only: NOTSET
    use PFL_LogRecord_mod, only: LogRecord
    use PFL_Formatter_mod, only: Formatter
-   
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -55,11 +57,14 @@ module PFL_AbstractHandler_mod
    abstract interface
 
       ! This version is intended to be implemented by subclasses
-      subroutine emit_message(this, record)
+      subroutine emit_message(this, record, unusable, rc)
+         use PFL_KeywordEnforcer_mod
          import AbstractHandler
          import LogRecord
          class (AbstractHandler), intent(inout) :: this
          type (LogRecord), intent(in) :: record
+         class (KeywordEnforcer), optional, intent(in) :: unusable
+         integer, optional, intent(out) :: rc
       end subroutine emit_message
 
       ! This version is intended to be implemented by subclasses
@@ -98,18 +103,23 @@ contains
    ! DESCRIPTION: 
    ! Log a specified message with severity 'level'
    !---------------------------------------------------------------------------
-   subroutine handle(this, record)
+   subroutine handle(this, record, unusable, rc)
       class(AbstractHandler), intent(inout) :: this
       type (LogRecord), intent(inout) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       integer :: level
+      integer :: status
 
       level = record%get_level()
       if (level >= this%get_level()) then
          if (this%do_filter(record)) then
-            call this%emit_message(record)
+            call this%emit_message(record, rc=status)
+            _VERIFY(status,'',rc)
          end if
       end if
+      _RETURN(_SUCCESS,rc)
       
    end subroutine handle
 
@@ -121,21 +131,30 @@ contains
    ! DESCRIPTION: 
    ! Format a record using specified formatter.
    !---------------------------------------------------------------------------
-   function format(this, record) result(message)
+   function format(this, record, unusable, rc) result(message)
       class(AbstractHandler), intent(in) :: this
       type(LogRecord), intent(in) :: record
       character(len=:), allocatable :: message
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
+
+      integer :: status
+
+      _UNUSED_DUMMY(unusable)
 
       if (allocated(this%fmt)) then
-         message = this%fmt%format(record)
+         message = this%fmt%format(record, rc=status)
+         _VERIFY(status,'',rc)
       else
          block
            type (Formatter) :: fmtr
            fmtr = Formatter(BASIC_FORMAT)
-           message = fmtr%format(record)
+           message = fmtr%format(record, rc=status)
+           _VERIFY(status,'',rc)
          end block
       end if
-      
+
+      _RETURN(_SUCCESS,rc)
    end function format
 
    

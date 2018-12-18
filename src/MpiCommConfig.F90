@@ -1,6 +1,8 @@
+#include "error_handling_macros.fh"
 module PFL_MpiCommConfig_mod
    use mpi
    use PFL_StringUnlimitedMap_mod
+   use PFL_KeywordEnforcer_mod
    implicit none
    private
 
@@ -12,33 +14,34 @@ module PFL_MpiCommConfig_mod
       module procedure MPICommConfig_multi_comm
    end interface MpiCommConfig
 
-   type Unusable
-   end type Unusable
-
 contains
 
 
-   function MpiCommConfig_Default_comm(unused, rank_keyword, size_keyword) result(m)
+   function MpiCommConfig_Default_comm(unusable, rank_keyword, size_keyword) result(m)
       type (Map) :: m
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
 
-      m = MpiCommConfig(MPI_COMM_WORLD, unused, rank_keyword, size_keyword)
+      _UNUSED_DUMMY(unusable)
+
+      m = MpiCommConfig(MPI_COMM_WORLD, unusable, rank_keyword, size_keyword)
       
    end function MpiCommConfig_Default_comm
    
 
-   function MpiCommConfig_comm(mpi_communicator, unused, rank_keyword, size_keyword) result(m)
+   function MpiCommConfig_comm(mpi_communicator, unusable, rank_keyword, size_keyword) result(m)
       integer, intent(in) :: mpi_communicator
       type (Map) :: m
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
 
       integer :: rank
       integer :: npes
       integer :: ierror
+
+      _UNUSED_DUMMY(unusable)
 
       call MPI_Comm_rank(mpi_communicator, rank, ierror)
       call MPI_Comm_size(mpi_communicator, npes, ierror)
@@ -49,7 +52,7 @@ contains
    end function MpiCommConfig_comm
 
 
-   function MpiCommConfig_multi_comm(mpi_communicators, unused, &
+   function MpiCommConfig_multi_comm(mpi_communicators, unusable, &
         & rank_prefix, size_prefix) result(m)
       use PFL_FormatString_mod
       use PFL_ArgListUtilities_mod
@@ -57,7 +60,7 @@ contains
             
       integer, intent(in) :: mpi_communicators(:)
       type (Map) :: m
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_prefix
       character(len=*), optional, intent(in) :: size_prefix
       type (Vector) :: v
@@ -67,6 +70,8 @@ contains
       integer :: ierror
       integer :: i
       character(len=:), allocatable :: suffix
+
+      _UNUSED_DUMMY(unusable)
 
       do i = 1, size(mpi_communicators)
          call MPI_Comm_rank(mpi_communicators(i), rank, ierror)

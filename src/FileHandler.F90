@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -13,6 +14,8 @@ module PFL_FileHandler_mod
    use PFL_StreamHandler_mod, only: StreamHandler
    use PFL_AbstractLock_mod, only: AbstractLock
    use PFL_LogRecord_mod, only: LogRecord
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -40,9 +43,6 @@ module PFL_FileHandler_mod
       module procedure newFileHandler
    end interface
 
-   type Unusable
-   end type Unusable
-   
 contains
 
     
@@ -55,10 +55,10 @@ contains
    ! set a level and a delay. If a delay is set to true then we
    ! don't open the stream.
    !---------------------------------------------------------------------------
-   function newFileHandler(file_name, unused, delay) result(handler)
+   function newFileHandler(file_name, unusable, delay) result(handler)
       type (FileHandler) :: handler
       character(len=*), intent(in) :: file_name
-      type (Unusable), optional, intent(in) :: unused
+      class (KeywordEnforcer), optional, intent(in) :: unusable
       logical, optional, intent(in) :: delay
 
       logical :: delay_
@@ -84,32 +84,46 @@ contains
    ! DESCRIPTION: 
    ! Write a formatted string to a file.
    !---------------------------------------------------------------------------  
-   subroutine emit_message(this, record)
+   subroutine emit_message(this, record, unusable, rc)
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
+      integer :: status
       if (this%is_lockable()) then
          call this%lock%acquire()
          call this%open()
       end if
 
-      call this%atomic_emit_message(record)
+      call this%atomic_emit_message(record, rc=status)
+      _VERIFY(status,'',rc)
 
       if (this%is_lockable()) then
          call this%close()
          call this%lock%release()
       end if
+      _RETURN(_SUCCESS,rc)
 
    end subroutine emit_message
 
 
-   subroutine atomic_emit_message(this, record)
+   subroutine atomic_emit_message(this, record, unusable, rc)
       class (FileHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
-      if (.not. this%is_open()) call this%open()
+      integer :: status
 
-      call this%StreamHandler%emit_message(record)
+      if (.not. this%is_open()) then
+         call this%open(rc=status)
+         _VERIFY(status,'',rc)
+      end if
+      call this%StreamHandler%emit_message(record, rc=status)
+      _VERIFY(status,'',rc)
+
+      _RETURN(_SUCCESS,rc)
 
    end subroutine atomic_emit_message
    
@@ -137,19 +151,25 @@ contains
    ! DESCRIPTION: 
    ! Open the disk file used by this handler.
    !---------------------------------------------------------------------------  
-   subroutine open(this)
+   subroutine open(this, unusable, rc)
       class (FileHandler), intent(inout) :: this
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
+
       integer :: unit
       logical :: opened
+      integer :: status
 
       if (this%is_open()) return
 
       open(newunit=unit, file=this%get_file_name(), &
-           & status='unknown', form='formatted', position='append')
+           & status='unknown', form='formatted', position='append',iostat=status)
+      _VERIFY(status,'could not open '//this%get_file_name(),rc)
 
       this%is_open_ = .true.
 
       call this%set_unit(unit)
+      _RETURN(_SUCCESS,rc)
        
    end subroutine open
 

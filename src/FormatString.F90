@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -27,11 +28,11 @@ module PFL_FormatString_mod
    use PFL_FormatToken_mod
    use PFL_StringUnlimitedMap_mod, only: Map
    use PFL_String_mod, only: String
+   use PFL_KeywordEnforcer_mod
    implicit none
    private
 
    public :: FormatString
-   public :: operator(.fmt.)
 
    interface FormatString
       module procedure format_map
@@ -39,41 +40,45 @@ module PFL_FormatString_mod
       module procedure format_preparsed
    end interface FormatString
 
-   interface operator(.fmt.)
-      module procedure format_map
-      module procedure format_vector
-      module procedure format_preparsed
-   end interface operator(.fmt.)
-
    character(len=*), parameter :: LIST_DIRECTED_FORMAT = '*'
 
 contains
 
 
-   function format_map(fmt, dictionary) result(string)
+   function format_map(fmt, dictionary, unusable, rc) result(string)
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       class(Map), intent(in) :: dictionary
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       type (FormatParser) :: p
+      integer :: status
 
+      _UNUSED_DUMMY(unusable)
+      
       call p%parse(fmt)
-      string = format_preparsed(p, dictionary)
+      string = format_preparsed(p, dictionary, rc=status)
+      _VERIFY(status,'',rc)
+      _RETURN(_SUCCESS,rc)
 
    end function format_map
 
-   function format_preparsed(parsed, dictionary) result(string)
-      use PFL_FormatTokenVector_mod, only: TokenVector => Vector
+   function format_preparsed(parsed, dictionary, unusable, rc) result(string)
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use PFL_StringUnlimitedMap_mod, only: MapIterator
       character(len=:), allocatable :: string
       type (FormatParser), target, intent(in) :: parsed
       class(Map), target, intent(in) :: dictionary
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       type (TokenVectorIterator) :: tokenIter
       type (FormatToken), pointer :: token
       type (MapIterator) :: dictionaryIter
       class (*), pointer :: arg
+
+      _UNUSED_DUMMY(unusable)
 
       tokenIter = parsed%begin()
       string = ''
@@ -87,34 +92,34 @@ contains
 
          case (KEYWORD)
             dictionaryIter = dictionary%find(token%text)
-            if (dictionaryIter == dictionary%end()) then
-               call throw(__FILE__,__LINE__,'FormatString::format_map() - no such keyword: <' // token%text // '> in "extra".')
-               return
-            end if
+#            define _NO_KEYWORD(text) 'format_preparsed() - no such keyword: <'//text//'> in "extra".'
+            _ASSERT(.not.(dictionaryIter == dictionary%end()),_NO_KEYWORD(token%text), rc)
+
             arg => dictionaryIter%value()
             string = string // handleScalar(arg, token%edit_descriptor)
 
          case (POSITION)
-            call throw(__FILE__,__LINE__,'FormatString::format_map() - position arguments not allowed.')
-            return
+            _ASSERT(.false.,'format_map() - position arguments not allowed.', rc)
          end select
 
          call tokenIter%next()
 
       end do
 
+      _RETURN(_SUCCESS,rc)
    end function format_preparsed
 
 
-   function format_vector(fmt, args) result(string)
+   function format_vector(fmt, args, unusable, rc) result(string)
       use PFL_FormatToken_mod
-      use PFL_FormatTokenVector_mod, only: TokenVector => Vector
       use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
       use PFL_UnlimitedVector_mod, only: Vector
       use PFL_UnlimitedVector_mod, only: VectorIterator
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       type(Vector), intent(in) :: args
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       type (FormatParser), save :: p
       character(len=:), save, allocatable :: old_fmt
@@ -123,6 +128,8 @@ contains
       type (VectorIterator) :: argIter
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
+
+      _UNUSED_DUMMY(unusable)
 
       if (.not. allocated(old_fmt)) then
          old_fmt = fmt
@@ -148,19 +155,15 @@ contains
             string = string // token%text
 
          case (POSITION)
-            if (argIter == args%end()) then
-               ! check other ranks
-               call throw(__FILE__,__LINE__,'FormatString::format_vector() - not enough values for format string.')
-               return
-            else
-               arg => argIter%get()
-               string = string // handleScalar(arg, token%edit_descriptor)
-               call argIter%next()
-            end if
+            
+#           define _END_OF_VALUES 'format_vector() - not enough position arguments for format string.'
+            _ASSERT(.not.(argIter == args%end()), _END_OF_VALUES, rc)
+            arg => argIter%get()
+            string = string // handleScalar(arg, token%edit_descriptor)
+            call argIter%next()
 
          case (KEYWORD)
-            call throw(__FILE__,__LINE__,'FormatString::format_vector() - keyword arguments not allowed.')
-            return
+            _ASSERT(.false.,'format_vector() - keyword arguments not allowed.',rc)
          end select
 
          call tokenIter%next()
@@ -168,9 +171,12 @@ contains
       end do
 
       if (argIter /= args%end()) then
-         call throw(__FILE__,__LINE__,'FormatString::format_vector() - not all arguments converted during string formatting.')
+#        define _EXTRA_ARGS
+         _ASSERT(.false., 'format_vector() - additional unprocessed arguments.',rc)
+         _RETURN(_FAILURE,rc)
       end if
 
+      _RETURN(_SUCCESS,rc)
    end function format_vector
 
 
@@ -182,17 +188,22 @@ contains
    ! This function is used by format to deal with all unlimited polymorphic
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
-   function handleScalar(arg, fmt) result(str)
+   function handleScalar(arg, fmt, unusable, rc) result(str)
       use PFL_DynamicBuffer_mod
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: str
       class (*), intent(in) :: arg
       character(len=*), intent(in) :: fmt
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       type (DynamicBuffer) :: buffer
       integer :: iostat
       logical :: intrinsic
       logical, parameter :: SCALAR = .true.
+      integer :: status
+
+      _UNUSED_DUMMY(unusable)
 
       iostat = -1
       call buffer%allocate()
@@ -223,29 +234,31 @@ contains
             type is (WrapArray5D)
                call handleArray5D(arg%array, fmt, buffer, iostat=iostat)
             class default ! other
-               buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+               buffer%buffer = 'handleScalar() :: unsupported type (possibly rank > 5?)'
                iostat = 0
             end select
          end if
          
          if (iostat == 0) exit
          if (iostat == INTERNAL_FILE_EOR) then
-            call buffer%grow_record_size()
+            call buffer%grow_record_size(rc=status)
+            _VERIFY(status,'',rc)
             cycle
          end if
          if (iostat == INTERNAL_FILE_EOF) then
-            call buffer%grow_num_records()
+            call buffer%grow_num_records(rc=status)
+            _VERIFY(status,'',rc)
             cycle
          end if
          
          ! unrecoverable iostat
-         call throw(__FILE__,__LINE__,'FormatString::format*() - bad format "'//fmt//'"')
          str=''
-         return
+         _ASSERT(.false.,'handleScalar() - bad format "'//fmt//'"',rc)
          
       end do
 
       str = buffer%concatenate()
+      _RETURN(_SUCCESS,rc)
 
    end function handleScalar
 
@@ -273,7 +286,7 @@ contains
       include 'write_if_intrinsic.inc'
       
       if (.not. intrinsic) then
-         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'handleScalar() - unsupported type'
          iostat = 0
       end if
 
@@ -302,7 +315,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'handleScalar() - unsupported type'
          iostat = 0
       end if
 
@@ -331,7 +344,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'handleScalar() - unsupported type'
          iostat = 0
       end if
 
@@ -360,7 +373,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'handleScalar() - unsupported type'
          iostat = 0
       end if
 
@@ -389,7 +402,7 @@ contains
       include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
-         buffer%buffer = 'FormatParser::handleScalar() :: unsupported type'
+         buffer%buffer = 'handleScalar() - unsupported type'
          iostat = 0
       end if
 

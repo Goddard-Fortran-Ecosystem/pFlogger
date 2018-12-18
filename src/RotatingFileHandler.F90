@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -19,7 +20,8 @@ module PFL_RotatingFileHandler_mod
    use, intrinsic :: iso_fortran_env, only: INT64
    use PFL_FileHandler_mod, only: FileHandler
    use PFL_LogRecord_mod, only: LogRecord
-   
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -155,17 +157,23 @@ contains
    ! DESCRIPTION: 
    ! Write a formatted string to a file.
    !---------------------------------------------------------------------------  
-   subroutine atomic_emit_message(this, record)
+   subroutine atomic_emit_message(this, record, unusable, rc)
       class (RotatingFileHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
-      integer :: fileSize
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
+      integer :: fileSize
+      integer :: status
       
       if (this%should_rollover()) then
          call this%do_rollover()
       end if
 
-      call this%FileHandler%atomic_emit_message(record)
+      call this%FileHandler%atomic_emit_message(record, rc=status)
+      _VERIFY(status,'',rc)
+
+      _RETURN(_SUCCESS,rc)
     
    end subroutine atomic_emit_message
 
