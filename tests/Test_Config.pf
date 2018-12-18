@@ -453,7 +453,7 @@ contains
       call build_logger(lgr, cfg, elements, extra=extra)
 
       call lgr%info('message')
-      @assertEqual('message',buffer2%buffer)
+      @assertEqual('INFO: serial: message',buffer2%buffer)
       
    end subroutine test_build_logger_serial_comm
 #endif

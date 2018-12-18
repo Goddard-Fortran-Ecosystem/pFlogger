@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -16,7 +17,8 @@ module PFL_StreamHandler_mod
    use iso_fortran_env, only: ERROR_UNIT
    use PFL_AbstractHandler_mod, only: AbstractHandler
    use PFL_LogRecord_mod, only: LogRecord
-   
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -99,12 +101,18 @@ contains
    ! DESCRIPTION: 
    ! Write a formatted string to a stream.
    !---------------------------------------------------------------------------  
-   subroutine emit_message(this, record)
+   subroutine emit_message(this, record, unusable, rc)
       class (StreamHandler), intent(inout) :: this
       type(LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
+      
+      integer :: status
 
-      write(this%unit, '(a)') this%format(record)
+      write(this%unit, '(a)') this%format(record,rc=status)
+      _VERIFY(status,'',rc)
       call this%flush()
+      _RETURN(_SUCCESS,rc)
      
    end subroutine emit_message
 

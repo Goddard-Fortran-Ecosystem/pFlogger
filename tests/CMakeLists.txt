@@ -69,6 +69,7 @@ set_source_files_properties(
 
 include_directories(
    ${CMAKE_SOURCE_DIR}/tests
+   ${CMAKE_SOURCE_DIR}/src
    ${CMAKE_BINARY_DIR}/src
    ${CMAKE_BINARY_DIR}/src/include
    ${FTL_INSTALL_DIR}/include

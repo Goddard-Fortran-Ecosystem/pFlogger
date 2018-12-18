@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -32,6 +33,7 @@ module PFL_FastFormatter_mod
    use PFL_Object_mod
    use PFL_LogRecord_mod
    use PFL_Formatter_mod
+   use PFL_KeywordEnforcer_mod
    implicit none
    private
 
@@ -79,16 +81,18 @@ contains
    ! then performed by the format parser. For example, for a record message
    ! containing "hello" format returns "INFO: logName: Hello".
    !---------------------------------------------------------------------------
-   function format(this, record) result(logMessage)
+   function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-
       character(len=:), allocatable :: logMessage
       class (FastFormatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
+      _UNUSED_DUMMY(unusable)
+      
       logMessage = record%message_format
+      _RETURN(_SUCCESS,rc)
 
    end function format
 

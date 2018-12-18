@@ -1,3 +1,4 @@
+#include "error_handling_macros.fh"
 module MockHandler_mod
    ! Instances of this class inherit from the abstract handler. The idea of 
    ! the mock is to be able to control the data that is written to an output
@@ -5,6 +6,8 @@ module MockHandler_mod
    ! test for the contents of the buffer's correctnes.
    use PFL_AbstractHandler_mod
    use PFL_LogRecord_mod
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
    
@@ -44,11 +47,18 @@ contains
    end function newMockHandler
 
    
-   subroutine emit_message(this, record)
+   subroutine emit_message(this, record, unusable, rc)
       class (MockHandler), intent(inout) :: this
       type (LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
-      this%buffer%buffer = this%format(record)
+      integer :: status
+
+      this%buffer%buffer = this%format(record,rc=status)
+      _VERIFY(status,'',rc)
+
+      _RETURN(_SUCCESS,rc)
       
    end subroutine emit_message
 

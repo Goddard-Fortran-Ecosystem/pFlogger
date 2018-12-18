@@ -191,9 +191,17 @@ contains
               ph%counter = counter
               call this%loggers%insert(ancestor_name, ph)
               tmp => this%loggers%at(ancestor_name)
-              select type (tmp); class is (PlaceHolder); ph => tmp; end select
+              select type (tmp)
+              class is (PlaceHolder)
+                 ph => tmp
+              end select
+              ! lgr pointer may be invalidated by insert() call above
+              ! find lgr again ...
               tmp => this%loggers%at(name)
-              select type (tmp); class is (Logger); lgr => tmp; end select
+              select type (tmp)
+              class is (Logger)
+                 lgr => tmp
+              end select
               call ph%children%push_back(lgr)
             end block
          end if

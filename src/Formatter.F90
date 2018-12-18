@@ -1,3 +1,11 @@
+#define _UNUSED_DUMMY(x) if(.false.)print*,shape(x)
+#define _SUCCESS 0
+#define _FAILURE 1
+#define _RETURN(status,rc) if (present(rc))rc=status; return
+#define _THROW(msg) call throw(__FILE__,__LINE__,msg)
+#define _ASSERT(cond,msg,rc) if(.not.(cond))then; _THROW(msg);_RETURN(_FAILURE,rc);endif
+#define _VERIFY(status,msg,rc) _ASSERT(status==_SUCCESS,msg,rc)
+
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -38,6 +46,8 @@ module PFL_Formatter_mod
    use PFL_LogRecord_mod
    use PFL_FormatParser_mod
    use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
+   use PFL_KeywordEnforcer_mod
+   use PFL_Exception_mod
    implicit none
    private
 
@@ -189,13 +199,15 @@ contains
    ! example, for a record message containing "hello" format returns
    ! "INFO: logName: Hello".
    ! ---------------------------------------------------------------------------
-   function format(this, record) result(logMessage)
+   function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString_mod
       use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
       use PFL_String_mod, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       character(len=:), allocatable :: asctime
       character(len=:), allocatable :: simtime
@@ -204,12 +216,15 @@ contains
       character(len=:), allocatable :: msg
       type (StringUnlimitedMap) :: dict
 
+      integer :: status
+      
       if (associated(record%extra)) then
          call extra%deepCopy(record%extra)
       end if
 
       if (this%fmt_uses_message) then
-         msg = record%get_message()
+         msg = record%get_message(rc=status)
+         _VERIFY(status,'',rc)
          call extra%insert('message', String(msg))
       end if
 
@@ -276,6 +291,7 @@ contains
 
       logMessage = FormatString(this%p, extra)
 
+      _RETURN(_SUCCESS,rc)
    end function format
 
    !---------------------------------------------------------------------------  

@@ -1,5 +1,7 @@
+#include "error_handling_macros.fh"
 module PFL_DynamicBuffer_mod
    use PFL_Exception_mod
+   use PFL_KeywordEnforcer_mod
    implicit none
    private
 
@@ -32,37 +34,41 @@ module PFL_DynamicBuffer_mod
    
 contains
 
-   subroutine grow_record_size(this)
+   subroutine grow_record_size(this, unusable, rc)
       class (DynamicBuffer), intent(inout) :: this
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         call throw(__FILE__,__LINE__,'DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
-         return
+         _THROW('DynamicBuffer::grow_record_size() - exceeded maximum permitted buffer size.')
+         _RETURN(_FAILURE,rc)
       end if
       this%record_size = this%record_size * 2
       call this%allocate()
 
+      _RETURN(_SUCCESS,rc)
    end subroutine grow_record_size
 
 
-   subroutine grow_num_records(this)
+   subroutine grow_num_records(this, unusable, rc)
       class (DynamicBuffer), intent(inout) :: this
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(out) :: rc
 
 #ifdef __GFORTRAN__
-      call throw(__FILE__,__LINE__, &
-           & 'DynamicBuffer::grow_num_records() - GFortran cannot support dynamically sized multiline records for internal files.')
-      return
+      _THROW('DynamicBuffer::grow_num_records() - GFortran cannot support dynamically sized multiline records for internal files.')
+      _RETURN(_FAILURE,rc)
 #else
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         call throw(__FILE__,__LINE__, &
-              & 'DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
-         return
+         _THROW('DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
+         _RETURN(_FAILURE,rc)
       end if
 
       this%num_records = this%num_records * 2
       call this%allocate()
 #endif
 
+      _RETURN(_SUCCESS,rc)
    end subroutine grow_num_records
 
 
