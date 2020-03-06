@@ -26,7 +26,7 @@ module PFL_FormatString
    use PFL_WrapArray
    use PFL_Exception
    use PFL_FormatToken
-   use PFL_StringUnlimitedMap, only: Map
+   use gFTL_StringUnlimitedMap
    use PFL_String, only: String
    use PFL_KeywordEnforcer
    implicit none
@@ -48,7 +48,7 @@ contains
    function format_map(fmt, dictionary, unusable, rc) result(string)
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
-      class(Map), intent(in) :: dictionary
+      class(StringUnlimitedMap), intent(in) :: dictionary
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
@@ -66,16 +66,15 @@ contains
 
    function format_preparsed(parsed, dictionary, unusable, rc) result(string)
       use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
-      use PFL_StringUnlimitedMap, only: MapIterator
       character(len=:), allocatable :: string
       type (FormatParser), target, intent(in) :: parsed
-      class(Map), target, intent(in) :: dictionary
+      class(StringUnlimitedMap), target, intent(in) :: dictionary
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
       type (TokenVectorIterator) :: tokenIter
       type (FormatToken), pointer :: token
-      type (MapIterator) :: dictionaryIter
+      type (StringUnlimitedMapIterator) :: dictionaryIter
       class (*), pointer :: arg
 
       _UNUSED_DUMMY(unusable)
@@ -113,11 +112,10 @@ contains
    function format_vector(fmt, args, unusable, rc) result(string)
       use PFL_FormatToken
       use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
-      use PFL_UnlimitedVector, only: Vector
-      use PFL_UnlimitedVector, only: VectorIterator
+      use gFTL_UnlimitedVector
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
-      type(Vector), intent(in) :: args
+      type(UnlimitedVector), intent(in) :: args
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
@@ -125,7 +123,7 @@ contains
       character(len=:), save, allocatable :: old_fmt
 
       type (TokenVectorIterator) :: tokenIter
-      type (VectorIterator) :: argIter
+      type (UnlimitedVectorIterator) :: argIter
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
 

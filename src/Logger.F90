@@ -19,6 +19,8 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_Logger
+   use gFTL_UnlimitedVector
+   use gFTL_StringUnlimitedMap
    use PFL_AbstractHandlerPolyVector
    use PFL_Exception, only: throw
    use PFL_AbstractLogger
@@ -194,15 +196,13 @@ contains
 !> @brief Create a logRecord
 !---------------------------------------------------------------------------
    subroutine make_record(this, record, level, message, unusable, args, extra, line, file)
-      use PFL_StringUnlimitedMap, only: Map
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Logger), intent(in) :: this
       type (LogRecord), intent(out) :: record
       integer, intent(in) :: level
       character(len=*), intent(in) :: message
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (UnlimitedVector), target, optional, intent(in) :: args
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
 
@@ -269,14 +269,12 @@ contains
 !---------------------------------------------------------------------------
    subroutine log_(this, level, message, ARG_LIST, unusable, extra, line, file, rc)
       use PFL_ArgListUtilities
-      use PFL_StringUnlimitedMap, only: Map
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level
       include 'recordOptArgs.inc'
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -345,14 +343,13 @@ contains
 !! to specify the level, because the level is implicit in the name.  
 !---------------------------------------------------------------------------
    subroutine log(this, level, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'INFO'.
       class (Logger), intent(inout) :: this
       character(len=*), intent(in) :: message
       integer, intent(in) :: level     
       include 'recordOptArgs.inc'
       class(KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -375,13 +372,12 @@ contains
 !> @brief Log a message with severity level DEBUG.
 !---------------------------------------------------------------------------
    subroutine debug(this, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -402,13 +398,12 @@ contains
 !> @brief Log a message with severity level INFO.
 !---------------------------------------------------------------------------
    subroutine info(this, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -429,13 +424,12 @@ contains
 !> @brief Log a message with severity level WARNING.
 !---------------------------------------------------------------------------
    subroutine warning(this, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -456,13 +450,12 @@ contains
 !> @brief Log a message with severity level ERROR.
 !---------------------------------------------------------------------------
    subroutine error(this, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc
@@ -484,13 +477,12 @@ contains
 !> @brief Log a message with severity level CRITICAL.
 !---------------------------------------------------------------------------
    subroutine critical(this, message, ARG_LIST, unusable, extra, line, file, rc)
-      use PFL_StringUnlimitedMap, only: Map
       ! Log message with the integer severity 'DEBUG'.
       class (Logger), target, intent(inout) :: this
       character(len=*), intent(in) :: message
       include 'recordOptArgs.inc'  
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (map), optional, target, intent(in) :: extra
+      type (StringUnlimitedMap), optional, target, intent(in) :: extra
       integer, optional, intent(in) :: line
       character(*), optional, intent(in) :: file
       integer, optional, intent(out) :: rc

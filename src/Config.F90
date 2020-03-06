@@ -19,7 +19,7 @@ module PFL_Config
    use PFL_FileHandler
    
    use PFL_StringUnlimitedPolyMap, only: ConfigIterator
-   use PFL_StringUnlimitedMap, only: Map
+   use gFTL_StringUnlimitedMap
    use PFL_Filter
    use PFL_StringUtilities, only: to_lower_case
    use Pfl_KeywordEnforcer
@@ -168,7 +168,7 @@ contains
       integer, allocatable :: comms(:)
       integer :: i, j, n
 
-      type (Map) :: commMap
+      type (StringUnlimitedMap) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
 
       _UNUSED_DUMMY(unusable)
@@ -691,7 +691,7 @@ contains
       integer :: i, j, n
       logical :: delay
 
-      type (Map) :: commMap
+      type (StringUnlimitedMap) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
       
       fileName = handlerDict%toString('filename', found=found)

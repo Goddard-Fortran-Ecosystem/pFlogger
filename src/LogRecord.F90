@@ -23,8 +23,8 @@
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
 module PFL_LogRecord
-   use PFL_UnlimitedVector, only: UnlimitedVector => Vector
-   use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
+   use gFTL_UnlimitedVector
+   use gFTL_StringUnlimitedMap
    use PFL_SeverityLevels, only: level_to_name
    use PFL_KeywordEnforcer
    use PFL_Exception

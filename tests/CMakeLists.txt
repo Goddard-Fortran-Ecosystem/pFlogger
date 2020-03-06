@@ -47,7 +47,7 @@ endif ()
 add_pfunit_ctest (pflogger_tests.x
   TEST_SOURCES ${pf_tests}
   OTHER_SOURCES ${srcs}
-  LINK_LIBRARIES pflogger
+  LINK_LIBRARIES pflogger gftl-shared
   )
 
 target_compile_definitions (pflogger_tests.x PRIVATE -DPFUNIT_EXTRA_INITIALIZE=init_tests)

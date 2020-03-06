@@ -11,7 +11,6 @@ module pflogger
    use PFL_Formatter
    use PFL_FastFormatter
    use PFL_WrapArray
-   use PFL_StringUnlimitedMap, only: StringUnlimitedMap => map
    use FTL_Config, only: Config
 #ifdef _LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
@@ -50,7 +49,6 @@ module pflogger
    public :: level_to_name
    public :: name_to_level
 
-   public :: StringUnlimitedMap
    public :: Config
 
    public :: initialize_severity_levels

@@ -38,8 +38,6 @@ set(SRCS
    FTL_Config.F90
    WrapArray.F90
 # FTL containers
-   StringIntegerMap.F90
-   IntegerStringMap.F90
    StringAbstractLoggerPolyMap.F90
    StringFormatterMap.F90
    StringFilterMap.F90
@@ -48,10 +46,7 @@ set(SRCS
    LoggerPolyVector.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
-   UnlimitedVector.F90
-   StringUnlimitedMap.F90
    FormatTokenVector.F90
-   StringVector.F90
    YAML_Parser.F90
 )
 

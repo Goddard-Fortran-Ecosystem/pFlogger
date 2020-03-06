@@ -11,8 +11,8 @@
 !------------------------------------------------------------------------------
 module PFL_SeverityLevels
    use PFL_Exception
-   use PFL_StringIntegerMap, only: StringIntegerMap => map
-   use PFL_IntegerStringMap, only: IntegerStringMap => map
+   use gftl_StringIntegerMap
+   use gftl_IntegerStringMap
    implicit none
    private
 
@@ -54,11 +54,10 @@ contains
    ! Convert a numeric severity level to string identifier.
    !---------------------------------------------------------------------------
    function level_to_name(level) result(name)
-      use PFL_IntegerStringMap, only: mapIterator
       character(len=:), allocatable :: name
       integer, intent(in) :: level
 
-      type (mapIterator) :: iter
+      type (IntegerStringMapIterator) :: iter
 
       iter = level_to_name_%find(level)
       if (iter == level_to_name_%end()) then
@@ -80,11 +79,10 @@ contains
    ! Convert a level name to a numeric severity level
    !---------------------------------------------------------------------------
    function name_to_level(name) result(level)
-      use PFL_StringIntegerMap, only: mapiterator
       integer :: level
       character(len=*), intent(in) :: name
 
-      type (mapiterator) :: iter
+      type (StringIntegerMapIterator) :: iter
 
       iter = name_to_level_%find(name)
       if (iter == name_to_level_%end()) then

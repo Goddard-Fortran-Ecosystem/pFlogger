@@ -2,7 +2,7 @@ module Test_MpiCommConfig
    use MockMpi
    use funit
    use PFL_MpiCommConfig
-   use PFL_StringUnlimitedMap, only: StringUnlimitedMap => map
+   use gFTL_StringUnlimitedMap, only: StringUnlimitedMap
    use PFL_FormatString
    implicit none
 

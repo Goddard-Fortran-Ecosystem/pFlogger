@@ -4,7 +4,7 @@ module Test_FileHandler_mod
    use PFL_LogRecord
    use PFL_Formatter
    use funit
-   use PFL_UnlimitedVector, only: UnlimitedVector => Vector
+   use gFTL_UnlimitedVector
    implicit none
 
 @suite(name='Test_FileHandler_suite')
@@ -75,7 +75,6 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
@@ -174,7 +173,6 @@ contains
    ! contstructor is used to indicate that configuration.
    @test
    subroutine test_delay(this)
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this
 
       type (LogRecord) :: record

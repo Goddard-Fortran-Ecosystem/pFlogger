@@ -48,7 +48,7 @@ contains
 
 @Test
    subroutine test_args(this)
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
+      use gFTL_UnlimitedVector
       class (Test_LogRecord), intent(inout) :: this
       type (UnlimitedVector) :: args
       

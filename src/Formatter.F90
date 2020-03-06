@@ -45,7 +45,7 @@ module PFL_Formatter
    use PFL_Object
    use PFL_LogRecord
    use PFL_FormatParser
-   use PFL_StringUnlimitedMap, only: StringUnlimitedMap => map
+   use gFTL_StringUnlimitedMap
    use PFL_KeywordEnforcer
    use PFL_Exception
    implicit none
@@ -201,7 +201,7 @@ contains
    ! ---------------------------------------------------------------------------
    function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMapIterator => MapIterator
+      use gFTL_StringUnlimitedMap
       use PFL_String, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
@@ -387,7 +387,6 @@ contains
    
 
    subroutine fill_extra_keywords(this, extra)
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => map
       use PFL_FormatToken
       use PFL_FormatTokenVector
       use PFL_FormatString

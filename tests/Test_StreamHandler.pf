@@ -6,6 +6,7 @@ module Test_StreamHandler_mod
    use PFL_Formatter
    use MockDateFormat_mod
    use PFL_AbstractFilter
+   use gFTL_UnlimitedVector
    implicit none
 
 @suite(name='Test_StreamHandler_suite')
@@ -69,7 +70,6 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       use PFL_Formatter
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
@@ -99,9 +99,8 @@ contains
    
 @Test
    subroutine test_emitBasicWithFormatAndDate(this)
-      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       use PFL_Formatter
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
+      use gFTL_StringUnlimitedMap
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage

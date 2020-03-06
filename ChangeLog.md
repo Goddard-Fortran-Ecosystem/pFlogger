@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Eliminated use of submodules; gFTL and gFTL-shared must be pre-installed.
+- Eliminated use of submodules; gFTL must be preinstalled
 - Using FindPackage to find pFUnit (not required)
 - Updated to pFUnit 4.0
 - Changed naming conventions for modules (dropping the _mod suffix)
+- Introduced dependency on gFTL-shared
+  . eliminates redundant code
+  . makes container types are consistent across projects
 
 ### Fixed
 

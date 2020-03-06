@@ -2,8 +2,9 @@ module Test_FormatString
    use funit
    use PFL_FormatString
    use PFL_ArgListUtilities
-   use PFL_UnlimitedVector
+   use gFTL_UnlimitedVector
    use PFL_FormatToken, only: EOT
+   use gFTL_StringUnlimitedMap
    implicit none
 
 contains
@@ -49,7 +50,6 @@ contains
 
 @test
    subroutine test_format_map()
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       use PFL_String
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
@@ -68,7 +68,6 @@ contains
 
 @test
    subroutine test_format_map_missingKey()
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: found
 
@@ -83,7 +82,6 @@ contains
 
 @test
    subroutine test_format_map_illegalPositionToken()
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: found
 
@@ -112,12 +110,11 @@ contains
    ! with keyword
 @test
    subroutine test_defaultFormat_keyword()
-      use PFL_StringUnlimitedMap
       use PFL_String
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
-      type (Map) :: extra
+      type (StringUnlimitedMap) :: extra
 
       call extra%insert('dog',String('fido'))
       call extra%insert('cat',String('tabby'))
@@ -255,7 +252,7 @@ contains
 
 @test
    subroutine test_newline_noargs()
-      type (Vector) :: v
+      type (UnlimitedVector) :: v
       character(:), allocatable :: found
 
       found = formatString('\n', v)
