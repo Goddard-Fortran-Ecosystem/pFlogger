@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_Object_mod
+!*MODULE: PFL_Object
 !
 !> @brief Parent class of all other classes.
 !> @details
@@ -13,7 +13,7 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module PFL_Object_mod
+module PFL_Object
    implicit none
    private
 
@@ -43,4 +43,4 @@ contains
       string = ''
    end function toString_self
 
-end module PFL_Object_mod
+end module PFL_Object

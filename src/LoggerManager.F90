@@ -2,27 +2,27 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_LoggerManager_mod
+! MODULE: PFL_LoggerManager
 !
 !> @brief A manager instance that holds the hierarchy of loggers. 
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module PFL_LoggerManager_mod
-   use PFL_RootLogger_mod, only: RootLogger
-   use PFL_StringAbstractLoggerPolyMap_mod
-   use PFL_SeverityLevels_mod
-   use PFL_Logger_mod, only: Logger, newLogger
-   use PFL_AbstractLogger_mod
-   use PFL_LoggerPolyVector_mod
+module PFL_LoggerManager
+   use PFL_RootLogger, only: RootLogger
+   use PFL_StringAbstractLoggerPolyMap
+   use PFL_SeverityLevels
+   use PFL_Logger, only: Logger, newLogger
+   use PFL_AbstractLogger
+   use PFL_LoggerPolyVector
 #ifdef _LOGGER_USE_MPI
    use mpi
 #endif
-   use PFL_Exception_mod, only: throw
-   use PFL_YAML_Parser_mod, only: SUCCESS, YAML_load_file => load_file
-   use FTL_Config_mod, only: Config
-   use PFL_Config_mod, only: ConfigElements, build_logger, check_schema_version
+   use PFL_Exception, only: throw
+   use PFL_YAML_Parser, only: SUCCESS, YAML_load_file => load_file
+   use FTL_Config, only: Config
+   use PFL_Config, only: ConfigElements, build_logger, check_schema_version
    implicit none
    private
 
@@ -342,7 +342,7 @@ contains
 
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
-      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), target, intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -373,7 +373,7 @@ contains
 
 
    subroutine build_root_logger(this, cfg, elements, unused, extra)
-      use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
+      use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Config), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -392,4 +392,4 @@ contains
 
    end subroutine build_root_logger
 
-end module PFL_LoggerManager_mod
+end module PFL_LoggerManager

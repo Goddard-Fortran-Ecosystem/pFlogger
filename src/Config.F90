@@ -1,28 +1,28 @@
 #include "error_handling_macros.fh"
-module PFL_Config_mod
-   use PFL_String_mod, only: String
-   use FTL_Config_mod, only: config
-   use PFL_Logger_mod
-   use PFL_Exception_mod, only: throw
-   use PFL_SeverityLevels_mod, only: name_to_level
-   use PFL_StringAbstractLoggerPolyMap_mod, only: LoggerMap
-   use PFL_StringFilterMap_mod
-   use PFL_StringLockMap_mod
-   use PFL_StreamHandler_mod
-   use PFL_StringHandlerMap_mod
-   use PFL_StringFormatterMap_mod
-   use PFL_AbstractLock_mod
-   use PFL_AbstractFilter_mod
-   use PFL_AbstractHandler_mod
-   use PFL_Formatter_mod
-   use PFL_Filterer_mod
-   use PFL_FileHandler_mod
+module PFL_Config
+   use PFL_String, only: String
+   use FTL_Config, only: config
+   use PFL_Logger
+   use PFL_Exception, only: throw
+   use PFL_SeverityLevels, only: name_to_level
+   use PFL_StringAbstractLoggerPolyMap, only: LoggerMap
+   use PFL_StringFilterMap
+   use PFL_StringLockMap
+   use PFL_StreamHandler
+   use PFL_StringHandlerMap
+   use PFL_StringFormatterMap
+   use PFL_AbstractLock
+   use PFL_AbstractFilter
+   use PFL_AbstractHandler
+   use PFL_Formatter
+   use PFL_Filterer
+   use PFL_FileHandler
    
-   use PFL_StringUnlimitedPolyMap_mod, only: ConfigIterator
-   use PFL_StringUnlimitedMap_mod, only: Map
-   use PFL_Filter_mod
-   use PFL_StringUtilities_mod, only: to_lower_case
-   use Pfl_KeywordEnforcer_Mod
+   use PFL_StringUnlimitedPolyMap, only: ConfigIterator
+   use PFL_StringUnlimitedMap, only: Map
+   use PFL_Filter
+   use PFL_StringUtilities, only: to_lower_case
+   use Pfl_KeywordEnforcer
 #ifdef _LOGGER_USE_MPI
       use MPI
 #endif
@@ -153,7 +153,7 @@ contains
 
 #ifdef _LOGGER_USE_MPI
    subroutine build_mpi_formatter(fmtr, dict, unusable, extra)
-      use PFL_MpiCommConfig_mod
+      use PFL_MpiCommConfig
       class (Formatter), allocatable, intent(out) :: fmtr
       type (Config), intent(in) :: dict
       class (KeywordEnforcer), optional, intent(in) :: unusable
@@ -253,9 +253,9 @@ contains
 #endif
    
    subroutine build_locks(this, locksDict, unusable, extra)
-      use PFL_AbstractLock_mod
+      use PFL_AbstractLock
 #ifdef _LOGGER_USE_MPI
-      use PFL_MpiLock_mod
+      use PFL_MpiLock
 #endif
       class (ConfigElements), intent(inout) :: this
       type (Config), intent(in) :: locksDict
@@ -372,7 +372,7 @@ contains
     end function build_basic_filter
 
     function build_LevelFilter(dict) result(f)
-       use PFL_LevelFilter_mod
+       use PFL_LevelFilter
        type (LevelFilter) :: f
        type (Config), intent(in) :: dict
        
@@ -409,7 +409,7 @@ contains
 
 #ifdef _LOGGER_USE_MPI
     function build_MpiFilter(dict, unusable, extra) result(f)
-       use PFL_MpiFilter_mod
+       use PFL_MpiFilter
        type (MpiFilter) :: f
        type (Config), intent(in) :: dict
        class (KeywordEnforcer), optional, intent(in) :: unusable
@@ -518,7 +518,7 @@ contains
       
 
       subroutine set_handler_formatter(h, handlerDict, formatters)
-         use PFL_Formatter_mod
+         use PFL_Formatter
          class (AbstractHandler), intent(inout) :: h
          type (Config), intent(in) :: handlerDict
          type (FormatterMap), target, intent(in) :: formatters
@@ -675,7 +675,7 @@ contains
 
 #ifdef _LOGGER_USE_MPI
    subroutine build_mpifilehandler(h, handlerDict, unusable, extra)
-      use PFL_MpiCommConfig_mod
+      use PFL_MpiCommConfig
 
       type (FileHandler), intent(out) :: h
       type (Config), intent(in) :: handlerDict
@@ -748,7 +748,7 @@ contains
       end if
 
       block
-        use PFL_FormatString_mod
+        use PFL_FormatString
         fileName = formatString(filename, commMap)
       end block
 
@@ -763,7 +763,7 @@ contains
 #endif
 
    subroutine build_logger(lgr, loggerDict, elements, unusable, extra)
-      use PFL_StringUtilities_mod, only: to_lower_case
+      use PFL_StringUtilities, only: to_lower_case
       class (Logger), intent(inout) :: lgr
       type (Config), intent(in) :: loggerDict
       type (ConfigElements), intent(in) :: elements
@@ -1027,4 +1027,4 @@ contains
    end subroutine set_global_communicator
 
 
-end module PFL_Config_mod
+end module PFL_Config

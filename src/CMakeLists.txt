@@ -2,7 +2,7 @@
 
 set (CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS pflogger)
+set(this pflogger)
 
 set(SRCS
    ArgListUtilities.F90
@@ -71,17 +71,26 @@ set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories (${FTL_INSTALL_DIR}/include)
+add_library (${this} STATIC ${SRCS})
+set_target_properties (${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
-add_library (${THIS} STATIC ${SRCS})
+set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
+
+target_include_directories(${this} PUBLIC
+  $<BUILD_INTERFACE:${PFLOGGER_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:${dest}/include>
+)  
 
 if (NOT FTL)
-  add_dependencies(pflogger gFTL)
+  target_link_libraries(${this} gftl-shared gftl)
 endif()
 
-install(TARGETS ${THIS} DESTINATION lib)
-install(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
+install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
+install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)
+install (FILES  ${CURRENT_SOURCE_DIR}/error_handling_macros.fh DESTINATION ${dest}/include)
+install (EXPORT PFLOGGER DESTINATION "${dest}/cmake")
+
 
 
 

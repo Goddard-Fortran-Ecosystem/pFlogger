@@ -2,14 +2,14 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_ArgListUtilities_mod
+!*MODULE: PFL_ArgListUtilities
 !
 !> @brief Utilities used to deal with unlimited polymorphic entities.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_ArgListUtilities_mod
+module PFL_ArgListUtilities
    implicit none
    private
 
@@ -28,7 +28,7 @@ contains
 !> of unlimited polymorphic entities.
 !---------------------------------------------------------------------------
    function make_arg_vector(ARG_LIST) result(args)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       type (UnlimitedVector) :: args
       include 'recordOptArgs.inc'  
 
@@ -46,4 +46,4 @@ contains
       
    end function make_arg_vector
 
-end module PFL_ArgListUtilities_mod
+end module PFL_ArgListUtilities

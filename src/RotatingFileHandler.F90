@@ -3,7 +3,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_RotatingFileHandler_mod
+!*MODULE: PFL_RotatingFileHandler
 !
 !> @brief Handler for logging to a set of files,.
 !> @details
@@ -16,12 +16,12 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module PFL_RotatingFileHandler_mod
+module PFL_RotatingFileHandler
    use, intrinsic :: iso_fortran_env, only: INT64
-   use PFL_FileHandler_mod, only: FileHandler
-   use PFL_LogRecord_mod, only: LogRecord
-   use PFL_KeywordEnforcer_mod
-   use PFL_Exception_mod
+   use PFL_FileHandler, only: FileHandler
+   use PFL_LogRecord, only: LogRecord
+   use PFL_KeywordEnforcer
+   use PFL_Exception
    implicit none
    private
 
@@ -60,8 +60,8 @@ contains
    !---------------------------------------------------------------------------
    function newRotatingFileHandler(fileName, max_bytes, unused, backup_count, delay) &
         result(handler)
-      use PFL_AbstractHandler_mod, only: BASIC_FORMAT
-      use PFL_Formatter_mod
+      use PFL_AbstractHandler, only: BASIC_FORMAT
+      use PFL_Formatter
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
       type (Unusable), optional, intent(in) :: unused
@@ -220,7 +220,7 @@ contains
    ! respectively.
    !---------------------------------------------------------------------------  
    subroutine do_rollover(this)
-      use PFL_FormatString_mod
+      use PFL_FormatString
       class (RotatingFileHandler), intent(inout) :: this
       
       character(len=:), allocatable :: srcFile
@@ -282,4 +282,4 @@ contains
    end subroutine do_rollover
 
 
-end module PFL_RotatingFileHandler_mod
+end module PFL_RotatingFileHandler

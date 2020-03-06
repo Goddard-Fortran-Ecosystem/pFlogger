@@ -1,4 +1,4 @@
-module PFL_AbstractLock_mod
+module PFL_AbstractLock
    implicit none
    private
 
@@ -19,4 +19,4 @@ module PFL_AbstractLock_mod
       end subroutine lock
    end interface
 
-end module PFL_AbstractLock_mod
+end module PFL_AbstractLock

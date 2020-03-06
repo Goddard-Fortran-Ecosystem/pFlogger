@@ -1,8 +1,8 @@
 #include "error_handling_macros.fh"
-module PFL_MpiCommConfig_mod
+module PFL_MpiCommConfig
    use mpi
-   use PFL_StringUnlimitedMap_mod
-   use PFL_KeywordEnforcer_mod
+   use PFL_StringUnlimitedMap
+   use PFL_KeywordEnforcer
    implicit none
    private
 
@@ -54,9 +54,9 @@ contains
 
    function MpiCommConfig_multi_comm(mpi_communicators, unusable, &
         & rank_prefix, size_prefix) result(m)
-      use PFL_FormatString_mod
-      use PFL_ArgListUtilities_mod
-      use PFL_UnlimitedVector_mod
+      use PFL_FormatString
+      use PFL_ArgListUtilities
+      use PFL_UnlimitedVector
             
       integer, intent(in) :: mpi_communicators(:)
       type (Map) :: m
@@ -106,4 +106,4 @@ contains
       
    end function default
 
-end module PFL_MpiCommConfig_mod
+end module PFL_MpiCommConfig

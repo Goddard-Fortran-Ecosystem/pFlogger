@@ -1,7 +1,7 @@
-module Test_FormatParser_mod
-   use pFUnit_mod
-   use PFL_FormatParser_mod
-   use PFL_FormatToken_mod
+module Test_FormatParser
+   use funit
+   use PFL_FormatParser
+   use PFL_FormatToken
    implicit none
 
 contains
@@ -106,4 +106,4 @@ contains
    
 
 
-end module Test_FormatParser_mod
+end module Test_FormatParser

@@ -1,16 +1,18 @@
 module Test_Formatter_mod
-   use pFUnit_mod
+   use funit
    use iso_fortran_env
-   use PFL_Formatter_mod
-   use PFL_SeverityLevels_mod
-   use PFL_LogRecord_mod
+   use PFL_Formatter
+   use PFL_SeverityLevels
+   use PFL_LogRecord
    use MockDateFormat_mod
-   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   use PFL_UnlimitedVector, only: UnlimitedVector => Vector
    
    implicit none
 
    public :: Test_Formatter
-   
+
+@suite(name='Test_Formatter_suite')
+
 @TestCase
    type, extends(TestCase) :: Test_Formatter
       type (LogRecord) :: rec
@@ -45,7 +47,7 @@ contains
 
    @Test
    subroutine test_formatDefault(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (Formatter) :: f
 
@@ -58,7 +60,7 @@ contains
 
 @Test
    subroutine test_formatint32(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
 
       type (UnlimitedVector), target :: args
@@ -76,8 +78,8 @@ contains
 
 @test
    subroutine test_datefmtMessage_default(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=32) :: date
@@ -100,8 +102,8 @@ contains
 
 @test
    subroutine test_datefmtMessage(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
@@ -125,7 +127,7 @@ contains
 
 @test
    subroutine test_datefmt(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this
       type (StringUnlimitedMap) :: extra
       character(len=20) :: date
@@ -150,7 +152,7 @@ contains
 
 @Test
    subroutine test_formatWithName(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_Formatter), intent(inout) :: this
       type (UnlimitedVector), target :: args
       type (Formatter) :: f
@@ -167,7 +169,7 @@ contains
 
 @test
    subroutine test_format_with_extra(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary
@@ -183,7 +185,7 @@ contains
    
 @test
    subroutine test_format_with_short_name(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary
@@ -198,7 +200,7 @@ contains
    
 @test
    subroutine test_format_with_line_number(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary
@@ -214,7 +216,7 @@ contains
 
 @test
    subroutine test_format_with_filename(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary
@@ -229,7 +231,7 @@ contains
    
 @test
    subroutine test_format_with_basename(this)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       class (Test_Formatter), intent(inout) :: this      
       character(len=:), allocatable :: logMessage
       type (StringUnlimitedMap) :: dictionary
@@ -241,7 +243,6 @@ contains
       logMessage = f%format(this%rec)
       @assertEqual('File:              foo.F90', logMessage)
    end subroutine test_format_with_basename
-   
    
 
 end module Test_Formatter_mod

@@ -3,19 +3,19 @@
 ! retain lengths of strings when treated as unlimited polymorphic entities.
 ! Hence, character in such maps must be quoted inside a String object.
 !
-module Test_Config_mod
-   use FTL_Config_mod
-   use pfunit_mod
-   use PFL_Logger_mod
-   use PFL_LoggerManager_mod
-   use PFL_SeverityLevels_mod
-   use PFL_StringFilterMap_mod
-   use PFL_StringFormatterMap_mod
-   use PFL_StringHandlerMap_mod
+module Test_Config
+   use FTL_Config
+   use funit
+   use PFL_Logger
+   use PFL_LoggerManager
+   use PFL_SeverityLevels
+   use PFL_StringFilterMap
+   use PFL_StringFormatterMap
+   use PFL_StringHandlerMap
 
-   use PFL_Config_mod
+   use PFL_Config
 #ifdef __GFORTRAN__
-   use PFL_String_mod, only: String
+   use PFL_String, only: String
 #endif
 
    implicit none
@@ -58,8 +58,8 @@ contains
 
    @test
    subroutine test_build_formatter_noargs()
-      use PFL_Formatter_mod
-      use PFL_LogRecord_mod
+      use PFL_Formatter
+      use PFL_LogRecord
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -76,8 +76,8 @@ contains
    
    @test
    subroutine test_build_formatter_withFmt()
-      use PFL_Formatter_mod
-      use PFL_LogRecord_mod
+      use PFL_Formatter
+      use PFL_LogRecord
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -94,8 +94,8 @@ contains
 
    @test
    subroutine test_build_formatter_withDateFmt()
-      use PFL_Formatter_mod
-      use PFL_LogRecord_mod
+      use PFL_Formatter
+      use PFL_LogRecord
       type (Config) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
@@ -132,8 +132,8 @@ contains
 
    @test
    subroutine test_build_filter()
-      use PFL_AbstractFilter_mod
-      use PFL_Filter_mod
+      use PFL_AbstractFilter
+      use PFL_Filter
       type (Config) :: cfg
       class (AbstractFilter), allocatable :: f
       character(len=:), allocatable :: logMessage
@@ -171,8 +171,8 @@ contains
 
    @test
    subroutine test_build_streamhandler()
-      use PFL_StreamHandler_mod
-      use PFL_LogRecord_mod
+      use PFL_StreamHandler
+      use PFL_LogRecord
       type (Config) :: handler_cfg
       type (StreamHandler) :: h
       integer :: unit
@@ -206,11 +206,11 @@ contains
 
    @test
    subroutine test_build_handler()
-      use PFL_StreamHandler_mod
-      use PFL_Filter_mod
-      use PFL_Formatter_mod
-      use PFL_AbstractHandler_mod
-      use PFL_LogRecord_mod
+      use PFL_StreamHandler
+      use PFL_Filter
+      use PFL_Formatter
+      use PFL_AbstractHandler
+      use PFL_LogRecord
       type (Config) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
@@ -273,9 +273,9 @@ contains
 
    @test
    subroutine test_build_handlers()
-      use PFL_Filter_mod
-      use PFL_StreamHandler_mod
-      use PFL_Formatter_mod
+      use PFL_Filter
+      use PFL_StreamHandler
+      use PFL_Formatter
 
       type (Config) :: handlersDict
       type (Config) :: h1_cfg, h2_cfg
@@ -342,9 +342,9 @@ contains
    @test
    subroutine test_build_logger()
 
-      use PFL_Filter_mod
-      use PFL_AbstractHandler_mod
-      use PFL_FileHandler_mod
+      use PFL_Filter
+      use PFL_AbstractHandler
+      use PFL_FileHandler
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -373,10 +373,10 @@ contains
 @test(ifdef=_LOGGER_USE_MPI)
    subroutine test_build_logger_serial_in_mpi_context()
       use mpi
-      use MockHandler_mod
-      use MockMpi_mod
-      use PFL_SeverityLevels_mod
-      use PFL_RootLogger_mod
+      use MockHandler
+      use MockMpi
+      use PFL_SeverityLevels
+      use PFL_RootLogger
 
       type (LoggerManager), target :: mgr
       type (Config) :: cfg
@@ -413,10 +413,10 @@ contains
 @test(ifdef=_LOGGER_USE_MPI)
    subroutine test_build_logger_serial_comm()
       use mpi
-      use PFL_RootLogger_mod
-      use MockHandler_mod
-      use MockMpi_mod
-      use PFL_SeverityLevels_mod
+      use PFL_RootLogger
+      use MockHandler
+      use MockMpi
+      use PFL_SeverityLevels
 
       type (Config) :: cfg
       type (MockBuffer), target :: buffer2
@@ -503,7 +503,7 @@ contains
 #ifdef _LOGGER_USE_MPI
 @test(ifdef=_LOGGER_USE_MPI)
    subroutine test_logger_root_level()
-      use MockMpi_mod
+      use MockMpi
       use mpi
       type (Config) :: cfg
       type (Config) :: loggers
@@ -537,4 +537,4 @@ contains
    end subroutine test_logger_root_level
 #endif
    
-end module Test_Config_mod
+end module Test_Config

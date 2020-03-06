@@ -1,9 +1,9 @@
-module Test_Complex_Config_mod
-   use pfunit_mod
-   use PFL_Config_mod
-   use PFL_Logger_mod
-   use PFL_LoggerManager_mod
-   use PFL_SeverityLevels_mod
+module Test_Complex_Config
+   use funit
+   use PFL_Config
+   use PFL_Logger
+   use PFL_LoggerManager
+   use PFL_SeverityLevels
    implicit none
 
 #ifdef __GFORTRAN__   
@@ -80,7 +80,7 @@ contains
 
    @test
    subroutine test_config()
-      use FTL_Config_mod
+      use FTL_Config
       type (Config) :: cfg
 
       class (Logger), pointer :: lgr
@@ -98,6 +98,6 @@ contains
 
    end subroutine test_config
 
-end module Test_Complex_Config_mod
+end module Test_Complex_Config
 
 

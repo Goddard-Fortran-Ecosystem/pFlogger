@@ -1,11 +1,13 @@
 module Test_FileHandler_mod
-   use PFL_SeverityLevels_mod
-   use PFL_FileHandler_mod
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
-   use pfunit_mod
-   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+   use PFL_SeverityLevels
+   use PFL_FileHandler
+   use PFL_LogRecord
+   use PFL_Formatter
+   use funit
+   use PFL_UnlimitedVector, only: UnlimitedVector => Vector
    implicit none
+
+@suite(name='Test_FileHandler_suite')
 
 @TestCase
    type, extends(TestCase) :: Test_FileHandler
@@ -73,7 +75,7 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this   
 
       integer :: unit
@@ -172,7 +174,7 @@ contains
    ! contstructor is used to indicate that configuration.
    @test
    subroutine test_delay(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use PFL_UnlimitedVector, only: UnlimitedVector => Vector
       class (Test_FileHandler), intent(inout) :: this
 
       type (LogRecord) :: record

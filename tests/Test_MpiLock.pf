@@ -1,8 +1,8 @@
-module Test_MpiLock_mod
-   use pfunit_mod
-   use PFL_MpiLock_mod
+module Test_MpiLock
+   use funit
+   use PFL_MpiLock
    use mpi
-   use MockMpi_mod
+   use MockMpi
    implicit none
 
 contains
@@ -115,4 +115,4 @@ contains
       
    end subroutine test_release_waiter
    
-end module Test_MpiLock_mod
+end module Test_MpiLock

@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_Filter_mod
+! MODULE: PFL_Filter
 !
 !> @author 
 !> ASTG staff
@@ -20,10 +20,10 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_Filter_mod
-   use PFL_Object_mod
-   use PFL_LogRecord_mod
-   use PFL_AbstractFilter_mod, only: AbstractFilter
+module PFL_Filter
+   use PFL_Object
+   use PFL_LogRecord
+   use PFL_AbstractFilter, only: AbstractFilter
    implicit none
    private
 
@@ -229,4 +229,4 @@ contains
    end function toString_self
 
 
-end module PFL_Filter_mod
+end module PFL_Filter

@@ -1,6 +1,6 @@
-module PFL_MpiLock_mod
+module PFL_MpiLock
    use mpi
-   use PFL_AbstractLock_mod
+   use PFL_AbstractLock
    use iso_fortran_env, only: INT64
    use iso_c_binding, only: c_ptr, c_f_pointer
    implicit none
@@ -186,4 +186,4 @@ contains
 
    end subroutine destroy
 
-end module PFL_MpiLock_mod
+end module PFL_MpiLock

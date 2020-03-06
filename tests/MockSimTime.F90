@@ -1,5 +1,5 @@
 module MockSimTime_mod
-   use PFL_StringUnlimitedMap_mod
+   use PFL_StringUnlimitedMap
    private
 
    public :: mockSimTime
@@ -15,4 +15,4 @@ contains
 
    end subroutine mockSimTime
 
-end module MockSimTime_mod
+end module MockSimTime_Mod

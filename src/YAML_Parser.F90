@@ -1,8 +1,8 @@
 ! Note that several modules are combined into one file here.  The
 ! reason is to minimize complexit for those desiring to just use this
 ! layer.
-module PFL_ParserLevel_mod
-  use FTL_Config_mod
+module PFL_ParserLevel
+  use FTL_Config
   implicit none
   private
 
@@ -29,18 +29,18 @@ contains
 
   end function new_ParserLevel
   
-end module PFL_ParserLevel_mod
+end module PFL_ParserLevel
 
 
-module PFL_ParserLevelStack_mod
-  use PFL_ParserLevel_mod
+module PFL_ParserLevelStack
+  use PFL_ParserLevel
 #define _vector ParserLevelStack
 #define _type type (ParserLevel)
 #include "templates/vector.inc"
-end module PFL_ParserLevelStack_mod
+end module PFL_ParserLevelStack
 
 
-module PFL_YAML_Line_mod
+module PFL_YAML_Line
   implicit none
   private
 
@@ -117,14 +117,14 @@ contains
 
   end function is_comment
 
-end module PFL_YAML_Line_mod
+end module PFL_YAML_Line
 
 
-module PFL_YAML_Parser_mod
-  use PFL_YAML_Line_mod
-  use FTL_Config_mod
-  use PFL_ParserLevel_mod
-  use PFL_ParserLevelStack_mod
+module PFL_YAML_Parser
+  use PFL_YAML_Line
+  use FTL_Config
+  use PFL_ParserLevel
+  use PFL_ParserLevelStack
   implicit none
   private
 
@@ -206,7 +206,7 @@ contains
 
   
   integer function parse_one_line(this) result(rc)
-     use PFL_String_Mod
+     use PFL_String
     class (YAML_Parser), target, intent(inout) :: this
     type (YAML_Line) :: line
     character(len=MAX_LEN_LINE) :: buffer
@@ -305,4 +305,4 @@ contains
   end function set_new_indentation
 
   
-end module PFL_YAML_Parser_mod
+end module PFL_YAML_Parser

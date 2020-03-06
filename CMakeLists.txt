@@ -23,8 +23,8 @@
 #
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.8.0)
-project (pFlogger
-  VERSION 1.0
+project (PFLOGGER
+  VERSION 1.1
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -34,7 +34,9 @@ set (CMAKE_MODULE_PATH
 include (PreventInSourceBuild)
 include (DefineCMakeDefaults)
 include (DefinePlatformDefaults)
-include (FindFTL)
+
+find_package (GFTL REQUIRED)
+find_package (GFTL_SHARED REQUIRED)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)
@@ -72,12 +74,12 @@ endif ()
 
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
-set(PFUNIT "" CACHE PATH "(optional) path to installed testing framework")
-if (PFUNIT)
-   include_directories(${PFUNIT}/mod)
-   include_directories(${PFUNIT}/include)
-   link_directories(${PFUNIT}/lib)
-   message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
+
+find_package (PFUNIT QUIET)
+if (PFUNIT_FOUND)
+  if (NOT TARGET (tests))
+    add_custom_target(tests COMMAND ${CMAKE_CTEST_COMMAND})
+  endif ()
    add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 

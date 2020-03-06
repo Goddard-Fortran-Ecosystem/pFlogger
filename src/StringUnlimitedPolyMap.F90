@@ -1,4 +1,4 @@
-module PFL_StringUnlimitedPolyMap_mod
+module PFL_StringUnlimitedPolyMap
 #define _alt
 #define _map StringUnlimitedPolyMap
 #define _iterator ConfigIterator
@@ -6,4 +6,4 @@ module PFL_StringUnlimitedPolyMap_mod
 #include "types/key_deferredLengthString.inc"
 #include "types/value_unlimitedPoly.inc"
 #include "templates/map.inc"
-end module PFL_StringUnlimitedPolyMap_mod
+end module PFL_StringUnlimitedPolyMap

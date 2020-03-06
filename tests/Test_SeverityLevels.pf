@@ -1,6 +1,6 @@
-module Test_SeverityLevels_mod
-   use pFUnit_mod
-   use PFL_SeverityLevels_mod
+module Test_SeverityLevels
+   use funit
+   use PFL_SeverityLevels
    use iso_fortran_env
    
    implicit none
@@ -44,4 +44,4 @@ contains
       
    end subroutine test_level_to_name_unnamedLevel
 
-end module Test_SeverityLevels_mod
+end module Test_SeverityLevels

@@ -2,17 +2,17 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_SeverityLevels_mod
+!*MODULE: PFL_SeverityLevels
 !
 !> @brief Specify severity levels used to logging messages.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module PFL_SeverityLevels_mod
-   use PFL_Exception_mod
-   use PFL_StringIntegerMap_mod, only: StringIntegerMap => map
-   use PFL_IntegerStringMap_mod, only: IntegerStringMap => map
+module PFL_SeverityLevels
+   use PFL_Exception
+   use PFL_StringIntegerMap, only: StringIntegerMap => map
+   use PFL_IntegerStringMap, only: IntegerStringMap => map
    implicit none
    private
 
@@ -54,7 +54,7 @@ contains
    ! Convert a numeric severity level to string identifier.
    !---------------------------------------------------------------------------
    function level_to_name(level) result(name)
-      use PFL_IntegerStringMap_mod, only: mapIterator
+      use PFL_IntegerStringMap, only: mapIterator
       character(len=:), allocatable :: name
       integer, intent(in) :: level
 
@@ -80,7 +80,7 @@ contains
    ! Convert a level name to a numeric severity level
    !---------------------------------------------------------------------------
    function name_to_level(name) result(level)
-      use PFL_StringIntegerMap_mod, only: mapiterator
+      use PFL_StringIntegerMap, only: mapiterator
       integer :: level
       character(len=*), intent(in) :: name
 
@@ -119,4 +119,4 @@ contains
       call name_to_level_%clear()
    end subroutine finalize_severity_levels
 
-end module PFL_SeverityLevels_mod
+end module PFL_SeverityLevels

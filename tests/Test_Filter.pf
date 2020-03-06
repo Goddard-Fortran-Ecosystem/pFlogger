@@ -1,8 +1,8 @@
-module Test_Filter_mod
-   use pFUnit_mod
-   use PFL_Filter_mod
-   use PFL_LogRecord_mod
-   use PFL_SeverityLevels_mod, only: INFO
+module Test_Filter
+   use funit
+   use PFL_Filter
+   use PFL_LogRecord
+   use PFL_SeverityLevels, only: INFO
 
 contains
 
@@ -86,4 +86,4 @@ contains
    end subroutine test_filterCaseInsensitive
 
 
-end module Test_Filter_mod
+end module Test_Filter

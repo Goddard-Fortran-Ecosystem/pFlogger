@@ -3,7 +3,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_FormatString_mod
+!*MODULE: PFL_FormatString
 !
 !> @brief Format strings specified by formatter.
 !> @details
@@ -21,14 +21,14 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
-module PFL_FormatString_mod
-   use PFL_FormatParser_mod
-   use PFL_WrapArray_mod
-   use PFL_Exception_mod
-   use PFL_FormatToken_mod
-   use PFL_StringUnlimitedMap_mod, only: Map
-   use PFL_String_mod, only: String
-   use PFL_KeywordEnforcer_mod
+module PFL_FormatString
+   use PFL_FormatParser
+   use PFL_WrapArray
+   use PFL_Exception
+   use PFL_FormatToken
+   use PFL_StringUnlimitedMap, only: Map
+   use PFL_String, only: String
+   use PFL_KeywordEnforcer
    implicit none
    private
 
@@ -65,8 +65,8 @@ contains
    end function format_map
 
    function format_preparsed(parsed, dictionary, unusable, rc) result(string)
-      use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
-      use PFL_StringUnlimitedMap_mod, only: MapIterator
+      use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
+      use PFL_StringUnlimitedMap, only: MapIterator
       character(len=:), allocatable :: string
       type (FormatParser), target, intent(in) :: parsed
       class(Map), target, intent(in) :: dictionary
@@ -111,10 +111,10 @@ contains
 
 
    function format_vector(fmt, args, unusable, rc) result(string)
-      use PFL_FormatToken_mod
-      use PFL_FormatTokenVector_mod, only: TokenVectorIterator => VectorIterator
-      use PFL_UnlimitedVector_mod, only: Vector
-      use PFL_UnlimitedVector_mod, only: VectorIterator
+      use PFL_FormatToken
+      use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
+      use PFL_UnlimitedVector, only: Vector
+      use PFL_UnlimitedVector, only: VectorIterator
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       type(Vector), intent(in) :: args
@@ -189,7 +189,7 @@ contains
    ! scalar variables passed to it.
    !---------------------------------------------------------------------------
    function handleScalar(arg, fmt, unusable, rc) result(str)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       character(len=:), allocatable :: str
       class (*), intent(in) :: arg
@@ -271,7 +271,7 @@ contains
    ! 1D vector variables passed to it.
    !---------------------------------------------------------------------------
    subroutine handleArray1D(arg, fmt, buffer, iostat)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int32, real32, int64, real64, real128
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
 
@@ -302,7 +302,7 @@ contains
    ! 2D vector variables passed to it.
    !---------------------------------------------------------------------------
    subroutine handleArray2D(arg, fmt, buffer, iostat)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       class (*), intent(in) :: arg(:,:)
       character(len=*), intent(in) :: fmt
@@ -331,7 +331,7 @@ contains
    ! 3D vector variables passed to it.
    !---------------------------------------------------------------------------
    subroutine handleArray3D(arg, fmt, buffer, iostat)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       class (*), intent(in) :: arg(:,:,:)
       character(len=*), intent(in) :: fmt
@@ -360,7 +360,7 @@ contains
    ! 4D vector variables passed to it.
    !---------------------------------------------------------------------------
    subroutine handleArray4D(arg, fmt, buffer, iostat)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       class (*), intent(in) :: arg(:,:,:,:)
       character(len=*), intent(in) :: fmt
@@ -389,7 +389,7 @@ contains
    ! 5D vector variables passed to it.
    !---------------------------------------------------------------------------
    subroutine handleArray5D(arg, fmt, buffer, iostat)
-      use PFL_DynamicBuffer_mod
+      use PFL_DynamicBuffer
       use iso_fortran_env, only: int8, int16, int32, int64, real32, real64, real128
       class (*), intent(in) :: arg(:,:,:,:,:)
       character(len=*), intent(in) :: fmt
@@ -409,4 +409,4 @@ contains
    end subroutine handleArray5D
 
 
-end module PFL_FormatString_mod
+end module PFL_FormatString

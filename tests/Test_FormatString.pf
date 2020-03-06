@@ -1,9 +1,9 @@
-module Test_FormatString_mod
-   use pFUnit_mod
-   use PFL_FormatString_mod
-   use PFL_ArgListUtilities_mod
-   use PFL_UnlimitedVector_mod
-   use PFL_FormatToken_mod, only: EOT
+module Test_FormatString
+   use funit
+   use PFL_FormatString
+   use PFL_ArgListUtilities
+   use PFL_UnlimitedVector
+   use PFL_FormatToken, only: EOT
    implicit none
 
 contains
@@ -49,8 +49,8 @@ contains
 
 @test
    subroutine test_format_map()
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use PFL_String_mod
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
+      use PFL_String
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
@@ -68,7 +68,7 @@ contains
 
 @test
    subroutine test_format_map_missingKey()
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: found
 
@@ -83,7 +83,7 @@ contains
 
 @test
    subroutine test_format_map_illegalPositionToken()
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
       type (StringUnlimitedMap) :: extra
       character(len=:), allocatable :: found
 
@@ -112,8 +112,8 @@ contains
    ! with keyword
 @test
    subroutine test_defaultFormat_keyword()
-      use PFL_StringUnlimitedMap_mod
-      use PFL_String_mod
+      use PFL_StringUnlimitedMap
+      use PFL_String
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -131,7 +131,7 @@ contains
 
 @test
    subroutine test_formatArray()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -156,7 +156,7 @@ contains
 #ifndef __GFORTRAN__
    @test(ifndef=__GFORTRAN__)
    subroutine test_formatArray2d()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -173,7 +173,7 @@ contains
 
 @test(ifndef=__GFORTRAN__)
    subroutine test_formatArray3d()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -191,7 +191,7 @@ contains
 
 @test(ifndef=__GFORTRAN__)
    subroutine test_formatArray4d()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -210,7 +210,7 @@ contains
 
 @test(ifndef=__GFORTRAN__)
    subroutine test_formatArray5d()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -240,7 +240,7 @@ contains
 
 @test
    subroutine test_formatArray_withQuote()
-      use PFL_WrapArray_mod
+      use PFL_WrapArray
       character(len=:), allocatable :: expected
       character(len=:), allocatable :: found
 
@@ -269,8 +269,8 @@ contains
    ! Need to file a bug report regarding dynamic buffer size to GCC.
 @test
    subroutine test_long_string()
-      use PFL_Logger_mod
-      use PFL_SeverityLevels_mod
+      use PFL_Logger
+      use PFL_SeverityLevels
       character(:), allocatable :: fields
       type (Logger) :: lgr
 
@@ -282,5 +282,5 @@ contains
 
    end subroutine test_long_string
    
-end module Test_FormatString_mod
+end module Test_FormatString
 
