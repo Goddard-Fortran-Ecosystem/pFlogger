@@ -29,7 +29,6 @@ set(pf_tests
 
 if (MPI_FOUND)
   add_library (mock-mpi MockMpi.F90)
-  message("huh: ${MPI_Fortran_INCLUDE_DIRS}")
   target_include_directories (mock-mpi PRIVATE ${MPI_Fortran_INCLUDE_DIRS})
   target_link_libraries (mock-mpi PRIVATE funit)
   list (APPEND pf_tests
