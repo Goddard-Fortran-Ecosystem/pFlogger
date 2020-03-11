@@ -27,10 +27,11 @@ set(pf_tests
    Test_SimTime.pf
 )
 
-if (MPI)
-  list (APPEND srcs
-    MockMpi.F90
-    )
+if (MPI_FOUND)
+  add_library (mock-mpi MockMpi.F90)
+  message("huh: ${MPI_Fortran_INCLUDE_DIRS}")
+  target_include_directories (mock-mpi PRIVATE ${MPI_Fortran_INCLUDE_DIRS})
+  target_link_libraries (mock-mpi PRIVATE funit)
   list (APPEND pf_tests
     Test_MpiFilter.pf
     Test_MpiFormatter.pf
@@ -41,13 +42,22 @@ if (MPI)
        Test_MpiLock.pf
        )
    endif ()
-endif ()
+ endif ()
 
-add_pfunit_ctest (pflogger_tests.x
-  TEST_SOURCES ${pf_tests}
-  OTHER_SOURCES ${srcs}
-  LINK_LIBRARIES pflogger gftl-shared
-  )
+ if (MPI_FOUND)
+   add_pfunit_ctest (pflogger_tests.x
+     TEST_SOURCES ${pf_tests}
+     OTHER_SOURCES ${srcs}
+     LINK_LIBRARIES pflogger mock-mpi gftl-shared
+     )
+ else ()
+   add_pfunit_ctest (pflogger_tests.x
+     TEST_SOURCES ${pf_tests}
+     OTHER_SOURCES ${srcs}
+     LINK_LIBRARIES pflogger gftl-shared
+     )
+ endif ()
+
 
 target_compile_definitions (pflogger_tests.x PRIVATE -DPFUNIT_EXTRA_INITIALIZE=init_tests)
 

@@ -1,6 +1,6 @@
 module Test_MpiFormatter
    use funit
-   use mockmpi
+   use MockMpi_mod
    use PFL_MpiFormatter
    use PFL_LogRecord
    use PFL_SeverityLevels

@@ -24,7 +24,7 @@ contains
    function newMpiFormatter_comm(comm, unused, rank_keyword, size_keyword, fmt, datefmt) result(f)
       use PFL_FormatParser
       use PFL_FormatTokenVector
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
+      use gftl_StringUnlimitedMap
       use PFL_FormatToken
       use PFL_FormatString
       type (MpiFormatter) :: f
@@ -50,7 +50,7 @@ contains
    function newMpiFormatter_comms(comms, unused, rank_prefix, size_prefix, fmt, datefmt) result(f)
       use PFL_FormatParser
       use PFL_FormatTokenVector
-      use PFL_StringUnlimitedMap, only: StringUnlimitedMap => Map
+      use gftl_StringUnlimitedMap
       use PFL_FormatToken
       use PFL_FormatString
       use PFL_ArgListUtilities

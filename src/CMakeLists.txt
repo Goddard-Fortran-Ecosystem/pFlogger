@@ -49,7 +49,7 @@ set(SRCS
    FormatTokenVector.F90
 )
 
-if (MPI) 
+if (MPI_FOUND) 
   list (APPEND SRCS
      MpiFilter.F90
      MpiFormatter.F90
@@ -67,6 +67,10 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 add_library (${this} STATIC ${SRCS})
 target_link_libraries (${this} PUBLIC yafyaml)
+if (MPI_FOUND)
+  target_link_libraries (${this} PRIVATE MPI::MPI_Fortran)
+endif ()
+  
 set_target_properties (${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")

@@ -2,8 +2,8 @@ module mpi_base
    include 'mpif.h'
 end module mpi_base
 
-module MockMpi
-   use pfunit
+module MockMpi_mod
+   use funit
    implicit none
    private
 
@@ -109,13 +109,13 @@ contains
       call mocker%reset()
    end subroutine verify
 
-end module MockMpi
+end module MockMpi_mod
 
 
 
 module mpi
    use mpi_base
-   use MockMpi
+   use MockMpi_mod
 
    
    ! Because this interface is overloaded (in theory), it cannot
@@ -137,7 +137,7 @@ end module mpi
 
 ! Implicit interface for actual subroutines
 subroutine MPI_Comm_rank(comm, rank, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: comm
    integer, intent(out) :: rank
@@ -153,7 +153,7 @@ end subroutine MPI_Comm_rank
 
 ! Implicit interface for actual subroutines
 subroutine MPI_Comm_size(comm, size, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: comm
    integer, intent(out) :: size
@@ -167,7 +167,7 @@ subroutine MPI_Comm_size(comm, size, ierror)
 end subroutine MPI_Comm_size
 
 subroutine MPI_Win_free(win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer win, ierror
    ierror = MPI_SUCCESS
@@ -175,7 +175,7 @@ subroutine MPI_Win_free(win, ierror)
 end subroutine MPI_Win_free
 
 subroutine MPI_Win_lock(lock_type, rank, assert, win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: lock_type
    integer, intent(in) :: rank
@@ -191,7 +191,7 @@ end subroutine MPI_Win_lock
 
 
 subroutine MPI_Win_unlock(rank, win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: rank
    integer, intent(in) :: win
@@ -204,7 +204,7 @@ end subroutine MPI_Win_unlock
 
 subroutine MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    use iso_c_binding, only: c_ptr, c_loc, c_f_pointer
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
@@ -236,7 +236,7 @@ end subroutine MPI_Get
 
 subroutine MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, &
      & target_disp, target_count, target_datatype, win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: origin_addr(*)
@@ -252,7 +252,7 @@ subroutine MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, &
 end subroutine MPI_Put
 
 subroutine MPI_Recv(buf, count, datatype, source, tag, comm, status, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: buf(*)
@@ -269,7 +269,7 @@ subroutine MPI_Recv(buf, count, datatype, source, tag, comm, status, ierror)
 end subroutine MPI_Recv
 
 subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: buf(*)
@@ -284,7 +284,7 @@ subroutine MPI_Send(buf, count, datatype, dest, tag, comm, ierror)
 end subroutine MPI_Send
 
 subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    use iso_c_binding, only: c_ptr, c_loc
    use iso_fortran_env, only: INT8
@@ -300,7 +300,7 @@ subroutine MPI_Alloc_mem(size, info, baseptr, ierror)
 end subroutine MPI_Alloc_mem
 
 subroutine MPI_Alloc_mem_cptr(size, info, baseptr, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    use iso_c_binding, only: c_ptr, c_loc
    use iso_fortran_env, only: INT8
@@ -323,7 +323,7 @@ end subroutine MPI_Alloc_mem_cptr
 
 ! just a stub
 subroutine MPI_Comm_free(comm, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: comm
    integer ierror
@@ -333,7 +333,7 @@ subroutine MPI_Comm_free(comm, ierror)
 end subroutine MPI_Comm_free
 
 subroutine MPI_Free_mem(base, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: base(*)
@@ -348,7 +348,7 @@ subroutine MPI_Free_mem(base, ierror)
 end subroutine MPI_Free_mem
 
 subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
 #ifdef SUPPORT_FOR_ASSUMED_TYPE   
    type(*) :: base(*)
@@ -366,7 +366,7 @@ end subroutine MPI_Win_create
 
 ! This one is just a stub for now
 subroutine MPI_Comm_dup(comm, newcomm, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: comm
    integer, intent(out) :: newcomm
@@ -380,7 +380,7 @@ end subroutine MPI_Comm_dup
 
 
 subroutine MPI_Type_indexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: count
    integer, intent(in) :: array_of_blocklengths(*)
@@ -396,7 +396,7 @@ subroutine MPI_Type_indexed(count, array_of_blocklengths, array_of_displacements
 end subroutine MPI_Type_indexed
 
 subroutine MPI_Type_commit(datatype, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: datatype
    integer, intent(out) :: ierror
@@ -408,7 +408,7 @@ end subroutine MPI_Type_commit
 
 
 subroutine MPI_Type_extent(datatype, extent, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer, intent(in) :: datatype
    integer, intent(out) :: extent
@@ -422,7 +422,7 @@ end subroutine MPI_Type_extent
 
 
 subroutine MPI_Type_free(datatype, ierror)
-   use MockMpi
+   use MockMpi_mod
    use mpi_base
    integer    datatype, ierror
    ierror = MPI_SUCCESS
@@ -431,7 +431,7 @@ end subroutine MPI_Type_free
 
 
 !!$subroutine mpi_init(ierror)
-!!$   use MockMpi
+!!$   use MockMpi_mod
 !!$   use mpi_base
 !!$   integer    datatype, ierror
 !!$   ierror = MPI_SUCCESS
