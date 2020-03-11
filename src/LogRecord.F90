@@ -10,7 +10,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_LogRecord_mod
+!*MODULE: PFL_LogRecord
 !
 !> @brief A LogRecord instance represents an event being logged. 
 !> @details
@@ -22,12 +22,12 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
-module PFL_LogRecord_mod
-   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-   use PFL_SeverityLevels_mod, only: level_to_name
-   use PFL_KeywordEnforcer_mod
-   use PFL_Exception_mod
+module PFL_LogRecord
+   use gFTL_UnlimitedVector
+   use gFTL_StringUnlimitedMap
+   use PFL_SeverityLevels, only: level_to_name
+   use PFL_KeywordEnforcer
+   use PFL_Exception
    implicit none
    private
 
@@ -181,7 +181,7 @@ contains
    ! arguments associated with message.
    !---------------------------------------------------------------------------
    function get_message(this, unusable, rc) result(message)
-      use PFL_FormatString_mod, only: formatString
+      use PFL_FormatString, only: formatString
       character(len=:), allocatable :: message
       class (LogRecord), intent(in) :: this
       class (KeywordEnforcer), optional, intent(in) :: unusable
@@ -299,4 +299,4 @@ contains
       
    end subroutine initLogRecord
 
-end module PFL_LogRecord_mod
+end module PFL_LogRecord

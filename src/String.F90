@@ -1,5 +1,5 @@
-module PFL_String_mod
-   use PFL_Object_mod
+module PFL_String
+   use PFL_Object
    implicit none
    private
 
@@ -162,4 +162,4 @@ contains
    end function len_string
 
 
-end module PFL_String_mod
+end module PFL_String

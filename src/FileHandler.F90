@@ -3,19 +3,19 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_FileHandler_mod
+!*MODULE: PFL_FileHandler
 !
 !> @brief A handler class which writes logging events to disk files
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_FileHandler_mod
-   use PFL_StreamHandler_mod, only: StreamHandler
-   use PFL_AbstractLock_mod, only: AbstractLock
-   use PFL_LogRecord_mod, only: LogRecord
-   use PFL_KeywordEnforcer_mod
-   use PFL_Exception_mod
+module PFL_FileHandler
+   use PFL_StreamHandler, only: StreamHandler
+   use PFL_AbstractLock, only: AbstractLock
+   use PFL_LogRecord, only: LogRecord
+   use PFL_KeywordEnforcer
+   use PFL_Exception
    implicit none
    private
 
@@ -236,7 +236,7 @@ contains
    ! Overloads 'equal' operation for file handlers.
    !---------------------------------------------------------------------------  
    logical function equal(a, b)
-      use PFL_AbstractHandler_mod, only: AbstractHandler
+      use PFL_AbstractHandler, only: AbstractHandler
       class (FileHandler), intent(in) :: a
       class (AbstractHandler), intent(in) :: b
 
@@ -275,4 +275,4 @@ contains
 
    end subroutine set_lock
 
-end module PFL_FileHandler_mod
+end module PFL_FileHandler

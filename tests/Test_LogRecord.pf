@@ -1,12 +1,14 @@
 module Test_LogRecord_mod
-   use pFUnit_mod
-   use PFL_SeverityLevels_mod
-   use PFL_LogRecord_mod
+   use funit
+   use PFL_SeverityLevels
+   use PFL_LogRecord
    use iso_fortran_env
    
    implicit none
 
    public :: Test_LogRecord
+
+@suite(name='Test_LogRecord_suite')
    
 @TestCase
    type, extends(TestCase) :: Test_LogRecord
@@ -46,7 +48,7 @@ contains
 
 @Test
    subroutine test_args(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use gFTL_UnlimitedVector
       class (Test_LogRecord), intent(inout) :: this
       type (UnlimitedVector) :: args
       

@@ -1,10 +1,10 @@
-module Test_LoggerManager_mod
-   use pfunit_mod
-   use PFL_LoggerManager_mod 
-   use PFL_AbstractLogger_mod
-   use PFL_Logger_mod
-   use PFL_RootLogger_mod
-   use PFL_SeverityLevels_mod
+module Test_LoggerManager
+   use funit
+   use PFL_LoggerManager 
+   use PFL_AbstractLogger
+   use PFL_Logger
+   use PFL_RootLogger
+   use PFL_SeverityLevels
    implicit none
 
 contains
@@ -201,7 +201,7 @@ contains
    @test
    subroutine test_propagate()
       use MockHandler_mod
-      use PFL_Formatter_mod
+      use PFL_Formatter
       type (LoggerManager), target :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child
@@ -227,7 +227,7 @@ contains
    @test
    subroutine test_propagate_off()
       use MockHandler_mod
-      use PFL_Formatter_mod
+      use PFL_Formatter
       type (LoggerManager), target :: manager
       class (Logger), pointer :: parent
       class (Logger), pointer :: child
@@ -252,4 +252,4 @@ contains
    end subroutine test_propagate_off
    
 
-end module Test_LoggerManager_mod
+end module Test_LoggerManager

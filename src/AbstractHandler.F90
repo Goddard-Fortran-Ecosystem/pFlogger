@@ -3,7 +3,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!* MODULE: PFL_AbstractHandler_mod
+!* MODULE: PFL_AbstractHandler
 !
 !> @brief Abstract class for handlers. 
 !> @details
@@ -22,13 +22,13 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_AbstractHandler_mod
-   use PFL_Filterer_mod
-   use PFL_SeverityLevels_mod, only: NOTSET
-   use PFL_LogRecord_mod, only: LogRecord
-   use PFL_Formatter_mod, only: Formatter
-   use PFL_KeywordEnforcer_mod
-   use PFL_Exception_mod
+module PFL_AbstractHandler
+   use PFL_Filterer
+   use PFL_SeverityLevels, only: NOTSET
+   use PFL_LogRecord, only: LogRecord
+   use PFL_Formatter, only: Formatter
+   use PFL_KeywordEnforcer
+   use PFL_Exception
    implicit none
    private
 
@@ -58,7 +58,7 @@ module PFL_AbstractHandler_mod
 
       ! This version is intended to be implemented by subclasses
       subroutine emit_message(this, record, unusable, rc)
-         use PFL_KeywordEnforcer_mod
+         use PFL_KeywordEnforcer
          import AbstractHandler
          import LogRecord
          class (AbstractHandler), intent(inout) :: this
@@ -223,4 +223,4 @@ contains
    end function notEqual
    
 
-end module PFL_AbstractHandler_mod
+end module PFL_AbstractHandler

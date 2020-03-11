@@ -1,7 +1,7 @@
-module Test_ArgListUtilities_mod
-   use pFUnit_mod
-   use PFL_ArgListUtilities_mod
-   use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+module Test_ArgListUtilities
+   use funit
+   use PFL_ArgListUtilities
+   use gFTL_UnlimitedVector
    implicit none
 
 contains
@@ -111,4 +111,4 @@ contains
    end subroutine test_nineArgs
 
 
-end module Test_ArgListUtilities_mod
+end module Test_ArgListUtilities

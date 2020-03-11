@@ -1,10 +1,12 @@
 module Test_RotatingFileHandler_mod
    use iso_fortran_env
-   use PFL_SeverityLevels_mod
-   use PFL_RotatingFileHandler_mod
-   use PFL_LogRecord_mod
-   use pfunit_mod
+   use PFL_SeverityLevels
+   use PFL_RotatingFileHandler
+   use PFL_LogRecord
+   use funit
    implicit none
+
+@suite(name='Test_RotatingFileHandler_suite')
 
 @TestCase
    type, extends(TestCase) :: Test_RotatingFileHandler

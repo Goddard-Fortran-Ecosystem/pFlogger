@@ -2,15 +2,15 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-!*MODULE: PFL_StringAbstractLoggerPolyMap_mod
+!*MODULE: PFL_StringAbstractLoggerPolyMap
 !
 !> @brief Case insensitive abstract logger map.
 !
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module  PFL_StringAbstractLoggerPolyMap_mod
-   use PFL_AbstractLogger_mod
+module  PFL_StringAbstractLoggerPolyMap
+   use PFL_AbstractLogger
 
 #define _map LoggerMap
 #define _iterator LoggerIterator
@@ -24,5 +24,5 @@ module  PFL_StringAbstractLoggerPolyMap_mod
 #define _pair_allocatable   
 #include "templates/map.inc"
 
-end module PFL_StringAbstractLoggerPolyMap_mod
+end module PFL_StringAbstractLoggerPolyMap
 

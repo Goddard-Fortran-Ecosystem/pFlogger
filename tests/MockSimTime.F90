@@ -1,5 +1,5 @@
 module MockSimTime_mod
-   use PFL_StringUnlimitedMap_mod
+   use gFTL_StringUnlimitedMap
    private
 
    public :: mockSimTime
@@ -7,7 +7,7 @@ module MockSimTime_mod
 contains
 
    subroutine mockSimTime(dict)
-      type (Map), intent(out) :: dict
+      type (Stringunlimitedmap), intent(out) :: dict
 
       call dict%insert('Y',1234)
       call dict%insert('M',3)
@@ -15,4 +15,4 @@ contains
 
    end subroutine mockSimTime
 
-end module MockSimTime_mod
+end module MockSimTime_Mod

@@ -1,6 +1,6 @@
-module PFL_MpiFormatter_mod
-   use PFL_Formatter_mod
-   use PFL_MpiCommConfig_mod
+module PFL_MpiFormatter
+   use PFL_Formatter
+   use PFL_MpiCommConfig
    use mpi
    implicit none
    private
@@ -22,11 +22,11 @@ module PFL_MpiFormatter_mod
 contains
 
    function newMpiFormatter_comm(comm, unused, rank_keyword, size_keyword, fmt, datefmt) result(f)
-      use PFL_FormatParser_mod
-      use PFL_FormatTokenVector_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use PFL_FormatToken_mod
-      use PFL_FormatString_mod
+      use PFL_FormatParser
+      use PFL_FormatTokenVector
+      use gftl_StringUnlimitedMap
+      use PFL_FormatToken
+      use PFL_FormatString
       type (MpiFormatter) :: f
       integer, intent(in) :: comm
       type (Unusable), optional :: unused
@@ -48,12 +48,12 @@ contains
 
 
    function newMpiFormatter_comms(comms, unused, rank_prefix, size_prefix, fmt, datefmt) result(f)
-      use PFL_FormatParser_mod
-      use PFL_FormatTokenVector_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
-      use PFL_FormatToken_mod
-      use PFL_FormatString_mod
-      use PFL_ArgListUtilities_mod
+      use PFL_FormatParser
+      use PFL_FormatTokenVector
+      use gftl_StringUnlimitedMap
+      use PFL_FormatToken
+      use PFL_FormatString
+      use PFL_ArgListUtilities
       type (MpiFormatter) :: f
       integer, intent(in) :: comms(:)
       type (Unusable), optional :: unused
@@ -107,4 +107,4 @@ contains
       
    end function default
    
-end module PFL_MpiFormatter_mod
+end module PFL_MpiFormatter

@@ -1,9 +1,9 @@
-module Test_MpiFormatter_mod
-   use pfunit_mod
-   use mockmpi_mod
-   use PFL_MpiFormatter_mod
-   use PFL_LogRecord_mod
-   use PFL_SeverityLevels_mod
+module Test_MpiFormatter
+   use funit
+   use MockMpi_mod
+   use PFL_MpiFormatter
+   use PFL_LogRecord
+   use PFL_SeverityLevels
    implicit none
 
 contains
@@ -103,4 +103,4 @@ contains
       
    end subroutine test_alt_names
    
-end module Test_MpiFormatter_mod
+end module Test_MpiFormatter

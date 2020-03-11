@@ -1,7 +1,7 @@
 module MockDateFormat_mod
-   use PFL_Formatter_mod
-   use PFL_LogRecord_mod
-   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+   use PFL_Formatter
+   use PFL_LogRecord
+   use gFTL_StringUnlimitedMap
    implicit none
    private
 
@@ -45,6 +45,6 @@ contains
    end subroutine fillDateAndTime
 
    
-end module MockDateFormat_mod
+end module MockDateFormat_Mod
 
 

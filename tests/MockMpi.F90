@@ -3,7 +3,7 @@ module mpi_base
 end module mpi_base
 
 module MockMpi_mod
-   use pfunit_mod
+   use funit
    implicit none
    private
 

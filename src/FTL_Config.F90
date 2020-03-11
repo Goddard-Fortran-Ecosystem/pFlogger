@@ -1,6 +1,6 @@
-module ftl_Config_mod
-   use PFL_StringUnlimitedPolyMap_mod
-   use PFL_Exception_mod
+module ftl_Config
+   use PFL_StringUnlimitedPolyMap
+   use PFL_Exception
   implicit none
   private
 
@@ -55,7 +55,7 @@ contains
 
 
    logical function toLogical(this, key, unused, default, found) result(flag)
-      use PFL_String_mod
+      use PFL_String
       class (Config), intent(in) :: this
       character(len=*), intent(in) :: key
       type (Unusable), optional, intent(in) :: unused
@@ -125,7 +125,7 @@ contains
 
 
    integer function toInteger(this, key, unused, default, found) result(i)
-      use PFL_String_mod
+      use PFL_String
      class (Config), intent(in) :: this
      character(len=*), intent(in) :: key
      type (Unusable), optional, intent(in) :: unused
@@ -197,7 +197,7 @@ contains
 
 
    function toReal32(this, key, unused, default, found) result(x)
-      use PFL_String_mod
+      use PFL_String
       use iso_fortran_env, only: REAL32
       use, intrinsic :: IEEE_ARITHMETIC
       real(kind=REAL32) :: x
@@ -276,7 +276,7 @@ contains
 
 
    function toString(this, key, unused, default, found) result(str)
-      use PFL_String_mod, only:  String
+      use PFL_String, only:  String
       
       character(len=:), allocatable :: str
       class (Config), intent(in) :: this
@@ -364,4 +364,4 @@ contains
    end function toConfigPtr
   
 
-end module ftl_Config_mod
+end module ftl_Config

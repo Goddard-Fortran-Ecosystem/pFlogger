@@ -21,7 +21,7 @@
    ! ABSTRACT extensions can be created, but do not circumvent the
    ! keyword enforcement.
 
-module PFL_KeywordEnforcer_mod
+module PFL_KeywordEnforcer
    implicit none
    private
 
@@ -37,4 +37,4 @@ module PFL_KeywordEnforcer_mod
       end subroutine nonimplementable
    end interface
 
-end module PFL_KeywordEnforcer_Mod
+end module PFL_KeywordEnforcer

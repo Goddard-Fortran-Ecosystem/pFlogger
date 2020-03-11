@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_Filterer_mod
+! MODULE: PFL_Filterer
 !
 !> @author 
 !> ASTG staff
@@ -16,12 +16,12 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_Filterer_mod
-   use PFL_AbstractFilter_mod, only: AbstractFilter
-   use PFL_LogRecord_mod, only: LogRecord
-   use PFL_AbstractFilterPolyVector_mod, only: FilterVector => Vector
-   use PFL_AbstractFilterPolyVector_mod, only: FilterVectorIterator => VectorIterator
-   use PFL_Exception_mod, only: throw
+module PFL_Filterer
+   use PFL_AbstractFilter, only: AbstractFilter
+   use PFL_LogRecord, only: LogRecord
+   use PFL_AbstractFilterPolyVector, only: FilterVector => Vector
+   use PFL_AbstractFilterPolyVector, only: FilterVectorIterator => VectorIterator
+   use PFL_Exception, only: throw
    implicit none
    private
 
@@ -160,4 +160,4 @@ contains
    end function get_filters
 
 
-end module PFL_Filterer_mod
+end module PFL_Filterer

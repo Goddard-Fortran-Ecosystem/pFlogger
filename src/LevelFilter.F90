@@ -1,6 +1,6 @@
-module PFL_LevelFilter_mod
-   use PFL_AbstractFilter_mod
-   use PFL_LogRecord_mod
+module PFL_LevelFilter
+   use PFL_AbstractFilter
+   use PFL_LogRecord
    implicit none
    private
 
@@ -86,4 +86,5 @@ contains
    end function equal
 
    
- end module PFL_LevelFilter_mod
+end module PFL_LevelFilter
+

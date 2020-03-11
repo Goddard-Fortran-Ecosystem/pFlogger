@@ -1,8 +1,8 @@
-module Test_MpiFilter_mod
-   use pFUnit_mod
-   use PFL_MpiFilter_mod
-   use PFL_LogRecord_mod
-   use PFL_SeverityLevels_mod, only: INFO
+module Test_MpiFilter
+   use funit
+   use PFL_MpiFilter
+   use PFL_LogRecord
+   use PFL_SeverityLevels, only: INFO
 
    implicit none
    
@@ -51,4 +51,4 @@ contains
    end subroutine Test_MpiFilter_withRank
 
 
-end module Test_MpiFilter_mod
+end module Test_MpiFilter

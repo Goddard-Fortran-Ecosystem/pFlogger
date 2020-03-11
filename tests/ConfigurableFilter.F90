@@ -1,5 +1,5 @@
 module ConfigurableFilter_mod
-   use PFL_AbstractFilter_mod
+   use PFL_AbstractFilter
    implicit none
    private
 
@@ -16,7 +16,7 @@ contains
 
 
    logical function do_filter(this, record)
-      use PFL_LogRecord_mod
+      use PFL_LogRecord
       class (ConfigurableFilter), intent(in) :: this
       class (LogRecord), intent(inout) :: record
 
@@ -37,4 +37,4 @@ contains
       end select
    end function equal
 
-end module ConfigurableFilter_mod
+end module ConfigurableFilter_Mod

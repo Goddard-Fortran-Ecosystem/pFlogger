@@ -1,8 +1,8 @@
 #include "error_handling_macros.fh"
-module PFL_MpiCommConfig_mod
+module PFL_MpiCommConfig
    use mpi
-   use PFL_StringUnlimitedMap_mod
-   use PFL_KeywordEnforcer_mod
+   use gftl_StringUnlimitedMap
+   use PFL_KeywordEnforcer
    implicit none
    private
 
@@ -18,7 +18,7 @@ contains
 
 
    function MpiCommConfig_Default_comm(unusable, rank_keyword, size_keyword) result(m)
-      type (Map) :: m
+      type (StringUnlimitedMap) :: m
       class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
@@ -32,7 +32,7 @@ contains
 
    function MpiCommConfig_comm(mpi_communicator, unusable, rank_keyword, size_keyword) result(m)
       integer, intent(in) :: mpi_communicator
-      type (Map) :: m
+      type (StringUnlimitedMap) :: m
       class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
@@ -54,16 +54,16 @@ contains
 
    function MpiCommConfig_multi_comm(mpi_communicators, unusable, &
         & rank_prefix, size_prefix) result(m)
-      use PFL_FormatString_mod
-      use PFL_ArgListUtilities_mod
-      use PFL_UnlimitedVector_mod
+      use PFL_FormatString
+      use PFL_ArgListUtilities
+      use gftl_UnlimitedVector
             
       integer, intent(in) :: mpi_communicators(:)
-      type (Map) :: m
+      type (StringUnlimitedMap) :: m
       class (KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), optional, intent(in) :: rank_prefix
       character(len=*), optional, intent(in) :: size_prefix
-      type (Vector) :: v
+      type (UnlimitedVector) :: v
 
       integer :: rank
       integer :: npes
@@ -106,4 +106,4 @@ contains
       
    end function default
 
-end module PFL_MpiCommConfig_mod
+end module PFL_MpiCommConfig

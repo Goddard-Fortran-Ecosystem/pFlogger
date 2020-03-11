@@ -1,7 +1,7 @@
 #include "error_handling_macros.fh"
-module PFL_DynamicBuffer_mod
-   use PFL_Exception_mod
-   use PFL_KeywordEnforcer_mod
+module PFL_DynamicBuffer
+   use PFL_Exception
+   use PFL_KeywordEnforcer
    implicit none
    private
 
@@ -153,4 +153,4 @@ contains
       
    end subroutine initialize
 
-end module PFL_DynamicBuffer_mod
+end module PFL_DynamicBuffer

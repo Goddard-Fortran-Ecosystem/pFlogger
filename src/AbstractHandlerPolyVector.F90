@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_AbstractHandlerPolyVector_mod
+! MODULE: PFL_AbstractHandlerPolyVector
 !
 !> @brief
 !> This class provides a vector of handlers. Uses FTL.
@@ -12,8 +12,8 @@
 !
 !> @date 01 Jun 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_AbstractHandlerPolyVector_mod
-   use PFL_AbstractHandler_mod
+module PFL_AbstractHandlerPolyVector
+   use PFL_AbstractHandler
 
 #define _type class (AbstractHandler)
 #define _allocatable
@@ -23,4 +23,4 @@ module PFL_AbstractHandlerPolyVector_mod
 
 #include "templates/vector.inc"
 
-end module PFL_AbstractHandlerPolyVector_mod
+end module PFL_AbstractHandlerPolyVector

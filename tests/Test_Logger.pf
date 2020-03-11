@@ -1,12 +1,15 @@
 module Test_Logger_mod
-   use pfunit_mod
+   use funit
    use MockHandler_mod
-   use PFL_Logger_mod
-   use PFL_SeverityLevels_mod
-   use PFL_LogRecord_mod
+   use PFL_Logger
+   use PFL_SeverityLevels
+   use PFL_LogRecord
    implicit none
 
    public :: Test_Logger
+
+@suite(name='Test_Logger_suite')
+
 
 @TestCase
    type, extends(TestCase) :: Test_Logger
@@ -47,7 +50,7 @@ contains
 
 @Test
    subroutine test_make_record(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
+      use gFTL_UnlimitedVector
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
       type (UnlimitedVector), target :: args
@@ -264,7 +267,7 @@ contains
 
 @test
    subroutine test_remove_handler_remove1st(this)
-      use PFL_AbstractHandlerPolyVector_mod
+      use PFL_AbstractHandlerPolyVector
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
@@ -292,7 +295,7 @@ contains
 
 @test
    subroutine test_add_handler_noDups(this)
-      use PFL_AbstractHandlerPolyVector_mod
+      use PFL_AbstractHandlerPolyVector
       class (Test_Logger), intent(inout) :: this
 
       type (Logger), target :: lgr
@@ -344,11 +347,11 @@ contains
 
    @test
    subroutine test_extra(this)
-      use PFL_Formatter_mod, only: Formatter
-      use PFL_StringUnlimitedMap_mod
+      use PFL_Formatter, only: Formatter
+      use gFTL_StringUnlimitedMap
       class (Test_Logger), intent(inout) :: this
 
-      type (map), target :: extra
+      type (StringUnlimitedMap), target :: extra
       type (Logger) :: lgr
       type (MockHandler) :: h
 

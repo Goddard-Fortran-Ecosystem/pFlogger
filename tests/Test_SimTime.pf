@@ -1,9 +1,9 @@
-module Test_SimTime_mod
-   use PFL_Formatter_mod
-   use PFL_LogRecord_mod
+module Test_SimTime
+   use PFL_Formatter
+   use PFL_LogRecord
    use MockSimTime_mod
-   use PFL_SeverityLevels_mod
-   use pfunit_mod
+   use PFL_SeverityLevels
+   use funit
    implicit none
 
 contains
@@ -25,4 +25,4 @@ contains
       
    end subroutine test_basic
 
-end module Test_SimTime_mod
+end module Test_SimTime

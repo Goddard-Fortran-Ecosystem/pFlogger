@@ -1,13 +1,15 @@
 module Test_StreamHandler_mod
-   use pFUnit_mod
-   use PFL_SeverityLevels_mod
-   use PFL_StreamHandler_mod
-   use PFL_LogRecord_mod
-   use PFL_Formatter_mod
+   use funit
+   use PFL_SeverityLevels
+   use PFL_StreamHandler
+   use PFL_LogRecord
+   use PFL_Formatter
    use MockDateFormat_mod
-   use PFL_AbstractFilter_mod
+   use PFL_AbstractFilter
+   use gFTL_UnlimitedVector
    implicit none
 
+@suite(name='Test_StreamHandler_suite')
 @TestCase
    type, extends(TestCase) :: Test_StreamHandler
       type (Formatter) :: f
@@ -68,8 +70,7 @@ contains
 
 @Test
    subroutine test_emitBasicWithFormat(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use PFL_Formatter_mod
+      use PFL_Formatter
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage
@@ -98,9 +99,8 @@ contains
    
 @Test
    subroutine test_emitBasicWithFormatAndDate(this)
-      use PFL_UnlimitedVector_mod, only: UnlimitedVector => Vector
-      use PFL_Formatter_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => Map
+      use PFL_Formatter
+      use gFTL_StringUnlimitedMap
       class (Test_StreamHandler), intent(inout) :: this
       type (StreamHandler) :: handler
       character(len=32) :: foundMessage

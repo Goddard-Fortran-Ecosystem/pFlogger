@@ -2,29 +2,25 @@
 # ASTG Logger top level CmakeLists.txt
 #
 # Usage:
-#   cmake -DMPI=YES ..
+#   cmake <top-dir> -DCMAKE_PREFIX_PATH=<path>
 #
-# Default is MPI=NO.
+# The following (cmake) packages must be already installed at <path>
 #
-# Note that tests use a Mock MPI mechanism and thus do not run under a real
-# MPI. Thus, tests must link with a SERIAL installation of pFUnit regardless
-# of MPI option used. However, if MPI=YES is used then examples must link
-# with a real MPI library and tests executable will fail to link. So,
-# 
-#  export PFUNIT=/mypath/pFUnit_serial
+# - gFTL
+# - gFTL-shared
+# - yaFyaml
 #
-#  cmake -DMPI=NO ..  : build/run serial tests ONLY
-#  cmake -DMPI=YES .. : build/run serial and mpi tests
+# and if running the unit tests
 #
-#  unset PFUNIT 
-#  
-#  cmake -DMPI=NO ..  : build/run serial examples ONLY
-#  cmake -DMPI=YES .. : build/run mpi examples ONLY
+# - pFUnit
+#
+# MPI support will be built if FindPackage() finds MPI in the build
+# environment.
 #
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.8.0)
-project (pFlogger
-  VERSION 1.0
+project (PFLOGGER
+  VERSION 1.3
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -34,19 +30,12 @@ set (CMAKE_MODULE_PATH
 include (PreventInSourceBuild)
 include (DefineCMakeDefaults)
 include (DefinePlatformDefaults)
-include (FindFTL)
 
-# By default logger builds in SERIAL
-if (MPI MATCHES YES)
-  add_definitions (-D_LOGGER_USE_MPI)
-  find_package (MPI REQUIRED)
-  include_directories (${MPI_Fortran_INCLUDE_PATH})
-  message( STATUS "MPI enabled")
-elseif ()
-  message (FATAL_ERROR
-    "MPI support not available - MPI implementation"
-    )
-endif()
+find_package (GFTL REQUIRED)
+find_package (GFTL_SHARED REQUIRED)
+find_package (YAFYAML REQUIRED)
+
+find_package (MPI)
 
 #-----------------------------------
 # Set default Fortran compiler flags
@@ -72,12 +61,12 @@ endif ()
 
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
-set(PFUNIT "" CACHE PATH "(optional) path to installed testing framework")
-if (PFUNIT)
-   include_directories(${PFUNIT}/mod)
-   include_directories(${PFUNIT}/include)
-   link_directories(${PFUNIT}/lib)
-   message(STATUS " +++ PFUNIT is set to ${PFUNIT}") 
+
+find_package (PFUNIT QUIET)
+if (PFUNIT_FOUND)
+  if (NOT TARGET (tests))
+    add_custom_target(tests COMMAND ${CMAKE_CTEST_COMMAND})
+  endif ()
    add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 

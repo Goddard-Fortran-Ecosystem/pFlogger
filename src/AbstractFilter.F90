@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_AbstractFilter_mod
+! MODULE: PFL_AbstractFilter
 !
 !> @brief
 !> AbstractFilter class provides common code to use in Filter class.
@@ -12,7 +12,7 @@
 !
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_AbstractFilter_mod
+module PFL_AbstractFilter
    implicit none
    private
 
@@ -29,7 +29,7 @@ module PFL_AbstractFilter_mod
    abstract interface
 
       logical function do_filter(this, record)
-         use PFL_LogRecord_mod, only: LogRecord
+         use PFL_LogRecord, only: LogRecord
          import AbstractFilter
          class (AbstractFilter), intent(in) :: this
          class (LogRecord), intent(inout) :: record
@@ -44,4 +44,4 @@ module PFL_AbstractFilter_mod
    end interface
 
    
-end module PFL_AbstractFilter_mod
+end module PFL_AbstractFilter

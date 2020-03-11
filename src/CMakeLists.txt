@@ -2,7 +2,7 @@
 
 set (CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-set(THIS pflogger)
+set(this pflogger)
 
 set(SRCS
    ArgListUtilities.F90
@@ -38,8 +38,6 @@ set(SRCS
    FTL_Config.F90
    WrapArray.F90
 # FTL containers
-   StringIntegerMap.F90
-   IntegerStringMap.F90
    StringAbstractLoggerPolyMap.F90
    StringFormatterMap.F90
    StringFilterMap.F90
@@ -48,14 +46,10 @@ set(SRCS
    LoggerPolyVector.F90
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
-   UnlimitedVector.F90
-   StringUnlimitedMap.F90
    FormatTokenVector.F90
-   StringVector.F90
-   YAML_Parser.F90
 )
 
-if (MPI) 
+if (MPI_FOUND) 
   list (APPEND SRCS
      MpiFilter.F90
      MpiFormatter.F90
@@ -71,17 +65,29 @@ set (bin ${CMAKE_CURRENT_BINARY_DIR} )
 set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories (${FTL_INSTALL_DIR}/include)
+add_library (${this} STATIC ${SRCS})
+target_link_libraries (${this} PUBLIC yafyaml)
+if (MPI_FOUND)
+  target_link_libraries (${this} PRIVATE MPI::MPI_Fortran)
+endif ()
+  
+set_target_properties (${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
-add_library (${THIS} STATIC ${SRCS})
+set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
 
-if (NOT FTL)
-  add_dependencies(pflogger gFTL)
-endif()
+target_include_directories(${this} PUBLIC
+  $<BUILD_INTERFACE:${PFLOGGER_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:${dest}/include>
+)  
 
-install(TARGETS ${THIS} DESTINATION lib)
-install(DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include DESTINATION .)
+target_link_libraries(${this} PUBLIC gftl-shared gftl)
+
+install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
+install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)
+install (FILES  ${CURRENT_SOURCE_DIR}/error_handling_macros.fh DESTINATION ${dest}/include)
+install (EXPORT PFLOGGER DESTINATION "${dest}/cmake")
+
 
 
 

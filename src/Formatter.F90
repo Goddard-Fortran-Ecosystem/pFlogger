@@ -10,7 +10,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_Formatter_mod
+! MODULE: PFL_Formatter
 !
 !> @author 
 !> ASTG staff
@@ -41,13 +41,13 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_Formatter_mod
-   use PFL_Object_mod
-   use PFL_LogRecord_mod
-   use PFL_FormatParser_mod
-   use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
-   use PFL_KeywordEnforcer_mod
-   use PFL_Exception_mod
+module PFL_Formatter
+   use PFL_Object
+   use PFL_LogRecord
+   use PFL_FormatParser
+   use gFTL_StringUnlimitedMap
+   use PFL_KeywordEnforcer
+   use PFL_Exception
    implicit none
    private
 
@@ -154,7 +154,7 @@ contains
    ! Return the creation time of the specified record as formatted text.
    !---------------------------------------------------------------------------
    function format_time(this, record, datefmt) result(asctime)
-      use PFL_FormatString_mod
+      use PFL_FormatString
 
       character(len=:), allocatable :: asctime
       class (Formatter), intent(in) :: this
@@ -200,9 +200,9 @@ contains
    ! "INFO: logName: Hello".
    ! ---------------------------------------------------------------------------
    function format(this, record, unusable, rc) result(logMessage)
-      use PFL_FormatString_mod
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMapIterator => MapIterator
-      use PFL_String_mod, only: String
+      use PFL_FormatString
+      use gFTL_StringUnlimitedMap
+      use PFL_String, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
@@ -387,10 +387,9 @@ contains
    
 
    subroutine fill_extra_keywords(this, extra)
-      use PFL_StringUnlimitedMap_mod, only: StringUnlimitedMap => map
-      use PFL_FormatToken_mod
-      use PFL_FormatTokenVector_mod
-      use PFL_FormatString_mod
+      use PFL_FormatToken
+      use PFL_FormatTokenVector
+      use PFL_FormatString
       class (Formatter), intent(inout) :: this
       type (StringUnlimitedMap), intent(in) :: extra
 
@@ -417,4 +416,4 @@ contains
 
    end subroutine fill_extra_keywords
 
-end module PFL_Formatter_mod
+end module PFL_Formatter
