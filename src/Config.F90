@@ -1,5 +1,8 @@
 #include "error_handling_macros.fh"
 module PFL_Config
+   use yafyaml
+   use gftl_StringVector
+   use gftl_UnlimitedVector
    use PFL_String, only: String
    use FTL_Config, only: config
    use PFL_Logger
@@ -66,22 +69,25 @@ module PFL_Config
 
 contains
 
-   subroutine build_formatters(this, formattersDict, unusable, extra)
-      class (ConfigElements), intent(inout) :: this
-      type (Config), intent(in) :: formattersDict
+   subroutine build_formatters(this, cfg, unusable, extra)
+      class(ConfigElements), intent(inout) :: this
+      type(Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (ConfigIterator) :: iter
-      type (Config), pointer :: cfg
+      type(ConfigurationIterator) :: iter
+      class(*), pointer :: node
+      type (Configuration) :: subcfg
       class (Formatter), allocatable :: f
       
+      integer :: status
+
       _UNUSED_DUMMY(unusable)
 
-      iter = formattersDict%begin()
-      do while (iter /= formattersDict%end())
-         cfg => formattersDict%toConfigPtr(iter%key())
-         call build_formatter(f, cfg, extra=extra, global_communicator=this%global_communicator)
+      iter = cfg%begin()
+      do while (iter /= cfg%end())
+         subcfg = iter%value()
+         call build_formatter(f, subcfg, extra=extra, global_communicator=this%global_communicator)
          call this%formatters%insert(iter%key(), f)
          deallocate(f)
          call iter%next()
@@ -90,56 +96,50 @@ contains
    end subroutine build_formatters
 
 
-   subroutine build_formatter(fmtr, dict, unusable, extra, global_communicator)
+   subroutine build_formatter(fmtr, cfg, unusable, extra, global_communicator)
       class (Formatter), allocatable, intent(out) :: fmtr
-      type (Config), intent(in) :: dict
+      type(Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: global_communicator
 
       character(len=:), allocatable :: class_name
-      type (Config) :: extra_
+      type (StringUnlimitedMap) :: extra_
+      integer :: status
       
       _UNUSED_DUMMY(unusable)
 
-      class_name = dict%toString('class', default='Formatter')
-
+      call cfg%get(class_name, 'class', default='Formatter', rc=status)
       select case (class_name)
       case ('Formatter')
-         call build_basic_formatter(fmtr, dict)
+         call build_basic_formatter(fmtr, cfg)
 #ifdef _LOGGER_USE_MPI         
       case ('MpiFormatter')
          call extra_%deepcopy(extra)
          if (present(global_communicator)) then
             call extra_%insert('_GLOBAL_COMMUNICATOR', global_communicator)
          end if
-         call build_mpi_formatter(fmtr, dict, extra=extra_)
+         call build_mpi_formatter(fmtr, cfg, extra=extra_)
 #endif
       end select
 
    end subroutine build_formatter
 
 
-   subroutine build_basic_formatter(fmtr, dict)
+   subroutine build_basic_formatter(fmtr, cfg)
       class (Formatter), allocatable, intent(out) :: fmtr
-      type (Config), intent(in) :: dict
+      type (Configuration), intent(in) :: cfg
 
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
-      character(len=:), allocatable :: tmp
-      logical :: found
+      logical :: is_present
+      integer :: status
 
-      fmt = dict%toString('format', found=found)
-      ! strip beginning and trailing quotes
-      fmt = trim(adjustl(fmt))
-      fmt = fmt(2:len(fmt)-1)
-
-      if (found) then
-         datefmt = dict%toString('datefmt', found=found)
-         if (found) then
-            datefmt = trim(adjustl(datefmt))
-            tmp = datefmt(2:len(datefmt)-1)
-            datefmt = tmp
+      call cfg%get(fmt,'format', is_present=is_present, default='', rc=status)
+!!$      fmt = trim(adjustl(fmt))
+      if (is_present) then
+         call cfg%get(datefmt, 'datefmt', is_present=is_present, rc=status)
+         if (is_present) then
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
@@ -152,12 +152,12 @@ contains
    end subroutine build_basic_formatter
 
 #ifdef _LOGGER_USE_MPI
-   subroutine build_mpi_formatter(fmtr, dict, unusable, extra)
+   subroutine build_mpi_formatter(fmtr, cfg, unusable, extra)
       use PFL_MpiCommConfig
       class (Formatter), allocatable, intent(out) :: fmtr
-      type (Config), intent(in) :: dict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
@@ -170,10 +170,11 @@ contains
 
       type (StringUnlimitedMap) :: commMap
       character(len=:), allocatable :: communicator_name_list, communicator_name, name
+      integer :: status
 
       _UNUSED_DUMMY(unusable)
 
-      communicator_name_list = dict%toString('comms', found=found)
+      call cfg%get(communicator_name, 'comms', is_present=is_present, rc=status)
       if (found) then
          allocate(comms(0))
          n = len_trim(communicator_name_list)
@@ -211,23 +212,23 @@ contains
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
-           rank_prefix = dict%toString('rank_prefix', default='mpi_rank')
-           size_prefix = dict%toString('size_prefix', default='mpi_size')
+           call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
+           call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
            call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
          end block
       else
-         communicator_name = dict%toString('comm:', default='COMM_LOGGER')
+         call cfg%get(communicator_name_list, 'comm', default='COMM_LOGGER', rc=status)
          comm = get_communicator(communicator_name, extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
-           rank_prefix = dict%toString('rank_prefix', default='mpi_rank')
-           size_prefix = dict%toString('size_prefix', default='mpi_size')
+           call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
+           call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
            call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
          end block
       end if
 
-      fmt = dict%toString('format', found=found)
+      call cfg%get(fmt, 'format', is_present=is_present, rc=status)
       ! strip beginning and trailing quotes
       block
         character(len=:), allocatable :: tmp
@@ -236,10 +237,11 @@ contains
         fmt = tmp(2:n-1)
       end block
       
-      if (found) then
-         datefmt = dict%toString('datefmt', found=found)
-         if (found) then
+      if (is_present) then
+         call cfg%get(datefmt, 'datefmt', is_present=is_present, rc=status)
+         if (is_present) then
             datefmt = trim(adjustl(datefmt))
+            ! drop enclosig quotes
             datefmt = datefmt(2:len(datefmt)-1)
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt, extra=commMap))
          else
@@ -252,25 +254,26 @@ contains
    end subroutine build_mpi_formatter
 #endif
    
-   subroutine build_locks(this, locksDict, unusable, extra)
+   subroutine build_locks(this, cfg, unusable, extra)
       use PFL_AbstractLock
 #ifdef _LOGGER_USE_MPI
       use PFL_MpiLock
 #endif
       class (ConfigElements), intent(inout) :: this
-      type (Config), intent(in) :: locksDict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (ConfigIterator) :: iter
-      type (Config), pointer :: cfg
-
+      type(ConfigurationIterator) :: iter
+      type(Configuration) :: subcfg
+      integer :: status
+      
       _UNUSED_DUMMY(unusable)
 
-      iter = locksDict%begin()
-      do while (iter /= locksDict%end())
-         cfg => locksDict%toConfigPtr(iter%key())
-         call this%locks%insert(iter%key(), build_lock(cfg, extra=extra))
+      iter = cfg%begin()
+      do while (iter /= cfg%end())
+         subcfg = iter%value()
+         call this%locks%insert(iter%key(), build_lock(subcfg, extra=extra))
          call iter%next()
       end do
 
@@ -278,22 +281,23 @@ contains
 
       function build_lock(cfg, unusable, extra) result(lock)
          class (AbstractLock), allocatable :: lock
-         type (Config), intent(in) :: cfg
+         type (Configuration), intent(in) :: cfg
          class (KeywordEnforcer), optional, intent(in) :: unusable
-         type (Config), optional, intent(in) :: extra
+         type (StringUnlimitedMap), optional, intent(in) :: extra
 
-         logical :: found
+         logical :: is_present
          character (len=:), allocatable :: class_name, comm_name
          integer :: comm
+         integer :: status
 
-      _UNUSED_DUMMY(unusable)
+         _UNUSED_DUMMY(unusable)
 
-         class_name = cfg%toString('class', found=found)
-         if (found) then
+         call cfg%get(class_name, 'class', is_present=is_present, rc=status)
+         if (is_present) then
             select case (class_name)
 #ifdef _LOGGER_USE_MPI
             case ('MpiLock')
-               comm_name = cfg%toString('comm', default='COMM_LOGGER')
+               call cfg%get(comm_name, 'comm', default='COMM_LOGGER', rc=status)
                comm = get_communicator(comm_name, extra=extra)
                allocate(lock, source=MpiLock(comm))
 #endif
@@ -308,62 +312,66 @@ contains
    end subroutine build_locks
 
 
-   subroutine build_filters(this, filtersDict, unusable, extra)
+   subroutine build_filters(this, cfg, unusable, extra)
       class (ConfigElements), intent(inout) :: this
-      type (Config), intent(in) :: filtersDict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (ConfigIterator) :: iter
-      type (Config), pointer :: cfg
+      type (ConfigurationIterator) :: iter
+      type (Configuration) :: subcfg
 
       _UNUSED_DUMMY(unusable)
 
-      iter = filtersDict%begin()
-      do while (iter /= filtersDict%end())
-         cfg => filtersDict%toConfigPtr(iter%key())
-         call this%filters%insert(iter%key(), build_filter(cfg, extra=extra))
+      iter = cfg%begin()
+      do while (iter /= cfg%end())
+         subcfg = iter%value()
+         call this%filters%insert(iter%key(), build_filter(subcfg, extra=extra))
          call iter%next()
       end do
 
    end subroutine build_filters
 
 
-   function build_filter(dict, unusable, extra) result(f)
+   function build_filter(cfg, unusable, extra) result(f)
       class (AbstractFilter), allocatable :: f
-      type (Config), intent(in) :: dict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: class_name
-
+      integer :: status
+      
       _UNUSED_DUMMY(unusable)
 
-      class_name = dict%toString('class', default='filter')
+
+      call cfg%get(class_name, 'class', default='filter', rc=status)
 
       select case (to_lower_case(class_name))
       case ('filter')
-         allocate(f, source=build_basic_filter(dict))
+         allocate(f, source=build_basic_filter(cfg))
       case ('levelfilter')
-         allocate(f, source=build_LevelFilter(dict))
+         allocate(f, source=build_LevelFilter(cfg))
 #ifdef _LOGGER_USE_MPI              
       case ('mpifilter')
-         allocate(f, source=build_MpiFilter(dict, extra=extra))
+         allocate(f, source=build_MpiFilter(cfg, extra=extra))
 #endif
       case default
          call throw(__FILE__,__LINE__,'PFL::Config::build_filter() - unknow filter type: '//class_name//'.')
       end select
     end function build_filter
 
-    function build_basic_filter(dict) result(f)
+    function build_basic_filter(cfg) result(f)
       type (Filter) :: f
-      type (Config), intent(in) :: dict
+      type (Configuration), intent(in) :: cfg
       
       character(len=:), allocatable :: name
-      logical :: found
+      logical :: is_present
+      integer :: status
 
-      name = dict%toString('name', found=found)
-      if (found) then
+      call cfg%get(name, 'name', is_present=is_present, rc=status)
+
+      if (is_present) then
          f = Filter(name)
       else
          call throw(__FILE__,__LINE__,'PFL::Config::build_filter() - missing "name".')
@@ -371,10 +379,10 @@ contains
 
     end function build_basic_filter
 
-    function build_LevelFilter(dict) result(f)
+    function build_LevelFilter(cfg) result(f)
        use PFL_LevelFilter
        type (LevelFilter) :: f
-       type (Config), intent(in) :: dict
+       type (Configuration), intent(in) :: cfg
        
        integer :: min_level, max_level
 
@@ -389,11 +397,13 @@ contains
           character(len=*), intent(in) :: key
 
           character(len=:), allocatable :: level_name
-          logical :: found
+          logical :: is_present
           integer :: iostat
+          integer :: status
 
-          level_name = dict%toString('max_level', found=found)
-          if (.not. found) then
+          call cfg%get(level_name, 'max_level', is_present=is_present, rc=status)
+          
+          if (.not. is_present) then
              call throw(__FILE__,__LINE__,'PFL::Config::build_LevelFilter() - missing "max_level".')
              level = -1
              return
@@ -408,41 +418,42 @@ contains
     end function build_LevelFilter
 
 #ifdef _LOGGER_USE_MPI
-    function build_MpiFilter(dict, unusable, extra) result(f)
+    function build_MpiFilter(cfg, unusable, extra) result(f)
        use PFL_MpiFilter
        type (MpiFilter) :: f
-       type (Config), intent(in) :: dict
+       type (Configuration), intent(in) :: cfg
        class (KeywordEnforcer), optional, intent(in) :: unusable
-       type (Config), optional, intent(in) :: extra
+       type (StringUnlimitedMap), optional, intent(in) :: extra
       
        character(len=:), allocatable :: comm_name
        integer :: comm
        integer :: rank, root, ierror
+       integer :: status
 
-      _UNUSED_DUMMY(unusable)
+       _UNUSED_DUMMY(unusable)
 
-       comm_name = dict%toString('comm', default='COMM_LOGGER')
+       call cfg%get(comm_name, 'comm', default='COMM_LOGGER', rc=status)
        comm = get_communicator(comm_name, extra=extra)
-       root = dict%toInteger('root:', default=0)
+       call cfg%get(root, 'root', default=0, rc=status)
        f = MpiFilter(comm, root)
     end function build_MpiFilter
 #endif
     
 
-   subroutine build_handlers(this, handlersDict, unusable, extra)
+   subroutine build_handlers(this, cfg, unusable, extra)
       class (ConfigElements), intent(inout) :: this
-      type (Config), intent(in) :: handlersDict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (ConfigIterator) :: iter
-      type (Config), pointer :: cfg
+      type (ConfigurationIterator) :: iter
+      type (Configuration) :: subcfg
       class (AbstractHandler), allocatable :: h
 
-      iter = handlersDict%begin()
-      do while (iter /= handlersDict%end())
-         cfg => handlersDict%toConfigPtr(iter%key())
-         call build_handler(h,cfg, this, extra=extra)
+      iter = cfg%begin()
+      do while (iter /= cfg%end())
+         subcfg = iter%value()
+         call build_handler(h,subcfg, this, extra=extra)
          call this%handlers%insert(iter%key(), h)
          deallocate(h)
          call iter%next()
@@ -450,60 +461,63 @@ contains
 
    end subroutine build_handlers
    
-   subroutine build_handler(h, handlerDict, elements, unusable, extra)
+   subroutine build_handler(h, cfg, elements, unusable, extra)
       class (AbstractHandler), allocatable, intent(out) :: h
-      type (Config), intent(in) :: handlerDict
+      type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
+      integer :: status
+      
       _UNUSED_DUMMY(unusable)
 
-      call allocate_concrete_handler(h, handlerDict)
+      call allocate_concrete_handler(h, cfg)
       if (.not. allocated(h)) return
 
-      call set_handler_level(h, handlerDict)
-      call set_handler_formatter(h, handlerDict, elements%formatters)
-      call set_handler_filters(h, handlerDict, elements%filters)
-      call set_handler_lock(h, handlerDict, elements%locks)
+      call set_handler_level(h, cfg)
+      call set_handler_formatter(h, cfg, elements%formatters)
+      call set_handler_filters(h, cfg, elements%filters)
+      call set_handler_lock(h, cfg, elements%locks)
 
    contains
 
-      subroutine allocate_concrete_handler(h, handlerDict)
+      subroutine allocate_concrete_handler(h, cfg)
          class (AbstractHandler), allocatable, intent(out) :: h
-         type (Config), intent(in) :: handlerDict
+         type (Configuration), intent(in) :: cfg
 
-         character(len=:), allocatable :: className
-              type (Filehandler) :: fh
+         character(len=:), allocatable :: class_name
+         type (Filehandler) :: fh
+         integer :: status
 
-         className = handlerDict%toString('class', default='unknown')
+         call cfg%get(class_name, 'class', default='unknown', rc=status)
 
-         select case (to_lower_case(className))
+         select case (to_lower_case(class_name))
          case ('streamhandler')
-            allocate(h, source=build_streamhandler(handlerDict))
+            allocate(h, source=build_streamhandler(cfg))
          case ('filehandler')
-              call build_filehandler(fh, handlerDict)
+              call build_filehandler(fh, cfg)
               allocate(h, source=fh)
 #ifdef _LOGGER_USE_MPI              
          case ('mpifilehandler')
-              call build_mpifilehandler(fh, handlerDict)
+              call build_mpifilehandler(fh, cfg)
               allocate(h, source=fh)
 #endif              
          case default
-            call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unsupported class: '" // className //"'.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unsupported class: '" // class_name //"'.")
          end select
 
       end subroutine allocate_concrete_handler
 
-      subroutine set_handler_level(h, handlerDict)
+      subroutine set_handler_level(h, cfg)
          class (AbstractHandler), intent(inout) :: h
-         type (Config), intent(in) :: handlerDict
+         type (Configuration), intent(in) :: cfg
 
          character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
 
-         level_name = handlerDict%toString('level', default='NOTSET')
+         call cfg%get(level_name, 'level', default='NOTSET')
          ! Try as integer
          read(level_name,*, iostat=iostat) level
 
@@ -517,90 +531,77 @@ contains
       end subroutine set_handler_level
       
 
-      subroutine set_handler_formatter(h, handlerDict, formatters)
+      subroutine set_handler_formatter(h, cfg, formatters)
          use PFL_Formatter
          class (AbstractHandler), intent(inout) :: h
-         type (Config), intent(in) :: handlerDict
+         type (Configuration), intent(in) :: cfg
          type (FormatterMap), target, intent(in) :: formatters
 
-         character(len=:), allocatable :: formatterName
-         logical :: found
+         character(len=:), allocatable :: formatter_name
+         logical :: is_present
 
          class (Formatter), pointer :: p_fmt
-
+         integer :: status
+         
          _UNUSED_DUMMY(unusable)
 
-         formatterName = handlerDict%toString('formatter', found=found)
 
-         if (found) then  ! OK if no formatter
-            if (formatters%count(formatterName) == 1) then
-               p_fmt => formatters%at(formatterName)
-               call h%set_formatter(formatters%at(formatterName))
+         call cfg%get(formatter_name, 'formatter', is_present=is_present, rc=status)
+
+         if (is_present) then  ! OK if no formatter
+            if (formatters%count(formatter_name) == 1) then
+               p_fmt => formatters%at(formatter_name)
+               call h%set_formatter(formatters%at(formatter_name))
             else
-               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - formatter '"//formatterName//"' not found.")
+               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - formatter '"//formatter_name//"' not found.")
             end if
          end if
 
       end subroutine set_handler_formatter
 
 
-      subroutine set_handler_filters(h, handlerDict, filters)
+      subroutine set_handler_filters(h, cfg, filters)
          class (AbstractHandler), intent(inout) :: h
-         type (Config), intent(in) :: handlerDict
+         type (Configuration), intent(in) :: cfg
          type (FilterMap), intent(in) :: filters
 
-         character(len=:), allocatable :: filterNamesList ! '[ str1, str2, ..., strn ]'
+         class (AbstractFilter), pointer :: f
          character(len=:), allocatable :: name
-         logical :: found
-         integer :: i, j, n
+         logical :: is_present
+         integer :: status
+         type (ConfigurationIterator) :: iter
+         type(Configuration) :: subcfg
+         type(Configuration) :: subsubcfg
+         type(UnlimitedVector) :: empty
 
-         filterNamesList = handlerDict%toString('filters', found=found)
-         if (found) then
-
-            n = len_trim(filterNamesList)
-            if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - filters is not of the form '[a,b,...,c]'")
-               return
+         call cfg%get(subcfg,'filters',default=empty,rc=status)
+         iter = subcfg%begin()
+         do while (iter /= subcfg%end())
+            subsubcfg = iter%get()
+            call subsubcfg%get(name)
+            if (filters%count(name) > 0) then
+               f => filters%at(name)
+               call h%add_filter(f)
+            else
+               call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unknown filter'"//name//"'.")
             end if
-
-            i = 2
-            do while (i < n)
-               j = index(filterNamesList(i:n-1),',')
-               if (j == 0) then
-                  if (i < n-1) then
-                     name = adjustl(trim(filterNamesList(i:n-1)))
-                     i = n
-                  end if
-               else
-                  name = adjustl(trim(filterNamesList(i:i + j-2)))
-                  i = i + j
-               end if
-               block
-                 class (AbstractFilter), pointer :: f
-                 f => filters%at(name)
-                 if (associated(f)) then
-                    call h%add_filter(f)
-                 else
-                    call throw(__FILE__,__LINE__,"PFL::Config::build_handler() - unknown filter'"//name//"'.")
-                 end if
-               end block
-            end do
-            
-         end if
+            call iter%next()
+         end do
 
       end subroutine set_handler_filters
 
-      subroutine set_handler_lock(h, handlerDict, locks)
+      subroutine set_handler_lock(h, cfg, locks)
          class (AbstractHandler), intent(inout) :: h
-         type (Config), intent(in) :: handlerDict
+         type (Configuration), intent(in) :: cfg
          type (LockMap), intent(in) :: locks
 
          character(len=:), allocatable :: lock_name
-         logical :: found
+         logical :: is_present
          class (AbstractLock), pointer :: lock
+         integer :: status
 
-         lock_name = handlerDict%toString('lock', found=found)
-         if (found) then
+         call cfg%get(lock_name, 'lock', is_present=is_present, rc=status)
+         if (is_present) then
             if (locks%count(lock_name) == 1) then
                lock => locks%at(lock_name)
                select type (h)
@@ -618,30 +619,30 @@ contains
 
    end subroutine build_handler
 
-   function build_streamhandler(handlerDict) result(h)
+   function build_streamhandler(cfg) result(h)
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
-      type (Config), intent(in) :: handlerDict
+      type (Configuration), intent(in) :: cfg
 
-      character(len=:), allocatable :: unitName
+      character(len=:), allocatable :: unit_name
       integer :: unit
-      logical :: found
+      integer :: status
       integer :: iostat
-      
-      unitName = handlerDict%toString('unit', default='error_unit')
+
+      call cfg%get(unit_name, 'unit', default='error_unit', rc=status)
 
       ! is it an integer?
-      read(unitName,*,iostat=iostat) unit
+      read(unit_name,*,iostat=iostat) unit
 
       ! if failed, maybe it is a defined name?
       if (iostat /= 0) then ! try as a string
-         select case (to_lower_case(unitName))
+         select case (to_lower_case(unit_name))
          case ('output_unit','*')
             unit = OUTPUT_UNIT
          case ('error_unit')
             unit = ERROR_UNIT
          case default
-            call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - unknown value for unit '"//unitName//"'.")
+            call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - unknown value for unit '"//unit_name//"'.")
             return
          end select
       end if
@@ -650,98 +651,82 @@ contains
    end function build_streamhandler
 
 
-   subroutine build_filehandler(h, handlerDict)
+   subroutine build_filehandler(h, cfg)
       type (FileHandler), intent(out) :: h
-      type (Config), intent(in) :: handlerDict
+      type (Configuration), intent(in) :: cfg
 
-      character(len=:), allocatable :: fileName
+      character(len=:), allocatable :: filename
       integer :: unit
-      logical :: found
+      logical :: is_present
       integer :: iostat
+      integer :: status
       logical :: delay
 
-      fileName = handlerDict%toString('filename', found=found)
-      if (found) then
-      else
+      call cfg%get(filename, 'filename', is_present=is_present, rc=status)
+      if (.not. is_present) then
          call throw(__FILE__,__LINE__,"PFL::Config::build_FileHandler() - must provide file name.")
          return
       end if
 
-      delay = handlerDict%toLogical('delay', default=.false.)
-      h = FileHandler(fileName, delay=delay)
-
+      call cfg%get(delay, 'delay', default=.false., rc=status)
+      h = FileHandler(filename, delay=delay)
       
    end subroutine build_filehandler
 
 #ifdef _LOGGER_USE_MPI
-   subroutine build_mpifilehandler(h, handlerDict, unusable, extra)
+   subroutine build_mpifilehandler(h, cfg, unusable, extra)
       use PFL_MpiCommConfig
 
       type (FileHandler), intent(out) :: h
-      type (Config), intent(in) :: handlerDict
+      type (Configuration), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: fileName
       integer :: unit
-      logical :: found
+      logical :: is_present
       integer :: iostat
       integer :: comm
       integer, allocatable :: comms(:)
-      integer :: i, j, n
+      integer :: i
       logical :: delay
+      integer :: status
 
       type (StringUnlimitedMap) :: commMap
-      character(len=:), allocatable :: communicator_name_list, communicator_name, name
-      
-      fileName = handlerDict%toString('filename', found=found)
-      if (found) then
-      else
+      type(StringVector) :: communicator_names
+      character(len=:), pointer :: communicator_name, name
+
+      call cfg%get(filename, 'filename', is_present=is_present, rc=status)
+      if (.not. is_present) then
          call throw(__FILE__,__LINE__,"PFL::Config::build_MpiFileHandler() - must provide file name.")
          return
       end if
 
-      communicator_name_list = handlerDict%toString('comms:', found=found)
-      if (found) then
-         allocate(comms(0))
-         n = len_trim(communicator_name_list)
-         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list /= ']') then
-            call throw(__FILE__,__LINE__,"PFL::Config::build_mpifilehandler() - misformed list of communicators.")
-            return
-         end if
+      call cfg%get(communicator_names, 'comms', is_present=is_present, rc=status)
+      if (is_present) then
+         n = communicator_names%size()
+         allocate(comms(n))
 
-         i = 2
-         do while (i < n)
-            j = index(communicator_name_list(i:n-1),',')
-            if (j == 0) then
-               if (i < n-1) then
-                  name = communicator_name_list(i:n-1)
-                  i = n
-               end if
-            else
-               name = communicator_name_list(i:i+j-2)
-               i = i + j
-            end if
-            
-            comms = [comms, get_communicator(name)]
+         do i = 1, n
+            comms(i) = get_communicator(communicator_names%at(i)
          end do
 
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
-           rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
-           size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
+           call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
+           call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
            call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
 !!$           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
          end block
       else
-         communicator_name = handlerDict%toString('comm:', default='COMM_LOGGER')
+         communicator_name = cfg%toString('comm:', default='COMM_LOGGER')
          comm = get_communicator(communicator_name, extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
-           rank_prefix = handlerDict%toString('rank_prefix', default='mpi_rank')
-           size_prefix = handlerDict%toString('size_prefix', default='mpi_size')
+           call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
+           call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
            call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
 !!$           commMap = MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
@@ -749,64 +734,66 @@ contains
 
       block
         use PFL_FormatString
-        fileName = formatString(filename, commMap)
+        filename = formatString(filename, commMap)
       end block
 
       ! Note we have a different default for 'delay' for
       ! the MPI case.  This way we avoid creating lots of
       ! empty files in the usual case.
-      delay = handlerDict%toLogical('delay', default=.true.)
+      call cfg%get(delay, 'delay', default=.true., rc=status)
 
       h = FileHandler(fileName, delay=delay)
       
    end subroutine build_mpifilehandler
 #endif
 
-   subroutine build_logger(lgr, loggerDict, elements, unusable, extra)
+   subroutine build_logger(lgr, cfg, elements, unusable, extra)
       use PFL_StringUtilities, only: to_lower_case
       class (Logger), intent(inout) :: lgr
-      type (Config), intent(in) :: loggerDict
+      type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       _UNUSED_DUMMY(unusable)
          
-      call set_logger_level(lgr, loggerDict)
-      call set_logger_propagate(lgr, loggerDict)
-      call set_logger_filters(lgr, loggerDict, elements%filters)
-      call set_logger_handlers(lgr, loggerDict, elements%handlers)
+      call set_logger_level(lgr, cfg)
+      call set_logger_propagate(lgr, cfg)
+      call set_logger_filters(lgr, cfg, elements%filters)
+      call set_logger_handlers(lgr, cfg, elements%handlers)
 
    contains
 
-      subroutine set_logger_level(lgr, loggerDict)
+      subroutine set_logger_level(lgr, cfg)
          class (Logger), intent(inout) :: lgr
-         type (Config), intent(in) :: loggerDict
+         type (Configuration), intent(in) :: cfg
 
          character(len=:), allocatable :: level_name
          integer :: level
          integer :: iostat
-         logical :: found
+         logical :: is_present
 #ifdef _LOGGER_USE_MPI
          integer :: root, rank, ierror, comm
          character(len=:), allocatable :: communicator_name
 #endif
-         
-         level_name = loggerDict%toString('level', found=found,default='NOTSET')
+         integer :: status
+
+         call cfg%get(level_name, 'level', is_present=is_present, default='NOTSET', rc=status)
 #ifdef _LOGGER_USE_MPI
-         communicator_name = loggerDict%toString('comm:', default='COMM_LOGGER')
+         call cfg%get(communicator_name, 'comm', default='COMM_LOGGER', rc=status)
          comm = get_communicator(communicator_name, extra=extra)
 
-         root = loggerDict%toInteger('root:', default=0)
+         call cfg%get(root, 'root', default=0, rc=status)
+
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            level_name = loggerDict%toString('root_level', default=level_name)
-            found=.true.
+            call cfg%get(level_name, 'root_level', default=level_name, rc=status)
+            is_present=.true.
          else
             ! same as on other PEs
          end if
 #endif
-         if (found) then
+         if (is_present) then
             ! Try as integer
             read(level_name,*, iostat=iostat) level
             if (iostat /= 0) then
@@ -815,124 +802,90 @@ contains
             call lgr%set_level(level)
          end if
 
-
       end subroutine set_logger_level
       
 
-      subroutine set_logger_propagate(lgr, loggerDict)
+      subroutine set_logger_propagate(lgr, cfg)
          class (Logger), intent(inout) :: lgr
-         type (Config), intent(in) :: loggerDict
+         type (Configuration), intent(in) :: cfg
 
          logical :: propagate
          integer :: level
-         logical :: found
+         logical :: is_present
+         integer :: status
 
-         propagate = loggerDict%toLogical('propagate', found=found)
-         if (found) then
+         call cfg%get(propagate, 'propagate', is_present=is_present, rc=status)
+         if (is_present) then
             call lgr%set_propagate(propagate)
          end if
 
       end subroutine set_logger_propagate
       
 
-      subroutine set_logger_filters(lgr, loggerDict, filters, unusable, extra)
+      subroutine set_logger_filters(lgr, cfg, filters, unusable, extra)
          class (Logger), intent(inout) :: lgr
-         type (Config), intent(in) :: loggerDict
+         type (Configuration), intent(in) :: cfg
          type (FilterMap), intent(in) :: filters
          class (KeywordEnforcer), optional, intent(in) :: unusable
-         type (Config), optional, intent(in) :: extra
-      
-         character(len=:), allocatable :: filterNamesList ! '[ str1, str2, ..., strn ]'
-         character(len=:), allocatable :: name
-         type (FilterIterator) :: iter
-         integer :: i, j, n
-         logical :: found
+         type (StringUnlimitedMap), optional, intent(in) :: extra
+
+         type(StringVector) :: filter_names
+         character(len=:), pointer :: name
+         integer :: i
+         logical :: is_present
+         integer :: status
 
          _UNUSED_DUMMY(unusable)
 
-         filterNamesList = loggerDict%toString('filters', found=found)
-         if (found) then
+         call cfg%get(filter_names,'filters', is_present=is_present, rc=status)
 
-            n = len_trim(filterNamesList)
-            if (filterNamesList(1:1) /= '[' .or. filterNamesList(n:n) /= ']') then
-               call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - filters is not of the form '[a,b,...,c]'")
-               return
-            end if
+         if (is_present) then
 
-            i = 2
-            do while (i < n)
-               j = index(filterNamesList(i:n-1),',')
-               if (j == 0) then
-                  if (i < n-1) then
-                     name = adjustl(trim(filterNamesList(i:n-1)))
-                     i = n
-                  end if
-               else
-                  name = adjustl(trim(filterNamesList(i:i+j-2)))
-                  i = i + j
-               end if
-               iter = filters%find(name)
-               if (iter /= filters%end()) then
-                  call lgr%add_filter(iter%value())
+            do i = 1, filter_names%size()
+               name => filter_names%at(i)
+               if (filters%count(name) > 0) then
+                  call lgr%add_filter(filters%at(name))
                else
                   call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - unknown filter'"//name//"'.")
+                  return
                end if
             end do
-            
          end if
 
       end subroutine set_logger_filters
 
 
-      subroutine set_logger_handlers(lgr, loggerDict, handlers, unusable, extra)
+      subroutine set_logger_handlers(lgr, cfg, handlers, unusable, extra)
          class (Logger), intent(inout) :: lgr
-         type (Config), intent(in) :: loggerDict
+         type (Configuration), intent(in) :: cfg
          type (HandlerMap), intent(in) :: handlers
          class (KeywordEnforcer), optional, intent(in) :: unusable
-         type (Config), optional, intent(in) :: extra
+         type (StringUnlimitedMap), optional, intent(in) :: extra
 
-         character(len=:), allocatable :: handlerNamesList ! '[ str1, str2, ..., strn ]'
-         character(len=:), allocatable :: name
-         type (HandlerIterator) :: iter
-         integer :: i, j, n
+         character(len=:), allocatable :: name         
 
-         logical :: found
+         integer :: i
+
+         logical :: is_present
          class (AbstractHandler), pointer :: h
-
+         integer :: status
+         type(Configuration) :: handler_names
+         type(ConfigurationIterator) :: iter
 
          _UNUSED_DUMMY(unusable)
 
-         handlerNamesList = loggerDict%toString('handlers', found=found)
-         if (found) then
-            n = len_trim(handlerNamesList)
-            if (handlerNamesList(1:1) /= '[' .or. handlerNamesList(n:n) /= ']') then
+         call cfg%get(handler_names, 'handlers')
+         iter = handler_names%begin()
+         do while (iter /= handler_names%end())
+            name = iter%get()
+            if (handlers%count(name) > 0) then
+               call lgr%add_handler(handlers%at(name))
+            else
                call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - handlers is not of the form '[a,b,...,c]'")
                return
             end if
-
-            i = 2
-            do while (i < n)
-               j = index(handlerNamesList(i:n-1),',')
-               if (j == 0) then
-                  if (i < n-1) then
-                     name = handlerNamesList(i:n-1)
-                     i = n
-                  end if
-               else
-                  name = handlerNamesList(i:i+j-2)
-                  i = i + j
-               end if
-
-               iter = handlers%find(name)
-               if (iter /= handlers%end()) then
-                  h => iter%value()
-                  call lgr%add_handler(h)
-               else
-                  call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - unknown handler'"//name//"'.")
-               end if
-            end do
-            
-         end if
+            call iter%next()
+         end do
 
       end subroutine set_logger_handlers
 
@@ -942,7 +895,7 @@ contains
 #ifdef _LOGGER_USE_MPI
    integer function get_communicator(name, extra) result(comm)
       character(len=*), intent(in) :: name
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: name_
       logical :: found
@@ -971,14 +924,15 @@ contains
 
    ! Including a version number is crucial for providing non-backward
    ! compatible updates in the future.
-   subroutine check_schema_version(dict)
-      type (Config), intent(in) :: dict
+   subroutine check_schema_version(cfg)
+      type (Configuration), intent(in) :: cfg
 
       integer :: version
-      logical :: found
+      logical :: is_present
+      integer :: status
 
-      version = dict%toInteger('schema_version', found=found)
-      if (found) then
+      call cfg%get(version, 'schema_version', is_present=is_present, rc=status)
+      if (is_present) then
          if (version /= 1) then
             call throw(__FILE__,__LINE__,'PFL::Config::check_schema_version() -' // &
                  & ' unsupported schema_version. Allowed values are [1].')

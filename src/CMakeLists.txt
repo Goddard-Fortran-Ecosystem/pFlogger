@@ -47,7 +47,6 @@ set(SRCS
    AbstractHandlerPolyVector.F90
    AbstractFilterPolyVector.F90
    FormatTokenVector.F90
-   YAML_Parser.F90
 )
 
 if (MPI) 
@@ -67,6 +66,7 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
 add_library (${this} STATIC ${SRCS})
+target_link_libraries (${this} PUBLIC yafyaml)
 set_target_properties (${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
@@ -77,9 +77,7 @@ target_include_directories(${this} PUBLIC
   $<INSTALL_INTERFACE:${dest}/include>
 )  
 
-if (NOT FTL)
-  target_link_libraries(${this} gftl-shared gftl)
-endif()
+target_link_libraries(${this} PUBLIC gftl-shared gftl)
 
 install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
 install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)

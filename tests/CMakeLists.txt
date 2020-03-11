@@ -18,7 +18,6 @@ set(pf_tests
    Test_LogRecord.pf
    Test_LoggerManager.pf
    Test_Formatter.pf
-   Test_ParserContexts.pf
    Test_FormatParser.pf
    Test_FormatString.pf
    Test_ArgListUtilities.pf

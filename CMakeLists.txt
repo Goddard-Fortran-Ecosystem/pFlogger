@@ -37,6 +37,7 @@ include (DefinePlatformDefaults)
 
 find_package (GFTL REQUIRED)
 find_package (GFTL_SHARED REQUIRED)
+find_package (YAFYAML REQUIRED)
 
 # By default logger builds in SERIAL
 if (MPI MATCHES YES)

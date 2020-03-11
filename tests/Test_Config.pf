@@ -17,7 +17,7 @@ module Test_Config
 #ifdef __GFORTRAN__
    use PFL_String, only: String
 #endif
-
+   use yafyaml
    implicit none
 
 contains
@@ -25,9 +25,10 @@ contains
 
    @test
    subroutine test_check_schema_specified()
-      type (Config) :: dict
+      type (Configuration) :: cfg
 
-      call check_schema_version(dict) ! Empty config
+      cfg = Configuration(1) ! an almost empty config
+      call check_schema_version(cfg)
       @assertExceptionRaised("PFL::Config::check_schema_version() - must specify a schema_version for Config.")
 
    end subroutine test_check_schema_specified
@@ -35,21 +36,37 @@ contains
 
    @test
    subroutine test_check_schema_version_unsupported()
-      type (Config) :: dict
+      type (Configuration) :: cfg
 
-      call dict%insert('schema_version', 2)
-      call check_schema_version(dict) ! Empty config
-      @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
+      class(*), pointer :: node
+
+      cfg = Configuration(OrderedStringUnlimitedMap())
+      call cfg%get_node_at_selector(node)
+
+      select type (m => node)
+      type is (OrderedStringUnlimitedMap)
+         call m%insert('schema_version', 2)
+         call check_schema_version(cfg) ! Empty config
+         @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
+      end select
 
    end subroutine test_check_schema_version_unsupported
 
 
    @test
    subroutine test_check_schema_version_valid()
-      type (Config) :: dict
+      type (Configuration) :: cfg
 
-      call dict%insert('schema_version', 1) ! currently only valid option
-      call check_schema_version(dict) ! Empty config
+      class(*), pointer :: node
+
+      cfg = Configuration(OrderedStringUnlimitedMap())
+      call cfg%get_node_at_selector(node)
+      select type (m => node)
+      type is (OrderedStringUnlimitedMap)
+         call m%insert('schema_version', 1) ! currently only valid option
+      end select
+
+      call check_schema_version(cfg) ! Empty config
 
       ! simply should not throw an exception ...
 
@@ -60,11 +77,12 @@ contains
    subroutine test_build_formatter_noargs()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
+      cfg = Configuration(1) 
       call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -78,12 +96,14 @@ contains
    subroutine test_build_formatter_withFmt()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
+      type(Parser) :: p
 
-      cfg = Config([P('format',"'---'")])
+      p = Parser()
+      cfg = p%load(EscapedTextStream("format: --- \n"))
       call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -96,13 +116,18 @@ contains
    subroutine test_build_formatter_withDateFmt()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
 
-      cfg = Config([P('format',"'%(asctime)a %(message)a'"), &
-           & P('datefmt',"'date'")])
+      type(Parser) :: p
+
+      p = Parser()
+      cfg = p%load(EscapedTextStream( &
+           & " format: '%(asctime)a %(message)a'\n" // &
+           & " datefmt: 'date' \n"))
+      
       call build_formatter(fmtr, cfg)
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
@@ -113,20 +138,21 @@ contains
 
    @test
    subroutine test_build_formatters()
-      type (Config) :: formattersDict
+      type (Configuration) :: formattersCfg
       type (FormatterMap), pointer :: formatters
       type (ConfigElements), target :: elements
 
-      formattersDict = &
-           & Config([ &
-           &       p('A', Config([P('format',"'---'")]) ), &
-           &       p('B', Config([P('format',"'---'"), &
-           &       P('datefmt', "'hello'")])) &
-           &     ])
+      type(Parser) :: p
 
-      call elements%build_formatters(formattersDict)
+      p = Parser()
+      formattersCfg = p%load(EscapedTextStream( &
+           & " A: {format: '---'}\n" // &
+           & " B: {format: '---', datefmt: hello }\n"))
+
+      
+      call elements%build_formatters(formattersCfg)
       formatters => elements%get_formatters()
-      @assertEqual(2, formatters%size())
+      @assert_that(int(formatters%size()), is(equal_to(2)))
 
    end subroutine test_build_formatters
 
@@ -134,11 +160,14 @@ contains
    subroutine test_build_filter()
       use PFL_AbstractFilter
       use PFL_Filter
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       class (AbstractFilter), allocatable :: f
-      character(len=:), allocatable :: logMessage
+      type(Parser) :: p
 
-      cfg = Config([P('name', 'A')])
+      p = Parser()
+      cfg = p%load(EscapedTextStream( &
+           & "  name: A \n"))
+
       allocate(f, source=build_filter(cfg))
 
       select type (f)
@@ -152,17 +181,18 @@ contains
 
    @test
    subroutine test_build_filters()
-      type (Config) :: filtersDict
+      type (Configuration) :: filtersCfg
       type (FilterMap), pointer :: filters
       type (ConfigElements), target :: elements
 
-      filtersDict = &
-           & Config([ &
-           &       p('A', Config([P('name', 'A')])), &
-           &       p('B', Config([P('name', 'B')])) &
-           &     ])
+      type(Parser) :: p
 
-      call elements%build_filters(filtersDict)
+      p = Parser()
+      filtersCfg = p%load(EscapedTextStream( &
+           & "  A: {name: A} \n" // &
+           & "  B: {name: B} \n"))
+
+      call elements%build_filters(filtersCfg)
       filters => elements%get_filters()
       @assertEqual(2, filters%size())
 
@@ -173,21 +203,24 @@ contains
    subroutine test_build_streamhandler()
       use PFL_StreamHandler
       use PFL_LogRecord
-      type (Config) :: handler_cfg
+      type (Configuration) :: handler_cfg
       type (StreamHandler) :: h
       integer :: unit
       character(len=16) :: unitStr
       type (LogRecord) :: record
 
+      type(Parser) :: p
+
       open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
            & form='formatted')
 
       write(unitStr,'(i0)') unit
-      handler_cfg = Config([ &
-           & P('class', 'StreamHandler'), &
-           & P('unit', unitStr), &
-           & P('level', 'INFO') &
-           & ])
+
+      p = Parser()
+      handler_cfg = p%load(EscapedTextStream( &
+           & "  class: StreamHandler \n" // &
+           & "  unit: '" // unitStr // "'\n" // &
+           & "  level: INFO"))
 
       ! Note that, level, filters, and format are added at a higher level.
       h = build_streamhandler(handler_cfg)
@@ -211,17 +244,16 @@ contains
       use PFL_Formatter
       use PFL_AbstractHandler
       use PFL_LogRecord
-      type (Config) :: handler_cfg
+      type (Configuration) :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
       integer :: unit
       character(len=16) :: unitStr
-      type (LogRecord) :: record
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
-      type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
+      type(Parser) :: p
 
 
       filters => elements%get_filters()
@@ -237,13 +269,14 @@ contains
            & form='formatted')
 
       write(unitStr,'(i0)') unit
-      handler_cfg = Config([ &
-           & P('class', 'StreamHandler'), &
-           & P('unit', unitStr), &
-           & P('formatter', 'formatterB'), &
-           & P('filters', '[filterA]'), &
-           & P('level', 'INFO') &
-           & ])
+
+      p = Parser()
+      handler_cfg = p%load(EscapedTextStream( &
+           & " class: StreamHandler \n"// &
+           & " unit: '" // unitStr // "'\n" // &
+           & " formatter: formatterB \n" // &
+           & " filters: [filterA] \n" // &
+           & " level: INFO \n"))
 
       call build_handler(h, handler_cfg, elements)
       @assertEqual(INFO, h%get_level(),'incorrect level')
@@ -277,13 +310,13 @@ contains
       use PFL_StreamHandler
       use PFL_Formatter
 
-      type (Config) :: handlersDict
-      type (Config) :: h1_cfg, h2_cfg
+      type (Configuration) :: handlersCfg
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
+      type(Parser) :: p
 
       filters => elements%get_filters()
       formatters => elements%get_formatters()
@@ -294,29 +327,24 @@ contains
       call formatters%insert('formatterA', Formatter('%(message)'))
       call formatters%insert('formatterB', Formatter('%(levelname)'))
 
-      h1_cfg = Config([ &
-           & P('class', 'StreamHandler'), &
-           & P('unit', 'OUTPUT_UNIT'), &
-           & P('formatter', 'formatterA'), &
-           & P('filters', '[filterA]'), &
-           & P('level', 'INFO') &
-           & ])
 
-      h2_cfg = Config([ &
-           & P('class', 'StreamHandler'), &
-           & P('unit', 'OUTPUT_UNIT'), &
-           & P('formatter', 'formatterB'), &
-           & P('filters', '[filterA,filterB]'), &
-           & P('level', 'CRITICAL') &
-           & ])
+      p = Parser()
 
-      handlersDict = &
-           & Config([ &
-           &       p('A', h1_cfg), &
-           &       p('B', h2_cfg) &
-           &     ])
+      handlersCfg = p%load(EscapedTextStream( &
+           & " A: \n" // &
+           & "    class:  StreamHandler \n" // &
+           & "    unit:  OUTPUT_UNIT   \n" // &
+           & "    formatter:  formatterA    \n" // &
+           & "    filters:  [filterA]     \n" // &
+           & "    level:  INFO          \n" // &
+           & " B:                        \n" // &
+           & "    class:  StreamHandler \n" // &
+           & "    unit:  OUTPUT_UNIT   \n" // &
+           & "    formatter:  formatterB    \n" // &
+           & "    filters:  [filterA, filterB] \n" // &
+           & "    level:  CRITICAL \n"))
 
-      call elements%build_handlers(handlersDict)
+      call elements%build_handlers(handlersCfg)
       handlers => elements%get_handlers()
       @assertEqual(2, handlers%size())
 
@@ -325,14 +353,14 @@ contains
 @test
    subroutine test_build_logger_trivial()
 
-      type (Config) :: cfg
-      type (FilterMap) :: filters
-      type (HandlerMap) :: handlers
+      type (Configuration) :: cfg
 
       type (ConfigElements), target :: elements
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
+      type(OrderedStringUnlimitedMap) :: m
 
+      cfg = Configuration(m)
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call build_logger(lgr, cfg, elements)
@@ -347,13 +375,13 @@ contains
       use PFL_FileHandler
 
       type (FilterMap), pointer :: filters
-      type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
 
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
+      type(OrderedStringUnlimitedMap) :: m
 
       filters => elements%get_filters()
       handlers => elements%get_handlers()
@@ -365,6 +393,8 @@ contains
       call filters%insert('filterB', Filter('B'))
 
       lgr => mgr%get_logger('A')
+
+      cfg = Configuration(m)
       call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
@@ -379,7 +409,7 @@ contains
       use PFL_RootLogger
 
       type (LoggerManager), target :: mgr
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       type (MockBuffer), target :: buffer
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
@@ -418,11 +448,11 @@ contains
       use MockMpi
       use PFL_SeverityLevels
 
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       type (MockBuffer), target :: buffer2
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
-      type (Config), target :: extra
+      type (Configuration), target :: extra
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -458,19 +488,20 @@ contains
    end subroutine test_build_logger_serial_comm
 #endif
    
-   @test
+!   @test
    subroutine test_basic_loggers_invalid_cfg()
-      type (Config) :: cfg
-      type (Config) :: loggers
+      type (Configuration) :: cfg
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
 
-      cfg = Config([ &
-           &      p('schema_version', 1), &
-           &      p('loggers', 1) &
-           &     ])
+      type(Parser) :: p
+
+      p = Parser()
+      cfg = p%load(EscapedTextStream( &
+           & "  schema_version: 1 \n" // &
+           & "  loggers: 1 \n"))
 
       call mgr%load_config(cfg)
 
@@ -482,16 +513,19 @@ contains
 
    @test
    subroutine test_basic_loggers()
-      type (Config) :: cfg
-      type (Config) :: loggers
+      type (Configuration) :: cfg
+      type (Configuration) :: loggers
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
+      type(Parser) :: p
 
-      cfg = Config([ &
-           &      p('schema_version', 1), &
-           &      p('loggers', Config([p('A', Config([P('level','DEBUG')]))])) &
-           &     ])
+      p = Parser()
+      cfg = p%load(EscapedTextStream( &
+           & "  schema_version: 1 \n" // &
+           & "  loggers:   \n" // &
+           & "      A:         \n" // &
+           & "         level: DEBUG \n"))
 
       call mgr%load_config(cfg)
       lgr => mgr%get_logger('A')
@@ -505,8 +539,8 @@ contains
    subroutine test_logger_root_level()
       use MockMpi
       use mpi
-      type (Config) :: cfg
-      type (Config) :: loggers
+      type (Configuration) :: cfg
+      type (Configuration) :: loggers
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr

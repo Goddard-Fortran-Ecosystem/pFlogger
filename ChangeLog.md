@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced dependency on gFTL-shared
   . eliminates redundant code
   . makes container types are consistent across projects
-
+- Now uses yafyaml for YAML processing (much more complete YAML subset)
+	
 ### Fixed
 
 - Corrected Python code generator scripts for component import/export specs.

@@ -10,6 +10,12 @@
 !> @date 01 Jan 2015 - Initial Version  
 !---------------------------------------------------------------------------
 module PFL_LoggerManager
+   use gFTL_StringUnlimitedMap
+   use yafyaml, only: Parser
+   use yafyaml, only: Configuration, ConfigurationIterator
+   use yafyaml, only: FileStream
+   use yafyaml, only: yayfaml_SUCCESS => SUCCESS
+   use yafyaml, only: None
    use PFL_RootLogger, only: RootLogger
    use PFL_StringAbstractLoggerPolyMap
    use PFL_SeverityLevels
@@ -20,7 +26,6 @@ module PFL_LoggerManager
    use mpi
 #endif
    use PFL_Exception, only: throw
-   use PFL_YAML_Parser, only: SUCCESS, YAML_load_file => load_file
    use FTL_Config, only: Config
    use PFL_Config, only: ConfigElements, build_logger, check_schema_version
    implicit none
@@ -280,12 +285,15 @@ contains
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: file_name
       type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
 
-      type (Config) :: cfg
+      type (Configuration) :: cfg
       integer :: rc
-      type (Config) :: extra_
+      type (StringUnlimitedMap) :: extra_
+
+      type(Configuration) :: c
+      type(Parser) :: p
 
       if (present(extra)) then
          extra_ = extra
@@ -296,12 +304,10 @@ contains
       end if
 
 
-      cfg = YAML_load_file(file_name, rc)
-      if (rc /= SUCCESS) then
-         call throw(__FILE__,__LINE__,'PFL_LoggerManager::load_file() - Failure opening file: <'//file_name//'>')
-         return
-      end if
-      call this%load_config(cfg, extra=extra_, comm=comm)
+      p = Parser('Core')
+      c = p%load(FileStream(file_name))
+
+      call this%load_config(c, extra=extra_, comm=comm)
       
    end subroutine load_file
 
@@ -309,31 +315,30 @@ contains
 
    subroutine load_config(this, cfg, unused, extra, comm)
       class (LoggerManager), target, intent(inout) :: this
-      type (Config), intent(in) :: cfg
+      type (Configuration), intent(in) :: cfg
       type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
 
       type (ConfigElements) :: elements
       
       logical :: found
-      type (Config), pointer :: subcfg
+      type (Configuration) :: subcfg
 
       call check_schema_version(cfg)
-
       call elements%set_global_communicator(comm)
 
-      subcfg => cfg%toConfigPtr('locks', found=found)
-      if (found) call elements%build_locks(subcfg, extra=extra)
+      call cfg%get(subcfg, 'locks')
+      if (.not. subcfg%is_none()) call elements%build_locks(subcfg, extra=extra)
 
-      subcfg => cfg%toConfigPtr('filters', found=found)
-      if (found) call elements%build_filters(subcfg, extra=extra)
+      call cfg%get(subcfg, 'filters')
+      if (.not. subcfg%is_none()) call elements%build_filters(subcfg, extra=extra)
       
-      subcfg => cfg%toConfigPtr('formatters', found=found)
-      if (found) call elements%build_formatters(subcfg, extra=extra)
+      call cfg%get(subcfg, 'formatters')
+      if (.not. subcfg%is_none()) call elements%build_formatters(subcfg, extra=extra)
 
-      subcfg => cfg%toConfigPtr('handlers', found=found)
-      if (found)call elements%build_handlers(subcfg, extra=extra)
+      call cfg%get(subcfg, 'handlers')
+      if (.not. subcfg%is_none()) call elements%build_handlers(subcfg, extra=extra)
 
       call this%build_loggers(cfg, elements, extra=extra)
       call this%build_root_logger(cfg, elements, extra=extra)
@@ -344,26 +349,31 @@ contains
    subroutine build_loggers(this, cfg, elements, unused, extra)
       use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), target, intent(inout) :: this
-      type (Config), intent(in) :: cfg
+      type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (Config), pointer :: lgrs_cfg, lgr_cfg
+      type (Configuration) :: lgrs_cfg, lgr_cfg
       
-      logical :: found
-      type (ConfigIterator) :: iter
+      logical :: is_present
+      type (ConfigurationIterator) :: iter
       character(len=:), allocatable :: name
       type (Logger), pointer :: lgr
 
-      lgrs_cfg => cfg%toConfigPtr('loggers', found=found)
-      if (found) then
+      call cfg%get(lgrs_cfg, 'loggers')
+
+      if (.not. lgrs_cfg%is_mapping()) then
+         ! TODO: raise an exception instead of stopping
+         error stop
+      end if
+      if (.not. lgrs_cfg%is_none()) then
          ! Loop over contained loggers
          iter = lgrs_cfg%begin()
          do while (iter /= lgrs_cfg%end())
             name = iter%key()
             lgr => this%get_logger(name)
-            lgr_cfg => lgrs_cfg%toConfigPtr(name)
+            call lgrs_cfg%get(lgr_cfg, name)
             call build_logger(lgr, lgr_cfg, elements, extra=extra)
             call iter%next()
          end do
@@ -375,18 +385,18 @@ contains
    subroutine build_root_logger(this, cfg, elements, unused, extra)
       use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
-      type (Config), intent(in) :: cfg
+      type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
       type (Unusable), optional, intent(in) :: unused
-      type (Config), optional, intent(in) :: extra
+      type (StringUnlimitedMap), optional, intent(in) :: extra
 
-      type (Config), pointer :: root_cfg
+      type (Configuration) :: root_cfg
       
       logical :: found
       character(len=:), allocatable :: name
 
-      root_cfg => cfg%toConfigPtr('root', found=found)
-      if (found) then
+      call cfg%get(root_cfg, 'root')
+      if (.not. root_cfg%is_none()) then
          call build_logger(this%root_node, root_cfg, elements, extra=extra)
       end if
 
