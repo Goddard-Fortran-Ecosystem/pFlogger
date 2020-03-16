@@ -85,7 +85,7 @@ target_link_libraries(${this} PUBLIC gftl-shared gftl)
 
 install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
 install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)
-install (FILES  ${CURRENT_SOURCE_DIR}/error_handling_macros.fh DESTINATION ${dest}/include)
+install (FILES  ${PROJECT_SOURCE_DIR}/src/error_handling_macros.fh DESTINATION ${dest}/include)
 install (EXPORT PFLOGGER DESTINATION "${dest}/cmake")
 
 
