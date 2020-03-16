@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	
 ### Fixed
 
+## [1.3.2] - 2020-03-16
+
+## Fixed
+
+- Cmake installation was using the wrong macro
+- allow longer lines (GFortran)
+
 ## [1.3.1] - 2020-03-11
 
 Bugfix
