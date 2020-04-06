@@ -11,7 +11,6 @@ module pflogger
    use PFL_Formatter
    use PFL_FastFormatter
    use PFL_WrapArray
-   use FTL_Config, only: Config
 #ifdef _LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    use PFL_MpiLock
@@ -19,6 +18,7 @@ module pflogger
 #  endif   
 #endif
    use PFL_RotatingFileHandler
+   use gFTL_StringUnlimitedMap
    implicit none
    private
 
@@ -37,6 +37,7 @@ module pflogger
    public :: newRotatingFileHandler
 
    public :: Formatter
+   public :: newFormatter
    public :: FastFormatter
 
    public :: NOTSET
@@ -48,8 +49,6 @@ module pflogger
 
    public :: level_to_name
    public :: name_to_level
-
-   public :: Config
 
    public :: initialize_severity_levels
    public :: finalize_severity_levels
@@ -64,7 +63,7 @@ module pflogger
 #endif   
 
    public :: set_throw_fptr
-
+   public :: StringUnlimitedMap
 
 contains
 

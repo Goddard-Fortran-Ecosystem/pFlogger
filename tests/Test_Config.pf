@@ -4,7 +4,6 @@
 ! Hence, character in such maps must be quoted inside a String object.
 !
 module Test_Config
-   use FTL_Config
    use funit
    use PFL_Logger
    use PFL_LoggerManager

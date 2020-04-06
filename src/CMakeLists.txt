@@ -1,6 +1,5 @@
 # CMakeLists.txt for logger src
 
-set (CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(this pflogger)
 
@@ -34,8 +33,6 @@ set(SRCS
    RotatingFileHandler.F90
    String.F90
    StringUtilities.F90
-   StringUnlimitedPolyMap.F90
-   FTL_Config.F90
    WrapArray.F90
 # FTL containers
    StringAbstractLoggerPolyMap.F90
@@ -67,19 +64,41 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 add_library (${this} STATIC ${SRCS})
 target_link_libraries (${this} PUBLIC yafyaml)
-if (MPI_FOUND)
-  target_link_libraries (${this} PRIVATE MPI::MPI_Fortran)
-endif ()
-  
-set_target_properties (${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
+set_target_properties(${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
+if (MPI_FOUND)
+  target_link_libraries (${this} PRIVATE
+    $<INSTALL_INTERFACE:MPI::MPI_Fortran>)
+  target_compile_definitions(${this} PRIVATE _LOGGER_USE_MPI)
+endif ()
+
+if (MPI_FOUND AND PFUNIT_FOUND)
+  add_library (mock-mpi MockMpi.F90)
+  target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS})
+  target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+  target_link_libraries (mock-mpi PRIVATE funit)
+  target_link_libraries (${this} PRIVATE
+    $<BUILD_INTERFACE:mock-mpi>
+    $<BUILD_INTERFACE:funit>)
+endif ()
+
+  
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
 
 target_include_directories(${this} PUBLIC
   $<BUILD_INTERFACE:${PFLOGGER_BINARY_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${dest}/include>
-)  
+  )
+
+if (MPI_FOUND)
+  target_include_directories(${this} PUBLIC
+    $<BUILD_INTERFACE:${PFLOGGER_BINARY_DIR}/include>)
+endif ()
+  
+
+
+
 
 target_link_libraries(${this} PUBLIC gftl-shared gftl)
 

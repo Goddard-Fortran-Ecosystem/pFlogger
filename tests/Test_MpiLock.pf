@@ -2,7 +2,7 @@ module Test_MpiLock
    use funit
    use PFL_MpiLock
    use mpi
-   use MockMpi
+!   use MockMpi_mod
    implicit none
 
 contains
@@ -32,7 +32,8 @@ contains
       call set_Mpi_Recv(is_called=.true.)
 
       lock = MpiLock(comm)
-
+      call lock%init()
+      
       call lock%acquire()
       call verify()
       
@@ -55,6 +56,7 @@ contains
 
       call set_MPI_Get([.false.])
       lock = MpiLock(comm)
+      call lock%init()
 
       call lock%acquire()
       call verify()
@@ -80,6 +82,7 @@ contains
       call set_MPI_Get([.false.],2)
 
       lock = MpiLock(comm)
+      call lock%init()
       call lock%acquire()
       call lock%release()
       
@@ -108,6 +111,7 @@ contains
       call set_MPI_Send(is_called = .true.)
 
       lock = MpiLock(comm)
+      call lock%init()
       call lock%acquire()
       call lock%release()
       

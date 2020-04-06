@@ -4,22 +4,23 @@ macro (CHECK_FORTRAN_SOURCE_COMPILE file var)
     message (STATUS "Performing Test ${var}")
   endif ()
 
-if (${ARGN})
-  try_compile (
-    ${var}
-    ${CMAKE_BINARY_DIR}
-    ${file}
-    CMAKE_FLAGS "-DCOMPILE_DEFINITIONS:STRING=${MPI_Fortran_Flags}"
-    "-DINCLUDE_DIRECTORIES:LIST=${MPI_Fortran_INCLUDE_PATH}"
-    "-DLINK_LIBRARIES:LIST=${MPI_Fortran_LIBRARIES}"
-    )
-else ()
-  try_compile (
-    ${var}
-    ${CMAKE_BINARY_DIR}
-    ${file}
-    )
-endif ()
+  if (${ARGC} GREATER 2)
+    try_compile (
+      ${var}
+      ${CMAKE_BINARY_DIR}
+      ${file}
+      CMAKE_FLAGS "-DCOMPILE_DEFINITIONS:STRING=${MPI_Fortran_FLAGS}"
+      "-DINCLUDE_DIRECTORIES:LIST=${MPI_Fortran_INCLUDE_DIRS}"
+      "-DLINK_LIBRARIES:LIST=${MPI_Fortran_LIBRARIES}"
+      )
+  else ()
+    
+    try_compile (
+      ${var}
+      ${CMAKE_BINARY_DIR}
+      ${file}
+      )
+  endif ()
 
   if (${var})
     if (NOT CMAKE_REQUIRED_QUIET)

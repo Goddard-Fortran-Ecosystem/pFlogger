@@ -52,6 +52,7 @@ module PFL_Formatter
    private
 
    public :: Formatter
+   public :: newFormatter
    public :: get_sim_time
 
    type, extends(Object) :: Formatter
@@ -121,7 +122,13 @@ contains
       else
          f%fmt = '%(message)a'
       end if
-       
+
+      ! Allow for Python alias:
+      if (f%uses_keyword('levelName')) then
+         f%fmt = replace(f%fmt, '%(levelName)', '%(level_name)')
+         print*,'fmt? ', f%fmt
+      end if
+
       if (present(datefmt)) then
          f%datefmt = datefmt
       end if
@@ -131,6 +138,7 @@ contains
       f%fmt_uses_short_name = f%uses_keyword('short_name')
       f%fmt_uses_level_number = f%uses_keyword('level_number')
       f%fmt_uses_level_name = f%uses_keyword('level_name')
+
       f%fmt_uses_ascTime = f%uses_keyword('asctime')
       f%fmt_uses_simTime = f%uses_keyword('simtime')
       f%fmt_uses_line = f%uses_keyword('line')
@@ -304,8 +312,29 @@ contains
    logical function uses_keyword(this, keyword)
       class (Formatter), intent(in) :: this
       character(*), intent(in) :: keyword
-      uses_keyword = (index(this%fmt,'%('//keyword//')') > 0)
+
+      integer :: idx
+
+      idx = index(this%fmt,'%('//keyword//')')
+      uses_keyword = ( idx > 0)
+
    end function uses_keyword
+
+
+   ! TODO: make this replace all instances of substr
+   function replace(str, substr, replacement) result(newstr)
+      character(:), allocatable :: newstr
+      character(*), intent(in) :: str
+      character(*), intent(in) :: substr, replacement
+
+      integer :: idx, n
+
+      idx = index(str, substr)
+      n = len(substr)
+      
+      newstr = str(1:idx-1) // replacement // str(idx+n:)
+         
+   end function replace
 
 
 

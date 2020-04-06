@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.8.0)
 project (PFLOGGER
-  VERSION 1.3.1
+  VERSION 1.3.3
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -35,7 +35,8 @@ find_package (GFTL REQUIRED)
 find_package (GFTL_SHARED REQUIRED)
 find_package (YAFYAML REQUIRED)
 
-find_package (MPI)
+find_package (MPI QUIET)
+find_package (PFUNIT QUIET)
 
 #-----------------------------------
 # Set default Fortran compiler flags
@@ -62,7 +63,6 @@ endif ()
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-find_package (PFUNIT QUIET)
 if (PFUNIT_FOUND)
   enable_testing()
   if (NOT TARGET tests)
@@ -73,4 +73,13 @@ endif()
 
 add_subdirectory(examples EXCLUDE_FROM_ALL)
 add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
+
+# find_package() support
+configure_file (PFLOGGERConfig-version.cmake.in ${PROJECT_BINARY_DIR}/PFLOGGERConfig-version.cmake @ONLY)
+configure_file (PFLOGGERConfig.cmake.in ${PROJECT_BINARY_DIR}/PFLOGGERConfig.cmake @ONLY)
+
+set (top_dir PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR})
+install (
+  FILES ${PROJECT_BINARY_DIR}/PFLOGGERConfig.cmake ${PROJECT_BINARY_DIR}/PFLOGGERConfig-version.cmake
+  DESTINATION "${top_dir}/cmake")
 
