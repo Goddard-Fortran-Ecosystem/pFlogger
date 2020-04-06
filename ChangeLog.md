@@ -6,12 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-	
-### Added
+
+
+## [1.3.3] - 2020-04-06
 
 ### Changed
+  - Must use true/false instead of .true./.false. for YAML
 	
 ### Fixed
+  - Fixed CMake test for support of MPI_ALLOC_MEM
+  - Improved Cmake handling of mock to allow tests to compile
+    without linking to MPI
+  - Added missing init() in Test_MpiLock tests
+
 
 ## [1.3.2] - 2020-03-16
 

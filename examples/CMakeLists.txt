@@ -1,4 +1,4 @@
 add_subdirectory(serial)
-if (MPI)
+if (MPI_FOUND)
    add_subdirectory(mpi)
 endif()

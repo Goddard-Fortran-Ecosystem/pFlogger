@@ -17,16 +17,15 @@ module PFL_LoggerManager
    use yafyaml, only: yayfaml_SUCCESS => SUCCESS
    use yafyaml, only: None
    use PFL_RootLogger, only: RootLogger
-   use PFL_StringAbstractLoggerPolyMap
    use PFL_SeverityLevels
    use PFL_Logger, only: Logger, newLogger
    use PFL_AbstractLogger
    use PFL_LoggerPolyVector
+   use PFL_StringAbstractLoggerPolyMap
 #ifdef _LOGGER_USE_MPI
    use mpi
 #endif
    use PFL_Exception, only: throw
-   use FTL_Config, only: Config
    use PFL_Config, only: ConfigElements, build_logger, check_schema_version
    implicit none
    private
@@ -347,7 +346,6 @@ contains
 
 
    subroutine build_loggers(this, cfg, elements, unused, extra)
-      use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), target, intent(inout) :: this
       type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements
@@ -383,7 +381,6 @@ contains
 
 
    subroutine build_root_logger(this, cfg, elements, unused, extra)
-      use PFL_StringUnlimitedPolyMap, only: ConfigIterator
       class (LoggerManager), intent(inout) :: this
       type (Configuration), intent(in) :: cfg
       type (ConfigElements), intent(in) :: elements

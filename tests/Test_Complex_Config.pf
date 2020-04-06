@@ -80,9 +80,6 @@ contains
 
    @test
    subroutine test_config()
-      use FTL_Config
-      type (Config) :: cfg
-
       class (Logger), pointer :: lgr
       type (LoggerManager), target :: mgr
 

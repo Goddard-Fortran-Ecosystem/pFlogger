@@ -1,0 +1,7 @@
+# Package configuration file
+
+get_filename_component (SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set (PREFIX ${SELF_DIR}/../..)
+set (PFLOGGER_TOP_DIR ${PREFIX}/PFLOGGER-@PFLOGGER_VERSION_MAJOR@.@PFLOGGER_VERSION_MINOR@ CACHE PATH "")
+include ("${PFLOGGER_TOP_DIR}/cmake/PFLOGGER.cmake")
+

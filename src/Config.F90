@@ -4,7 +4,6 @@ module PFL_Config
    use gftl_StringVector
    use gftl_UnlimitedVector
    use PFL_String, only: String
-   use FTL_Config, only: config
    use PFL_Logger
    use PFL_Exception, only: throw
    use PFL_SeverityLevels, only: name_to_level
@@ -21,7 +20,6 @@ module PFL_Config
    use PFL_Filterer
    use PFL_FileHandler
    
-   use PFL_StringUnlimitedPolyMap, only: ConfigIterator
    use gFTL_StringUnlimitedMap
    use PFL_Filter
    use PFL_StringUtilities, only: to_lower_case
@@ -162,46 +160,44 @@ contains
       character(len=:), allocatable :: fmt
       character(len=:), allocatable :: datefmt
       character(len=:), allocatable :: fileName
-      logical :: found
+      logical :: is_present
       integer :: iostat
       integer :: comm
       integer, allocatable :: comms(:)
       integer :: i, j, n
 
       type (StringUnlimitedMap) :: commMap
-      character(len=:), allocatable :: communicator_name_list, communicator_name, name
+      type (StringVector) :: communicator_name_list
+      character(len=:), allocatable :: communicator_name, name
       integer :: status
+      class(*), pointer :: p
 
       _UNUSED_DUMMY(unusable)
 
-      call cfg%get(communicator_name, 'comms', is_present=is_present, rc=status)
-      if (found) then
+      call cfg%get(communicator_name_list, 'comms', is_present=is_present, rc=status)
+      if (is_present) then
          allocate(comms(0))
-         n = len_trim(communicator_name_list)
-         if (communicator_name_list(1:1) /= '[' .or. communicator_name_list(n:n) /= ']') then
-            call throw(__FILE__,__LINE__,"PFL::Config::build_mpi_formatter() - misformed list of communicators.")
-            return
-         end if
+         n = communicator_name_list%size()
 
-         i = 2
-         do while (i < n)
-            j = index(communicator_name_list(i:n-1),',')
-            if (j == 0) then
-               if (i < n-1) then
-                  name = communicator_name_list(i:n-1)
-                  i = n
-               end if
-            else
-               name = communicator_name_list(i:i+j-2)
-               i = i + j
-            end if
+         do i = 1, n
+            name = communicator_name_list%at(i)
 
             select case (name)
             case ('MPI_COMM_WORLD','COMM_LOGGER')
-               comms = [comms, extra%toInteger('_GLOBAL_COMMUNICATOR')]
+               if (extra%count('_GLOBAL_COMMUNICATOR') > 0) then
+                  p => extra%at('_GLOBAL_COMMUNICATOR')
+                  select type (p)
+                  type is (integer)
+                     comms = [comms, p]
+                  end select
+               end if
             case default
                if (extra%count(name) == 1) then
-                  comms = [comms, extra%toInteger(name)]
+                  p => extra%at(name)
+                  select type (p)
+                  type is (integer)
+                     comms = [comms, p]
+                  end select
                else
                   call throw(__FILE__,__LINE__,"PFL::Config::build_mpi_formatter() - unknown communicator '"//name//"'.")
                   return
@@ -217,8 +213,7 @@ contains
            call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
          end block
       else
-         call cfg%get(communicator_name_list, 'comm', default='COMM_LOGGER', rc=status)
-         comm = get_communicator(communicator_name, extra=extra)
+         comm = get_communicator('COMM_LOGGER', extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
@@ -233,8 +228,6 @@ contains
       block
         character(len=:), allocatable :: tmp
         tmp = trim(adjustl(fmt))
-        n = len(tmp)
-        fmt = tmp(2:n-1)
       end block
       
       if (is_present) then
@@ -694,7 +687,9 @@ contains
 
       type (StringUnlimitedMap) :: commMap
       type(StringVector) :: communicator_names
-      character(len=:), pointer :: communicator_name, name
+      character(len=:), pointer :: name
+      character(len=:), allocatable :: communicator_name
+      integer :: n
 
       call cfg%get(filename, 'filename', is_present=is_present, rc=status)
       if (.not. is_present) then
@@ -708,7 +703,7 @@ contains
          allocate(comms(n))
 
          do i = 1, n
-            comms(i) = get_communicator(communicator_names%at(i)
+            comms(i) = get_communicator(communicator_names%at(i))
          end do
 
          block
@@ -720,7 +715,7 @@ contains
 !!$           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
          end block
       else
-         communicator_name = cfg%toString('comm:', default='COMM_LOGGER')
+         call cfg%get(communicator_name, 'comm', default='COMM_LOGGER')
          comm = get_communicator(communicator_name, extra=extra)
          block
            character(len=:), allocatable :: rank_prefix
@@ -756,7 +751,7 @@ contains
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
       _UNUSED_DUMMY(unusable)
-         
+
       call set_logger_level(lgr, cfg)
       call set_logger_propagate(lgr, cfg)
       call set_logger_filters(lgr, cfg, elements%filters)
@@ -787,7 +782,7 @@ contains
 
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            call cfg%get(level_name, 'root_level', default=level_name, rc=status)
+            call cfg%get(level_name, 'root_level', default=(level_name), rc=status)
             is_present=.true.
          else
             ! same as on other PEs
@@ -796,6 +791,7 @@ contains
          if (is_present) then
             ! Try as integer
             read(level_name,*, iostat=iostat) level
+
             if (iostat /= 0) then
                level = name_to_level(level_name)
             end if
@@ -874,7 +870,7 @@ contains
 
          _UNUSED_DUMMY(unusable)
 
-         call cfg%get(handler_names, 'handlers')
+         call cfg%get(handler_names, 'handlers', rc=status)
          iter = handler_names%begin()
          do while (iter /= handler_names%end())
             name = iter%get()
@@ -898,21 +894,26 @@ contains
       type (StringUnlimitedMap), optional, intent(in) :: extra
 
       character(len=:), allocatable :: name_
-      logical :: found
+      logical :: is_present
+      class(*), pointer :: p
       
       name_ = name
       if (name == 'MPI_COMM_WORLD') then
          name_ = 'COMM_LOGGER'
       end if
 
+
       if (present(extra)) then
-         comm = extra%toInteger(name_, found=found, default=MPI_COMM_NULL)
-         if (.not. found) then
-            if (name == 'MPI_COMM_WORLD' .or. name == 'COMM_LOGGER') then
-               comm = MPI_COMM_WORLD
-            else
-               call throw(__FILE__,__LINE__,'PFL::Config::build_logger() - MPI communicator ' // name // ' not found.')
-            end if
+         if (extra%count(name_) > 0) then
+            p => extra%at(name_)
+            select type (p)
+            type is (integer)
+               comm = p
+            end select
+         elseif (name_ == 'MPI_COMM_WORLD' .or. name_ == 'COMM_LOGGER') then
+            comm = MPI_COMM_WORLD
+         else
+            call throw(__FILE__,__LINE__,"PFL::Config::build_logger() - MPI communicator '" // name_ // "' not found.")
          end if
       else
          comm = MPI_COMM_WORLD

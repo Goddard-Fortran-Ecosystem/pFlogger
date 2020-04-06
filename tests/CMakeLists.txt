@@ -28,35 +28,32 @@ set(pf_tests
 )
 
 if (MPI_FOUND)
-  add_library (mock-mpi MockMpi.F90)
-  target_include_directories (mock-mpi PRIVATE ${MPI_Fortran_INCLUDE_DIRS})
-  target_link_libraries (mock-mpi PRIVATE funit)
   list (APPEND pf_tests
     Test_MpiFilter.pf
     Test_MpiFormatter.pf
     Test_MpiCommConfig.pf
     )
-  if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
+  #  if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
+  if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
     list (APPEND pf_tests
-       Test_MpiLock.pf
-       )
-   endif ()
- endif ()
+      Test_MpiLock.pf
+      )
+  endif ()
+endif ()
 
- if (MPI_FOUND)
-   add_pfunit_ctest (pflogger_tests.x
-     TEST_SOURCES ${pf_tests}
-     OTHER_SOURCES ${srcs}
-     LINK_LIBRARIES pflogger mock-mpi gftl-shared
-     )
- else ()
-   add_pfunit_ctest (pflogger_tests.x
-     TEST_SOURCES ${pf_tests}
-     OTHER_SOURCES ${srcs}
-     LINK_LIBRARIES pflogger gftl-shared
-     )
- endif ()
-
+#if (MPI_FOUND)
+  add_pfunit_ctest (pflogger_tests.x
+    TEST_SOURCES ${pf_tests}
+    OTHER_SOURCES ${srcs}
+    LINK_LIBRARIES pflogger mock-mpi gftl-shared
+    )
+#else ()
+#  add_pfunit_ctest (pflogger_tests.x
+#    TEST_SOURCES ${pf_tests}
+#    OTHER_SOURCES ${srcs}
+#    LINK_LIBRARIES pflogger gftl-shared
+#    )
+#endif ()
 
 target_compile_definitions (pflogger_tests.x PRIVATE -DPFUNIT_EXTRA_INITIALIZE=init_tests)
 

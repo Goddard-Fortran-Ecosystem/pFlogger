@@ -23,7 +23,8 @@ program main
 
    loggerA => logging%get_logger('A')
 
-   fmtr = Formatter('%(message) %(rank)')
+   fmtr = newFormatter('%(message) %(rank)')
+
    fh = FileHandler('foo.txt', delay=.true.)
    call fh%set_formatter(fmtr)
    call fh%set_lock(MpiLock(MPI_COMM_WORLD))
