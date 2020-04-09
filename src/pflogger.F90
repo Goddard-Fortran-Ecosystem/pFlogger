@@ -71,6 +71,7 @@ contains
 
       call initialize_severity_levels()
       call initialize_logger_manager()
+      call set_last_resort(StreamHandler())
 
    end subroutine initialize
    

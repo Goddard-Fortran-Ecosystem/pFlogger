@@ -9,21 +9,13 @@ subroutine sub_A()
    log => logging%get_logger('main.A')
    plog => logging%get_logger('parallel.A')
 
-   print*,__FILE__,__LINE__
    call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
-   print*,__FILE__,__LINE__
    call log%debug('inside sub_A')
-   print*,__FILE__,__LINE__
    call plog%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
-   print*,__FILE__,__LINE__
    call plog%debug('inside sub_A')
-   print*,__FILE__,__LINE__
 
-   print*,__FILE__,__LINE__
    call log%warning('empty procedure')
-   print*,__FILE__,__LINE__
    call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
-   print*,__FILE__,__LINE__
 
 end subroutine sub_A
 
@@ -66,25 +58,17 @@ program main
    end block
    call initialize() ! init logger
 
-   print*,__FILE__,__LINE__
    call logging%load_file('all_in_one.cfg')
-   print*,__FILE__,__LINE__,rank
 
    log => logging%get_logger('main')
-   print*,__FILE__,__LINE__, rank
 
    call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
-   print*,__FILE__,__LINE__, rank
    call sub_A()
-   print*,__FILE__,__LINE__, rank
    
    call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
-   print*,__FILE__,__LINE__, rank
    call sub_B()
-   print*,__FILE__,__LINE__, rank
 
    call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
-   print*,__FILE__,__LINE__, rank
    call mpi_finalize(ier)
 
 end program main

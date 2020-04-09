@@ -77,9 +77,12 @@ if (MPI_FOUND AND PFUNIT_FOUND)
   target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS})
   target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
   target_link_libraries (mock-mpi PRIVATE funit)
-  target_link_libraries (${this} PRIVATE
-    $<BUILD_INTERFACE:mock-mpi>
-    $<BUILD_INTERFACE:funit>)
+  set(isTest $<STREQUAL:$<TARGET_PROPERTY:IS_TEST>,1>)
+  set(isExample $<STREQUAL:$<TARGET_PROPERTY:IS_EXAMPLE>,1>)
+  target_link_libraries (pflogger PRIVATE
+    $<${isTest}:mock-mpi>
+    $<${isTest}:funit>
+    $<${isExample}:MPI::MPI_Fortran>)
 endif ()
 
   

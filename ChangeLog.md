@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.4] - 2020-04-08
+
+### Added
+  - Added a "last resort" handler for when no handlers are found.
+    (ala Python's logger)
+### Fixed
+  - A problem with link-time dependency injection for mock MPI was
+    fixed with generator expressions.  Previously the fix for tests broke
+    the examples
+    
 
 ## [1.3.3] - 2020-04-06
 
