@@ -69,7 +69,7 @@ module PFL_LoggerManager
 
    type Unusable
    end type Unusable
-   
+
 
 contains
 
@@ -275,6 +275,7 @@ contains
    subroutine initialize_logger_manager()
       
       logging = LoggerManager(RootLogger(WARNING))
+      
 
    end subroutine initialize_logger_manager
 

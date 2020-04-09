@@ -31,6 +31,8 @@ include (PreventInSourceBuild)
 include (DefineCMakeDefaults)
 include (DefinePlatformDefaults)
 
+set (CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package (GFTL REQUIRED)
 find_package (GFTL_SHARED REQUIRED)
 find_package (YAFYAML REQUIRED)

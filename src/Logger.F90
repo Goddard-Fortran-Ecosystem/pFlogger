@@ -38,6 +38,7 @@ module PFL_Logger
 
    public :: Logger
    public :: newLogger
+   public :: set_last_resort
 
    type, extends(AbstractLogger) :: Logger
       private
@@ -77,6 +78,9 @@ module PFL_Logger
 
 #define ARG_LIST arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 
+   ! Using a global for now.   Later intend to find a way to properly encapsulate this
+   class(AbstractHandler), allocatable :: last_resort
+   
 
 contains
 
@@ -306,7 +310,9 @@ contains
 
       class (Logger), pointer :: current
       integer :: status
-      
+      integer :: count
+
+      count = 0
       current => this
       do while (associated(current))
          iter = current%handlers%begin()
@@ -314,6 +320,7 @@ contains
             h => iter%get()
             call h%handle(record, rc=status)
             _VERIFY(status,'',rc)
+            count = count + 1
             call iter%next()
          end do
 
@@ -323,6 +330,12 @@ contains
             exit
          end if
       end do
+
+      if (count == 0) then
+         call last_resort%handle(record,rc=status)
+         _VERIFY(status,'',rc)
+      end if
+         
 
       _RETURN(_SUCCESS,rc)
       
@@ -593,7 +606,15 @@ contains
 
    end function get_propagate
 
-   
+
+
+   subroutine set_last_resort(h)
+      class(AbstractHandler), intent(in) :: h
+
+      last_resort = h
+      
+   end subroutine set_last_resort
+
 end module PFL_Logger
 
 
