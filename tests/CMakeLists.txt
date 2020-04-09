@@ -41,19 +41,12 @@ if (MPI_FOUND)
   endif ()
 endif ()
 
-#if (MPI_FOUND)
-  add_pfunit_ctest (pflogger_tests.x
+add_pfunit_ctest (pflogger_tests.x
     TEST_SOURCES ${pf_tests}
     OTHER_SOURCES ${srcs}
     LINK_LIBRARIES pflogger mock-mpi gftl-shared
     )
-#else ()
-#  add_pfunit_ctest (pflogger_tests.x
-#    TEST_SOURCES ${pf_tests}
-#    OTHER_SOURCES ${srcs}
-#    LINK_LIBRARIES pflogger gftl-shared
-#    )
-#endif ()
+set_target_properties(pflogger_tests.x PROPERTIES IS_TEST 1)
 
 target_compile_definitions (pflogger_tests.x PRIVATE -DPFUNIT_EXTRA_INITIALIZE=init_tests)
 
