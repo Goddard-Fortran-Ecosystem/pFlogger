@@ -22,7 +22,7 @@ contains
       call set_mpi_rank(3)
       call set_mpi_size(7)
 
-      d = MpiCommConfig()
+      call init_MpiCommConfig(d)
 
       s = FormatString('%(mpi_rank)i1.1', d)
       @assertEqual('3', s)
@@ -46,7 +46,7 @@ contains
       call set_mpi_rank(3)
       call set_mpi_size(7)
 
-      d = MpiCommConfig(rank_keyword='rank', size_keyword='npes')
+      call init_MpiCommConfig(d, rank_keyword='rank', size_keyword='npes')
 
       s = FormatString('%(rank)i1.1', d)
       @assertEqual('3', s)
@@ -68,7 +68,7 @@ contains
       call set_mpi_rank(3)
       call set_mpi_size(7)
 
-      d = MpiCommConfig(comm, rank_keyword='rank', size_keyword='npes')
+      call init_MpiCommConfig(d, comm, rank_keyword='rank', size_keyword='npes')
 
       s = FormatString('%(rank)i1.1', d)
       @assertEqual('3', s)

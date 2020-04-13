@@ -2,7 +2,6 @@ module pflogger
    use Pfl_Exception
    use PFL_LoggerManager
    use PFL_Logger
-   use Pfl_String
    use PFL_RootLogger
    use PFL_AbstractHandler
    use PFL_StreamHandler
@@ -53,8 +52,6 @@ module pflogger
    public :: initialize_severity_levels
    public :: finalize_severity_levels
 
-   public :: String
-   
 #ifdef _LOGGER_USE_MPI
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    public :: MpiLock

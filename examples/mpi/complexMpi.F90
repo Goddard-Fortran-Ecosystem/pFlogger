@@ -1,5 +1,4 @@
 subroutine sub_A()
-   use PFL_String
    use pflogger
 
    integer :: i
@@ -9,19 +8,18 @@ subroutine sub_A()
    log => logging%get_logger('main.A')
    plog => logging%get_logger('parallel.A')
 
-   call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%debug('inside sub_A')
-   call plog%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call plog%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call plog%debug('inside sub_A')
 
    call log%warning('empty procedure')
-   call log%info('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 end subroutine sub_A
 
 
 subroutine sub_B()
-   use PFL_String
    use pflogger
 
    integer :: i
@@ -32,17 +30,17 @@ subroutine sub_B()
    log => logging%get_logger('main.B')
    plog => logging%get_logger('parallel.B')
 
-   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%debug('inside sub_B')
    call plog%debug('inside sub_B')
 
    call log%error('this procedure is empty as well')
-   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
+
 end subroutine sub_B
 
 
 program main
-   use PFL_String
    use pflogger
    implicit none
 
@@ -62,13 +60,13 @@ program main
 
    log => logging%get_logger('main')
 
-   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call sub_A()
    
-   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call sub_B()
 
-   call log%info('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call mpi_finalize(ier)
 
 end program main

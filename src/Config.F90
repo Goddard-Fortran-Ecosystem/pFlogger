@@ -3,7 +3,6 @@ module PFL_Config
    use yafyaml
    use gftl_StringVector
    use gftl_UnlimitedVector
-   use PFL_String, only: String
    use PFL_Logger
    use PFL_Exception, only: throw
    use PFL_SeverityLevels, only: name_to_level
@@ -210,7 +209,7 @@ contains
            character(len=:), allocatable :: size_prefix
            call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
            call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
-           call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
+           call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       else
          comm = get_communicator('COMM_LOGGER', extra=extra)
@@ -219,7 +218,7 @@ contains
            character(len=:), allocatable :: size_prefix
            call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
            call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
-           call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
+           call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       end if
 
@@ -621,23 +620,32 @@ contains
       integer :: unit
       integer :: status
       integer :: iostat
+      logical :: is_present
+      class(*), pointer :: node
 
-      call cfg%get(unit_name, 'unit', default='error_unit', rc=status)
-
-      ! is it an integer?
-      read(unit_name,*,iostat=iostat) unit
-
-      ! if failed, maybe it is a defined name?
-      if (iostat /= 0) then ! try as a string
-         select case (to_lower_case(unit_name))
-         case ('output_unit','*')
-            unit = OUTPUT_UNIT
-         case ('error_unit')
-            unit = ERROR_UNIT
-         case default
-            call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - unknown value for unit '"//unit_name//"'.")
+      call cfg%get_node_at_selector(node, 'unit', is_present=is_present, rc=status)
+      if (is_present) then
+         select type (node)
+         type is (integer)
+            unit = node
+         type is (String)
+            unit_name = node
+            ! if failed, maybe it is a defined name?
+            select case (to_lower_case(unit_name))
+            case ('output_unit','*')
+               unit = OUTPUT_UNIT
+            case ('error_unit')
+               unit = ERROR_UNIT
+            case default
+               call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - unknown value for unit '"//unit_name//"'.")
+               return
+            end select
+         class default
+            call throw(__FILE__,__LINE__,"PFL::Config::build_streamhandler() - illegal type for unit")
             return
          end select
+      else
+         unit = ERROR_UNIT
       end if
       h = StreamHandler(unit)
 
@@ -711,8 +719,7 @@ contains
            character(len=:), allocatable :: size_prefix
            call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
            call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
-           call commMap%deepcopy(MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix))
-!!$           commMap = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
+           call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       else
          call cfg%get(communicator_name, 'comm', default='COMM_LOGGER')
@@ -722,8 +729,7 @@ contains
            character(len=:), allocatable :: size_prefix
            call cfg%get(rank_prefix, 'rank_prefix', default='mpi_rank', rc=status)
            call cfg%get(size_prefix, 'size_prefix', default='mpi_size', rc=status)
-           call commMap%deepCopy(MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix))
-!!$           commMap = MpiCommConfig(comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
+           call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       end if
 
@@ -764,6 +770,7 @@ contains
          type (Configuration), intent(in) :: cfg
 
          character(len=:), allocatable :: level_name
+         character(len=:), allocatable :: root_level_name
          integer :: level
          integer :: iostat
          logical :: is_present
@@ -777,12 +784,11 @@ contains
 #ifdef _LOGGER_USE_MPI
          call cfg%get(communicator_name, 'comm', default='COMM_LOGGER', rc=status)
          comm = get_communicator(communicator_name, extra=extra)
-
          call cfg%get(root, 'root', default=0, rc=status)
 
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            call cfg%get(level_name, 'root_level', default=(level_name), rc=status)
+            call cfg%get(root_level_name, 'root_level', default=level_name, rc=status)
             is_present=.true.
          else
             ! same as on other PEs
@@ -834,7 +840,6 @@ contains
          _UNUSED_DUMMY(unusable)
 
          call cfg%get(filter_names,'filters', is_present=is_present, rc=status)
-
          if (is_present) then
 
             do i = 1, filter_names%size()
