@@ -210,7 +210,7 @@ contains
    function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString
       use gFTL_StringUnlimitedMap
-      use PFL_String, only: String
+      use yafyaml, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record

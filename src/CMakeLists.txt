@@ -31,7 +31,6 @@ set(SRCS
    StreamHandler.F90
    FileHandler.F90
    RotatingFileHandler.F90
-   String.F90
    StringUtilities.F90
    WrapArray.F90
 # FTL containers
@@ -66,24 +65,41 @@ add_library (${this} STATIC ${SRCS})
 target_link_libraries (${this} PUBLIC yafyaml)
 set_target_properties(${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
 
+
 if (MPI_FOUND)
   target_link_libraries (${this} PRIVATE
     $<INSTALL_INTERFACE:MPI::MPI_Fortran>)
   target_compile_definitions(${this} PRIVATE _LOGGER_USE_MPI)
 endif ()
 
-if (MPI_FOUND AND PFUNIT_FOUND)
-  add_library (mock-mpi MockMpi.F90)
-  target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS})
-  target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-  target_link_libraries (mock-mpi PRIVATE funit)
-  set(isTest $<STREQUAL:$<TARGET_PROPERTY:IS_TEST>,1>)
-  set(isExample $<STREQUAL:$<TARGET_PROPERTY:IS_EXAMPLE>,1>)
-  target_link_libraries (pflogger PRIVATE
-    $<${isTest}:mock-mpi>
-    $<${isTest}:funit>
-    $<${isExample}:MPI::MPI_Fortran>)
-endif ()
+
+if (MPI_FOUND)
+  if (PFUNIT_FOUND)
+    add_library (mock-mpi MockMpi.F90)
+    set_target_properties(mock-mpi PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
+    target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
+    target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    target_link_libraries (mock-mpi PUBLIC funit)
+    if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
+      target_compile_definitions(mock-mpi PRIVATE -DSUPPORT_FOR_C_LOC_ASSUMED_SIZE)
+    endif ()
+
+    # Complex linkage depending on target:
+    set(isTest $<STREQUAL:$<TARGET_PROPERTY:IS_TEST>,1>)
+    set(notTest $<NOT:${isTest}>)
+
+    target_link_libraries (pflogger PUBLIC
+#      $<BUILD_INTERFACE:mock-mpi>
+      $<${notTest}:MPI::MPI_Fortran>
+      $<${isTest}:mock-mpi>
+      $<${isTest}:funit>)
+
+  else ()
+    target_link_libraries (pflogger PRIVATE MPI::MPI_Fortran)
+  endif ()
+  
+endif()
+
 
   
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
@@ -93,15 +109,6 @@ target_include_directories(${this} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${dest}/include>
   )
-
-if (MPI_FOUND)
-  target_include_directories(${this} PUBLIC
-    $<BUILD_INTERFACE:${PFLOGGER_BINARY_DIR}/include>)
-endif ()
-  
-
-
-
 
 target_link_libraries(${this} PUBLIC gftl-shared gftl)
 

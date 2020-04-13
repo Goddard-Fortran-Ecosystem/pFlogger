@@ -39,7 +39,8 @@ contains
 
       character(len=:), allocatable :: fmt_
 
-      dictionary = MpiCommConfig(comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
+      ! workaround for gfortran 10.0
+      call init_MpiCommConfig(dictionary, comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
 
       fmt_ = default(fmt, 'pe=%(rank)a~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
@@ -66,9 +67,9 @@ contains
       type (StringUnlimitedMap) :: dictionary
       character(len=:), allocatable :: fmt_
       
-
-      dictionary = MpiCommConfig(comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
-
+      ! workaround for gfortran 10.0
+      call init_MpiCommConfig(dictionary, comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
+      
       if (present(fmt)) then
          fmt_ = fmt
       else

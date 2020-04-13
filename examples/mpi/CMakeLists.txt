@@ -6,11 +6,9 @@ if (MPI_FOUND)
 
    add_executable(sharedFileHandle.x sharedFileHandle.F90)
    target_link_libraries(sharedFileHandle.x pflogger MPI::MPI_Fortran)
-   set_target_properties(sharedFileHandle.x PROPERTIES IS_EXAMPLE 1)
 
    add_executable(complexMpi.x complexMpi.F90)
    target_link_libraries(complexMpi.x pflogger MPI::MPI_Fortran)
-   set_target_properties(complexMpi.x PROPERTIES IS_EXAMPLE 1)
    
 endif()
 
