@@ -611,7 +611,7 @@ contains
    subroutine set_last_resort(h)
       class(AbstractHandler), intent(in) :: h
 
-      last_resort = h
+      allocate(last_resort, source=h)
       
    end subroutine set_last_resort
 
