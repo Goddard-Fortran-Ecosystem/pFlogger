@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.6] - 2020-04-16
+
+### Fixed
+  - Trivial change to allow building with older compiler (ifort 17.0.4)
+
 ## [1.3.5] - 2020-04-13
 
 ### Fixed
