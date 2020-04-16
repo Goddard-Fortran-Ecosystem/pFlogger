@@ -126,7 +126,6 @@ contains
       ! Allow for Python alias:
       if (f%uses_keyword('levelName')) then
          f%fmt = replace(f%fmt, '%(levelName)', '%(level_name)')
-         print*,'fmt? ', f%fmt
       end if
 
       if (present(datefmt)) then
