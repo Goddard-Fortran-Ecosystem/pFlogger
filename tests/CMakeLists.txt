@@ -33,19 +33,23 @@ if (MPI_FOUND)
     Test_MpiFormatter.pf
     Test_MpiCommConfig.pf
     )
-  #  if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
-  if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
+  if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
     list (APPEND pf_tests
       Test_MpiLock.pf
       )
   endif ()
 endif ()
 
+set (link_libraries pflogger gftl-shared)
+if (MPI_FOUND)
+  list(APPEND link_libraries mock-mpi)
+endif()
+
 add_pfunit_ctest (pflogger_tests.x
     TEST_SOURCES ${pf_tests}
     OTHER_SOURCES ${srcs}
-    LINK_LIBRARIES pflogger mock-mpi gftl-shared
-    )
+    LINK_LIBRARIES ${link_libraries})
+
 set_target_properties(pflogger_tests.x PROPERTIES IS_TEST 1)
 
 target_compile_definitions (pflogger_tests.x PRIVATE -DPFUNIT_EXTRA_INITIALIZE=init_tests)

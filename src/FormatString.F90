@@ -27,7 +27,7 @@ module PFL_FormatString
    use PFL_Exception
    use PFL_FormatToken
    use gFTL_StringUnlimitedMap
-   use PFL_String, only: String
+   use yaFyaml, only: String
    use PFL_KeywordEnforcer
    implicit none
    private

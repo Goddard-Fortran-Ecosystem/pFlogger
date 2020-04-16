@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.5] - 2020-04-13
+
+### Fixed
+
+  - Mostly workarounds  for gFortran
+  - Also corrections for Cmake for some configurations
+  
 ## [1.3.4] - 2020-04-08
 
 ### Added

@@ -1,5 +1,4 @@
 subroutine sub_A()
-   use pfl_String
    use pflogger
 
    integer :: i
@@ -8,17 +7,16 @@ subroutine sub_A()
 
    log => logging%get_logger('main.A')
 
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%info('inside sub_A')
 
    call log%warning('empty procedure')
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 end subroutine sub_A
 
 
 subroutine sub_B()
-   use pfl_String
    use pflogger
 
    integer :: i
@@ -27,17 +25,16 @@ subroutine sub_B()
 
    log => logging%get_logger('main.B')
 
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%info('inside sub_B')
 
    call log%error('this procedure is empty as well')
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,String(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 end subroutine sub_B
 
 
 program main
-   use pfl_String
    use pflogger
    implicit none
 
@@ -53,15 +50,15 @@ program main
 
    log => logging%get_logger('main')
 
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%info('calling sub_A()')
    call sub_A()
    
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%info('calling sub_B()')
    call sub_B()
 
-   call log%debug('at line: %i3.3 in file: %a', __LINE__,string(__FILE__))
+   call log%debug('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 
    call example_finalize()

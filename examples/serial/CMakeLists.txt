@@ -7,5 +7,4 @@ file (COPY ${CONFIG_INPUTS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(complex.x complex.F90)
 target_link_libraries(complex.x pflogger)
-set_target_properties(complex.x PROPERTIES IS_EXAMPLE 1)
 

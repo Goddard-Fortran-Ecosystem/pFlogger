@@ -126,7 +126,6 @@ contains
       ! Allow for Python alias:
       if (f%uses_keyword('levelName')) then
          f%fmt = replace(f%fmt, '%(levelName)', '%(level_name)')
-         print*,'fmt? ', f%fmt
       end if
 
       if (present(datefmt)) then
@@ -210,7 +209,7 @@ contains
    function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString
       use gFTL_StringUnlimitedMap
-      use PFL_String, only: String
+      use yafyaml, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
       class (LogRecord), intent(in) :: record
