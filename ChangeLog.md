@@ -14,7 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     of Python's logger.
   - Also added overload of get_logger() with no name argument which
     returns the root logger.  (Again as per Python.)
-    
+  - Added example/basic_config/basic_config.F90 (requires MPI)
+
+### Fixed
+  - minor bug in default fmt_ for MpiFormatter
+    "rank" should have been "mpi_rank".
+  
 ## [1.3.6] - 2020-04-16
 
 ### Fixed

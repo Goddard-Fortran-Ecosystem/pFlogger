@@ -15,6 +15,7 @@ module pflogger
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    use PFL_MpiLock
    use PFL_MpiFilter
+   use PFL_MpiFormatter
 #  endif   
 #endif
    use PFL_RotatingFileHandler
@@ -58,6 +59,7 @@ module pflogger
 #  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    public :: MpiLock
    public :: MpiFilter
+   public :: MpiFormatter
 #  endif
 #endif   
 

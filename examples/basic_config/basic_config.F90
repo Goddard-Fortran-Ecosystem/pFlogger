@@ -41,12 +41,14 @@ end subroutine sub_B
 program main
    use, intrinsic :: iso_fortran_env, only: ERROR_UNIT, OUTPUT_UNIT
    use pflogger
+   use mpi
    implicit none
 
    integer :: ier
    class (Logger), pointer :: log
    integer :: status
    type(StreamHandler) :: stream
+   type(FileHandler) :: fh
    type(HandlerVector) :: hv
 
    call example_init()
@@ -54,7 +56,26 @@ program main
    call initialize() ! init logger
    stream = StreamHandler()
    call stream%set_level(DEBUG)
-   call logging%basic_config(stream=stream, level=DEBUG, rc=status)
+
+   fh = FileHandler('debug')
+   call fh%set_lock(MpiLock(MPI_COMM_WORLD))
+   call fh%set_level(DEBUG)
+   call fh%set_formatter(MpiFormatter(MPI_COMM_WORLD))
+   call hv%push_back(fh)
+
+   fh = FileHandler('info')
+   call fh%set_lock(MpiLock(MPI_COMM_WORLD))
+   call fh%set_level(INFO)
+   call hv%push_back(fh)
+
+   fh = FileHandler('warn')
+   call fh%set_lock(MpiLock(MPI_COMM_WORLD))
+   call fh%set_level(WARNING)
+   call hv%push_back(fh)
+
+   call hv%push_back(stream)
+   
+   call logging%basic_config(handlers=hv, level=DEBUG, rc=status)
    if (status /= 0) error stop 'basic_config() failed'
 
    log => logging%get_logger('main')
@@ -80,19 +101,18 @@ contains
    ! own code.
 
    subroutine example_init()
-#ifdef LOGGER_USE_MPI
 
       integer :: ier
       call mpi_init(ier)
-#endif
+
    end subroutine example_init
 
    subroutine example_finalize()
-#ifdef LOGGER_USE_MPI
+
 
       integer :: ier
       call mpi_finalize(ier)
-#endif
+
    end subroutine example_finalize
    
 end program main
