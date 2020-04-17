@@ -15,13 +15,13 @@ module PFL_LoggerManager
    use yafyaml, only: Configuration, ConfigurationIterator
    use yafyaml, only: FileStream
    use yafyaml, only: yayfaml_SUCCESS => SUCCESS
-   use yafyaml, only: None
    use PFL_RootLogger, only: RootLogger
    use PFL_SeverityLevels
    use PFL_Logger, only: Logger, newLogger
    use PFL_AbstractLogger
    use PFL_LoggerPolyVector
    use PFL_StringAbstractLoggerPolyMap
+   use PFL_KeywordEnforcer
 #ifdef _LOGGER_USE_MPI
    use mpi
 #endif
@@ -40,7 +40,10 @@ module PFL_LoggerManager
       type (RootLogger) :: root_node
       type (LoggerMap) :: loggers
    contains
-      procedure :: get_logger
+      procedure :: get_logger_name
+      procedure :: get_logger_root
+      generic :: get_logger => get_logger_name
+      generic :: get_logger => get_logger_root
       procedure, private :: fixup_ancestors
       procedure, private :: fixup_children
       procedure, nopass :: get_parent_prefix
@@ -49,6 +52,7 @@ module PFL_LoggerManager
       procedure :: load_config
       procedure :: build_loggers
       procedure :: build_root_logger
+      procedure :: basic_config
 
    end type LoggerManager
    
@@ -92,7 +96,7 @@ contains
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 
-   ! get_logger
+   ! get_logger_name
    !
    ! DESCRIPTION: 
    ! Get a logger with the specified 'name', creating it if necessary.
@@ -101,7 +105,25 @@ contains
    !    etc.
    ! 2) 'name' is case insensitive.
    !---------------------------------------------------------------------------
-   function get_logger(this, name) result(lgr)
+   function get_logger_root(this) result(lgr)
+      class (Logger), pointer :: lgr
+      class (LoggerManager), target, intent(inout) :: this
+      
+      lgr => this%root_node
+   end function get_logger_root
+
+   !---------------------------------------------------------------------------  
+   ! FUNCTION: 
+   ! get_logger_name
+   !
+   ! DESCRIPTION: 
+   ! Get a logger with the specified 'name', creating it if necessary.
+   ! Note that:
+   ! 1) 'name' is a dot-separated hierarchical name such as 'A','A.B','A.B.C',
+   !    etc.
+   ! 2) 'name' is case insensitive.
+   !---------------------------------------------------------------------------
+   function get_logger_name(this, name) result(lgr)
       class (Logger), pointer :: lgr
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: name
@@ -159,7 +181,7 @@ contains
 
       end if
 
-   end function get_logger
+   end function get_logger_name
 
    subroutine fixup_ancestors(this, lgr)
       class (LoggerManager), target, intent(inout) :: this
@@ -399,5 +421,70 @@ contains
       end if
 
    end subroutine build_root_logger
+
+   subroutine basic_config(this, unusable, filename, level, stream, force, handlers, rc)
+      use pfl_StreamHandler
+      use pfl_FileHandler
+      use pfl_AbstractHandlerPolyVector
+      use pfl_AbstractHandler
+      class(LoggerManager), intent(inout) :: this
+      class(KeywordEnforcer), optional, intent(in) :: unusable
+      character(*), optional, intent(in) :: filename
+      integer, optional, intent(in) :: level
+      type(StreamHandler), optional, intent(in) :: stream
+      logical, optional, intent(in) :: force
+      type(HandlerVector), optional, intent(in) :: handlers
+      integer, optional :: rc
+
+      type(HandlerVector), pointer :: existing_handlers
+      type(HandlerVectorIterator) :: iter
+      class(AbstractHandler), pointer :: h
+
+      existing_handlers => this%root_node%get_handlers()
+      
+      if (existing_handlers%size() > 0) then
+         if (present(force)) then
+            if (.not. force) then
+               if (present(rc)) rc = 0 ! success - do nothing
+               return
+            end if
+         else ! force not present
+            if (present(rc)) rc = 0 ! success - do nothing
+            return
+         end if
+      end if
+
+      ! Else ...
+
+      ! Check that conflicting arguments are not present
+      if (count([present(filename),present(stream),present(handlers)]) > 1) then
+         rc = -1 ! conflicting arguments
+         return
+      end if
+
+      if (present(level)) then
+         call this%root_node%set_level(level)
+      end if
+
+      if (present(filename)) then
+         call this%root_node%add_handler(FileHandler(filename))
+      end if
+
+      if (present(stream)) then
+         call this%root_node%add_handler(stream)
+      end if
+         
+      if (present(handlers)) then
+         iter = handlers%begin()
+         do while (iter /= handlers%end())
+            h => iter%get()
+            call this%root_node%add_handler(h)
+            call iter%next
+         end do
+      end if
+
+      if (present(rc)) rc = 0 ! success
+      
+   end subroutine basic_config
 
 end module PFL_LoggerManager
