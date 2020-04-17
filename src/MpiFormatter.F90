@@ -32,7 +32,7 @@ contains
       type (Unusable), optional :: unused
       character(len=*), optional, intent(in) :: rank_keyword
       character(len=*), optional, intent(in) :: size_keyword
-      character(len=*), intent(in) :: fmt
+      character(len=*), optional, intent(in) :: fmt
       character(len=*), optional, intent(in) :: datefmt
 
       type (StringUnlimitedMap) :: dictionary
@@ -42,7 +42,7 @@ contains
       ! workaround for gfortran 10.0
       call init_MpiCommConfig(dictionary, comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
 
-      fmt_ = default(fmt, 'pe=%(rank)a~: %(name)a~: %(message)a')
+      fmt_ = default(fmt, 'pe=%(mpi_rank)i4.4~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
 
    end function newMpiFormatter_comm
