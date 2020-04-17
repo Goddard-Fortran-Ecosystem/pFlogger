@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2020-04-17
+
+### Added
+  - Added basic_config() method for LoggerManager analogous to that
+    of Python's logger.
+  - Also added overload of get_logger() with no name argument which
+    returns the root logger.  (Again as per Python.)
+    
 ## [1.3.6] - 2020-04-16
 
 ### Fixed
