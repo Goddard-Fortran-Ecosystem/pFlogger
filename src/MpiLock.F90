@@ -182,7 +182,8 @@ contains
          call MPI_Free_mem(scratchpad, ierror)
       end if
 
-      call MPI_Comm_free(this%comm, ierror)
+      !W.J comment out. Does this comm belong to this lock? Maybe not
+      !call MPI_Comm_free(this%comm, ierror)
 
    end subroutine destroy
 
