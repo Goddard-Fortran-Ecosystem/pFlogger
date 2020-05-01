@@ -54,7 +54,7 @@ module PFL_LoggerManager
       procedure :: build_root_logger
       procedure :: basic_config
 
-      procedure :: free_loggers
+      procedure :: free
    end type LoggerManager
    
    
@@ -488,7 +488,7 @@ contains
       
    end subroutine basic_config
 
-   subroutine free_loggers(this)
+   subroutine free(this)
       class(LoggerManager), intent(inout) :: this
       character(len=:), allocatable :: name
       type(LoggerIterator) :: iter
@@ -498,12 +498,12 @@ contains
       do while (iter /= this%loggers%end())
          name = iter%key()
          loggerPtr=> this%loggers%at(name)
-         call loggerPtr%free_handlers()
+         call loggerPtr%free()
          call iter%next()
       enddo
 
-      call this%root_node%free_handlers()
+      call this%root_node%free()
 
-   end subroutine free_loggers
+   end subroutine free
 
 end module PFL_LoggerManager

@@ -70,7 +70,7 @@ module PFL_Logger
       procedure :: get_parent
       procedure :: set_propagate
       procedure :: get_propagate
-      procedure :: free_handlers
+      procedure :: free
    end type Logger
 
    interface Logger
@@ -172,7 +172,7 @@ contains
       
    end subroutine add_handler
 
-   subroutine free_handlers(this)
+   subroutine free(this)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), pointer :: handler
 
@@ -181,11 +181,11 @@ contains
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
          handler => iter%get()
-         call handler%free_lock()
+         call handler%free()
          call iter%next()
       end do
 
-   end subroutine free_handlers
+   end subroutine free
 
 
 !---------------------------------------------------------------------------  
@@ -203,7 +203,7 @@ contains
       i = this%handlers%get_index(handler)
       if (i > 0) then
          hdlerPtr=>this%handlers%at(i)
-         call hdlerPtr%free_lock()
+         call hdlerPtr%free()
          call this%handlers%erase(this%handlers%begin() + i - 1)
       else
          ! Only can get here if handler not found
