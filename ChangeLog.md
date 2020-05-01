@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2020-05-01
+
+### Added
+- Added free() methods to various classes to ensure that MPI resources
+  are deleted at the end of the run.  Without this, some MPI flavors
+  will report an error on MPI_Finalize().    To use:
+
+       call logging%free
+
 ## [1.4.0] - 2020-04-17
 
 ### Added
