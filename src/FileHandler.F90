@@ -37,7 +37,7 @@ module PFL_FileHandler
       procedure :: equal
       procedure :: set_lock
       procedure :: is_lockable
-      procedure :: clean_lock
+      procedure :: free_lock
    end type FileHandler
 
    interface FileHandler
@@ -276,7 +276,7 @@ contains
 
    end subroutine set_lock
 
-   subroutine clean_lock(this)
+   subroutine free_lock(this)
       class (FileHandler), intent(inout) :: this
 
       if (this%is_lockable()) then
@@ -284,6 +284,6 @@ contains
          deallocate(this%lock)
       end if
 
-   end subroutine clean_lock
+   end subroutine free_lock
 
 end module PFL_FileHandler

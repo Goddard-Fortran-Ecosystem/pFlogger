@@ -23,7 +23,7 @@ module MockHandler_mod
    contains
       procedure :: emit_message
       procedure :: close ! noop
-      procedure :: clean_lock ! noop
+      procedure :: free_lock ! noop
       procedure :: flush => flushUnit
       procedure :: equal
    end type MockHandler
@@ -73,9 +73,9 @@ contains
       class (MockHandler), intent(inout) :: this
    end subroutine close
 
-   subroutine clean_lock(this)
+   subroutine free_lock(this)
       class(MockHandler), intent(inout) :: this
-   end subroutine clean_lock
+   end subroutine free_lock
 
    logical function equal(a, b)
       class (MockHandler), intent(in) :: a

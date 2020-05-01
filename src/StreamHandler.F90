@@ -36,7 +36,7 @@ module PFL_StreamHandler
       procedure :: set_unit
       procedure :: emit_message
       procedure :: close ! noop
-      procedure :: clean_lock ! noop
+      procedure :: free_lock ! noop
       procedure :: flush => flush_unit
       procedure :: equal
    end type StreamHandler
@@ -146,9 +146,9 @@ contains
 
    ! A no-op routine.
    !---------------------------------------------------------------------------  
-   subroutine clean_lock(this)
+   subroutine free_lock(this)
       class (StreamHandler), intent(inout) :: this
-   end subroutine clean_lock
+   end subroutine free_lock
 
    !---------------------------------------------------------------------------  
    ! FUNCTION: 

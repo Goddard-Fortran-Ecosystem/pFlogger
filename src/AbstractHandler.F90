@@ -44,7 +44,7 @@ module PFL_AbstractHandler
       procedure :: handle
       procedure(close), deferred :: close
       procedure(flush), deferred :: flush
-      procedure(clean_lock), deferred :: clean_lock
+      procedure(free_lock), deferred :: free_lock
       procedure :: set_formatter
       procedure :: format
       procedure :: set_level
@@ -81,10 +81,10 @@ module PFL_AbstractHandler
          class(AbstractHandler), intent(in) :: this
       end subroutine flush
 
-      subroutine clean_lock(this)
+      subroutine free_lock(this)
          import AbstractHandler
          class(AbstractHandler), intent(inout) :: this
-      end subroutine clean_lock
+      end subroutine free_lock
 
       logical function equal(a, b)
          import AbstractHandler
