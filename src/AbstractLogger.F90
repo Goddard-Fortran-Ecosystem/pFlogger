@@ -17,6 +17,15 @@ module PFL_AbstractLogger
    public :: AbstractLogger
 
    type, abstract, extends(Filterer) :: AbstractLogger
+   contains
+     procedure :: clean_handlers
    end type AbstractLogger
+
+contains
+
+! no op
+    subroutine clean_handlers(this)
+       class(AbstractLogger), intent(inout) :: this
+    end subroutine clean_handlers
 
 end module PFL_AbstractLogger

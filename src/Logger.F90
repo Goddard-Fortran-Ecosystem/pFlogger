@@ -70,6 +70,7 @@ module PFL_Logger
       procedure :: get_parent
       procedure :: set_propagate
       procedure :: get_propagate
+      procedure :: clean_handlers
    end type Logger
 
    interface Logger
@@ -171,6 +172,21 @@ contains
       
    end subroutine add_handler
 
+   subroutine clean_handlers(this)
+      class (Logger), intent(inout) :: this
+      class (AbstractHandler), pointer :: handler
+
+      type (HandlerVectorIterator) :: iter
+
+      iter = this%handlers%begin()
+      do while (iter /= this%handlers%end())
+         handler => iter%get()
+         call handler%clean_lock()
+         call iter%next()
+      end do
+
+   end subroutine clean_handlers
+
 
 !---------------------------------------------------------------------------  
 !*ROUTINE: remove_handler
@@ -181,10 +197,13 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), intent(in) :: handler
 
+      class (AbstractHandler), pointer :: hdlerPtr
       integer :: i
       
       i = this%handlers%get_index(handler)
       if (i > 0) then
+         hdlerPtr=>this%handlers%at(i)
+         call hdlerPtr%clean_lock()
          call this%handlers%erase(this%handlers%begin() + i - 1)
       else
          ! Only can get here if handler not found
