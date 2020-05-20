@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2020-05-20
+
+### Changed
+
+- Modified name of Pair type in gFTL maps.  These are not used within
+  pFlogger outside of their host modules, but it is more consistent with
+  the latest gFTL-shared and may help anyone that tries to port with XLF.
+  
+
 ## [1.4.1] - 2020-05-01
 
 ### Added

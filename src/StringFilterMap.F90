@@ -12,6 +12,7 @@
 module  PFL_StringFilterMap
    use PFL_AbstractFilter
 #define _map FilterMap
+#define _pair FilterPair
 #define _iterator FilterIterator
    
 #include "types/key_deferredLengthString.inc"
