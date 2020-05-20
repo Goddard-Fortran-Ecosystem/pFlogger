@@ -12,6 +12,7 @@
 module  PFL_StringLockMap
    use PFL_AbstractLock
 #define _map LockMap
+#define _pair LockPair
 #define _iterator LockIterator
    
 #include "types/key_deferredLengthString.inc"

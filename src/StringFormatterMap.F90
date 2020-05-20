@@ -12,6 +12,7 @@
 module  PFL_StringFormatterMap
    use PFL_Formatter
 #define _map FormatterMap
+#define _pair FormatterPair
 #define _iterator FormatterIterator
    
 #include "types/key_deferredLengthString.inc"

@@ -1,3 +1,6 @@
+! Based upon
+! http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.30&rep=rep1&type=pdf
+
 module PFL_MpiLock
    use mpi
    use PFL_AbstractLock

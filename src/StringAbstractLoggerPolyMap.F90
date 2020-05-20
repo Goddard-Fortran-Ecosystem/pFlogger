@@ -14,11 +14,13 @@ module  PFL_StringAbstractLoggerPolyMap
 
 #define _map LoggerMap
 #define _iterator LoggerIterator
+#define _pair StringLoggerPair
 #include "types/key_deferredLengthString.inc"
 
 #define _value class(AbstractLogger)
 #define _value_allocatable
 #define _value_equal_defined
+
 
 #define _alt
 #define _pair_allocatable   
