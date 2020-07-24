@@ -790,6 +790,7 @@ contains
          if (rank == root) then
             call cfg%get(root_level_name, 'root_level', default=level_name, rc=status)
             is_present=.true.
+            level_name = root_level_name
          else
             ! same as on other PEs
          end if
