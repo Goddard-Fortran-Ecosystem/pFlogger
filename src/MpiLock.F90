@@ -59,6 +59,8 @@ contains
       integer(kind=MPI_ADDRESS_KIND) :: sz
       integer :: old_comm
 
+      if (this%is_initialized()) return
+      
       old_comm = this%comm
       call MPI_Comm_dup(old_comm, this%comm, ierror)
       call MPI_Comm_rank(this%comm, this%rank, ierror)
