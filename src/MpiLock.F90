@@ -19,11 +19,13 @@ module PFL_MpiLock
       integer :: pe_locks_type
       type (c_ptr) :: locks_ptr
       logical, allocatable :: local_data(:)
+      logical :: initialized
    contains
       procedure :: acquire
       procedure :: release
       procedure :: init
       procedure :: destroy
+      procedure :: is_initialized
    end type MpiLock
 
    integer, parameter :: LOCK_TAG = 10
@@ -45,7 +47,7 @@ contains
       integer, intent(in) :: comm
 
       lock%comm = comm  ! will duplicate during init()
-
+      lock%initialized = .false.
    end function newMpiLock
 
 
@@ -100,7 +102,7 @@ contains
       end if
 
       allocate(this%local_data(this%npes-1))
-
+      this%initialized = .true.
     end subroutine init
 
 
@@ -177,6 +179,7 @@ contains
       integer :: ierror
 
       ! Release resources
+      if (.not. this%is_initialized()) return
       call MPI_Type_free(this%pe_locks_type, ierror)
       call MPI_Win_free(this%window, ierror)
 
@@ -185,9 +188,16 @@ contains
          call MPI_Free_mem(scratchpad, ierror)
       end if
 
+      this%initialized = .false.
       !W.J comment out. Does this comm belong to this lock? Maybe not
       !call MPI_Comm_free(this%comm, ierror)
 
    end subroutine destroy
+
+   function is_initialized(this) result(init)
+      class (MpiLock), intent(in) :: this
+      logical :: init
+      init = this%initialized
+   end function
 
 end module PFL_MpiLock
