@@ -155,16 +155,16 @@ contains
 !---------------------------------------------------------------------------
    subroutine add_handler(this, handler)
       class (Logger), intent(inout) :: this
-      class (AbstractHandler), intent(in) :: handler
+      class (AbstractHandler), pointer, intent(in) :: handler
       
       type (HandlerVectorIterator) :: iter
+      class (AbstractHandler), pointer :: hdlPtr
 
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())
-         if (handler == iter%get()) then
-            ! duplicate - nothing to do
-            return
-         end if
+         hdlPtr => iter%get()
+         ! if duplicated - do nothing 
+         if (associated(handler, hdlPtr)) return
          call iter%next()
       end do
       ! increment
@@ -195,18 +195,26 @@ contains
 !---------------------------------------------------------------------------
    subroutine remove_handler(this, handler)
       class (Logger), intent(inout) :: this
-      class (AbstractHandler), intent(in) :: handler
+      class (AbstractHandler), pointer, intent(in) :: handler
 
       class (AbstractHandler), pointer :: hdlerPtr
       integer :: i
-      
-      i = this%handlers%get_index(handler)
-      if (i > 0) then
-         hdlerPtr=>this%handlers%at(i)
-         call hdlerPtr%free()
-         call this%handlers%erase(this%handlers%begin() + i - 1)
-      else
-         ! Only can get here if handler not found
+      logical :: found
+      type (HandlerVectorIterator) :: iter 
+      found = .false.
+      iter = this%handlers%begin()
+      do while (iter /= this%handlers%end())
+         hdlerPtr=> iter%get()
+         if (associated(hdlerPtr, handler)) then
+           call this%handlers%erase(iter)
+           found = .true.
+           exit
+        endif
+        call iter%next()
+      enddo
+
+      !   ! Only can get here if handler not found
+      if (.not. found) then
          call throw(__FILE__,__LINE__,'PFL::Logger%remove_handler() called - logger has no such handler.')
       end if
 
