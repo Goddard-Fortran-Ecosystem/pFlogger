@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2020-05-20
+
+### Changed
+
+- Modified name of Pair type in gFTL maps.  These are not used within
+  pFlogger outside of their host modules, but it is more consistent with
+  the latest gFTL-shared and may help anyone that tries to port with XLF.
+  
+
+## [1.4.1] - 2020-05-01
+
+### Added
+- Added free() methods to various classes to ensure that MPI resources
+  are deleted at the end of the run.  Without this, some MPI flavors
+  will report an error on MPI_Finalize().    To use:
+
+       call logging%free
+
 ## [1.4.0] - 2020-04-17
 
 ### Added

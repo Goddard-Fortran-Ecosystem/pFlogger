@@ -1,3 +1,6 @@
+! Based upon
+! http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.113.30&rep=rep1&type=pdf
+
 module PFL_MpiLock
    use mpi
    use PFL_AbstractLock
@@ -182,7 +185,8 @@ contains
          call MPI_Free_mem(scratchpad, ierror)
       end if
 
-      call MPI_Comm_free(this%comm, ierror)
+      !W.J comment out. Does this comm belong to this lock? Maybe not
+      !call MPI_Comm_free(this%comm, ierror)
 
    end subroutine destroy
 

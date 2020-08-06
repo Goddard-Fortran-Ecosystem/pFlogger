@@ -12,6 +12,7 @@
 module  PFL_StringHandlerMap
    use PFL_AbstractHandler
 #define _map HandlerMap
+#define _pair HandlerPair
 #define _iterator HandlerIterator
    
 #include "types/key_deferredLengthString.inc"
