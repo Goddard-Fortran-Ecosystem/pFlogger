@@ -54,6 +54,7 @@ module PFL_LoggerManager
       procedure :: build_root_logger
       procedure :: basic_config
 
+      procedure :: free
    end type LoggerManager
    
    
@@ -486,5 +487,23 @@ contains
       if (present(rc)) rc = 0 ! success
       
    end subroutine basic_config
+
+   subroutine free(this)
+      class(LoggerManager), intent(inout) :: this
+      character(len=:), allocatable :: name
+      type(LoggerIterator) :: iter
+      class(AbstractLogger), pointer :: loggerPtr
+
+      iter =  this%loggers%begin()
+      do while (iter /= this%loggers%end())
+         name = iter%key()
+         loggerPtr=> this%loggers%at(name)
+         call loggerPtr%free()
+         call iter%next()
+      enddo
+
+      call this%root_node%free()
+
+   end subroutine free
 
 end module PFL_LoggerManager
