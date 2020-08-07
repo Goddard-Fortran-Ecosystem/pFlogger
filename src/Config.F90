@@ -773,7 +773,7 @@ contains
          character(len=:), allocatable :: root_level_name
          integer :: level
          integer :: iostat
-         logical :: is_present
+         logical :: is_present, is_present_root
 #ifdef _LOGGER_USE_MPI
          integer :: root, rank, ierror, comm
          character(len=:), allocatable :: communicator_name
@@ -788,8 +788,11 @@ contains
 
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
-            call cfg%get(root_level_name, 'root_level', default=level_name, rc=status)
-            is_present=.true.
+            call cfg%get(root_level_name, 'root_level', is_present=is_present_root, rc=status)
+            if (is_present_root) then
+               level_name = root_level_name
+               is_present = .true.
+            end if
          else
             ! same as on other PEs
          end if
@@ -805,7 +808,7 @@ contains
          end if
 
       end subroutine set_logger_level
-      
+
 
       subroutine set_logger_propagate(lgr, cfg)
          class (Logger), intent(inout) :: lgr
