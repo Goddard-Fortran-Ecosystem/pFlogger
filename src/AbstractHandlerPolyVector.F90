@@ -16,8 +16,7 @@ module PFL_AbstractHandlerPolyVector
    use PFL_AbstractHandler
 
 #define _type class (AbstractHandler)
-#define _allocatable
-#define _equal_defined
+#define _pointer
 #define _vector HandlerVector
 #define _iterator HandlerVectorIterator
 

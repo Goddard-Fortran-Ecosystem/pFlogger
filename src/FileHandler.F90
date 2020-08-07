@@ -254,7 +254,8 @@ contains
    logical function is_lockable(this)
       class (FileHandler), intent(in) :: this
 
-      is_lockable = allocated(this%lock)
+      is_lockable = .false.
+      if (allocated(this%lock)) is_lockable = this%lock%is_initialized()
 
    end function is_lockable
 
