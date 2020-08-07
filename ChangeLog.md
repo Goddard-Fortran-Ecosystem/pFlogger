@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2020-08-07
+
+### Fixed
+
+- Some flavors of MPI complained at finalize because the MPI memory windows were not freed.
+  Fixing required nontrivial changes because handlers (and thus locks and windows) were
+  unintentionally duplicated rather than shared among logger objects.
+
 ## [1.4.2] - 2020-05-20
 
 ### Changed
