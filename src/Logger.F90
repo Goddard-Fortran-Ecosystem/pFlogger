@@ -155,7 +155,7 @@ contains
 !---------------------------------------------------------------------------
    subroutine add_handler(this, handler)
       class (Logger), intent(inout) :: this
-      class (AbstractHandler), pointer, intent(in) :: handler
+      class (AbstractHandler), target, intent(in) :: handler
       
       type (HandlerVectorIterator) :: iter
       class (AbstractHandler), pointer :: hdlPtr
@@ -164,7 +164,7 @@ contains
       do while (iter /= this%handlers%end())
          hdlPtr => iter%get()
          ! if duplicated - do nothing 
-         if (associated(handler, hdlPtr)) return
+         if (associated(hdlPtr,handler)) return
          call iter%next()
       end do
       ! increment
@@ -195,12 +195,13 @@ contains
 !---------------------------------------------------------------------------
    subroutine remove_handler(this, handler)
       class (Logger), intent(inout) :: this
-      class (AbstractHandler), pointer, intent(in) :: handler
+      class (AbstractHandler), target, intent(in) :: handler
 
       class (AbstractHandler), pointer :: hdlerPtr
       integer :: i
       logical :: found
       type (HandlerVectorIterator) :: iter 
+
       found = .false.
       iter = this%handlers%begin()
       do while (iter /= this%handlers%end())

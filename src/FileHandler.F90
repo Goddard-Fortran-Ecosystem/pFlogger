@@ -25,7 +25,7 @@ module PFL_FileHandler
       private
       logical :: is_open_ = .false.
       character(len=:), allocatable :: file_name
-      class (AbstractLock), pointer :: lock
+      class (AbstractLock), allocatable :: lock
    contains
       procedure :: is_open
       procedure :: open
@@ -255,7 +255,7 @@ contains
       class (FileHandler), intent(in) :: this
 
       is_lockable = .false.
-      if (associated(this%lock)) is_lockable = this%lock%is_initialized()
+      if (allocated(this%lock)) is_lockable = this%lock%is_initialized()
 
    end function is_lockable
 

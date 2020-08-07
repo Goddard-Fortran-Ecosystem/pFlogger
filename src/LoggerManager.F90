@@ -350,23 +350,25 @@ contains
       type (Configuration) :: subcfg
 
       call check_schema_version(cfg)
-      call this%elements%set_global_communicator(comm)
+  
+      associate (elements => this%elements)
+         call elements%set_global_communicator(comm)
 
-      call cfg%get(subcfg, 'locks')
-      if (.not. subcfg%is_none()) call this%elements%build_locks(subcfg, extra=extra)
+         call cfg%get(subcfg, 'locks')
+         if (.not. subcfg%is_none()) call elements%build_locks(subcfg, extra=extra)
 
-      call cfg%get(subcfg, 'filters')
-      if (.not. subcfg%is_none()) call this%elements%build_filters(subcfg, extra=extra)
-      
-      call cfg%get(subcfg, 'formatters')
-      if (.not. subcfg%is_none()) call this%elements%build_formatters(subcfg, extra=extra)
+         call cfg%get(subcfg, 'filters')
+         if (.not. subcfg%is_none()) call elements%build_filters(subcfg, extra=extra)
+         
+         call cfg%get(subcfg, 'formatters')
+         if (.not. subcfg%is_none()) call elements%build_formatters(subcfg, extra=extra)
 
-      call cfg%get(subcfg, 'handlers')
-      if (.not. subcfg%is_none()) call this%elements%build_handlers(subcfg, extra=extra)
+         call cfg%get(subcfg, 'handlers')
+         if (.not. subcfg%is_none()) call elements%build_handlers(subcfg, extra=extra)
+      end associate
 
       call this%build_loggers(cfg, extra=extra)
       call this%build_root_logger(cfg, extra=extra)
-
    end subroutine load_config
 
 
@@ -473,8 +475,7 @@ contains
       end if
 
       if (present(stream)) then
-         h=>stream
-         call this%root_node%add_handler(h)
+         call this%root_node%add_handler(stream)
       end if
          
       if (present(handlers)) then
