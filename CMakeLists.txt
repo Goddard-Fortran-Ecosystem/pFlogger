@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.8.0)
 project (PFLOGGER
-  VERSION 1.4.2
+  VERSION 1.4.3
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
