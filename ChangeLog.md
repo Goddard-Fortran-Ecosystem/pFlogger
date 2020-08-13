@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Updated unit tests to reflect new managament of Logger handlers via pointers
+  instead of allocatables.
+
 ## [1.4.3] - 2020-08-07
 
 ### Fixed
