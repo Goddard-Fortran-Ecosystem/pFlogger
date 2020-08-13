@@ -2,7 +2,7 @@
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
 !
-! MODULE: PFL_AbstractHandlerPtrVector
+! MODULE: PFL_AbstractHandlerPolyVector
 !
 !> @brief
 !> This class provides a vector of handlers. Uses FTL.
