@@ -427,6 +427,7 @@ contains
    subroutine basic_config(this, unusable, filename, level, stream, force, handlers, rc)
       use pfl_StreamHandler
       use pfl_FileHandler
+      use pfl_AbstractHandlerPtrVector
       use pfl_AbstractHandlerPolyVector
       use pfl_AbstractHandler
       class(LoggerManager), intent(inout) :: this
@@ -438,7 +439,7 @@ contains
       type(HandlerVector), optional, intent(in) :: handlers
       integer, optional :: rc
 
-      type(HandlerVector), pointer :: existing_handlers
+      type(HandlerPtrVector), pointer :: existing_handlers
       type(HandlerVectorIterator) :: iter
       class(AbstractHandler), pointer :: h
 
@@ -481,8 +482,9 @@ contains
       if (present(handlers)) then
          iter = handlers%begin()
          do while (iter /= handlers%end())
-            h => iter%get()
+            allocate(h, source = iter%get())
             call this%root_node%add_handler(h)
+            h =>null()
             call iter%next
          end do
       end if

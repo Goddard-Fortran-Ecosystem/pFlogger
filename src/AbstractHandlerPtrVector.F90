@@ -12,15 +12,14 @@
 !
 !> @date 01 Jun 2015 - Initial Version
 !------------------------------------------------------------------------------
-module PFL_AbstractHandlerPolyVector
+module PFL_AbstractHandlerPtrVector
    use PFL_AbstractHandler
 
 #define _type class (AbstractHandler)
-#define _allocatable
-#define _equal_defined
-#define _vector HandlerVector
-#define _iterator HandlerVectorIterator
+#define _pointer
+#define _vector HandlerPtrVector
+#define _iterator HandlerPtrVectorIterator
 
 #include "templates/vector.inc"
 
-end module PFL_AbstractHandlerPolyVector
+end module PFL_AbstractHandlerPtrVector

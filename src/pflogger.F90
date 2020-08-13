@@ -1,6 +1,7 @@
 module pflogger
    use Pfl_Exception
    use PFL_LoggerManager
+   use PFL_AbstractHandlerPtrVector
    use PFL_AbstractHandlerPolyVector
    use PFL_Logger
    use PFL_RootLogger
@@ -32,6 +33,7 @@ module pflogger
    public :: WrapArray
 
    public :: AbstractHandler
+   public :: HandlerPtrVector, HandlerPtrVectorIterator
    public :: HandlerVector, HandlerVectorIterator
    public :: StreamHandler
    public :: FileHandler
