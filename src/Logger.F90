@@ -70,7 +70,7 @@ module PFL_Logger
       procedure :: get_parent
       procedure :: set_propagate
       procedure :: get_propagate
-      procedure :: free
+      !procedure :: free
    end type Logger
 
    interface Logger
@@ -172,20 +172,20 @@ contains
       
    end subroutine add_handler
 
-   subroutine free(this)
-      class (Logger), intent(inout) :: this
-      class (AbstractHandler), pointer :: handler
-
-      type (HandlerPtrVectorIterator) :: iter
-
-      iter = this%handlers%begin()
-      do while (iter /= this%handlers%end())
-         handler => iter%get()
-         call handler%free()
-         call iter%next()
-      end do
-
-   end subroutine free
+!   subroutine free(this)
+!      class (Logger), intent(inout) :: this
+!      class (AbstractHandler), pointer :: handler
+!
+!      type (HandlerPtrVectorIterator) :: iter
+!
+!      iter = this%handlers%begin()
+!      do while (iter /= this%handlers%end())
+!         handler => iter%get()
+!         call handler%free()
+!         call iter%next()
+!      end do
+!
+!   end subroutine free
 
 
 !---------------------------------------------------------------------------  
