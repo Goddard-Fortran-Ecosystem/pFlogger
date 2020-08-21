@@ -424,7 +424,7 @@ contains
 
    end subroutine build_root_logger
 
-   subroutine basic_config(this, unusable, filename, level, stream, force, handlers, handlers_ptr, rc)
+   subroutine basic_config(this, unusable, filename, level, stream, force, handlers, handlers_ref, rc)
       use pfl_StreamHandler
       use pfl_FileHandler
       use pfl_AbstractHandlerPtrVector
@@ -437,7 +437,7 @@ contains
       type (StreamHandler), optional, intent(in) :: stream
       logical, optional, intent(in) :: force
       type(HandlerVector), optional, intent(inout) :: handlers
-      type(HandlerPtrVector), optional, intent(in) :: handlers_ptr
+      type(HandlerPtrVector), optional, intent(in) :: handlers_ref
       integer, optional :: rc
 
       type(HandlerPtrVector), pointer :: existing_handlers
@@ -465,7 +465,7 @@ contains
       ! Else ...
 
       ! Check that conflicting arguments are not present
-      if (count([present(filename),present(stream),present(handlers), present(handlers_ptr)]) > 1) then
+      if (count([present(filename),present(stream),present(handlers), present(handlers_ref)]) > 1) then
          rc = -1 ! conflicting arguments
          return
       end if
@@ -506,9 +506,9 @@ contains
          call handlers%erase(handlers%begin(), handlers%end())
       end if
 
-      if (present(handlers_ptr)) then
-         iter_ptr = handlers_ptr%begin()
-         do while (iter_ptr /= handlers_ptr%end())
+      if (present(handlers_ref)) then
+         iter_ptr = handlers_ref%begin()
+         do while (iter_ptr /= handlers_ref%end())
             h => iter_ptr%get()
             call this%root_node%add_handler(h)
             call iter_ptr%next()
