@@ -424,7 +424,7 @@ contains
 
    end subroutine build_root_logger
 
-   subroutine basic_config(this, unusable, filename, level, stream, force, handlers, handlers_ref, rc)
+   subroutine basic_config(this, unusable, filename, level, stream, force, handlers, handler_refs, rc)
       use pfl_StreamHandler
       use pfl_FileHandler
       use pfl_AbstractHandlerPtrVector
@@ -434,10 +434,10 @@ contains
       class(KeywordEnforcer), optional, intent(in) :: unusable
       character(*), optional, intent(in) :: filename
       integer, optional, intent(in) :: level
-      type (StreamHandler), optional, intent(in) :: stream
+      type (StreamHandler), target, optional, intent(in) :: stream
       logical, optional, intent(in) :: force
       type(HandlerVector), optional, intent(inout) :: handlers
-      type(HandlerPtrVector), optional, intent(in) :: handlers_ref
+      type(HandlerPtrVector), optional, intent(in) :: handler_refs
       integer, optional :: rc
 
       type(HandlerPtrVector), pointer :: existing_handlers
@@ -445,8 +445,7 @@ contains
       type(HandlerPtrVectorIterator) :: iter_ptr
       class(AbstractHandler), pointer :: h
       class(HandlerMap), pointer :: hdlMapPtr
-      integer :: i
-      character(len=4) :: h_name
+      character(:), allocatable :: h_name
 
       existing_handlers => this%root_node%get_handlers()
       
@@ -465,7 +464,7 @@ contains
       ! Else ...
 
       ! Check that conflicting arguments are not present
-      if (count([present(filename),present(stream),present(handlers), present(handlers_ref)]) > 1) then
+      if (count([present(filename),present(stream),present(handlers), present(handler_refs)]) > 1) then
          rc = -1 ! conflicting arguments
          return
       end if
@@ -475,29 +474,22 @@ contains
       end if
 
       hdlMapPtr => this%elements%get_handlers()
-      i = hdlMapPtr%size() + 1
-      write(h_name, '(I4.4)') i
       
       if (present(filename)) then
+         h_name = get_hname()
          call hdlMapPtr%insert(h_name, FileHandler(filename))
          h => hdlMapPtr%at(h_name)
          call this%root_node%add_handler(h)
-         i = i + 1
       end if
 
-      write(h_name, '(I4.4)') i
       if (present(stream)) then
-         call hdlMapPtr%insert(h_name, stream)
-         h => hdlMapPtr%at(h_name)
-         call this%root_node%add_handler(h)
-         i = i + 1
+         call this%root_node%add_handler(stream)
       end if
          
       if (present(handlers)) then
          iter = handlers%begin()
          do while (iter /= handlers%end())
-            write(h_name, '(I4.4)') i
-            i = i + 1
+            h_name = get_hname()
             call hdlMapPtr%insert(h_name, iter%get())
             h => hdlMapPtr%at(h_name)
             call this%root_node%add_handler(h)
@@ -506,9 +498,9 @@ contains
          call handlers%erase(handlers%begin(), handlers%end())
       end if
 
-      if (present(handlers_ref)) then
-         iter_ptr = handlers_ref%begin()
-         do while (iter_ptr /= handlers_ref%end())
+      if (present(handler_refs)) then
+         iter_ptr = handler_refs%begin()
+         do while (iter_ptr /= handler_refs%end())
             h => iter_ptr%get()
             call this%root_node%add_handler(h)
             call iter_ptr%next()
@@ -516,7 +508,15 @@ contains
       end if
 
       if (present(rc)) rc = 0 ! success
-      
+   contains
+      function get_hname() result(h_name)
+         character(:), allocatable :: h_name
+         integer :: i
+         character(4) :: n_name
+         i = hdlMapPtr%size() + 1
+         write(n_name, '(I4.4)') i
+         h_name = "__internal__from_basic__"//n_name
+      end function 
    end subroutine basic_config
 
    subroutine free(this)
