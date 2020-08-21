@@ -27,12 +27,11 @@ contains
 
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler),pointer :: mockHandler_
+      type (MockHandler), pointer :: mockHandler_
       
       this%basicLogger = Logger('A', INFO)
       allocate(this%mockBuffer)
-      allocate(this%hdlPtr, source = MockHandler(this%mockBuffer))
-!!$      print*,__FILE__,__LINE__,allocated(mockHandler_%fmt)
+      allocate(this%hdlPtr, source=MockHandler(this%mockBuffer))
 
       call this%basicLogger%add_handler(this%hdlPtr)
 !!%      call this%basicLogger%add_handler(MockHandler(this%mockBuffer))
@@ -273,20 +272,19 @@ contains
       class (Test_Logger), intent(inout) :: this
 
       type (Logger) :: lgr
-      type (MockHandler) :: mockHandler_
+      type (MockHandler), target :: handler_A
+      type (MockHandler), target :: handler_B
       type (MockBuffer), target :: bufferA
       type (MockBuffer), target :: bufferB
 
       lgr = Logger('A')
-!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
-!!$      call lgr%add_handler(mockHandler_)
-      call lgr%add_handler(MockHandler(bufferA, level=DEBUG))
-!!$      mockHandler_ = MockHandler(bufferB, level=INFO)
-!!$      call lgr%add_handler(mockHandler_)
-      call lgr%add_handler(MockHandler(bufferB, level=INFO))
-!!$      mockHandler_ = MockHandler(bufferA, level=DEBUG)
-!!$      call lgr%remove_handler(mockHandler_)
-      call lgr%remove_handler(Mockhandler(bufferA, level=DEBUG))
+      handler_A = MockHandler(bufferA, level=DEBUG)
+      call lgr%add_handler(handler_A)
+!!$      call lgr%add_handler(MockHandler(bufferA, level=DEBUG))
+      handler_B = MockHandler(bufferB, level=INFO)
+      call lgr%add_handler(handler_B)
+!!$      call lgr%add_handler(MockHandler(bufferB, level=INFO))
+      call lgr%remove_handler(handler_A)
 
       call lgr%info('Hello')
       @assertEqual('Hello', bufferB%buffer)
@@ -300,18 +298,21 @@ contains
       use PFL_AbstractHandlerPtrVector
       class (Test_Logger), intent(inout) :: this
 
-      type (Logger), target :: lgr
-      type (MockBuffer), target :: bufA
-      type (MockBuffer), target :: bufB
-      type (HandlerPtrVector), pointer :: handlers
+      type(Logger), target :: lgr
+      type(MockBuffer), target :: bufA
+      type(MockBuffer), target :: bufB
+      type(HandlerPtrVector), pointer :: handlers
+      type(MockHandler), target :: handler_a, handler_B
 
       lgr = Logger('A')
 
-      call lgr%add_handler(MockHandler(bufA))
-      call lgr%add_handler(MockHandler(bufB))
+      handler_A = MockHandler(bufA)
+      handler_B = MockHandler(bufB)
+      call lgr%add_handler(handler_A)
+      call lgr%add_handler(handler_B)
 
       ! Duplicate - do not add.
-      call lgr%add_handler(MockHandler(bufA))
+      call lgr%add_handler(handler_A)
 
       handlers => lgr%get_handlers()
       @assertEqual(2, handlers%size())
