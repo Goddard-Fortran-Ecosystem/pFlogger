@@ -16,7 +16,7 @@ module Test_Logger_mod
       type (Logger) :: basicLogger
       ! Here we use a mock handler that collects data in a 'mock buffer'
       type (MockBuffer), pointer :: mockBuffer
-      type (MockHandler), pointer :: hdlPtr
+      class (MockHandler), pointer :: hdlPtr
    contains
       procedure :: setUp    
       procedure :: tearDown 
@@ -27,14 +27,13 @@ contains
 
    subroutine setUp(this)
       class (Test_Logger), intent(inout) :: this
-      type (MockHandler), pointer :: mockHandler_
       
       this%basicLogger = Logger('A', INFO)
       allocate(this%mockBuffer)
       allocate(this%hdlPtr, source=MockHandler(this%mockBuffer))
 
       call this%basicLogger%add_handler(this%hdlPtr)
-!!%      call this%basicLogger%add_handler(MockHandler(this%mockBuffer))
+
    end subroutine setUp
 
 
