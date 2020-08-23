@@ -7,13 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.4] - 2020-08-23
+
+## Changed
+
+- Recent addition of `basic_config()` (see previous release)
+  introduced an ambiguity for memory management.  The underlying
+  design from Python is based upon garbage collection and reference
+  counting.  To solve this problem there the user can now either
+  specify a HandlerVector or a HandlerPtrVector (but not both) If the
+  former, pFlogger will copy the handlers into its internal storage.
+  If the latter, pFlogger will only retain a pointer reference to the
+  user actual argument.  In that case, the user is repsonsible for
+  maintaining the handlers until pFlogger is finalized and ensuring
+  that any locks are freed.
+
+- The argument to `Logger::add_handle()`  must now have the TARGET
+  attribute.  pFlogger will only maintain a pointer to that target.
+  This is to be consistent with the above strategy.
+
+## Fixed
+
+- Implemented workaround for ifort 18.0.5 that became necessary after
+  the changes above.  Only impacted unit tests.
+
 ## [1.4.3] - 2020-08-07
 
 ### Fixed
 
-- Some flavors of MPI complained at finalize because the MPI memory windows were not freed.
-  Fixing required nontrivial changes because handlers (and thus locks and windows) were
-  unintentionally duplicated rather than shared among logger objects.
+- Some flavors of MPI complained at finalize because the MPI memory
+  windows were not freed.  Fixing required nontrivial changes because
+  handlers (and thus locks and windows) were unintentionally
+  duplicated rather than shared among logger objects.
 
 ## [1.4.2] - 2020-05-20
 
