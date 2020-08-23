@@ -21,7 +21,7 @@
 module PFL_Logger
    use gFTL_UnlimitedVector
    use gFTL_StringUnlimitedMap
-   use PFL_AbstractHandlerPolyVector
+   use PFL_AbstractHandlerPtrVector
    use PFL_Exception, only: throw
    use PFL_AbstractLogger
    use PFL_AbstractHandler
@@ -43,7 +43,7 @@ module PFL_Logger
    type, extends(AbstractLogger) :: Logger
       private
       integer :: level = NOTSET
-      type (HandlerVector) :: handlers
+      type (HandlerPtrVector) :: handlers
       class (Logger), pointer :: parent => null()
       logical :: propagate = .true.
       character(len=:), allocatable :: name
@@ -70,7 +70,7 @@ module PFL_Logger
       procedure :: get_parent
       procedure :: set_propagate
       procedure :: get_propagate
-      procedure :: free
+      !procedure :: free
    end type Logger
 
    interface Logger
@@ -115,7 +115,7 @@ contains
       if (present (level)) level_ = level
       call aLog%set_level(level_)
 
-      alog%handlers = HandlerVector()
+      alog%handlers = HandlerPtrVector()
       
    end function newLogger
 
@@ -157,7 +157,7 @@ contains
       class (Logger), intent(inout) :: this
       class (AbstractHandler), target, intent(in) :: handler
       
-      type (HandlerVectorIterator) :: iter
+      type (HandlerPtrVectorIterator) :: iter
       class (AbstractHandler), pointer :: hdlPtr
 
       iter = this%handlers%begin()
@@ -172,20 +172,20 @@ contains
       
    end subroutine add_handler
 
-   subroutine free(this)
-      class (Logger), intent(inout) :: this
-      class (AbstractHandler), pointer :: handler
-
-      type (HandlerVectorIterator) :: iter
-
-      iter = this%handlers%begin()
-      do while (iter /= this%handlers%end())
-         handler => iter%get()
-         call handler%free()
-         call iter%next()
-      end do
-
-   end subroutine free
+!   subroutine free(this)
+!      class (Logger), intent(inout) :: this
+!      class (AbstractHandler), pointer :: handler
+!
+!      type (HandlerPtrVectorIterator) :: iter
+!
+!      iter = this%handlers%begin()
+!      do while (iter /= this%handlers%end())
+!         handler => iter%get()
+!         call handler%free()
+!         call iter%next()
+!      end do
+!
+!   end subroutine free
 
 
 !---------------------------------------------------------------------------  
@@ -200,7 +200,7 @@ contains
       class (AbstractHandler), pointer :: hdlerPtr
       integer :: i
       logical :: found
-      type (HandlerVectorIterator) :: iter 
+      type (HandlerPtrVectorIterator) :: iter 
 
       found = .false.
       iter = this%handlers%begin()
@@ -333,7 +333,7 @@ contains
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
-      type (HandlerVectorIterator) :: iter
+      type (HandlerPtrVectorIterator) :: iter
       class (AbstractHandler), pointer :: h
 
       class (Logger), pointer :: current
@@ -545,7 +545,7 @@ contains
 !---------------------------------------------------------------------------
    function get_handlers(this) result(handlers)
       class (Logger), target, intent(in) :: this
-      type (HandlerVector), pointer :: handlers
+      type (HandlerPtrVector), pointer :: handlers
       
       handlers => this%handlers
       

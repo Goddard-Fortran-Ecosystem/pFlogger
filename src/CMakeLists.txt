@@ -41,6 +41,7 @@ set(SRCS
    StringLockMap.F90
    LoggerPolyVector.F90
    AbstractHandlerPolyVector.F90
+   AbstractHandlerPtrVector.F90
    AbstractFilterPolyVector.F90
    FormatTokenVector.F90
 )
