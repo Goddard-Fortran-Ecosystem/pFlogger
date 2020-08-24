@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.5] - 2020-08-24
+
+### Changed
+	
+- Fixed one more test that was missed in previous update. (Was using -f filter
+  to focus  on some failing tests.  Blinded to thore tests.)
+
+
 ## [1.4.4] - 2020-08-23
 
-## Changed
+### Changed
 
 - Recent addition of `basic_config()` (see previous release)
   introduced an ambiguity for memory management.  The underlying
@@ -26,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   attribute.  pFlogger will only maintain a pointer to that target.
   This is to be consistent with the above strategy.
 
-## Fixed
+### Fixed
 
 - Implemented workaround for ifort 18.0.5 that became necessary after
   the changes above.  Only impacted unit tests.
