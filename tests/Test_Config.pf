@@ -211,7 +211,7 @@ contains
            & form='formatted')
 
       write(unitStr,'(i0)') unit
-      print*,'using: ', unit
+
       p = Parser()
       handler_cfg = p%load(EscapedTextStream( &
            & "  class: StreamHandler \n" // &
