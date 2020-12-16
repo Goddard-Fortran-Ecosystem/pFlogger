@@ -146,8 +146,9 @@ contains
 
    ! A no-op routine.
    !---------------------------------------------------------------------------  
-   subroutine free(this)
+   subroutine free(this, rc)
       class (StreamHandler), intent(inout) :: this
+      integer, optional, intent(out) :: rc
    end subroutine free
 
    !---------------------------------------------------------------------------  

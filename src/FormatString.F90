@@ -169,9 +169,7 @@ contains
       end do
 
       if (argIter /= args%end()) then
-#        define _EXTRA_ARGS
          _ASSERT(.false., 'format_vector() - additional unprocessed arguments.',rc)
-         _RETURN(_FAILURE,rc)
       end if
 
       _RETURN(_SUCCESS,rc)

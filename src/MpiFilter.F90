@@ -85,10 +85,7 @@ contains
    !---------------------------------------------------------------------------
    logical function do_filter(this, record)
       class (MpiFilter), intent(in) :: this
-      class (LogRecord), intent(inout) :: record
-
-      character(len=:), allocatable :: recordName
-      integer :: n
+      class (LogRecord), intent(in) :: record
 
       if (this%shouldFilter) then 
          do_filter = .true.  ! do emit
