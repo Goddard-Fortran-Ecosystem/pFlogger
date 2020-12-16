@@ -32,7 +32,7 @@ module PFL_AbstractFilter
          use PFL_LogRecord, only: LogRecord
          import AbstractFilter
          class (AbstractFilter), intent(in) :: this
-         class (LogRecord), intent(inout) :: record
+         class (LogRecord), intent(in) :: record
       end function do_filter
 
       logical function equal(a, b)

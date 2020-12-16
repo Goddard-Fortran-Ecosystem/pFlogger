@@ -16,6 +16,7 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
+#include "error_handling_macros.fh"
 module PFL_Filterer
    use PFL_AbstractFilter, only: AbstractFilter
    use PFL_LogRecord, only: LogRecord
@@ -97,7 +98,7 @@ contains
    !---------------------------------------------------------------------------
    logical function do_filter(this, record)
       class (Filterer), intent(in) :: this
-      class (LogRecord), intent(inout) :: record
+      class (LogRecord), intent(in) :: record
 
       type (FilterVectorIterator) :: iter
       class (AbstractFilter), pointer :: fPtr
@@ -124,23 +125,25 @@ contains
    ! DESCRIPTION: 
    ! Remove filter from 'this' handler.
    !---------------------------------------------------------------------------
-   subroutine remove_filter(this, f)
+   subroutine remove_filter(this, f, rc)
       class(Filterer), intent(inout) :: this
       class (AbstractFilter), intent(in) :: f
+      integer, optional, intent(out) :: rc
 
       type (FilterVectorIterator) :: iter
       class (AbstractFilter), pointer :: fPtr
 
       integer :: i
+      integer :: status
       
       i = this%filters%get_index(f)
       if (i > 0) then
          call this%filters%erase(this%filters%begin() + i - 1)
       else
          ! Only can get here if filter not found
-         call throw(__FILE__,__LINE__,'Filterer::remove_filter() - no such filter.')
+         _ASSERT(.false., 'Filterer::remove_filter() - no such filter.', rc)
       end if
-
+      _RETURN(_SUCCESS,rc)
    end subroutine remove_filter
 
 

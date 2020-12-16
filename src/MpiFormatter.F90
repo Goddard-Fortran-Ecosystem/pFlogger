@@ -1,6 +1,8 @@
+#include "error_handling_macros.fh"
 module PFL_MpiFormatter
    use PFL_Formatter
    use PFL_MpiCommConfig
+   use PFL_Exception
    use mpi
    implicit none
    private
@@ -21,7 +23,7 @@ module PFL_MpiFormatter
 
 contains
 
-   function newMpiFormatter_comm(comm, unused, rank_keyword, size_keyword, fmt, datefmt) result(f)
+   function newMpiFormatter_comm(comm, unused, rank_keyword, size_keyword, fmt, datefmt, rc) result(f)
       use PFL_FormatParser
       use PFL_FormatTokenVector
       use gftl_StringUnlimitedMap
@@ -34,21 +36,23 @@ contains
       character(len=*), optional, intent(in) :: size_keyword
       character(len=*), optional, intent(in) :: fmt
       character(len=*), optional, intent(in) :: datefmt
+      integer, optional, intent(out) :: rc
 
       type (StringUnlimitedMap) :: dictionary
 
       character(len=:), allocatable :: fmt_
-
+      integer :: status
       ! workaround for gfortran 10.0
-      call init_MpiCommConfig(dictionary, comm, rank_keyword=rank_keyword, size_keyword=size_keyword)
+      call init_MpiCommConfig(dictionary, comm, rank_keyword=rank_keyword, size_keyword=size_keyword, rc=status)
+      _VERIFY(status,'',rc)
 
       fmt_ = default(fmt, 'pe=%(mpi_rank)i4.4~: %(name)a~: %(message)a')
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
-
+      _RETURN(_SUCCESS,rc)
    end function newMpiFormatter_comm
 
 
-   function newMpiFormatter_comms(comms, unused, rank_prefix, size_prefix, fmt, datefmt) result(f)
+   function newMpiFormatter_comms(comms, unused, rank_prefix, size_prefix, fmt, datefmt, rc) result(f)
       use PFL_FormatParser
       use PFL_FormatTokenVector
       use gftl_StringUnlimitedMap
@@ -62,14 +66,17 @@ contains
       character(len=*), optional, intent(in) :: size_prefix
       character(len=*), optional, intent(in) :: fmt
       character(len=*), optional, intent(in) :: datefmt
+      integer, optional, intent(out) :: rc
 
       type (FormatParser) :: p
       type (StringUnlimitedMap) :: dictionary
       character(len=:), allocatable :: fmt_
-      
+      integer :: status
+ 
       ! workaround for gfortran 10.0
-      call init_MpiCommConfig(dictionary, comms, rank_prefix=rank_prefix, size_prefix=size_prefix)
-      
+      call init_MpiCommConfig(dictionary, comms, rank_prefix=rank_prefix, size_prefix=size_prefix, rc=status)
+      _VERIFY(status,'',rc)
+
       if (present(fmt)) then
          fmt_ = fmt
       else
@@ -89,7 +96,7 @@ contains
       end if
 
       f%Formatter = Formatter(fmt_, datefmt=datefmt, extra=dictionary)
-
+      _RETURN(_SUCCESS,rc)
       
    end function newMpiFormatter_comms
 

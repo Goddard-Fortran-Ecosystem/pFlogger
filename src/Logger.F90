@@ -193,9 +193,10 @@ contains
 !
 !> @brief Remove the specified handler to this logger.
 !---------------------------------------------------------------------------
-   subroutine remove_handler(this, handler)
+   subroutine remove_handler(this, handler, rc)
       class (Logger), intent(inout) :: this
       class (AbstractHandler), target, intent(in) :: handler
+      integer, optional, intent(out) :: rc
 
       class (AbstractHandler), pointer :: hdlerPtr
       integer :: i
@@ -216,9 +217,9 @@ contains
 
       !   ! Only can get here if handler not found
       if (.not. found) then
-         call throw(__FILE__,__LINE__,'PFL::Logger%remove_handler() called - logger has no such handler.')
+         _ASSERT(.false., 'PFL::Logger%remove_handler() called - logger has no such handler.', rc)
       end if
-
+      _RETURN(_SUCCESS,rc)
    end subroutine remove_handler
 
 

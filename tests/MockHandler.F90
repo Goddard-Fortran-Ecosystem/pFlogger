@@ -73,8 +73,9 @@ contains
       class (MockHandler), intent(inout) :: this
    end subroutine close
 
-   subroutine free(this)
+   subroutine free(this, rc)
       class(MockHandler), intent(inout) :: this
+      integer, optional, intent(out) :: rc
    end subroutine free
 
    logical function equal(a, b)
