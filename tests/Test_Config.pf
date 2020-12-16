@@ -275,7 +275,6 @@ contains
            & " level: INFO \n"))
 
       call build_handler(h, handler_cfg, elements)
-      print*, h%get_level()
       @assertEqual(INFO, h%get_level(),'incorrect level')
 
       block
