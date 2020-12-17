@@ -12,11 +12,13 @@ mkdir -p ${GFE_INSTALL_DIR}
 to_build=(gFTL gFTL-shared fArgParse yaFyaml pFUnit)
 for repo in "${to_build[@]}"
 do
+   echo "Running build for ${repo}"
    cd ${GFE_DIR}
    git clone https://github.com/Goddard-Fortran-Ecosystem/${repo}.git
    cd ${GFE_DIR}/${repo}
    mkdir build && cd build
    cmake .. -DCMAKE_INSTALL_PREFIX=${GFE_INSTALL_DIR} -DCMAKE_PREFIX_PATH=${GFE_INSTALL_DIR}
    make -j$(nproc) install
+   echo "Completed build for ${repo}"
 done
 
