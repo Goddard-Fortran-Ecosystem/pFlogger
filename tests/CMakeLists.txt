@@ -40,7 +40,7 @@ if (MPI_FOUND)
   endif ()
 endif ()
 
-set (link_libraries pflogger gftl-shared)
+set (link_libraries pflogger GFTL_SHARED::gftl-shared)
 if (MPI_FOUND)
   list(APPEND link_libraries mock-mpi)
 endif()
