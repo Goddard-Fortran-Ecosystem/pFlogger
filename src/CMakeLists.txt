@@ -63,8 +63,10 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
 add_library (${this} STATIC ${SRCS})
-target_link_libraries (${this} PUBLIC yafyaml)
+add_library(PFLOGGER::pflogger ALIAS pflogger)
+target_link_libraries (${this} PUBLIC YAFYAML::yafyaml)
 set_target_properties(${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
+
 
 
 if (MPI_FOUND)
@@ -116,7 +118,6 @@ target_link_libraries(${this} PUBLIC GFTL_SHARED::gftl-shared GFTL::gftl)
 install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
 install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)
 install (FILES  ${PROJECT_SOURCE_DIR}/src/error_handling_macros.fh DESTINATION ${dest}/include)
-install (EXPORT PFLOGGER DESTINATION "${dest}/cmake")
 
 
 

@@ -85,3 +85,25 @@ install (
   FILES ${PROJECT_BINARY_DIR}/PFLOGGERConfig.cmake ${PROJECT_BINARY_DIR}/PFLOGGERConfig-version.cmake
   DESTINATION "${top_dir}/cmake")
 
+# The following is needed for external projects using *nix make when
+# parent project builds gFTL-shared as a subproject.
+set (PFLOGGER_TOP_DIR "${CMAKE_INSTALL_PREFIX}/${top_dir}" CACHE PATH "")
+
+# The following is needed for external projects using *nix make when
+# parent project builds yafyaml as a subproject.
+set (PFLOGGER_TOP_DIR "${CMAKE_INSTALL_PREFIX}/${top_dir}" CACHE PATH "")
+configure_file (PFLOGGER.mk.in ${PROJECT_BINARY_DIR}/PFLOGGER.mk @ONLY)
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/PFLOGGER.mk ${CMAKE_CURRENT_BINARY_DIR}/PFLOGGER.mk
+  DESTINATION "${top_dir}/include")
+
+
+install (EXPORT PFLOGGER
+  FILE PFLOGGERTargets.cmake
+  NAMESPACE PFLOGGER::
+  DESTINATION "${top_dir}/cmake")
+
+export(EXPORT PFLOGGER
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PFLOGGERTargets.cmake"
+  NAMESPACE PFLOGGER::
+  )

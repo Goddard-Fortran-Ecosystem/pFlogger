@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2021-03-14
+
+### Changed
+	
+- Introduced CMake namespace.   Upstream projects should now specify dependency
+  as PFLOGGER::pflogger
+
 ## [1.4.5] - 2020-08-24
 
 ### Changed
