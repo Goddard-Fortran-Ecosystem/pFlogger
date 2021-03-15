@@ -18,7 +18,7 @@ contains
    logical function do_filter(this, record)
       use PFL_LogRecord
       class (ConfigurableFilter), intent(in) :: this
-      class (LogRecord), intent(inout) :: record
+      class (LogRecord), intent(in) :: record
 
       do_filter = this%filterOn
 

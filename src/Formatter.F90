@@ -1,11 +1,3 @@
-#define _UNUSED_DUMMY(x) if(.false.)print*,shape(x)
-#define _SUCCESS 0
-#define _FAILURE 1
-#define _RETURN(status,rc) if (present(rc))rc=status; return
-#define _THROW(msg) call throw(__FILE__,__LINE__,msg)
-#define _ASSERT(cond,msg,rc) if(.not.(cond))then; _THROW(msg);_RETURN(_FAILURE,rc);endif
-#define _VERIFY(status,msg,rc) _ASSERT(status==_SUCCESS,msg,rc)
-
 !------------------------------------------------------------------------------
 ! NASA/GSFC, CISTO, Code 606, Advanced Software Technology Group
 !------------------------------------------------------------------------------
@@ -41,6 +33,7 @@
 ! REVISION HISTORY:
 ! 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
+#include "error_handling_macros.fh"
 module PFL_Formatter
    use PFL_Object
    use PFL_LogRecord

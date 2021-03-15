@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0] - 2021-03-15
 
+### Added
+
+- Pervasive return codes for all procedures with potentially failing branch.
+  Added as optional arguments for backward compatibility.
+ 
 ### Changed
 	
 - Introduced CMake namespace.   Upstream projects should now specify dependency

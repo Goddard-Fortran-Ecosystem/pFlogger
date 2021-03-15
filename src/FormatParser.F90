@@ -12,6 +12,7 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
+#include "error_handling_macros.fh"
 module PFL_FormatParser
    use PFL_FormatTokenVector, only: FormatTokenVector => Vector
    use PFL_FormatToken, only: FormatToken
@@ -74,10 +75,11 @@ module PFL_FormatParser
    !-----------------
 
    interface
-      subroutine ContextInterface(this, char)
+      subroutine ContextInterface(this, char, rc)
          import FormatParser
          class (FormatParser), intent(inout) :: this
          character(len=1), intent(in) :: char
+         integer, optional, intent(out) :: rc
       end subroutine ContextInterface
    end interface
 
@@ -190,9 +192,12 @@ contains
 
 ! Various contexts:
 
-   subroutine textContext(this, char)
+   subroutine textContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       select case (char)
       case ("'")
@@ -209,15 +214,17 @@ contains
          call this%set_context(positionContext)
          associate (pos => this%currentPosition)
            if (pos > 0) then ! send buffer to new token
-              call this%push_back(FormatToken(TEXT, this%buffer(1:pos)))
+              call this%push_back(FormatToken(TEXT, this%buffer(1:pos), rc=status))
+              _VERIFY(status,'',rc) 
               pos = 0
            end if
          end associate
-         return ! char should not be put in buffer
+         ! char should not be put in buffer
+         _RETURN(_SUCCESS,rc)
       case default
          call this%push_char(char)
       end select
-
+      _RETURN(_SUCCESS,rc)
    end subroutine textContext
 
 
@@ -235,17 +242,19 @@ contains
 
    ! Single Quote context treats other special characters as ordinary.
    ! Returns to text context when matching close quote is found.
-   subroutine singleQuoteContext(this, char)
+   subroutine singleQuoteContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       select case (char)
       case ("'")
          call this%pop_context()
       case (C_NULL_CHAR)
          call this%set_context(illegalContext)
-         call throw(__FILE__,__LINE__,'FormatParser::singleQuoteContext() - unclosed single quote')
-         return
+         _ASSERT(.false., 'FormatParser::singleQuoteContext() - unclosed single quote', rc)
       case default
          ! stay single quote
       end select
@@ -254,23 +263,25 @@ contains
         pos = pos + 1
         this%buffer(pos:pos) = char
       end associate
-
+      _RETURN(_SUCCESS,rc)
    end subroutine singleQuoteContext
 
 
    ! Double Quote context treats other special characters as ordinary.
    ! Returns to text context when matching close quote is found.
-   subroutine doubleQuoteContext(this, char)
+   subroutine doubleQuoteContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       select case (char)
       case ('"')
          call this%pop_context()
       case (C_NULL_CHAR)
          call this%set_context(illegalContext)
-         call throw(__FILE__,__LINE__,'FormatParser::doubleQuoteContext() - unclosed double quote')
-         return
+         _ASSERT(.false., 'FormatParser::doubleQuoteContext() - unclosed double quote', rc)
       case default
          ! stay double quote
       end select
@@ -280,12 +291,16 @@ contains
         this%buffer(pos:pos) = char
       end associate
 
+      _RETURN(_SUCCESS,rc)
    end subroutine doubleQuoteContext
 
 
-   subroutine positionContext(this, char)
+   subroutine positionContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       associate (pos => this%currentPosition)
 
@@ -293,11 +308,13 @@ contains
         case (SPACE, TERMINATOR, C_NULL_CHAR)
            call this%set_context(textContext)
            if (pos > 0) then ! send buffer to new token
-              call this%push_back(FormatToken(POSITION, this%buffer(1:pos)))
+              call this%push_back(FormatToken(POSITION, this%buffer(1:pos), rc=status))
+              _VERIFY(status,'',rc)
               pos = 0
               if (char == TERMINATOR) return ! discard char
            else
-              call this%push_back(FormatToken(POSITION, '*'))
+              call this%push_back(FormatToken(POSITION, '*', rc=status))
+              _VERIFY(status,'',rc)
               pos = 0
               call this%set_context(textContext)
               return
@@ -324,15 +341,16 @@ contains
         call this%push_char(char)
 
       end associate
-
+      _RETURN(_SUCCESS,rc)
    end subroutine positionContext
 
-
-   subroutine keywordContext(this, char)
+   subroutine keywordContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
 
       integer :: idx
+      integer :: status
 
       associate ( pos => this%currentPosition )
 
@@ -340,37 +358,39 @@ contains
         case (KEYWORD_SEPARATOR)
            if (pos == 0) then
               call this%set_context(illegalContext)
-              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword?')
+              _ASSERT(.false., 'FormatParser::keywordContext() - missing keyword?', rc)
            end if
         case (C_NULL_CHAR)
            call this%set_context(illegalContext)
            idx = index(this%buffer, KEYWORD_SEPARATOR)
            if (pos == 0) then
-              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword')
+              _ASSERT(.false., 'FormatParser::keywordContext() - missing keyword', rc)
            elseif (idx == 0) then
-              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing ")"')
+              _ASSERT(.false., 'FormatParser::keywordContext() - missing ")"', rc)
            elseif (idx == 1) then
-              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - missing keyword?')
+              _ASSERT(.false., 'FormatParser::keywordContext() - missing keyword?', rc)
            elseif (idx == pos) then
               call this%set_context(textContext)
-              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos) // '*'))
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos) // '*', rc=status))
+              _VERIFY(status,'',rc)
               pos = 0
            else
               call this%set_context(textContext)
-              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos), rc=status))
+              _VERIFY(status,'',rc)
               pos = 0
            end if
            return
         case (SPACE, TERMINATOR)
            call this%set_context(textContext)
            if (pos > 0) then ! send buffer to new token
-              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos)))
+              call this%push_back(FormatToken(KEYWORD, this%buffer(1:pos), rc=status))
+              _VERIFY(status,'',rc)
               pos = 0
               if (char == TERMINATOR) return ! discard char
            else
               call this%set_context(illegalContext)
-              call throw(__FILE__,__LINE__,'FormatParser::keywordContext() - empty edit descriptor')
-              return
+              _ASSERT(.false., 'FormatParser::keywordContext() - empty edit descriptor', rc)
            end if
         case default
            ! stay keyword format
@@ -380,13 +400,16 @@ contains
         this%buffer(pos:pos) = char
 
       end associate
-
+      _RETURN(_SUCCESS,rc)
    end subroutine keywordContext
 
 
-   subroutine escapeContext(this, char)
+   subroutine escapeContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       associate ( pos => this%currentPosition )
 
@@ -397,25 +420,26 @@ contains
            call this%set_context(textContext)
         case default
            call this%set_context(illegalContext)
-           call throw(__FILE__,__LINE__,'FormatParser::escapeContext() - ' // &
-                & 'no such escape sequence: ' // ESCAPE // char)
+           _ASSERT(.false., 'FormatParser::escapeContext() - no such escape sequence: ' // ESCAPE // char, rc)
         end select
-
 
       end associate
 
+      _RETURN(_SUCCESS,rc)
    end subroutine escapeContext
 
 
-   subroutine illegalContext(this, char)
+   subroutine illegalContext(this, char, rc)
       class (FormatParser), intent(inout) :: this
       character(len=1), intent(in) :: char
+      integer, optional, intent(out) :: rc
+
+      integer :: status
 
       associate ( pos => this%currentPosition )
-        call throw(__FILE__,__LINE__,'FormatParser - illegal format specification <' // &
-             & this%buffer(1:pos) // '>')
+        _ASSERT(.false., 'FormatParser - illegal format specification <' // this%buffer(1:pos) // '>', rc)
       end associate
-
+      _RETURN(_FAILURE, rc)
    end subroutine illegalContext
 
    subroutine reset(this)

@@ -14,9 +14,10 @@ module PFL_AbstractLock
    end type AbstractLock
 
    abstract interface
-      subroutine lock(this)
+      subroutine lock(this, rc)
          import AbstractLock
          class (AbstractLock), intent(inout) :: this
+         integer, optional, intent(out) :: rc
       end subroutine lock
 
       function is_initialized(this) result(init)

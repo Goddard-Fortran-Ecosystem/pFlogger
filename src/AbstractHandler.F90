@@ -81,9 +81,10 @@ module PFL_AbstractHandler
          class(AbstractHandler), intent(in) :: this
       end subroutine flush
 
-      subroutine free(this)
+      subroutine free(this, rc)
          import AbstractHandler
          class(AbstractHandler), intent(inout) :: this
+         integer, optional, intent(out) :: rc
       end subroutine free
 
       logical function equal(a, b)

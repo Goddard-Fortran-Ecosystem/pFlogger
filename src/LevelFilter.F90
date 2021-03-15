@@ -46,9 +46,8 @@ contains
    !---------------------------------------------------------------------------
    logical function do_filter(this, record)
       class (LevelFilter), intent(in) :: this
-      class (LogRecord), intent(inout) :: record
+      class (LogRecord), intent(in) :: record
 
-      character(len=:), allocatable :: recordName
       integer :: n
 
       integer :: level

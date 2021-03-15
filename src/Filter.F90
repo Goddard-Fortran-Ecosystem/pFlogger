@@ -99,7 +99,7 @@ contains
    !---------------------------------------------------------------------------
    logical function do_filter(this, record)
       class (Filter), intent(in) :: this
-      class (LogRecord), intent(inout) :: record
+      class (LogRecord), intent(in) :: record
 
       character(len=:), allocatable :: recordName
       integer :: n

@@ -56,12 +56,10 @@ contains
       integer, optional, intent(out) :: rc
 
 #ifdef __GFORTRAN__
-      _THROW('DynamicBuffer::grow_num_records() - GFortran cannot support dynamically sized multiline records for internal files.')
-      _RETURN(_FAILURE,rc)
+      _ASSERT(.false., 'DynamicBuffer::grow_num_records() - GFortran cannot support dynamically sized multiline records for internal files.', rc)
 #else
       if (this%record_size * this%num_records > MAX_BUFFER_SIZE/2) then
-         _THROW('DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.')
-         _RETURN(_FAILURE,rc)
+         _ASSERT(.false., 'DynamicBuffer::grow_num_records() - exceeded maximum permitted num records.', rc)
       end if
 
       this%num_records = this%num_records * 2

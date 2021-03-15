@@ -93,7 +93,8 @@ contains
 
       integer :: status
       if (this%is_lockable()) then
-         call this%lock%acquire()
+         call this%lock%acquire(rc=status)
+         _VERIFY(status,'',rc)
          call this%open()
       end if
 
@@ -102,7 +103,8 @@ contains
 
       if (this%is_lockable()) then
          call this%close()
-         call this%lock%release()
+         call this%lock%release(rc=status)
+         _VERIFY(status,'',rc)
       end if
       _RETURN(_SUCCESS,rc)
 
@@ -161,7 +163,9 @@ contains
       logical :: opened
       integer :: status
 
-      if (this%is_open()) return
+      if (this%is_open()) then
+        _RETURN(_SUCCESS,rc)
+      endif
 
       open(newunit=unit, file=this%get_file_name(), &
            & status='unknown', form='formatted', position='append',iostat=status)
@@ -250,7 +254,6 @@ contains
 
    end function equal
 
-
    logical function is_lockable(this)
       class (FileHandler), intent(in) :: this
 
@@ -259,32 +262,38 @@ contains
 
    end function is_lockable
 
-
-
-   subroutine set_lock(this, lock)
+   subroutine set_lock(this, lock, rc)
       class (FileHandler), intent(inout) :: this
       class (AbstractLock), intent(in) :: lock
+      integer, optional, intent(out) :: rc
       
+      integer :: status
+
       if (this%is_lockable()) then
-         call this%lock%destroy()
+         call this%lock%destroy(rc=status)
+         _VERIFY(status,'',rc)
          deallocate(this%lock)
       end if
 
       if (this%is_open()) call this%close()
 
       allocate(this%lock, source=lock)
-      call this%lock%init()
-
+      call this%lock%init(rc=status)
+      _VERIFY(status,'',rc)
+      _RETURN(_SUCCESS,rc)
    end subroutine set_lock
 
-   subroutine free(this)
+   subroutine free(this, rc)
       class (FileHandler), intent(inout) :: this
+      integer, optional, intent(out) :: rc
+      integer :: status
 
       if (this%is_lockable()) then
-         call this%lock%destroy()
+         call this%lock%destroy(rc=status)
+         _VERIFY(status,'',rc)
          deallocate(this%lock)
       end if
-
+      _RETURN(_SUCCESS,rc)
    end subroutine free
 
 end module PFL_FileHandler

@@ -9,6 +9,7 @@
 !> @author ASTG staff
 !> @date 01 Jan 2015 - Initial Version  
 !------------------------------------------------------------------------------
+#include "error_handling_macros.fh"
 module PFL_SeverityLevels
    use PFL_Exception
    use gftl_StringIntegerMap
@@ -53,21 +54,22 @@ contains
    ! DESCRIPTION:
    ! Convert a numeric severity level to string identifier.
    !---------------------------------------------------------------------------
-   function level_to_name(level) result(name)
+   function level_to_name(level, rc) result(name)
       character(len=:), allocatable :: name
       integer, intent(in) :: level
+      integer, optional, intent(out) :: rc
 
       type (IntegerStringMapIterator) :: iter
+      integer :: status
 
       iter = level_to_name_%find(level)
       if (iter == level_to_name_%end()) then
          name = ''
-         call throw(__FILE__,__LINE__,'PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.')
-         return
+         _ASSERT(.false., 'PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.', rc)
       end if
 
       name = iter%value()
-      
+      _RETURN(_SUCCESS,rc)
    end function level_to_name
     
 
@@ -78,21 +80,22 @@ contains
    ! DESCRIPTION:
    ! Convert a level name to a numeric severity level
    !---------------------------------------------------------------------------
-   function name_to_level(name) result(level)
+   function name_to_level(name, rc) result(level)
       integer :: level
       character(len=*), intent(in) :: name
+      integer, optional, intent(out) :: rc
 
       type (StringIntegerMapIterator) :: iter
+      integer :: status
 
       iter = name_to_level_%find(name)
       if (iter == name_to_level_%end()) then
          level = NOTSET
-         call throw(__FILE__,__LINE__,'PFL::SeverityLevels::name_to_level - unknown level name "'//name//'". Please use a valid name.')
-         return
+          _ASSERT(.false., 'PFL::SeverityLevels::name_to_level - unknown level name "'//name//'". Please use a valid name.', rc)
       end if
 
       level = iter%value()
-
+      _RETURN(_SUCCESS,rc)
    end function name_to_level
 
    subroutine initialize_severity_levels()
