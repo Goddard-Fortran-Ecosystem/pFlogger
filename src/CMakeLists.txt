@@ -63,8 +63,10 @@ set (src ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
 add_library (${this} STATIC ${SRCS})
-target_link_libraries (${this} PUBLIC yafyaml)
+add_library(PFLOGGER::pflogger ALIAS pflogger)
+target_link_libraries (${this} PUBLIC YAFYAML::yafyaml)
 set_target_properties(${this} PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/include)
+
 
 
 if (MPI_FOUND)
@@ -80,7 +82,7 @@ if (MPI_FOUND)
     set_target_properties(mock-mpi PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
     target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
     target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-    target_link_libraries (mock-mpi PUBLIC funit)
+    target_link_libraries (mock-mpi PUBLIC PFUNIT::funit)
     if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
       target_compile_definitions(mock-mpi PRIVATE -DSUPPORT_FOR_C_LOC_ASSUMED_SIZE)
     endif ()
@@ -93,7 +95,7 @@ if (MPI_FOUND)
 #      $<BUILD_INTERFACE:mock-mpi>
       $<${notTest}:MPI::MPI_Fortran>
       $<${isTest}:mock-mpi>
-      $<${isTest}:funit>)
+      $<${isTest}:PFUNIT::funit>)
 
   else ()
     target_link_libraries (pflogger PRIVATE MPI::MPI_Fortran)
@@ -111,12 +113,11 @@ target_include_directories(${this} PUBLIC
   $<INSTALL_INTERFACE:${dest}/include>
   )
 
-target_link_libraries(${this} PUBLIC gftl-shared gftl)
+target_link_libraries(${this} PUBLIC GFTL_SHARED::gftl-shared GFTL::gftl)
 
 install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
 install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)
 install (FILES  ${PROJECT_SOURCE_DIR}/src/error_handling_macros.fh DESTINATION ${dest}/include)
-install (EXPORT PFLOGGER DESTINATION "${dest}/cmake")
 
 
 
