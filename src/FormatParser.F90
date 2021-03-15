@@ -420,8 +420,7 @@ contains
            call this%set_context(textContext)
         case default
            call this%set_context(illegalContext)
-           _ASSERT(.false., 'FormatParser::escapeContext() - ' // &
-                & 'no such escape sequence: ' // ESCAPE // char, rc)
+           _ASSERT(.false., 'FormatParser::escapeContext() - ' // 'no such escape sequence: ' // ESCAPE // char, rc)
         end select
 
       end associate
