@@ -388,7 +388,7 @@ contains
 
 #endif
       case default
-         _ASSERT(.false., 'PFL::Config::build_filter() - unknow filter type: '//class_name//'.', rc)
+         _ASSERT(.false., 'PFL::Config::build_filter() - unknown filter type: '//class_name//'.', rc)
       end select
       _RETURN(_SUCCESS,rc)
 
@@ -1059,12 +1059,10 @@ contains
 
       if (is_present) then
          if (version /= 1) then
-            _ASSERT(.false., 'PFL::Config::check_schema_version() -' // &
-                 & ' unsupported schema_version. Allowed values are [1].', rc)
+            _ASSERT(.false., 'PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].', rc)
          end if
       else
-         _ASSERT(.false., 'PFL::Config::check_schema_version() -' // &
-              & ' must specify a schema_version for Config.', rc)
+         _ASSERT(.false., 'PFL::Config::check_schema_version() - must specify a schema_version for Config.', rc)
       end if
       _RETURN(_SUCCESS,rc)
    end subroutine check_schema_version
