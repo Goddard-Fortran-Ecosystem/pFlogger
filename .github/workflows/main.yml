@@ -43,11 +43,11 @@ jobs:
       - name: Build GFE Prereqs
         run: |
           bash ./tools/travis-install-gfe.bash
-      - name: Build gFTL
+      - name: Build pFlogger
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/gFTL -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
+          cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
           make -j$(nproc)
       - name: Build Tests
         run: |

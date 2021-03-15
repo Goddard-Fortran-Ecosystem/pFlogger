@@ -1,7 +1,11 @@
 # Package configuration file
+@PACKAGE_INIT@
 
-get_filename_component (SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set (PREFIX ${SELF_DIR}/../..)
-set (PFLOGGER_TOP_DIR ${PREFIX}/PFLOGGER-@PFLOGGER_VERSION_MAJOR@.@PFLOGGER_VERSION_MINOR@ CACHE PATH "")
-include ("${PFLOGGER_TOP_DIR}/cmake/PFLOGGER.cmake")
+include(CMakeFindDependencyMacro)
+find_dependency(GFTL)
+find_dependency(GFTL_SHARED)
+find_dependency(YAFYAML)
+
+include ("${CMAKE_CURRENT_LIST_DIR}/PFLOGGERTargets.cmake")
+
 
