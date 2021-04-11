@@ -99,11 +99,6 @@ contains
       else
          comm_world=MPI_COMM_WORLD
       end if
-      if (present(logger_name)) then
-         logger_default_name = logger_name
-      else
-         logger_default_name = "MAPL"
-      endif
 
       call initialize_severity_levels()
       call initialize_logger_manager()
@@ -113,32 +108,33 @@ contains
          call logging%load_file(logging_configuration_file)
       else
 
-         call MPI_COMM_Rank(comm_world,rank,status)
-         console = StreamHandler(OUTPUT_UNIT)
-         call console%set_level(INFO)
-         call console%set_formatter(MpiFormatter(comm_world, fmt='%(short_name)a10~: %(message)a'))
-         call handlers%push_back(console)
+         if (present(logger_name)) then
+            call MPI_COMM_Rank(comm_world,rank,status)
+            console = StreamHandler(OUTPUT_UNIT)
+            call console%set_level(INFO)
+            call console%set_formatter(MpiFormatter(comm_world, fmt='%(short_name)a10~: %(message)a'))
+            call handlers%push_back(console)
 
-         file_handler = FileHandler('warnings_and_errors.log')
-         call file_handler%set_level(WARNING)
-         call file_handler%set_formatter(MpiFormatter(comm_world, fmt='pe=%(mpi_rank)i5.5~: %(short_name)a~: %(message)a'))
-         call file_handler%set_lock(MpiLock(comm_world))
-         call handlers%push_back(file_handler)
+            file_handler = FileHandler('warnings_and_errors.log')
+            call file_handler%set_level(WARNING)
+            call file_handler%set_formatter(MpiFormatter(comm_world, fmt='pe=%(mpi_rank)i5.5~: %(short_name)a~: %(message)a'))
+            call file_handler%set_lock(MpiLock(comm_world))
+            call handlers%push_back(file_handler)
 
-         if (rank == 0) then
-            level = INFO
-         else
-            level = WARNING
-         end if
+            if (rank == 0) then
+               level = INFO
+            else
+               level = WARNING
+            end if
 
-         call logging%basic_config(level=level, handlers=handlers, rc=status)
-         _VERIFY(status)
+            call logging%basic_config(level=level, handlers=handlers, rc=status)
+            _VERIFY(status)
 
-         if (rank == 0) then
-            lgr => logging%get_logger(logger_default_name)
-            call lgr%warning('No configure file specified for logging layer.  Using defaults.')
-         end if
-
+            if (rank == 0) then
+               lgr => logging%get_logger(logger_name)
+               call lgr%warning('No configure file specified for logging layer.  Using defaults.')
+            end if
+         endif
       end if
       _RETURN(_SUCCESS)
 
