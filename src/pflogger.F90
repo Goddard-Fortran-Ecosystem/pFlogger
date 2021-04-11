@@ -1,4 +1,5 @@
 module pflogger
+   use, intrinsic :: iso_fortran_env, only: OUTPUT_UNIT
    use Pfl_Exception
    use PFL_LoggerManager
    use PFL_AbstractHandlerPtrVector
@@ -70,15 +71,79 @@ module pflogger
 
 contains
 
-   subroutine initialize()
+   subroutine initialize(unusable,comm,logging_config,logger_name, rc)
+      class (KeywordEnforcer), optional, intent(in) :: unusable
+      integer, optional, intent(in) :: comm
+      character(len=*), optional,intent(in) :: logging_config
+      character(len=*), optional,intent(in) :: logger_name
+      integer, optional, intent(out) :: rc
+
+      type (HandlerVector) :: handlers
+      type (StreamHandler) :: console
+      type (FileHandler) :: file_handler
+      integer :: level,rank,status
+      character(:), allocatable :: logging_configuration_file
+      character(:), allocatable :: logger_default_name
+      integer :: comm_world
+      type(Logger), pointer :: lgr
+
+      _UNUSED_DUMMY(unusable)
+      if (present(logging_config)) then
+         logging_configuration_file=logging_config
+      else
+         logging_configuration_file=''
+      end if
+      if (present(comm)) then
+         call MPI_Comm_dup(comm,comm_world,status)
+         _VERIFY(status)
+      else
+         comm_world=MPI_COMM_WORLD
+      end if
+      if (present(logger_name)) then
+         logger_default_name = logger_name
+      else
+         logger_default_name = "MAPL"
+      endif
 
       call initialize_severity_levels()
       call initialize_logger_manager()
       call set_last_resort(StreamHandler())
 
+      if (logging_configuration_file /= '') then
+         call logging%load_file(logging_configuration_file)
+      else
+
+         call MPI_COMM_Rank(comm_world,rank,status)
+         console = StreamHandler(OUTPUT_UNIT)
+         call console%set_level(INFO)
+         call console%set_formatter(MpiFormatter(comm_world, fmt='%(short_name)a10~: %(message)a'))
+         call handlers%push_back(console)
+
+         file_handler = FileHandler('warnings_and_errors.log')
+         call file_handler%set_level(WARNING)
+         call file_handler%set_formatter(MpiFormatter(comm_world, fmt='pe=%(mpi_rank)i5.5~: %(short_name)a~: %(message)a'))
+         call file_handler%set_lock(MpiLock(comm_world))
+         call handlers%push_back(file_handler)
+
+         if (rank == 0) then
+            level = INFO
+         else
+            level = WARNING
+         end if
+
+         call logging%basic_config(level=level, handlers=handlers, rc=status)
+         _VERIFY(status)
+
+         if (rank == 0) then
+            lgr => logging%get_logger(logger_default_name)
+            call lgr%warning('No configure file specified for logging layer.  Using defaults.')
+         end if
+
+      end if
+      _RETURN(_SUCCESS)
+
    end subroutine initialize
    
-
    subroutine finalize()
 
       call finalize_severity_levels()
