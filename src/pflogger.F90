@@ -88,18 +88,21 @@ contains
       type(Logger), pointer :: lgr
 
       _UNUSED_DUMMY(unusable)
+
       if (present(logging_config)) then
          logging_configuration_file=logging_config
       else
          logging_configuration_file=''
       end if
+
+#ifdef _LOGGER_USE_MPI
       if (present(comm)) then
          call MPI_Comm_dup(comm,comm_world,status)
          _VERIFY(status)
       else
          comm_world=MPI_COMM_WORLD
       end if
-
+#endif   
       call initialize_severity_levels()
       call initialize_logger_manager()
       call set_last_resort(StreamHandler())
@@ -109,16 +112,27 @@ contains
       else
 
          if (present(logger_name)) then
-            call MPI_COMM_Rank(comm_world,rank,status)
+
+            rank = 0
             console = StreamHandler(OUTPUT_UNIT)
             call console%set_level(INFO)
+#ifdef _LOGGER_USE_MPI
+            call MPI_COMM_Rank(comm_world,rank,status)
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
             call console%set_formatter(MpiFormatter(comm_world, fmt='%(short_name)a10~: %(message)a'))
+#  endif
+#endif
             call handlers%push_back(console)
 
             file_handler = FileHandler('warnings_and_errors.log')
             call file_handler%set_level(WARNING)
+
+#ifdef _LOGGER_USE_MPI
+#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
             call file_handler%set_formatter(MpiFormatter(comm_world, fmt='pe=%(mpi_rank)i5.5~: %(short_name)a~: %(message)a'))
             call file_handler%set_lock(MpiLock(comm_world))
+#  endif
+#endif  
             call handlers%push_back(file_handler)
 
             if (rank == 0) then
