@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Ability to embed pFlogger alongside the other GFE libraries in a superproject.
+
 ## [1.5.0] - 2021-03-15
 
 ### Added
