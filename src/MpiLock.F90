@@ -224,8 +224,7 @@ contains
       end if
 
       this%initialized = .false.
-      !W.J comment out. Does this comm belong to this lock? Maybe not
-      !call MPI_Comm_free(this%comm, status)
+      call MPI_Comm_free(this%comm, status)
       _RETURN(_SUCCESS,rc)
    end subroutine destroy
 
