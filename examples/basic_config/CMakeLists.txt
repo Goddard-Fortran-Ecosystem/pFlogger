@@ -7,6 +7,7 @@ file (COPY ${CONFIG_INPUTS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MPI_FOUND) 
 
+  add_compile_definitions(LOGGER_USE_MPI)
   add_executable(basic_config.x basic_config.F90)
   target_link_libraries(basic_config.x pflogger MPI::MPI_Fortran)
 

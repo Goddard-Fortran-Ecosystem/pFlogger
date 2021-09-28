@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2021-09-28xs
+
+### Changed
+
+- updated to use yaFyaml 1.0 (new interfaces in yafyaml, not pflogger)
+
 ### Fixed
 
 - Ability to embed pFlogger alongside the other GFE libraries in a superproject.
