@@ -20,11 +20,11 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.12)
 project (PFLOGGER
-  VERSION 1.5.0
+  VERSION 1.6.0
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
-   ${CMAKE_SOURCE_DIR}/cmake
+   ${PROJECT_SOURCE_DIR}/cmake
 )
 
 include (PreventInSourceBuild)
@@ -33,9 +33,15 @@ include (DefinePlatformDefaults)
 
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package (GFTL REQUIRED)
-find_package (GFTL_SHARED REQUIRED)
-find_package (YAFYAML REQUIRED)
+if (NOT TARGET GFTL::gftl)
+  find_package (GFTL REQUIRED)
+endif ()
+if (NOT TARGET GFTL_SHARED::gftl-shared)
+  find_package (GFTL_SHARED REQUIRED)
+endif ()
+if (NOT TARGET YAFYAML::yafyaml)
+  find_package (YAFYAML REQUIRED VERSION 1.0)
+endif ()
 
 find_package (MPI QUIET)
 find_package (PFUNIT QUIET)

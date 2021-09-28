@@ -23,7 +23,7 @@ contains
    subroutine test_check_schema_specified()
       type (Configuration) :: cfg
 
-      cfg = Configuration(1) ! an almost empty config
+      cfg = Configuration(IntNode(1)) ! an almost empty config
       call check_schema_version(cfg)
       @assertExceptionRaised("PFL::Config::check_schema_version() - must specify a schema_version for Config.")
 
@@ -34,17 +34,17 @@ contains
    subroutine test_check_schema_version_unsupported()
       type (Configuration) :: cfg
 
-      class(*), pointer :: node
+      type(MappingNode), target :: mn
+      type(Mapping), pointer :: m
 
-      cfg = Configuration(OrderedStringUnlimitedMap())
-      call cfg%get_node_at_selector(node)
+      mn = MappingNode()
+      m => to_mapping(mn)
 
-      select type (m => node)
-      type is (OrderedStringUnlimitedMap)
-         call m%insert('schema_version', 2)
-         call check_schema_version(cfg) ! Empty config
-         @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
-      end select
+      call m%insert(StringNode('schema_version'), IntNode(2))
+
+      cfg = Configuration(mn)
+      call check_schema_version(cfg) ! Empty config
+      @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
 
    end subroutine test_check_schema_version_unsupported
 
@@ -53,18 +53,16 @@ contains
    subroutine test_check_schema_version_valid()
       type (Configuration) :: cfg
 
-      class(*), pointer :: node
+      type(MappingNode), target :: mn
+      type(Mapping), pointer :: m
 
-      cfg = Configuration(OrderedStringUnlimitedMap())
-      call cfg%get_node_at_selector(node)
-      select type (m => node)
-      type is (OrderedStringUnlimitedMap)
-         call m%insert('schema_version', 1) ! currently only valid option
-      end select
+      mn = MappingNode()
+      m => to_mapping(mn)
+
+      cfg = Configuration(mn)
+      call m%insert(StringNode('schema_version'), IntNode(1)) ! currently only valid option
 
       call check_schema_version(cfg) ! Empty config
-
-      ! simply should not throw an exception ...
 
    end subroutine test_check_schema_version_valid
 
@@ -77,9 +75,14 @@ contains
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
-
-      cfg = Configuration(1) 
-      call build_formatter(fmtr, cfg)
+      type(MappingNode), target :: node
+      integer :: status
+      
+      node = MappingNode()
+      cfg = Configuration(node)
+      call build_formatter(fmtr, cfg, rc=status)
+      print*,__FILE__,__LINE__, status
+      @assert_that(status, is(0))
 
       call initLogRecord(record, 'A', DEBUG, 'hello')
       logMessage = fmtr%format(record)
@@ -206,6 +209,7 @@ contains
       type (LogRecord) :: record
 
       type(Parser) :: p
+      character(len=80) :: str
 
       open(newunit=unit, file='test_build_streamhandler.txt', status='unknown', &
            & form='formatted')
@@ -224,11 +228,8 @@ contains
       call h%handle(record)
 
       rewind(unit)
-      block
-        character(len=80) :: str
-        read(unit,'(a)') str
-        @assertEqual('DEBUG: A: hello', str)
-      end block
+      read(unit,'(a)') str
+      @assertEqual('DEBUG: A: hello', str)
       close(unit, status='delete')
 
    end subroutine test_build_streamhandler
@@ -250,6 +251,7 @@ contains
       type (FormatterMap), pointer :: formatters
       type (ConfigElements), target :: elements
       type(Parser) :: p
+      type (LogRecord) :: record
 
 
       filters => elements%get_filters()
@@ -279,7 +281,6 @@ contains
 
       block
         character(len=80) :: str
-        type (LogRecord) :: record
         
         call initLogRecord(record, 'B', INFO, 'hello')
         call h%handle(record) ! skip - filter 'A'
@@ -354,9 +355,8 @@ contains
       type (ConfigElements), target :: elements
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
-      type(OrderedStringUnlimitedMap) :: m
 
-      cfg = Configuration(m)
+      cfg = Configuration(MappingNode())
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call build_logger(lgr, cfg, elements)
@@ -377,7 +377,6 @@ contains
       type (Configuration) :: cfg
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
-      type(OrderedStringUnlimitedMap) :: m
 
       filters => elements%get_filters()
       handlers => elements%get_handlers()
@@ -390,7 +389,7 @@ contains
 
       lgr => mgr%get_logger('A')
 
-      cfg = Configuration(m)
+      cfg = Configuration(MappingNode())
       call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger

@@ -42,9 +42,6 @@ module PFL_RotatingFileHandler
    interface RotatingFileHandler
       module procedure newRotatingFileHandler
    end interface
-
-   type Unusable
-   end type Unusable
    
 contains
 
@@ -58,13 +55,13 @@ contains
    ! set max_bytes, backupcount and level. Note max_bytes can be specified
    ! in kb, mb or gb. E.g. max_bytes=100mb.
    !---------------------------------------------------------------------------
-   function newRotatingFileHandler(fileName, max_bytes, unused, backup_count, delay) &
+   function newRotatingFileHandler(fileName, max_bytes, unusable, backup_count, delay) &
         result(handler)
       use PFL_AbstractHandler, only: BASIC_FORMAT
       use PFL_Formatter
       type (RotatingFileHandler) :: handler
       character(len=*), intent(in) :: fileName
-      type (Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       character(len=*), intent(in), optional :: max_bytes
       integer, intent(in), optional :: backup_count
       logical, intent(in), optional :: delay
@@ -97,7 +94,9 @@ contains
       handler%delay = delay_
 
       call handler%set_formatter(Formatter(BASIC_FORMAT))
-      
+
+      _UNUSED_DUMMY(unusable)
+
    end function newRotatingFileHandler
 
    
@@ -163,7 +162,6 @@ contains
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
-      integer :: fileSize
       integer :: status
       
       if (this%should_rollover()) then
@@ -174,7 +172,7 @@ contains
       _VERIFY(status,'',rc)
 
       _RETURN(_SUCCESS,rc)
-    
+      _UNUSED_DUMMY(unusable)
    end subroutine atomic_emit_message
 
 

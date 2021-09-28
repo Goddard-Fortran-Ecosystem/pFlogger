@@ -12,10 +12,7 @@
 #include "error_handling_macros.fh"
 module PFL_LoggerManager
    use gFTL_StringUnlimitedMap
-   use yafyaml, only: Parser
-   use yafyaml, only: Configuration, ConfigurationIterator
-   use yafyaml, only: FileStream
-   use yafyaml, only: yayfaml_SUCCESS => SUCCESS
+   use yaFyaml
    use PFL_RootLogger, only: RootLogger
    use PFL_SeverityLevels
    use PFL_Logger, only: Logger, newLogger
@@ -75,9 +72,6 @@ module PFL_LoggerManager
       integer :: counter
       type (LoggerVector) :: children
    end type Placeholder
-
-   type Unusable
-   end type Unusable
 
 
 contains
@@ -195,12 +189,10 @@ contains
       class (Logger), intent(inout), pointer :: lgr
       integer, optional, intent(out) :: rc
 
-      integer :: i
       character(len=:), allocatable :: name
       character(len=:), allocatable :: ancestor_name
       class (Logger), pointer :: ancestor
       class (AbstractLogger), pointer :: tmp
-      integer :: status
 
       name = lgr%get_name()
       ancestor_name = this%get_parent_prefix(name)
@@ -280,6 +272,7 @@ contains
          call iter%next()
       end do
 
+      _UNUSED_DUMMY(this)
    end subroutine fixup_children
 
    !---------------------------------------------------------------------------  
@@ -312,15 +305,14 @@ contains
 
 
 
-   subroutine load_file(this, file_name, unused, extra, comm, rc)
+   subroutine load_file(this, file_name, unusable, extra, comm, rc)
       class (LoggerManager), target, intent(inout) :: this
       character(len=*), intent(in) :: file_name
-      type (Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
       integer, optional, intent(out) :: rc
 
-      type (Configuration) :: cfg
       type (StringUnlimitedMap) :: extra_
 
       type(Configuration) :: c
@@ -335,7 +327,6 @@ contains
          call extra_%insert('_GLOBAL_COMMUNICATOR',comm)
       end if
 
-
       p = Parser('Core')
       c = p%load(FileStream(file_name))
 
@@ -343,17 +334,17 @@ contains
       _VERIFY(status,'',rc)
 
       _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
    end subroutine load_file
 
-   subroutine load_config(this, cfg, unused, extra, comm, rc)
+   subroutine load_config(this, cfg, unusable, extra, comm, rc)
       class (LoggerManager), target, intent(inout) :: this
       type (Configuration), intent(in) :: cfg
-      type (Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
       integer, optional, intent(out) :: rc
 
-      logical :: found
       type (Configuration) :: subcfg
 
       integer :: status
@@ -363,23 +354,23 @@ contains
       associate (elements => this%elements)
          call elements%set_global_communicator(comm)
 
-         call cfg%get(subcfg, 'locks')
-         if (.not. subcfg%is_none()) then
-           call elements%build_locks(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
+         if (cfg%has('locks')) then
+            subcfg = cfg%at('locks', rc=status); _VERIFY(status, '', rc)
+            call elements%build_locks(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
-         
-         call cfg%get(subcfg, 'filters')
-         if (.not. subcfg%is_none()) then
+
+         if (cfg%has('filters')) then
+            subcfg = cfg%at('filters',rc=status); _VERIFY(status, '', rc)
             call elements%build_filters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
 
-         call cfg%get(subcfg, 'formatters')
-         if (.not. subcfg%is_none()) then
+         if (cfg%has('formatters')) then
+            subcfg = cfg%at('formatters',rc=status); _VERIFY(status, '', rc)
             call elements%build_formatters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
 
-         call cfg%get(subcfg, 'handlers')
-         if (.not. subcfg%is_none()) then
+         if (cfg%has('handlers')) then
+            subcfg = cfg%at('handlers', rc=status); _VERIFY(status, '', rc)
             call elements%build_handlers(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
       end associate
@@ -388,66 +379,71 @@ contains
       _VERIFY(status,'',rc)
       call this%build_root_logger(cfg, extra=extra, rc=status)
       _VERIFY(status,'',rc)
+
       _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
    end subroutine load_config
 
-   subroutine build_loggers(this, cfg, unused, extra, rc)
+   subroutine build_loggers(this, cfg, unusable, extra, rc)
       class (LoggerManager), target, intent(inout) :: this
       type (Configuration), intent(in) :: cfg
-      type (Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       type (Configuration) :: lgrs_cfg, lgr_cfg
       
-      logical :: is_present
       type (ConfigurationIterator) :: iter
       character(len=:), allocatable :: name
       type (Logger), pointer :: lgr
+      type(Configuration) :: subcfg
       integer :: status
 
-      call cfg%get(lgrs_cfg, 'loggers')
+      if (cfg%has('loggers')) then
+         lgrs_cfg = cfg%at('loggers', rc=status)
+         _VERIFY(status,'',rc)
+         _ASSERT(lgrs_cfg%is_mapping(), "LoggerManager::build_loggers() - expected mapping for 'loggers'.", rc)
 
-      if (.not. lgrs_cfg%is_mapping()) then
-         ! TODO: raise an exception instead of stopping
-         error stop
-      end if
-      if (.not. lgrs_cfg%is_none()) then
          ! Loop over contained loggers
-         iter = lgrs_cfg%begin()
-         do while (iter /= lgrs_cfg%end())
-            name = iter%key()
-            lgr => this%get_logger(name)
-            call lgrs_cfg%get(lgr_cfg, name)
-            call build_logger(lgr, lgr_cfg, this%elements, extra=extra, rc=status)
-            _VERIFY(status,'',rc)
-            call iter%next()
-         end do
+         associate (b => lgrs_cfg%begin(), e => lgrs_cfg%end())
+           iter = b
+           do while (iter /= e)
+              call iter%get_key(name, rc=status)
+              _VERIFY(status,'',rc)
+
+              lgr => this%get_logger(name)
+              lgr_cfg = lgrs_cfg%at(name)
+              call build_logger(lgr, lgr_cfg, this%elements, extra=extra, rc=status)
+              _VERIFY(status,'',rc)
+              call iter%next()
+           end do
+         end associate
       end if
+
       _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
    end subroutine build_loggers
 
 
-   subroutine build_root_logger(this, cfg, unused, extra, rc)
+   subroutine build_root_logger(this, cfg, unusable, extra, rc)
       class (LoggerManager), intent(inout) :: this
       type (Configuration), intent(in) :: cfg
-      type (Unusable), optional, intent(in) :: unused
+      class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       type (Configuration) :: root_cfg
-      
-      logical :: found
-      character(len=:), allocatable :: name
       integer :: status
 
-      call cfg%get(root_cfg, 'root')
-      if (.not. root_cfg%is_none()) then
+      if (cfg%has('root')) then
+         root_cfg = cfg%at('root', rc=status)
+         _VERIFY(status,'',rc)
          call build_logger(this%root_node, root_cfg, this%elements, extra=extra, rc=status)
          _VERIFY(status,'',rc)
       end if
-      _RETURN(_SUCCESS,rc)
 
+      _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
    end subroutine build_root_logger
 
    subroutine basic_config(this, unusable, filename, level, stream, force, handlers, handler_refs, rc)
@@ -531,7 +527,10 @@ contains
       end if
 
       _RETURN(_SUCCESS,rc) 
+      _UNUSED_DUMMY(unusable)
+
    contains
+
       function get_hname() result(h_name)
          character(:), allocatable :: h_name
          integer :: i
@@ -540,11 +539,12 @@ contains
          write(n_name, '(I4.4)') i
          h_name = "__internal__from_basic__"//n_name
       end function 
+
    end subroutine basic_config
 
    subroutine free(this)
       class(LoggerManager), intent(inout) :: this
-      character(len=:), allocatable :: name
+
       type (HandlerMap), pointer :: hdlMapPtr
       class (AbstractHandler), pointer :: hdlPtr
       type (HandlerIterator) :: iter

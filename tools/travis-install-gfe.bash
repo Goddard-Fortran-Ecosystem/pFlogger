@@ -9,7 +9,7 @@ mkdir -p ${GFE_DIR}
 GFE_INSTALL_DIR=${HOME}/Software/GFE
 mkdir -p ${GFE_INSTALL_DIR}
 
-to_build=(pFUnit yaFyaml)
+to_build=(gFTL gFTL-shared fArgParse pFUnit yaFyaml)
 for repo in "${to_build[@]}"
 do
    cd ${GFE_DIR}
