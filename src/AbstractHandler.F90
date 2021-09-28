@@ -146,6 +146,7 @@ contains
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (Formatter) :: fmtr
 
       _UNUSED_DUMMY(unusable)
 
@@ -153,12 +154,9 @@ contains
          message = this%fmt%format(record, rc=status)
          _VERIFY(status,'',rc)
       else
-         block
-           type (Formatter) :: fmtr
-           fmtr = Formatter(BASIC_FORMAT)
-           message = fmtr%format(record, rc=status)
-           _VERIFY(status,'',rc)
-         end block
+         fmtr = Formatter(BASIC_FORMAT)
+         message = fmtr%format(record, rc=status)
+         _VERIFY(status,'',rc)
       end if
 
       _RETURN(_SUCCESS,rc)

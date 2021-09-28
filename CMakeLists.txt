@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.12)
 project (PFLOGGER
-  VERSION 1.5.0
+  VERSION 1.6.0
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -40,7 +40,7 @@ if (NOT TARGET GFTL_SHARED::gftl-shared)
   find_package (GFTL_SHARED REQUIRED)
 endif ()
 if (NOT TARGET YAFYAML::yafyaml)
-  find_package (YAFYAML REQUIRED)
+  find_package (YAFYAML REQUIRED VERSION 1.0)
 endif ()
 
 find_package (MPI QUIET)

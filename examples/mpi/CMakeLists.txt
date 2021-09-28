@@ -4,11 +4,12 @@ file (COPY ${CONFIG_INPUTS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MPI_FOUND)
 
-   add_executable(sharedFileHandle.x sharedFileHandle.F90)
-   target_link_libraries(sharedFileHandle.x pflogger MPI::MPI_Fortran)
-
-   add_executable(complexMpi.x complexMpi.F90)
-   target_link_libraries(complexMpi.x pflogger MPI::MPI_Fortran)
+  add_compile_definitions(LOGGER_USE_MPI)
+  add_executable(sharedFileHandle.x sharedFileHandle.F90)
+  target_link_libraries(sharedFileHandle.x pflogger MPI::MPI_Fortran)
+  
+  add_executable(complexMpi.x complexMpi.F90)
+  target_link_libraries(complexMpi.x pflogger MPI::MPI_Fortran)
    
 endif()
 

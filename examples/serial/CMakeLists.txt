@@ -7,4 +7,9 @@ file (COPY ${CONFIG_INPUTS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(complex.x complex.F90)
 target_link_libraries(complex.x pflogger)
+if (MPI_FOUND)
+  add_compile_definitions(LOGGER_USE_MPI)
+  target_link_libraries(complex.x pflogger MPI::MPI_Fortran)
+endif ()
+  
 
