@@ -81,7 +81,6 @@ contains
       node = MappingNode()
       cfg = Configuration(node)
       call build_formatter(fmtr, cfg, rc=status)
-      print*,__FILE__,__LINE__, status
       @assert_that(status, is(0))
 
       call initLogRecord(record, 'A', DEBUG, 'hello')

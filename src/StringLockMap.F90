@@ -11,17 +11,22 @@
 !------------------------------------------------------------------------------
 module  PFL_StringLockMap
    use PFL_AbstractLock
-#define _map LockMap
-#define _pair LockPair
-#define _iterator LockIterator
-   
-#include "types/key_deferredLengthString.inc"
 
-#define _value class(AbstractLock)
-#define _value_allocatable
+#define Key __CHARACTER_DEFERRED
+#define T AbstractLock
+#define T_polymorphic
+#define Map LockMap
+#define MapIterator LockIterator
+#define Pair LockPair
 
-#define _alt
-#include "templates/map.inc"
+#include "map/template.inc"
+
+#undef Pair
+#undef MapIterator
+#undef Map
+#undef T_polymorphic
+#undef T
+#undef Key
 
 end module PFL_StringLockMap
 

@@ -1,7 +1,7 @@
 #include "error_handling_macros.fh"
 module PFL_MpiCommConfig
    use mpi
-   use gftl_StringUnlimitedMap
+   use gftl2_StringUnlimitedMap
    use PFL_KeywordEnforcer
    use PFL_Exception
    implicit none
@@ -75,7 +75,7 @@ contains
         & rank_prefix, size_prefix, rc) result(m)
       use PFL_FormatString
       use PFL_ArgListUtilities
-      use gftl_UnlimitedVector
+      use gftl2_UnlimitedVector
             
       integer, intent(in) :: mpi_communicators(:)
       type (StringUnlimitedMap) :: m
@@ -162,7 +162,7 @@ contains
         & rank_prefix, size_prefix, rc)
       use PFL_FormatString
       use PFL_ArgListUtilities
-      use gftl_UnlimitedVector
+      use gftl2_UnlimitedVector
             
       integer, intent(in) :: mpi_communicators(:)
       type (StringUnlimitedMap) :: m

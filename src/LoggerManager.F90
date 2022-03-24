@@ -11,7 +11,7 @@
 !---------------------------------------------------------------------------
 #include "error_handling_macros.fh"
 module PFL_LoggerManager
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    use yaFyaml
    use PFL_RootLogger, only: RootLogger
    use PFL_SeverityLevels
@@ -552,7 +552,7 @@ contains
       hdlMapPtr => this%elements%get_handlers()
       iter =  hdlMapPtr%begin()
       do while (iter /= hdlMapPtr%end())
-         hdlPtr => iter%value()
+         hdlPtr => iter%second()
          call hdlPtr%free()
          call iter%next()
       enddo

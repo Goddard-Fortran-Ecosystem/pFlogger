@@ -1,7 +1,7 @@
 module Test_ArgListUtilities
    use funit
    use PFL_ArgListUtilities
-   use gFTL_UnlimitedVector
+   use gFTL2_UnlimitedVector
    implicit none
 
 contains

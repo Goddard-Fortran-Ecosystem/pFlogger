@@ -12,8 +12,8 @@
 #include "error_handling_macros.fh"
 module PFL_SeverityLevels
    use PFL_Exception
-   use gftl_StringIntegerMap
-   use gftl_IntegerStringMap
+   use gftl2_StringIntegerMap
+   use gftl2_IntegerStringMap
    implicit none
    private
 
@@ -68,7 +68,7 @@ contains
          _ASSERT(.false., 'PFL::SeverityLevels::level_to_name - unknown level. Please use a valid level.', rc)
       end if
 
-      name = iter%value()
+      name = iter%second()
       _RETURN(_SUCCESS,rc)
    end function level_to_name
     
@@ -94,7 +94,7 @@ contains
           _ASSERT(.false., 'PFL::SeverityLevels::name_to_level - unknown level name "'//name//'". Please use a valid name.', rc)
       end if
 
-      level = iter%value()
+      level = iter%second()
       _RETURN(_SUCCESS,rc)
    end function name_to_level
 

@@ -50,7 +50,7 @@ contains
 
 @Test
    subroutine test_make_record(this)
-      use gFTL_UnlimitedVector
+      use gftl2_UnlimitedVector
       class (Test_Logger), intent(inout) :: this
       type(LogRecord) :: record
       type (UnlimitedVector), target :: args
@@ -348,7 +348,7 @@ contains
    @test
    subroutine test_extra(this)
       use PFL_Formatter, only: Formatter
-      use gFTL_StringUnlimitedMap
+      use gftl2_StringUnlimitedMap
       class (Test_Logger), intent(inout) :: this
 
       type (StringUnlimitedMap), target :: extra

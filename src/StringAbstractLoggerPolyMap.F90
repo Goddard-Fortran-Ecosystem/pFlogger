@@ -12,19 +12,21 @@
 module  PFL_StringAbstractLoggerPolyMap
    use PFL_AbstractLogger
 
-#define _map LoggerMap
-#define _iterator LoggerIterator
-#define _pair StringLoggerPair
-#include "types/key_deferredLengthString.inc"
+#define Key __CHARACTER_DEFERRED
+#define T AbstractLogger
+#define T_polymorphic
+#define Map LoggerMap
+#define MapIterator LoggerIterator
+#define Pair StringLoggerPair
 
-#define _value class(AbstractLogger)
-#define _value_allocatable
-#define _value_equal_defined
+#include "map/template.inc"
 
-
-#define _alt
-#define _pair_allocatable   
-#include "templates/map.inc"
+#undef Pair
+#undef MapIterator
+#undef Map
+#undef T_polymorphic
+#undef T
+#undef Key
 
 end module PFL_StringAbstractLoggerPolyMap
 

@@ -28,7 +28,7 @@ contains
 !> of unlimited polymorphic entities.
 !---------------------------------------------------------------------------
    function make_arg_vector(ARG_LIST) result(args)
-      use gFTL_UnlimitedVector
+      use gFTL2_UnlimitedVector
       type (UnlimitedVector) :: args
       include 'recordOptArgs.inc'  
 

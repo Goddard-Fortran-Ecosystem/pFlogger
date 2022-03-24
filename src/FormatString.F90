@@ -26,7 +26,7 @@ module PFL_FormatString
    use PFL_WrapArray
    use PFL_Exception
    use PFL_FormatToken
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    use yaFyaml, only: String
    use PFL_KeywordEnforcer
    implicit none
@@ -65,14 +65,14 @@ contains
    end function format_map
 
    function format_preparsed(parsed, dictionary, unusable, rc) result(string)
-      use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
+      use PFL_FormatTokenVector
       character(len=:), allocatable :: string
       type (FormatParser), target, intent(in) :: parsed
       class(StringUnlimitedMap), target, intent(in) :: dictionary
       class (KeywordEnforcer), optional, intent(in) :: unusable
       integer, optional, intent(out) :: rc
 
-      type (TokenVectorIterator) :: tokenIter
+      type (FormatTokenVectorIterator) :: tokenIter
       type (FormatToken), pointer :: token
       type (StringUnlimitedMapIterator) :: dictionaryIter
       class (*), pointer :: arg
@@ -83,7 +83,7 @@ contains
       string = ''
 
       do while (tokenIter /= parsed%end())
-         token => tokenIter%get()
+         token => tokenIter%of()
          select case (token%type)
 
          case (TEXT)
@@ -94,7 +94,7 @@ contains
 #            define _NO_KEYWORD(text) 'format_preparsed() - no such keyword: <'//text//'> in "extra".'
             _ASSERT(.not.(dictionaryIter == dictionary%end()),_NO_KEYWORD(token%text), rc)
 
-            arg => dictionaryIter%value()
+            arg => dictionaryIter%second()
             string = string // handleScalar(arg, token%edit_descriptor)
 
          case (POSITION)
@@ -111,8 +111,8 @@ contains
 
    function format_vector(fmt, args, unusable, rc) result(string)
       use PFL_FormatToken
-      use PFL_FormatTokenVector, only: TokenVectorIterator => VectorIterator
-      use gFTL_UnlimitedVector
+      use PFL_FormatTokenVector
+      use gFTL2_UnlimitedVector
       character(len=:), allocatable :: string
       character(len=*), intent(in) :: fmt
       type(UnlimitedVector), intent(in) :: args
@@ -122,7 +122,7 @@ contains
       type (FormatParser), save :: p
       character(len=:), save, allocatable :: old_fmt
 
-      type (TokenVectorIterator) :: tokenIter
+      type (FormatTokenVectorIterator) :: tokenIter
       type (UnlimitedVectorIterator) :: argIter
       type (FormatToken), pointer :: token
       class (*), pointer :: arg
@@ -145,7 +145,7 @@ contains
       argIter = args%begin()
 
       do while (tokenIter /= p%end())
-         token => tokenIter%get()
+         token => tokenIter%of()
 
          select case (token%type)
 
@@ -156,7 +156,7 @@ contains
             
 #           define _END_OF_VALUES 'format_vector() - not enough position arguments for format string.'
             _ASSERT(.not.(argIter == args%end()), _END_OF_VALUES, rc)
-            arg => argIter%get()
+            arg => argIter%of()
             string = string // handleScalar(arg, token%edit_descriptor)
             call argIter%next()
 

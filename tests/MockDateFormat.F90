@@ -1,7 +1,7 @@
 module MockDateFormat_mod
    use PFL_Formatter
    use PFL_LogRecord
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    implicit none
    private
 

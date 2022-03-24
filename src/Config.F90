@@ -1,8 +1,8 @@
 #include "error_handling_macros.fh"
 module PFL_Config
    use yafyaml
-   use gftl_StringVector
-   use gftl_UnlimitedVector
+   use gftl2_StringVector
+   use gftl2_UnlimitedVector
    use PFL_Logger
    use PFL_Exception, only: throw
    use PFL_SeverityLevels, only: name_to_level
@@ -19,7 +19,7 @@ module PFL_Config
    use PFL_Filterer
    use PFL_FileHandler
    
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    use PFL_Filter
    use PFL_StringUtilities, only: to_lower_case
    use Pfl_KeywordEnforcer
@@ -586,7 +586,7 @@ contains
    subroutine build_handler(h, cfg, elements, unusable, extra, rc)
       class (AbstractHandler), allocatable, intent(out) :: h
       type (Configuration), intent(in) :: cfg
-      type (ConfigElements), intent(in) :: elements
+      type (ConfigElements), intent(inout) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
@@ -676,7 +676,7 @@ contains
          use PFL_Formatter
          class (AbstractHandler), intent(inout) :: h
          type (Configuration), intent(in) :: cfg
-         type (FormatterMap), target, intent(in) :: formatters
+         type (FormatterMap), target, intent(inout) :: formatters
          integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: formatter_name
@@ -689,8 +689,8 @@ contains
             _VERIFY(status,'',rc)
 
             if (formatters%count(formatter_name) == 1) then
-               p_fmt => formatters%at(formatter_name)
-               call h%set_formatter(formatters%at(formatter_name))
+               p_fmt => formatters%of(formatter_name)
+               call h%set_formatter(formatters%of(formatter_name))
             else
                _ASSERT(.false., "PFL::Config::build_handler() - formatter '"//formatter_name//"' not found.", rc)
             end if
@@ -704,7 +704,7 @@ contains
       subroutine set_handler_filters(h, cfg, filters, rc)
          class (AbstractHandler), intent(inout) :: h
          type (Configuration), intent(in) :: cfg
-         type (FilterMap), intent(in) :: filters
+         type (FilterMap), intent(inout) :: filters
          integer, optional, intent(out) :: rc
 
          class (AbstractFilter), pointer :: f
@@ -721,7 +721,7 @@ contains
             do i = 1, subcfg%size()
                call subcfg%get(name, i)
                if (filters%count(name) > 0) then
-                  f => filters%at(name)
+                  f => filters%of(name)
                   call h%add_filter(f)
                else
                   _ASSERT(.false., "PFL::Config::build_handler() - unknown filter'"//name//"'.", rc)
@@ -735,7 +735,7 @@ contains
       subroutine set_handler_lock(h, cfg, locks, rc)
          class (AbstractHandler), intent(inout) :: h
          type (Configuration), intent(in) :: cfg
-         type (LockMap), intent(in) :: locks
+         type (LockMap), intent(inout) :: locks
          integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: lock_name
@@ -747,7 +747,7 @@ contains
             _VERIFY(status,'',rc)
 
             if (locks%count(lock_name) == 1) then
-               lock => locks%at(lock_name)
+               lock => locks%of(lock_name)
                select type (h)
                class is (FileHandler)
                   call h%set_lock(lock)
@@ -950,7 +950,7 @@ contains
       use PFL_StringUtilities, only: to_lower_case
       class (Logger), intent(inout) :: lgr
       type (Configuration), intent(in) :: cfg
-      type (ConfigElements), intent(in) :: elements
+      type (ConfigElements), intent(inout) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
@@ -1054,7 +1054,7 @@ contains
       subroutine set_logger_filters(lgr, cfg, filters, unusable, extra, rc)
          class (Logger), intent(inout) :: lgr
          type (Configuration), intent(in) :: cfg
-         type (FilterMap), intent(in) :: filters
+         type (FilterMap), intent(inout) :: filters
          class (KeywordEnforcer), optional, intent(in) :: unusable
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
@@ -1073,7 +1073,7 @@ contains
                _VERIFY(status,'',rc)
 
                if (filters%count(filter_name) > 0) then
-                  call lgr%add_filter(filters%at(filter_name))
+                  call lgr%add_filter(filters%of(filter_name))
                else
                   _ASSERT(.false., "PFL::Config::set_logger_filters() - unknown filter'"//filter_name//"'.", rc)
                end if
@@ -1089,7 +1089,7 @@ contains
       subroutine set_logger_handlers(lgr, cfg, handlers, unusable, extra, rc)
          class (Logger), intent(inout) :: lgr
          type (Configuration), intent(in) :: cfg
-         type (HandlerMap), intent(in) :: handlers
+         type (HandlerMap), intent(inout) :: handlers
          class (KeywordEnforcer), optional, intent(in) :: unusable
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
@@ -1108,7 +1108,7 @@ contains
                _VERIFY(status,'',rc)
 
                if (handlers%count(handler_name) > 0) then
-                  call lgr%add_handler(handlers%at(handler_name))
+                  call lgr%add_handler(handlers%of(handler_name))
                else
                   _ASSERT(.false., "PFL::Config::set_logger_handlers() - unknown handler'"//handler_name//"'.", rc)
                end if
@@ -1140,7 +1140,7 @@ contains
 
       if (present(extra)) then
          if (extra%count(name_) > 0) then
-            p => extra%at(name_)
+            p => extra%of(name_)
             select type (p)
             type is (integer)
                comm = p
