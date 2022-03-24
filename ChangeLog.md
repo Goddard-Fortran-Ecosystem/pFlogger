@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - now under the Apache 2.0 license
 
 
-## [1.6.0] - 2021-09-28xs
+## [1.6.0] - 2021-09-28
+
 
 ### Changed
 
