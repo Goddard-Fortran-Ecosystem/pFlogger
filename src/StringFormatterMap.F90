@@ -11,23 +11,22 @@
 !------------------------------------------------------------------------------
 module  PFL_StringFormatterMap
    use PFL_Formatter
-#define _map FormatterMap
-#define _pair FormatterPair
-#define _iterator FormatterIterator
-   
-#include "types/key_deferredLengthString.inc"
 
-#define _value class (Formatter)
-#define _value_allocatable
+#define Key __CHARACTER_DEFERRED
+#define T Formatter
+#define T_polymorphic
+#define Map FormatterMap
+#define MapIterator FarmatterIterator
+#define Pair FormatterPair
 
-#define _ASSIGN(dest,src) allocate(dest%key,source=src%key); if(allocated(src%value)) allocate(dest%value,source=src%value)
-#define _MOVE(dest,src) call move_alloc(from=src%key,to=dest%key); if (allocated(src%value)) call move_alloc(from=src%value,to=dest%value)
-#define _FREE(x) deallocate(x%key,x%value)
+#include "map/template.inc"
 
-#define _alt
-!#define __DEBUG
-#include "templates/map.inc"
-
+#undef Pair
+#undef MapIterator
+#undef Map
+#undef T_polymorphic
+#undef T
+#undef Key
 
 end module PFL_StringFormatterMap
 

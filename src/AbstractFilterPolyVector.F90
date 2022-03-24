@@ -15,10 +15,12 @@
 module PFL_AbstractFilterPolyVector
    use PFL_AbstractFilter
 
-#define _type class (AbstractFilter)
-#define _allocatable
-#define _equal_defined
+#define T AbstractFilter
+#define T_polymorphic
+#define Vector FilterVector
+#define VectorIterator FilterVectorIterator
+#define T_EQ(lhs,rhs) (lhs==rhs)
 
-#include "templates/vector.inc"
+#include "vector/template.inc"
 
 end module PFL_AbstractFilterPolyVector

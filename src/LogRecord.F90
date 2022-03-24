@@ -16,8 +16,8 @@
 !------------------------------------------------------------------------------
 #include "error_handling_macros.fh"
 module PFL_LogRecord
-   use gFTL_UnlimitedVector
-   use gFTL_StringUnlimitedMap
+   use gFTL2_UnlimitedVector
+   use gFTL2_StringUnlimitedMap
    use PFL_SeverityLevels, only: level_to_name
    use PFL_KeywordEnforcer
    use PFL_Exception

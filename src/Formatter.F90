@@ -38,7 +38,7 @@ module PFL_Formatter
    use PFL_Object
    use PFL_LogRecord
    use PFL_FormatParser
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    use PFL_KeywordEnforcer
    use PFL_Exception
    implicit none
@@ -201,7 +201,7 @@ contains
    ! ---------------------------------------------------------------------------
    function format(this, record, unusable, rc) result(logMessage)
       use PFL_FormatString
-      use gFTL_StringUnlimitedMap
+      use gFTL2_StringUnlimitedMap
       use yafyaml, only: String
       character(len=:), allocatable :: logMessage
       class (Formatter), intent(in) :: this
@@ -219,7 +219,9 @@ contains
       integer :: status
       
       if (associated(record%extra)) then
-         call extra%deepCopy(record%extra)
+         extra = record%extra
+      else
+         extra = StringUnlimitedMap()
       end if
 
       if (this%fmt_uses_message) then
@@ -278,7 +280,7 @@ contains
       end if
 
       if (this%fmt_uses_line) then
-         call extra%insert('line', record%get_line())
+         call extra%insert('line', (record%get_line()))
       end if
 
       if (this%fmt_uses_file) then
@@ -416,11 +418,11 @@ contains
 
       type (FormatParser) :: p
       type (FormatToken), pointer :: token
-      type (VectorIterator) :: iter
+      type (FormatTokenVectorIterator) :: iter
       
       iter = this%p%begin()
       do while (iter /= this%p%end())
-         token => iter%get()
+         token => iter%of()
          
          select case (token%type)
          case (KEYWORD)

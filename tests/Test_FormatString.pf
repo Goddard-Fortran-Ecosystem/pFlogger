@@ -2,9 +2,9 @@ module Test_FormatString
    use funit
    use PFL_FormatString
    use PFL_ArgListUtilities
-   use gFTL_UnlimitedVector
+   use gftl2_UnlimitedVector
    use PFL_FormatToken, only: EOT
-   use gFTL_StringUnlimitedMap
+   use gftl2_StringUnlimitedMap
    use yaFyaml, only: String
    implicit none
 

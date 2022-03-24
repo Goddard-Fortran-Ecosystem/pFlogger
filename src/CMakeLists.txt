@@ -113,7 +113,7 @@ target_include_directories(${this} PUBLIC
   $<INSTALL_INTERFACE:${dest}/include>
   )
 
-target_link_libraries(${this} PUBLIC GFTL_SHARED::gftl-shared GFTL::gftl)
+target_link_libraries(${this} PUBLIC GFTL_SHARED::gftl-shared GFTL::gftl-v2)
 
 install (TARGETS pflogger EXPORT PFLOGGER DESTINATION ${dest}/lib)
 install (DIRECTORY  ${PROJECT_BINARY_DIR}/include/ DESTINATION ${dest}/include)

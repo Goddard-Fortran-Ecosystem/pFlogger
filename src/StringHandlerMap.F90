@@ -11,21 +11,22 @@
 !------------------------------------------------------------------------------
 module  PFL_StringHandlerMap
    use PFL_AbstractHandler
-#define _map HandlerMap
-#define _pair HandlerPair
-#define _iterator HandlerIterator
-   
-#include "types/key_deferredLengthString.inc"
 
-#define _value class(AbstractHandler)
-#define _value_allocatable
+#define Key __CHARACTER_DEFERRED
+#define T AbstractHandler
+#define T_polymorphic
+#define Map HandlerMap
+#define MapIterator HandlerIterator
+#define Pair HandlerPair
 
-#define _ASSIGN(dest,src) allocate(dest%key,source=src%key); if(allocated(src%value)) allocate(dest%value,source=src%value)
-#define _MOVE(dest,src) call move_alloc(from=src%key,to=dest%key); if (allocated(src%value)) call move_alloc(from=src%value,to=dest%value)
-#define _FREE(x) deallocate(x%key,x%value)
+#include "map/template.inc"
 
-#define _alt
-#include "templates/map.inc"
+#undef Pair
+#undef MapIterator
+#undef Map
+#undef T_polymorphic
+#undef T
+#undef Key
 
 end module PFL_StringHandlerMap
 

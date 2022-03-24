@@ -1,5 +1,5 @@
 module MockSimTime_mod
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    private
 
    public :: mockSimTime
