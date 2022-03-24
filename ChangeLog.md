@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+### Added
+
+- Add `NVHPC.cmake` and `PGI.cmake` files for NVHPC support
+
 ### Fixed
 
  - Implemented workaround for gfortran 11.2 that was breaking on
@@ -17,14 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  - upgraded to use new gFTL2 interfaces for containers.
 
-
 ## [1.6.1] - 2021-11-17
 
 ### Changed
 
 - now under the Apache 2.0 license
 
-## [1.6.0] - 2021-09-28
+
+## [1.6.0] - 2021-09-28xs
 
 ### Changed
 
