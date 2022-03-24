@@ -4,7 +4,7 @@ module Test_FileHandler_mod
    use PFL_LogRecord
    use PFL_Formatter
    use funit
-   use gFTL_UnlimitedVector
+   use gFTL2_UnlimitedVector
    implicit none
 
 @suite(name='Test_FileHandler_suite')

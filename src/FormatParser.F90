@@ -14,7 +14,7 @@
 !------------------------------------------------------------------------------
 #include "error_handling_macros.fh"
 module PFL_FormatParser
-   use PFL_FormatTokenVector, only: FormatTokenVector => Vector
+   use PFL_FormatTokenVector
    use PFL_FormatToken, only: FormatToken
    use PFL_FormatToken, only: KEYWORD_SEPARATOR
    use PFL_FormatToken, only: TEXT, POSITION, KEYWORD

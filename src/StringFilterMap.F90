@@ -11,17 +11,22 @@
 !------------------------------------------------------------------------------
 module  PFL_StringFilterMap
    use PFL_AbstractFilter
-#define _map FilterMap
-#define _pair FilterPair
-#define _iterator FilterIterator
-   
-#include "types/key_deferredLengthString.inc"
 
-#define _value class(AbstractFilter)
-#define _value_allocatable
+#define Key __CHARACTER_DEFERRED
+#define T AbstractFilter
+#define T_polymorphic
+#define Map FilterMap
+#define MapIterator FilterIterator
+#define Pair FilterPair
 
-#define _alt
-#include "templates/map.inc"
+#include "map/template.inc"
+
+#undef Pair
+#undef MapIterator
+#undef Map
+#undef T_polymorphic
+#undef T
+#undef Key
 
 end module PFL_StringFilterMap
 

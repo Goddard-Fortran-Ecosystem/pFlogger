@@ -11,6 +11,9 @@
 !------------------------------------------------------------------------------
 module PFL_FormatTokenVector
    use PFL_FormatToken
-#define _type type(FormatToken)
-#include "templates/vector.inc"
+
+#define T FormatToken
+#define Vector FormatTokenVector
+#define VectorIterator FormatTokenVectorIterator
+#include "vector/template.inc"
 end module PFL_FormatTokenVector

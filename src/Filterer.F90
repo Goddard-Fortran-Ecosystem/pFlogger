@@ -20,8 +20,7 @@
 module PFL_Filterer
    use PFL_AbstractFilter, only: AbstractFilter
    use PFL_LogRecord, only: LogRecord
-   use PFL_AbstractFilterPolyVector, only: FilterVector => Vector
-   use PFL_AbstractFilterPolyVector, only: FilterVectorIterator => VectorIterator
+   use PFL_AbstractFilterPolyVector
    use PFL_Exception, only: throw
    implicit none
    private
@@ -75,7 +74,7 @@ contains
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
-         if (fltr == iter%get()) then
+         if (fltr == iter%of()) then
             ! duplicate - nothing to do
             return
          end if
@@ -107,7 +106,7 @@ contains
 
       iter = this%filters%begin()
       do while (iter /= this%filters%end())
-         fPtr => iter%get()
+         fPtr => iter%of()
          if (.not. fPtr%do_filter(record)) then
             do_filter = .false.
             exit
@@ -138,7 +137,7 @@ contains
       
       i = this%filters%get_index(f)
       if (i > 0) then
-         call this%filters%erase(this%filters%begin() + i - 1)
+         iter = this%filters%erase(this%filters%begin() + (i - 1))
       else
          ! Only can get here if filter not found
          _ASSERT(.false., 'Filterer::remove_filter() - no such filter.', rc)

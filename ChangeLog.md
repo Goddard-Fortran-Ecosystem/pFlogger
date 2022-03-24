@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ### Added
 
 - Add `NVHPC.cmake` and `PGI.cmake` files for NVHPC support
+
+### Fixed
+
+ - Implemented workaround for gfortran 11.2 that was breaking on
+   a surprisingly simple call.
+
+### Changed
+
+ - upgraded to use new gFTL2 interfaces for containers.
+
+## [1.6.1] - 2021-11-17
+
+### Changed
+
+- now under the Apache 2.0 license
+
 
 ## [1.6.0] - 2021-09-28xs
 
@@ -29,14 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Added as optional arguments for backward compatibility.
  
 ### Changed
-	
+
 - Introduced CMake namespace.   Upstream projects should now specify dependency
   as PFLOGGER::pflogger
 
 ## [1.4.5] - 2020-08-24
 
 ### Changed
-	
+
 - Fixed one more test that was missed in previous update. (Was using -f filter
   to focus  on some failing tests.  Blinded to thore tests.)
 

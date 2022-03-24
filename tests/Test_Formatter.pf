@@ -5,8 +5,8 @@ module Test_Formatter_mod
    use PFL_SeverityLevels
    use PFL_LogRecord
    use MockDateFormat_mod
-   use gFTL_UnlimitedVector
-   use gFTL_StringUnlimitedMap
+   use gftl2_UnlimitedVector
+   use gftl2_StringUnlimitedMap
       
    implicit none
 

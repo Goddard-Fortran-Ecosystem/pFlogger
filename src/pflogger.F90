@@ -20,7 +20,7 @@ module pflogger
 #  endif   
 #endif
    use PFL_RotatingFileHandler
-   use gFTL_StringUnlimitedMap
+   use gFTL2_StringUnlimitedMap
    implicit none
    private
 

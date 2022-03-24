@@ -19,8 +19,8 @@
 !> @date 01 Jan 2015 - Initial Version
 !------------------------------------------------------------------------------
 module PFL_Logger
-   use gFTL_UnlimitedVector
-   use gFTL_StringUnlimitedMap
+   use gFTL2_UnlimitedVector
+   use gFTL2_StringUnlimitedMap
    use PFL_AbstractHandlerPtrVector
    use PFL_Exception, only: throw
    use PFL_AbstractLogger
