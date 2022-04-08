@@ -315,7 +315,7 @@ contains
 
       type (StringUnlimitedMap) :: extra_
 
-      type(Configuration) :: c
+      class(YAML_Node), allocatable :: c
       type(Parser) :: p
       integer :: status
 
@@ -328,7 +328,7 @@ contains
       end if
 
       p = Parser('Core')
-      c = p%load(FileStream(file_name))
+      c = p%load(file_name)
 
       call this%load_config(c, extra=extra_, comm=comm, rc=status)
       _VERIFY(status,'',rc)
@@ -339,13 +339,13 @@ contains
 
    subroutine load_config(this, cfg, unusable, extra, comm, rc)
       class (LoggerManager), target, intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
       integer, optional, intent(out) :: rc
 
-      type (Configuration) :: subcfg
+      class(YAML_Node), pointer :: subcfg
 
       integer :: status
 
@@ -355,22 +355,22 @@ contains
          call elements%set_global_communicator(comm)
 
          if (cfg%has('locks')) then
-            subcfg = cfg%at('locks', rc=status); _VERIFY(status, '', rc)
+            subcfg => cfg%at('locks', rc=status); _VERIFY(status, '', rc)
             call elements%build_locks(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
 
          if (cfg%has('filters')) then
-            subcfg = cfg%at('filters',rc=status); _VERIFY(status, '', rc)
+            subcfg => cfg%at('filters',rc=status); _VERIFY(status, '', rc)
             call elements%build_filters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
 
          if (cfg%has('formatters')) then
-            subcfg = cfg%at('formatters',rc=status); _VERIFY(status, '', rc)
+            subcfg => cfg%at('formatters',rc=status); _VERIFY(status, '', rc)
             call elements%build_formatters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
 
          if (cfg%has('handlers')) then
-            subcfg = cfg%at('handlers', rc=status); _VERIFY(status, '', rc)
+            subcfg => cfg%at('handlers', rc=status); _VERIFY(status, '', rc)
             call elements%build_handlers(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
          endif
       end associate
@@ -386,21 +386,20 @@ contains
 
    subroutine build_loggers(this, cfg, unusable, extra, rc)
       class (LoggerManager), target, intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type (Configuration) :: lgrs_cfg, lgr_cfg
+      class(YAML_Node), pointer :: lgrs_cfg, lgr_cfg
       
-      type (ConfigurationIterator) :: iter
+      class(NodeIterator), allocatable :: iter
       character(len=:), allocatable :: name
       type (Logger), pointer :: lgr
-      type(Configuration) :: subcfg
       integer :: status
 
       if (cfg%has('loggers')) then
-         lgrs_cfg = cfg%at('loggers', rc=status)
+         lgrs_cfg => cfg%at('loggers', rc=status)
          _VERIFY(status,'',rc)
          _ASSERT(lgrs_cfg%is_mapping(), "LoggerManager::build_loggers() - expected mapping for 'loggers'.", rc)
 
@@ -408,11 +407,11 @@ contains
          associate (b => lgrs_cfg%begin(), e => lgrs_cfg%end())
            iter = b
            do while (iter /= e)
-              call iter%get_key(name, rc=status)
+              name = to_string(iter%first(), rc=status)
               _VERIFY(status,'',rc)
 
               lgr => this%get_logger(name)
-              lgr_cfg = lgrs_cfg%at(name)
+              lgr_cfg => lgrs_cfg%at(name)
               call build_logger(lgr, lgr_cfg, this%elements, extra=extra, rc=status)
               _VERIFY(status,'',rc)
               call iter%next()
@@ -427,16 +426,16 @@ contains
 
    subroutine build_root_logger(this, cfg, unusable, extra, rc)
       class (LoggerManager), intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type (Configuration) :: root_cfg
+      class(YAML_Node), pointer :: root_cfg
       integer :: status
 
       if (cfg%has('root')) then
-         root_cfg = cfg%at('root', rc=status)
+         root_cfg => cfg%at('root', rc=status)
          _VERIFY(status,'',rc)
          call build_logger(this%root_node, root_cfg, this%elements, extra=extra, rc=status)
          _VERIFY(status,'',rc)

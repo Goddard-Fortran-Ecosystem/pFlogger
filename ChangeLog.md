@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2022-04-08
+
+### Changed
+
+- Updated to new version (1.0-beta7) of yaFyaml which involves new interfaces.
+
 ## [1.7.0] - 2022-03-24
 
 ### Added

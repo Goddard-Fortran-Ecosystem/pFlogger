@@ -5,4 +5,5 @@
 #define _THROW(msg) call throw(__FILE__,__LINE__,msg)
 #define _ASSERT(cond,msg,rc) if(.not.(cond))then; _THROW(msg);_RETURN(_FAILURE,rc);endif
 #define _VERIFY(status,msg,rc) _ASSERT(status==_SUCCESS,msg,rc)
+#define _RC rc=status); _VERIFY(status,'',rc
 
