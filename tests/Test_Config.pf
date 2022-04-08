@@ -1,4 +1,4 @@
-!
+n!
 ! Note that at the time this module was created, gfortran 5.1 did not correctly
 ! retain lengths of strings when treated as unlimited polymorphic entities.
 ! Hence, character in such maps must be quoted inside a String object.
@@ -21,9 +21,9 @@ contains
 
    @test
    subroutine test_check_schema_specified()
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
 
-      cfg = Configuration(IntNode(1)) ! an almost empty config
+      cfg = IntNode(1) ! an almost empty config
       call check_schema_version(cfg)
       @assertExceptionRaised("PFL::Config::check_schema_version() - must specify a schema_version for Config.")
 
@@ -32,7 +32,7 @@ contains
 
    @test
    subroutine test_check_schema_version_unsupported()
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
 
       type(MappingNode), target :: mn
       type(Mapping), pointer :: m
@@ -42,7 +42,7 @@ contains
 
       call m%insert(StringNode('schema_version'), IntNode(2))
 
-      cfg = Configuration(mn)
+      cfg = mn
       call check_schema_version(cfg) ! Empty config
       @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
 
@@ -51,16 +51,15 @@ contains
 
    @test
    subroutine test_check_schema_version_valid()
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
 
       type(MappingNode), target :: mn
       type(Mapping), pointer :: m
 
       mn = MappingNode()
       m => to_mapping(mn)
-
-      cfg = Configuration(mn)
       call m%insert(StringNode('schema_version'), IntNode(1)) ! currently only valid option
+      cfg = mn
 
       call check_schema_version(cfg) ! Empty config
 
@@ -71,7 +70,7 @@ contains
    subroutine test_build_formatter_noargs()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
@@ -79,7 +78,7 @@ contains
       integer :: status
       
       node = MappingNode()
-      cfg = Configuration(node)
+      cfg = node
       call build_formatter(fmtr, cfg, rc=status)
       @assert_that(status, is(0))
 
@@ -94,7 +93,7 @@ contains
    subroutine test_build_formatter_withFmt()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
@@ -114,7 +113,7 @@ contains
    subroutine test_build_formatter_withDateFmt()
       use PFL_Formatter
       use PFL_LogRecord
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       class (Formatter), allocatable :: fmtr
       type (LogRecord) :: record
       character(len=:), allocatable :: logMessage
@@ -136,7 +135,7 @@ contains
 
    @test
    subroutine test_build_formatters()
-      type (Configuration) :: formattersCfg
+      class(YAML_Node), allocatable :: formattersCfg
       type (FormatterMap), pointer :: formatters
       type (ConfigElements), target :: elements
 
@@ -146,7 +145,6 @@ contains
       formattersCfg = p%load(EscapedTextStream( &
            & " A: {format: '---'}\n" // &
            & " B: {format: '---', datefmt: hello }\n"))
-
       
       call elements%build_formatters(formattersCfg)
       formatters => elements%get_formatters()
@@ -158,7 +156,7 @@ contains
    subroutine test_build_filter()
       use PFL_AbstractFilter
       use PFL_Filter
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       class (AbstractFilter), allocatable :: f
       type(Parser) :: p
 
@@ -179,7 +177,7 @@ contains
 
    @test
    subroutine test_build_filters()
-      type (Configuration) :: filtersCfg
+      class(YAML_Node), allocatable :: filtersCfg
       type (FilterMap), pointer :: filters
       type (ConfigElements), target :: elements
 
@@ -201,7 +199,7 @@ contains
    subroutine test_build_streamhandler()
       use PFL_StreamHandler
       use PFL_LogRecord
-      type (Configuration) :: handler_cfg
+      class(YAML_Node), allocatable :: handler_cfg
       type (StreamHandler) :: h
       integer :: unit
       character(len=16) :: unitStr
@@ -240,7 +238,7 @@ contains
       use PFL_Formatter
       use PFL_AbstractHandler
       use PFL_LogRecord
-      type (Configuration) :: handler_cfg
+      class(YAML_Node), allocatable :: handler_cfg
       class (AbstractHandler), allocatable :: h
 
       integer :: unit
@@ -306,7 +304,7 @@ contains
       use PFL_StreamHandler
       use PFL_Formatter
 
-      type (Configuration) :: handlersCfg
+      class(YAML_Node), allocatable :: handlersCfg
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -349,13 +347,13 @@ contains
 @test
    subroutine test_build_logger_trivial()
 
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
 
       type (ConfigElements), target :: elements
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
-      cfg = Configuration(MappingNode())
+      cfg = MappingNode()
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call build_logger(lgr, cfg, elements)
@@ -373,7 +371,7 @@ contains
       type (HandlerMap), pointer :: handlers
       type (ConfigElements), target :: elements
 
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
@@ -388,7 +386,7 @@ contains
 
       lgr => mgr%get_logger('A')
 
-      cfg = Configuration(MappingNode())
+      cfg = MappingNode()
       call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
@@ -403,7 +401,7 @@ contains
       use PFL_RootLogger
 
       type (LoggerManager), target :: mgr
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       type (MockBuffer), target :: buffer
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
@@ -442,11 +440,11 @@ contains
       use MockMpi
       use PFL_SeverityLevels
 
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
       type (MockBuffer), target :: buffer2
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
-      type (Configuration), target :: extra
+      class(YAML_Node), allocatable, target :: extra
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
@@ -484,7 +482,7 @@ contains
    
 !   @test
    subroutine test_basic_loggers_invalid_cfg()
-      type (Configuration) :: cfg
+      class(YAML_Node), allocatable :: cfg
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
@@ -507,8 +505,7 @@ contains
 
    @test
    subroutine test_basic_loggers()
-      type (Configuration) :: cfg
-      type (Configuration) :: loggers
+      class(YAML_Node), allocatable :: cfg
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
@@ -533,8 +530,7 @@ contains
    subroutine test_logger_root_level()
       use MockMpi
       use mpi
-      type (Configuration) :: cfg
-      type (Configuration) :: loggers
+      class(YAML_Node), allocatable :: cfg
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr

@@ -69,13 +69,12 @@ contains
    ! Expects a mapping of formatter name to formatter mapping
    subroutine build_formatters(this, cfg, unusable, extra, rc)
       class(ConfigElements), intent(inout) :: this
-      type(Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type(ConfigurationIterator) :: iter
-      type (Configuration) :: subcfg
+      class(NodeIterator), allocatable :: iter
       class (Formatter), allocatable :: f
       character(:), allocatable :: formatter_name
       
@@ -85,15 +84,16 @@ contains
 
       associate (b => cfg%begin(), e => cfg%end())
         iter = b
+        print*,__FILE__,__LINE__, cfg%has('A'), iter%is_mapping_iterator(), cfg%size()
+        block
+          print*,__FILE__,__LINE__, associated(b%first())
+          print*,__FILE__,__LINE__, to_string(iter%first())
+        end block
         do while (iter /= e)
-           call iter%get_value(subcfg, rc=status)
-           _VERIFY(status, '', rc)
+           formatter_name = to_string(iter%first(), _RC)
 
-           call build_formatter(f, subcfg, extra=extra, global_communicator=this%global_communicator, rc=status)
-           _VERIFY(status, '', rc)
+           call build_formatter(f, iter%second(), extra=extra, global_communicator=this%global_communicator, _RC)
 
-           call iter%get_key(formatter_name, rc=status)
-           _VERIFY(status, '', rc)
            call this%formatters%insert(formatter_name, f)
            deallocate(f)
            call iter%next()
@@ -108,7 +108,7 @@ contains
    ! Expects a mapping
    subroutine build_formatter(fmtr, cfg, unusable, extra, global_communicator, rc)
       class (Formatter), allocatable, intent(out) :: fmtr
-      type(Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: global_communicator
@@ -121,23 +121,22 @@ contains
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatter() - input cfg not a mapping", rc)
 
       if (cfg%has('class')) then
-         call cfg%get(class_name, 'class', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(class_name, 'class', _RC)
       else
          class_name = 'Formatter'
       end if
       select case (class_name)
       case ('Formatter')
-         call build_basic_formatter(fmtr, cfg, rc=status)
-         _VERIFY(status,'',rc)
+         call build_basic_formatter(fmtr, cfg, _RC)
 #ifdef _LOGGER_USE_MPI         
       case ('MpiFormatter')
-         call extra_%deepcopy(extra)
+         if (present(extra)) then
+            extra_ = extra
+         end if
          if (present(global_communicator)) then
             call extra_%insert('_GLOBAL_COMMUNICATOR', global_communicator)
          end if
-         call build_mpi_formatter(fmtr, cfg, extra=extra_, rc=status)
-         _VERIFY(status,'',rc)
+         call build_mpi_formatter(fmtr, cfg, extra=extra_, _RC)
 #endif
       end select
       _RETURN(_SUCCESS,rc)
@@ -147,7 +146,7 @@ contains
 
    subroutine build_basic_formatter(fmtr, cfg, rc)
       class (Formatter), allocatable, intent(out) :: fmtr
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       integer, optional, intent(out) :: rc
 
       character(len=:), allocatable :: fmt
@@ -155,12 +154,10 @@ contains
       integer :: status
 
       if (cfg%has('format')) then
-         call cfg%get(fmt,'format', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(fmt,'format', _RC)
 
          if (cfg%has('datefmt')) then
-            call cfg%get(datefmt, 'datefmt', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(datefmt, 'datefmt', _RC)
             allocate(fmtr,source=Formatter(fmt, datefmt=datefmt))
          else
             allocate(fmtr,source=Formatter(fmt))
@@ -176,7 +173,7 @@ contains
    subroutine build_mpi_formatter(fmtr, cfg, unusable, extra, rc)
       use PFL_MpiCommConfig
       class (Formatter), allocatable, intent(out) :: fmtr
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
@@ -190,38 +187,40 @@ contains
       integer :: i, j, n
 
       type (StringUnlimitedMap) :: commMap
-      type (Configuration) :: subcfg
+      class(YAML_Node), pointer :: subcfg
       type (StringVector) :: communicator_name_list
       character(len=:), allocatable :: communicator_name, name
       integer :: status
       class(*), pointer :: p
+      type (StringUnlimitedMap) :: extra_
 
       _UNUSED_DUMMY(unusable)
 
       if (cfg%has('comms')) then
-         subcfg = cfg%at('comms', rc=status)
-         _VERIFY(status,'',rc)
+         subcfg => cfg%at('comms', _RC)
          _ASSERT(subcfg%is_sequence(), "PFL::Config::build_mpi_formatter() - 'comms' subcfg not a sequence.", rc)
 
          allocate(comms(0))
          n = subcfg%size()
+         if (present(extra)) then
+            extra_ = extra
+         end if
 
          do i = 1, n
-            call subcfg%get(name, i, rc=status)
-            _VERIFY(status,'',rc)
+            call subcfg%get(name, i, _RC)
 
             select case (name)
             case ('MPI_COMM_WORLD','COMM_LOGGER')
-               if (extra%count('_GLOBAL_COMMUNICATOR') > 0) then
-                  p => extra%at('_GLOBAL_COMMUNICATOR')
+               if (extra_%count('_GLOBAL_COMMUNICATOR') > 0) then
+                  p => extra_%at('_GLOBAL_COMMUNICATOR')
                   select type (p)
                   type is (integer)
                      comms = [comms, p]
                   end select
                end if
             case default
-               if (extra%count(name) == 1) then
-                  p => extra%at(name)
+               if (extra_%count(name) == 1) then
+                  p => extra_%at(name)
                   select type (p)
                   type is (integer)
                      comms = [comms, p]
@@ -238,14 +237,12 @@ contains
 
            rank_prefix = 'mpi_rank'
            if (cfg%has('rank_prefix')) then
-              call cfg%get(rank_prefix, 'rank_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(rank_prefix, 'rank_prefix', _RC)
            end if
 
            size_prefix = 'mpi_size'
            if (cfg%has('size_prefix')) then
-              call cfg%get(size_prefix, 'size_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(size_prefix, 'size_prefix', _RC)
            end if
 
            call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
@@ -253,29 +250,25 @@ contains
 
       else
 
-         comm = get_communicator('COMM_LOGGER', extra=extra, rc=status)
-         _VERIFY(status,'',rc)
+         comm = get_communicator('COMM_LOGGER', extra=extra, _RC)
          block
            character(len=:), allocatable :: rank_prefix
            character(len=:), allocatable :: size_prefix
            rank_prefix = 'mpi_rank'
            if (cfg%has('rank_prefix')) then
-              call cfg%get(rank_prefix, 'rank_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(rank_prefix, 'rank_prefix', _RC)
            end if
 
            size_prefix = 'mpi_size'
            if (cfg%has('size_prefix')) then
-              call cfg%get(size_prefix, 'size_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(size_prefix, 'size_prefix', _RC)
            end if
            call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
          end block
       end if
 
       if (cfg%has('format')) then
-         call cfg%get(fmt, 'format', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(fmt, 'format', _RC)
          ! strip beginning and trailing quotes
          block
            character(len=:), allocatable :: tmp
@@ -283,8 +276,7 @@ contains
          end block
 
          if (cfg%has('datefmt')) then
-            call cfg%get(datefmt, 'datefmt', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(datefmt, 'datefmt', _RC)
 
             datefmt = trim(adjustl(datefmt))
             ! drop enclosig quotes
@@ -307,14 +299,15 @@ contains
       use PFL_MpiLock
 #endif
       class (ConfigElements), intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type(ConfigurationIterator) :: iter
-      type(Configuration) :: subcfg
+      class(NodeIterator), allocatable :: iter
+      class(YAML_Node), pointer :: subcfg
       character(:), allocatable :: lock_name
+      class (AbstractLock), allocatable :: lock
       integer :: status
       
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_locks() - input cfg not a mapping", rc)
@@ -323,12 +316,10 @@ contains
         iter = b
         do while (iter /= e)
 
-           call iter%get_key(lock_name, rc=status)
-           _VERIFY(status,'',rc)
-           call iter%get_value(subcfg, rc=status)
-           _VERIFY(status,'',rc)
-           call this%locks%insert(lock_name, build_lock(subcfg, extra=extra, rc=status))
-           _VERIFY(status,'',rc)
+           lock_name = to_string(iter%first(), _RC)
+           subcfg => iter%second()
+           lock = build_lock(subcfg, extra=extra, _RC)
+           call this%locks%insert(lock_name, lock)
            call iter%next()
         end do
       end associate
@@ -340,7 +331,7 @@ contains
 
       function build_lock(cfg, unusable, extra, rc) result(lock)
          class (AbstractLock), allocatable :: lock
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          class (KeywordEnforcer), optional, intent(in) :: unusable
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
@@ -350,16 +341,14 @@ contains
          integer :: status
 
          if (cfg%has('class')) then
-            call cfg%get(class_name, 'class', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(class_name, 'class', _RC)
 
             select case (class_name)
 #ifdef _LOGGER_USE_MPI
             case ('MpiLock')
                comm_name = 'COMM_LOGGER'
                if (cfg%has(comm_name)) then
-                  call cfg%get(comm_name, 'comm', rc=status)
-                  _VERIFY(status,'',rc)
+                  call cfg%get(comm_name, 'comm', _RC)
                end if
                comm = get_communicator(comm_name, extra=extra)
                allocate(lock, source=MpiLock(comm))
@@ -379,14 +368,15 @@ contains
 
    subroutine build_filters(this, cfg, unusable, extra, rc)
       class (ConfigElements), intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type (ConfigurationIterator) :: iter
-      type (Configuration) :: subcfg
+      class(NodeIterator), allocatable :: iter
+      class(YAML_Node), pointer :: subcfg
       character(:), allocatable :: filter_name
+      class(AbstractFilter), allocatable :: filter
       integer :: status
 
       associate (b => cfg%begin(), e => cfg%end())
@@ -394,14 +384,11 @@ contains
         
         do while (iter /= e)
 
-           call iter%get_key(filter_name, rc=status)
-           _VERIFY(status,'',rc)
+           filter_name = to_string(iter%first(), _RC)
 
-           call iter%get_value(subcfg, rc=status)
-           _VERIFY(status,'',rc)
-
-           call this%filters%insert(filter_name, build_filter(subcfg, extra=extra, rc=status))
-           _VERIFY(status,'',rc)
+           subcfg => iter%second()
+           filter = build_filter(subcfg, extra=extra, _RC)
+           call this%filters%insert(filter_name, filter)
            call iter%next()
         end do
       end associate
@@ -415,7 +402,7 @@ contains
 
    function build_filter(cfg, unusable, extra, rc) result(f)
       class (AbstractFilter), allocatable :: f
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
@@ -426,8 +413,7 @@ contains
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatter() - input cfg not a mapping", rc)
 
       if (cfg%has('class')) then
-         call cfg%get(class_name, 'class', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(class_name, 'class', _RC)
       else
          class_name = 'filter'
       end if
@@ -435,16 +421,16 @@ contains
       select case (to_lower_case(class_name))
       case ('filter')
          allocate(f, source=build_basic_filter(cfg, rc=status))
-         _VERIFY(status,'',rc)
+         _VERIFY(status, '', rc)
          
       case ('levelfilter')
          allocate(f, source=build_LevelFilter(cfg, rc=status))
-         _VERIFY(status,'',rc)
+         _VERIFY(status, '', rc)
          
 #ifdef _LOGGER_USE_MPI              
       case ('mpifilter')
          allocate(f, source=build_MpiFilter(cfg, extra=extra, rc=status))
-         _VERIFY(status,'',rc)
+         _VERIFY(status, '', rc)
 
 #endif
       case default
@@ -457,7 +443,7 @@ contains
 
     function build_basic_filter(cfg, rc) result(f)
       type (Filter) :: f
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       integer, optional, intent(out) :: rc
       
       character(len=:), allocatable :: name
@@ -466,8 +452,7 @@ contains
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatter() - input cfg not a mapping", rc)
       _ASSERT(cfg%has('name'), 'PFL::Config::build_basic_filter() - missing "name".', rc)
 
-      call cfg%get(name, 'name', rc=status)
-      _VERIFY(status,'',rc)
+      call cfg%get(name, 'name', _RC)
       f = Filter(name)
 
       _RETURN(_SUCCESS,rc)
@@ -476,16 +461,14 @@ contains
     function build_LevelFilter(cfg, rc) result(f)
        use PFL_LevelFilter
        type (LevelFilter) :: f
-       type (Configuration), intent(in) :: cfg
+       class(YAML_Node), intent(in) :: cfg
        integer, optional, intent(out) :: rc
        
        integer :: min_level, max_level
        integer :: status
 
-       min_level = get_level('min_level', rc=status)
-       _VERIFY(status,'',rc)
-       max_level = get_level('max_level', rc=status)
-       _VERIFY(status,'',rc)
+       min_level = get_level('min_level', _RC)
+       max_level = get_level('max_level', _RC)
  
        f = LevelFilter(min_level, max_level)
        
@@ -503,13 +486,11 @@ contains
           level = -1
           _ASSERT(cfg%has('max_level'), 'PFL::Config::build_LevelFilter() - missing "max_level".', rc)
 
-          call cfg%get(level_name, 'max_level', rc=status)
-          _VERIFY(status,'',rc)
+          call cfg%get(level_name, 'max_level', _RC)
 
           read(level_name,*,iostat=iostat) level
           if (iostat /= 0) then
-             level = name_to_level(level_name, rc=status)
-             _VERIFY(status,'',rc)
+             level = name_to_level(level_name, _RC)
           end if
 
           _RETURN(_SUCCESS,rc)
@@ -521,7 +502,7 @@ contains
     function build_MpiFilter(cfg, unusable, extra, rc) result(f)
        use PFL_MpiFilter
        type (MpiFilter) :: f
-       type (Configuration), intent(in) :: cfg
+       class(YAML_Node), intent(in) :: cfg
        class (KeywordEnforcer), optional, intent(in) :: unusable
        type (StringUnlimitedMap), optional, intent(in) :: extra
        integer, optional, intent(out) :: rc
@@ -532,8 +513,7 @@ contains
        integer :: status
 
        if (cfg%has('comm')) then
-          call cfg%get(comm_name, 'comm', rc=status)
-          _VERIFY(status,'',rc)
+          call cfg%get(comm_name, 'comm', _RC)
        else
           comm_name = 'COMM_LOGGER'
        end if
@@ -541,8 +521,7 @@ contains
        comm = get_communicator(comm_name, extra=extra)
        root = 0
        if (cfg%has('root')) then
-          call cfg%get(root, 'root', rc=status)
-          _VERIFY(status,'',rc)
+          call cfg%get(root, 'root', _RC)
        end if
 
        f = MpiFilter(comm, root)
@@ -555,25 +534,24 @@ contains
 
    subroutine build_handlers(this, cfg, unusable, extra, rc)
       class (ConfigElements), intent(inout) :: this
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      type (ConfigurationIterator) :: iter
-      type (Configuration) :: subcfg
+      class(NodeIterator), allocatable :: iter
+      class(YAML_Node), pointer :: subcfg
       character(:), allocatable :: handler_name
       class (AbstractHandler), allocatable :: h
       integer :: status
 
       iter = cfg%begin()
       do while (iter /= cfg%end())
-         call iter%get_key(handler_name, rc=status)
-         _VERIFY(status, '', rc)
 
-         call iter%get_value(subcfg, rc=status)
-         call build_handler(h,subcfg, this, extra=extra, rc=status)
-         _VERIFY(status,'',rc)
+         handler_name = to_string(iter%first(), _RC)
+
+         subcfg => iter%second()
+         call build_handler(h,subcfg, this, extra=extra, _RC)
 
          call this%handlers%insert(handler_name, h)
          deallocate(h)
@@ -585,7 +563,7 @@ contains
    
    subroutine build_handler(h, cfg, elements, unusable, extra, rc)
       class (AbstractHandler), allocatable, intent(out) :: h
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(inout) :: cfg
       type (ConfigElements), intent(inout) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
@@ -593,16 +571,11 @@ contains
 
       integer :: status
       
-      call allocate_concrete_handler(h, cfg, rc=status)
-      _VERIFY(status,'',rc)
-      call set_handler_level(h, cfg, rc=status)
-      _VERIFY(status,'',rc)
-      call set_handler_formatter(h, cfg, elements%formatters, rc=status)
-      _VERIFY(status,'',rc)
-      call set_handler_filters(h, cfg, elements%filters, rc=status)
-      _VERIFY(status,'',rc)
-      call set_handler_lock(h, cfg, elements%locks, rc=status)
-      _VERIFY(status,'',rc)
+      call allocate_concrete_handler(h, cfg, _RC)
+      call set_handler_level(h, cfg, _RC)
+      call set_handler_formatter(h, cfg, elements%formatters, _RC)
+      call set_handler_filters(h, cfg, elements%filters, _RC)
+      call set_handler_lock(h, cfg, elements%locks, _RC)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
@@ -611,7 +584,7 @@ contains
 
       subroutine allocate_concrete_handler(h, cfg, rc)
          class (AbstractHandler), allocatable, intent(out) :: h
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(inout) :: cfg
          integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: class_name
@@ -620,8 +593,7 @@ contains
 
          class_name = 'unknown'
          if (cfg%has('class')) then
-            call cfg%get(class_name, 'class', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(class_name, 'class', _RC)
          end if
 
          select case (to_lower_case(class_name))
@@ -643,7 +615,7 @@ contains
 
       subroutine set_handler_level(h, cfg, rc)
          class (AbstractHandler), intent(inout) :: h
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          integer, optional, intent(out) :: rc 
 
          character(len=:), allocatable :: level_name
@@ -653,8 +625,7 @@ contains
 
          level_name = 'NOTSET'
          if (cfg%has('level')) then
-            call cfg%get(level_name, 'level', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(level_name, 'level', _RC)
          end if
 
          ! Try as integer
@@ -662,8 +633,7 @@ contains
 
          ! If that failed - interpret as a name from SeverityLevels.
          if (iostat /= 0) then
-            level = name_to_level(level_name, rc=status)
-            _VERIFY(status,'',rc)
+            level = name_to_level(level_name, _RC)
          end if
 
          call h%set_level(level)
@@ -675,7 +645,7 @@ contains
       subroutine set_handler_formatter(h, cfg, formatters, rc)
          use PFL_Formatter
          class (AbstractHandler), intent(inout) :: h
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          type (FormatterMap), target, intent(inout) :: formatters
          integer, optional, intent(out) :: rc
 
@@ -685,8 +655,7 @@ contains
          integer :: status
 
          if (cfg%has('formatter')) then
-            call cfg%get(formatter_name, 'formatter', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(formatter_name, 'formatter', _RC)
 
             if (formatters%count(formatter_name) == 1) then
                p_fmt => formatters%of(formatter_name)
@@ -703,19 +672,19 @@ contains
 
       subroutine set_handler_filters(h, cfg, filters, rc)
          class (AbstractHandler), intent(inout) :: h
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(inout) :: cfg
          type (FilterMap), intent(inout) :: filters
          integer, optional, intent(out) :: rc
 
          class (AbstractFilter), pointer :: f
          character(len=:), allocatable :: name
          integer :: status
-         type(Configuration) :: subcfg
+         class(YAML_Node), pointer :: subcfg
          type(UnlimitedVector) :: empty
          integer :: i
 
          if (cfg%has('filters')) then
-            subcfg = cfg%of('filters')
+            subcfg => cfg%of('filters')
             _ASSERT(subcfg%is_sequence(), 'PFL::Config::handler_filters() - "filters" not a squence', rc)
 
             do i = 1, subcfg%size()
@@ -734,7 +703,7 @@ contains
 
       subroutine set_handler_lock(h, cfg, locks, rc)
          class (AbstractHandler), intent(inout) :: h
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          type (LockMap), intent(inout) :: locks
          integer, optional, intent(out) :: rc
 
@@ -743,8 +712,7 @@ contains
          integer :: status
 
          if (cfg%has('lock')) then
-            call cfg%get(lock_name, 'lock', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(lock_name, 'lock', _RC)
 
             if (locks%count(lock_name) == 1) then
                lock => locks%of(lock_name)
@@ -767,24 +735,22 @@ contains
    function build_streamhandler(cfg, rc) result(h)
       use iso_fortran_env, only: OUTPUT_UNIT, ERROR_UNIT
       type (StreamHandler) :: h
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(inout) :: cfg
       integer, optional, intent(out) :: rc
 
       character(len=:), allocatable :: unit_name
       integer :: unit
       integer :: status
       integer :: iostat
-      type(Configuration) :: subcfg
+      class(YAML_Node), pointer :: subcfg
 
 
       if (cfg%has('unit')) then
-         subcfg = cfg%of('unit')
+         subcfg => cfg%of('unit')
          if (subcfg%is_int()) then
-            call subcfg%get(unit, rc=status)
-            _VERIFY(status,'',rc)
+            call subcfg%get(unit, _RC)
          elseif (subcfg%is_string()) then
-            call subcfg%get(unit_name, rc=status)
-            _VERIFY(status,'',rc)
+            call subcfg%get(unit_name, _RC)
             read(unit_name,*,iostat=iostat) unit
             if (iostat /= 0) then
                ! if failed, maybe it is a defined name?
@@ -810,7 +776,7 @@ contains
 
    subroutine build_filehandler(h, cfg, rc)
       type (FileHandler), intent(out) :: h
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       integer, optional, intent(out) :: rc
 
       character(len=:), allocatable :: filename
@@ -821,13 +787,11 @@ contains
 
       _ASSERT(cfg%has('filename'), "PFL::Config::build_FileHandler() - must provide file name.", rc)
 
-      call cfg%get(filename, 'filename', rc=status)
-      _VERIFY(status,'',rc)
+      call cfg%get(filename, 'filename', _RC)
 
       delay = .false.
       if (cfg%has(delay)) then
-         call cfg%get(delay, 'delay', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(delay, 'delay', _RC)
       end if
 
       h = FileHandler(filename, delay=delay)
@@ -840,13 +804,13 @@ contains
       use PFL_MpiCommConfig
 
       type (FileHandler), intent(out) :: h
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       character(len=:), allocatable :: fileName
-      type(Configuration) :: subcfg
+      class(YAML_Node), pointer :: subcfg
       integer :: unit
       integer :: iostat
       integer :: comm
@@ -861,20 +825,17 @@ contains
 
       _ASSERT(cfg%has('filename'), "PFL::Config::build_MpiFileHandler() - must provide file name.", rc)
 
-      call cfg%get(filename, 'filename', rc=status)
-      _VERIFY(status,'',rc)
+      call cfg%get(filename, 'filename', _RC)
 
       if (cfg%has('comms')) then
-         subcfg = cfg%at('comms', rc=status)
-         _VERIFY(status,'',rc)
+         subcfg => cfg%at('comms', _RC)
          _ASSERT(subcfg%is_sequence(), "PFL::Config::build_mpi_formatter() - 'comms' subcfg not a sequence.", rc)
 
 
          allocate(comms(n))
 
          do i = 1, n
-            call subcfg%get(communicator_name, i, rc=status)
-            _VERIFY(status,'',rc)
+            call subcfg%get(communicator_name, i, _RC)
             comms(i) = get_communicator(communicator_name)
          end do
 
@@ -884,14 +845,12 @@ contains
 
            rank_prefix = 'mpi_rank'
            if (cfg%has('rank_prefix')) then
-              call cfg%get(rank_prefix, 'rank_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(rank_prefix, 'rank_prefix', _RC)
            end if
 
            size_prefix = 'mpi_size'
            if (cfg%has('size_prefix')) then
-              call cfg%get(size_prefix, 'size_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(size_prefix, 'size_prefix', _RC)
            end if
 
            call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
@@ -900,11 +859,9 @@ contains
       else
          communicator_name = 'COMM_LOGGER'
          if (cfg%has('comm')) then
-            call cfg%get(communicator_name, 'comm', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(communicator_name, 'comm', _RC)
          end if
-         comm = get_communicator(communicator_name, extra=extra, rc=status)
-         _VERIFY(status,'',rc)
+         comm = get_communicator(communicator_name, extra=extra, _RC)
 
          block
            character(len=:), allocatable :: rank_prefix
@@ -912,14 +869,12 @@ contains
 
            rank_prefix = 'mpi_rank'
            if (cfg%has('rank_prefix')) then
-              call cfg%get(rank_prefix, 'rank_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(rank_prefix, 'rank_prefix', _RC)
            end if
 
            size_prefix = 'mpi_size'
            if (cfg%has('size_prefix')) then
-              call cfg%get(size_prefix, 'size_prefix', rc=status)
-              _VERIFY(status,'',rc)
+              call cfg%get(size_prefix, 'size_prefix', _RC)
            end if
 
            call init_MpiCommConfig(commMap, comm, rank_keyword=rank_prefix, size_keyword=size_prefix)
@@ -936,8 +891,7 @@ contains
       ! empty files in the usual case.
       delay = .true.
       if (cfg%has('delay')) then
-         call cfg%get(delay, 'delay', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(delay, 'delay', _RC)
       end if
 
       h = FileHandler(fileName, delay=delay)
@@ -949,7 +903,7 @@ contains
    subroutine build_logger(lgr, cfg, elements, unusable, extra, rc)
       use PFL_StringUtilities, only: to_lower_case
       class (Logger), intent(inout) :: lgr
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(inout) :: cfg
       type (ConfigElements), intent(inout) :: elements
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
@@ -959,14 +913,10 @@ contains
 
       _UNUSED_DUMMY(unusable)
 
-      call set_logger_level(lgr, cfg, rc=status)
-      _VERIFY(status,'',rc)
-      call set_logger_propagate(lgr, cfg,rc=status)
-      _VERIFY(status,'',rc)
-      call set_logger_filters(lgr, cfg, elements%filters, rc=status)
-      _VERIFY(status,'',rc)
-      call set_logger_handlers(lgr, cfg, elements%handlers, rc=status)
-      _VERIFY(status,'',rc)
+      call set_logger_level(lgr, cfg, _RC)
+      call set_logger_propagate(lgr, cfg, _RC)
+      call set_logger_filters(lgr, cfg, elements%filters, _RC)
+      call set_logger_handlers(lgr, cfg, elements%handlers, _RC)
 
       _RETURN(_SUCCESS,rc)
 
@@ -974,7 +924,7 @@ contains
 
       subroutine set_logger_level(lgr, cfg, rc)
          class (Logger), intent(inout) :: lgr
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: level_name
@@ -989,30 +939,25 @@ contains
 
          level_name = 'NOTSET'
          if (cfg%has('level')) then
-            call cfg%get(level_name, 'level', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(level_name, 'level', _RC)
          end if
 
 #ifdef _LOGGER_USE_MPI
          communicator_name = 'COMM_LOGGER'
          if (cfg%has('comm')) then
-            call cfg%get(communicator_name, 'comm', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(communicator_name, 'comm', _RC)
          end if
-         comm = get_communicator(communicator_name, extra=extra, rc=status)
-         _VERIFY(status,'',rc)
+         comm = get_communicator(communicator_name, extra=extra, _RC)
 
          root = 0
          if (cfg%has('root')) then
-            call cfg%get(root, 'root', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(root, 'root', _RC)
          end if
 
          call MPI_Comm_rank(comm, rank, ierror)
          if (rank == root) then
             if (cfg%has('root_level')) then
-               call cfg%get(root_level_name, 'root_level', rc=status)
-               _VERIFY(status,'',rc)
+               call cfg%get(root_level_name, 'root_level', _RC)
                level_name = root_level_name
             end if
          else
@@ -1023,8 +968,7 @@ contains
          read(level_name,*, iostat=iostat) level
 
          if (iostat /= 0) then
-            level = name_to_level(level_name, rc=status)
-            _VERIFY(status,'',rc)
+            level = name_to_level(level_name, _RC)
          end if
          call lgr%set_level(level)
 
@@ -1034,7 +978,7 @@ contains
 
       subroutine set_logger_propagate(lgr, cfg, rc)
          class (Logger), intent(inout) :: lgr
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(in) :: cfg
          integer, optional, intent(out) :: rc
 
          logical :: propagate
@@ -1042,8 +986,7 @@ contains
          integer :: status
 
          if (cfg%has('propagate')) then
-            call cfg%get(propagate, 'propagate', rc=status)
-            _VERIFY(status,'',rc)
+            call cfg%get(propagate, 'propagate', _RC)
             call lgr%set_propagate(propagate)
          end if
 
@@ -1053,24 +996,23 @@ contains
 
       subroutine set_logger_filters(lgr, cfg, filters, unusable, extra, rc)
          class (Logger), intent(inout) :: lgr
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(inout) :: cfg
          type (FilterMap), intent(inout) :: filters
          class (KeywordEnforcer), optional, intent(in) :: unusable
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
 
          character(:), allocatable :: filter_name
-         type(Configuration) :: subcfg
+         class(YAML_Node), pointer :: subcfg
          integer :: i
          integer :: status
 
          if (cfg%has('filters')) then
-            subcfg = cfg%of('filters')
+            subcfg => cfg%of('filters')
             _ASSERT(subcfg%is_sequence(), "PFL::Config::set_logger_filters() - expected sequence for 'filters' key.", rc)
 
             do i = 1, subcfg%size()
-               call subcfg%get(filter_name, i, rc=status)
-               _VERIFY(status,'',rc)
+               call subcfg%get(filter_name, i, _RC)
 
                if (filters%count(filter_name) > 0) then
                   call lgr%add_filter(filters%of(filter_name))
@@ -1088,24 +1030,23 @@ contains
 
       subroutine set_logger_handlers(lgr, cfg, handlers, unusable, extra, rc)
          class (Logger), intent(inout) :: lgr
-         type (Configuration), intent(in) :: cfg
+         class(YAML_Node), intent(inout) :: cfg
          type (HandlerMap), intent(inout) :: handlers
          class (KeywordEnforcer), optional, intent(in) :: unusable
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: handler_name         
-         type(Configuration) :: subcfg
+         class(YAML_Node), pointer :: subcfg
          integer :: i
          integer :: status
 
          if (cfg%has('handlers')) then
-            subcfg = cfg%of('handlers')
+            subcfg => cfg%of('handlers')
             _ASSERT(cfg%has('handlers'), "PFL::Config::set_logger_handlers() - expected sequence for 'handlers' key.", rc)
          
             do i = 1, subcfg%size()
-               call subcfg%get(handler_name, i, rc=status)
-               _VERIFY(status,'',rc)
+               call subcfg%get(handler_name, i, _RC)
 
                if (handlers%count(handler_name) > 0) then
                   call lgr%add_handler(handlers%of(handler_name))
@@ -1132,6 +1073,7 @@ contains
       character(len=:), allocatable :: name_
       class(*), pointer :: p
       integer :: status
+      type(StringUnlimitedMap) :: extra_
 
       name_ = name
       if (name == 'MPI_COMM_WORLD') then
@@ -1139,8 +1081,9 @@ contains
       end if
 
       if (present(extra)) then
-         if (extra%count(name_) > 0) then
-            p => extra%of(name_)
+         extra_ = extra
+         if (extra_%count(name_) > 0) then
+            p => extra_%of(name_)
             select type (p)
             type is (integer)
                comm = p
@@ -1161,15 +1104,14 @@ contains
    ! Including a version number is crucial for providing non-backward
    ! compatible updates in the future.
    subroutine check_schema_version(cfg, rc)
-      type (Configuration), intent(in) :: cfg
+      class(YAML_Node), intent(in) :: cfg
       integer, optional, intent(out) :: rc
 
       integer :: version
       integer :: status
 
       if (cfg%has('schema_version')) then
-         call cfg%get(version, 'schema_version', rc=status)
-         _VERIFY(status,'',rc)
+         call cfg%get(version, 'schema_version', _RC)
 
          if (version /= 1) then
             _ASSERT(.false., 'PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].', rc)
