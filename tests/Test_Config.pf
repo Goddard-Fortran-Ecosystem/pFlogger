@@ -1,4 +1,4 @@
-n!
+!
 ! Note that at the time this module was created, gfortran 5.1 did not correctly
 ! retain lengths of strings when treated as unlimited polymorphic entities.
 ! Hence, character in such maps must be quoted inside a String object.
