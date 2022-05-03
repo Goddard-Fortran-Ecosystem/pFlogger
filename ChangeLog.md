@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Cleaned up some stray debugging prints
+
 ## [1.8.1] - 2022-05-03
 
 ### Fixed
 
-- Cleaned up some stray debugging prints
+- Fixed misspelling of SUCCESS
 
 ## [1.8.0] - 2022-04-08
 
