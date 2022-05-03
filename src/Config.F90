@@ -84,11 +84,6 @@ contains
 
       associate (b => cfg%begin(), e => cfg%end())
         iter = b
-        print*,__FILE__,__LINE__, cfg%has('A'), iter%is_mapping_iterator(), cfg%size()
-        block
-          print*,__FILE__,__LINE__, associated(b%first())
-          print*,__FILE__,__LINE__, to_string(iter%first())
-        end block
         do while (iter /= e)
            formatter_name = to_string(iter%first(), _RC)
 
