@@ -395,5 +395,39 @@ contains
 
    end subroutine test_getEffectiveLevel_ancestor
 
+   @test
+   ! The following test exercises a problem GFortran (11.2) has with
+   ! capturing strings as class(*) objects.  Sometimes length
+   ! information disappears. The old solution was to force users to
+   ! wrap their strings into an explicit object ala
+   !      `call lgr%info(...., String(mystr), ...)`
+   ! New solution is to have pflogger do the wrapping before storing
+   ! the object in a container.   Given the compiler limitation, this
+   ! solution may or may not prove to be robust, but it does
+   ! enable the test below to work.
+   subroutine test_GEOS_gfortran_reproducer(this)
+      class (Test_Logger), intent(inout) :: this
+      type (Logger), target :: lgr_A
+
+      character(len=:), allocatable :: name
+      character(:), allocatable :: bside
+      
+      name = 'foofoo'
+
+      bside = 'L'
+      call inner('L', name)
+      @assertEqual('Updating L bracket for foofoo', this%mockBuffer%buffer)
+
+   contains
+
+      subroutine inner(bside, name)
+         character(len=*), intent(in) :: bside
+         character(len=*), intent(in) :: name
+
+         call this%basicLogger%info('Updating %a bracket for %a',bside, trim(name))
+      end subroutine inner
+
+   end subroutine test_GEOS_gfortran_reproducer
+
 end module Test_Logger_mod
 

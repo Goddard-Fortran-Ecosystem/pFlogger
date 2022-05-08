@@ -84,6 +84,7 @@ contains
       type (LoggerManager), target :: mgr
 
       call mgr%load_file(FILE)
+
       lgr => mgr%get_logger('A')
       call lgr%debug('debug')
       call lgr%info('info')
