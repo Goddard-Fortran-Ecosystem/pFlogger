@@ -89,6 +89,7 @@ contains
       type (RootLogger), intent(in) :: root_node
 
       manager%root_node = root_node
+      manager%loggers = LoggerMap()
 
    end function new_LoggerManager
 
@@ -299,7 +300,6 @@ contains
    subroutine initialize_logger_manager()
       
       logging = LoggerManager(RootLogger(WARNING))
-      
 
    end subroutine initialize_logger_manager
 
