@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.9.0] - 2022-05-08
+
 ### Fixed
 
+- Introduced workaround for gFortran when combining strings with unlimited polymorphic entities.  Users may be able to avoid using a `String()` wrapper for args to logging commands now.
 - Cleaned up some stray debugging prints
 
 ## [1.8.1] - 2022-05-03
@@ -16,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed misspelling of SUCCESS
+
 
 ## [1.8.0] - 2022-04-08
 

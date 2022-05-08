@@ -144,5 +144,15 @@ E.g., if an application manages a pool of 1000 processes in a 10 x 10 x 10 topol
 process (3,4,1) might be much more informative than the global rank "143".  (OK - the conversion would be much more confusing if I'd 
 chosen a topology that did not involve factors of 10.)
 
+# Known issues
 
+1. GFortran as of 11.2 still sometimes fails to capture lengths of strings when they are stored in unlimited polymorphic entitien (i.e. CLASS(*)).  As such users are cautioned to wrap an string arguments (beyond the message arg itself) to log methods with an explicit String wrapper.  E.g., rather than
 
+```
+   call lgr%info("my favorite string is %a3", my_str)
+```
+one can write
+```
+   call lgr%info("my favorite string is %a3", String(my_str))
+```
+An attempt at an internal workaround for this is now implemented in pFlogger, but it is not yet clear whether this  will be robust in all situtations.  Basically the object still spends a bit of time as a CLASS(*) object before pFlogger has a chance to wrap it for the user.

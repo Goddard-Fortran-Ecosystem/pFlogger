@@ -34,15 +34,39 @@ contains
 
       args = UnlimitedVector()
 
-      if (present(arg1)) call args%push_back(arg1)
-      if (present(arg2)) call args%push_back(arg2)
-      if (present(arg3)) call args%push_back(arg3)
-      if (present(arg4)) call args%push_back(arg4)
-      if (present(arg5)) call args%push_back(arg5)
-      if (present(arg6)) call args%push_back(arg6)
-      if (present(arg7)) call args%push_back(arg7)
-      if (present(arg8)) call args%push_back(arg8)
-      if (present(arg9)) call args%push_back(arg9)
+      if (.not. present(arg1)) return
+      call push_one(args, arg1)
+      if (.not. present(arg2)) return
+      call push_one(args, arg2)
+      if (.not. present(arg3)) return
+      call push_one(args, arg3)
+      if (.not. present(arg4)) return
+      call push_one(args, arg4)
+      if (.not. present(arg5)) return
+      call push_one(args, arg5)
+      if (.not. present(arg6)) return
+      call push_one(args, arg6)
+      if (.not. present(arg7)) return
+      call push_one(args, arg7)
+      if (.not. present(arg8)) return
+      call push_one(args, arg8)
+      if (.not. present(arg9)) return
+      call push_one(args, arg9)
+
+   contains
+
+      subroutine push_one(args, arg)
+         use yafyaml, only: String
+         type(UnlimitedVector), intent(inout) :: args
+         class(*), intent(in) :: arg
+
+         select type (arg)
+         type is (character(*))
+            call args%push_back(String(arg))
+         class default
+            call args%push_back(arg)
+         end select
+      end subroutine push_one
       
    end function make_arg_vector
 

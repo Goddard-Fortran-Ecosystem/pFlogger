@@ -205,7 +205,6 @@ contains
       iostat = -1
       call buffer%allocate()
       do while (iostat /= 0)
-
          select type (arg)
          type is (String)
             if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
