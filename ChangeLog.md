@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2022-05-31
+
+### Changed
+
+- Minimum version of yaFyaml is now v1.0.1; contains workarounds for NAG 7.1 (7110)
+
+### Fixed
+
+- Workarounds in tests for NAG 7.1 (7110)
 
 ## [1.9.0] - 2022-05-08
 
