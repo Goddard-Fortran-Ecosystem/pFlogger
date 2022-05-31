@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Minimum version of yaFyaml is now v1.0.1; contains workarounds for NAG 7.1 (7110)
+- Updated GitHub Actions
+  - OSs
+    - Remove macos-10.15
+    - Add ubuntu-22.04 and macos-12
+  - Compilers
+   - Removed gfortran-8
+   - Added gfortran-11
+   - Added gfortran-12 (for ubuntu-22.04)
 
 ### Fixed
 
@@ -23,11 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduced workaround for gFortran when combining strings with unlimited polymorphic entities.  Users may be able to avoid using a `String()` wrapper for args to logging commands now.
 - Cleaned up some stray debugging prints
-
-## [1.8.1] - 2022-05-03
-
-### Fixed
-
 - Fixed misspelling of SUCCESS
 
 
