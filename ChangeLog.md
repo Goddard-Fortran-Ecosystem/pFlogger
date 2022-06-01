@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Changed
+## [1.9.1] - 2022-05-31
 
+### Changed
+
+- Minimum version of yaFyaml is now v1.0.1; contains workarounds for NAG 7.1 (7110)
 - Updated GitHub Actions
   - OSs
     - Remove macos-10.15
@@ -17,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Removed gfortran-8
    - Added gfortran-11
    - Added gfortran-12 (for ubuntu-22.04)
+
+### Fixed
+
+- Workarounds in tests for NAG 7.1 (7110)
 
 ## [1.9.0] - 2022-05-08
 
