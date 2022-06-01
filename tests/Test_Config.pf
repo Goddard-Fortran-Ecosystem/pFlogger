@@ -37,12 +37,13 @@ contains
       type(MappingNode), target :: mn
       type(Mapping), pointer :: m
 
+      
       mn = MappingNode()
       m => to_mapping(mn)
 
       call m%insert(StringNode('schema_version'), IntNode(2))
+      allocate(cfg, source=mn)
 
-      cfg = mn
       call check_schema_version(cfg) ! Empty config
       @assertExceptionRaised('PFL::Config::check_schema_version() - unsupported schema_version. Allowed values are [1].')
 
@@ -59,7 +60,7 @@ contains
       mn = MappingNode()
       m => to_mapping(mn)
       call m%insert(StringNode('schema_version'), IntNode(1)) ! currently only valid option
-      cfg = mn
+      allocate(cfg, source=mn)
 
       call check_schema_version(cfg) ! Empty config
 
@@ -78,7 +79,8 @@ contains
       integer :: status
       
       node = MappingNode()
-      cfg = node
+      allocate(cfg, source=node)
+
       call build_formatter(fmtr, cfg, rc=status)
       @assert_that(status, is(0))
 
@@ -601,7 +603,7 @@ contains
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
 
-      cfg = MappingNode()
+      allocate(cfg, source=MappingNode())
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call build_logger(lgr, cfg, elements)
@@ -634,7 +636,7 @@ contains
 
       lgr => mgr%get_logger('A')
 
-      cfg = MappingNode()
+      allocate(cfg, source=MappingNode())
       call build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
