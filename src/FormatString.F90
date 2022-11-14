@@ -208,8 +208,10 @@ contains
          select type (arg)
          type is (String)
             if (fmt(1:1) == LIST_DIRECTED_FORMAT) then
+               write(*,*)'Attempting to write wrapped string: ', arg%get()
                write(buffer%buffer,'(a)',iostat=iostat) arg%get()
             else
+               write(*,*)'Attempting to write formatted wrapped string: ', arg%get()
                write(buffer%buffer,fmt,iostat=iostat) arg%get()
             end if
             intrinsic = .true.
@@ -218,6 +220,7 @@ contains
          end select
 
          if (.not. intrinsic) then ! try wrapped array
+            write(*,*)'Attempting to write non-intrinsic (i.e., array!)'
             select type (arg)
             type is (WrapArray1D)
                call handleArray1D(arg%array, fmt, buffer, iostat=iostat)
