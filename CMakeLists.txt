@@ -20,9 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.12)
 project (PFLOGGER
-
-  VERSION 1.9.1
-
+  VERSION 1.9.2
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -39,7 +37,7 @@ if (NOT TARGET GFTL::gftl)
   find_package (GFTL REQUIRED VERSION 1.8.0)
 endif ()
 if (NOT TARGET GFTL_SHARED::gftl-shared)
-  find_package (GFTL_SHARED REQUIRED 1.5.0)
+  find_package (GFTL_SHARED REQUIRED VERSION 1.5.0)
 endif ()
 if (NOT TARGET YAFYAML::yafyaml)
   find_package (YAFYAML REQUIRED VERSION 1.0.1)
@@ -84,22 +82,19 @@ endif()
 add_subdirectory(examples EXCLUDE_FROM_ALL)
 add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 
+# The following is needed for external projects using *nix make when
+# parent project builds gFTL-shared as a subproject.
+set (top_dir PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR})
+set (PFLOGGER_TOP_DIR "${CMAKE_INSTALL_PREFIX}/${top_dir}" CACHE PATH "")
+
 # find_package() support
 configure_file (PFLOGGERConfig-version.cmake.in ${PROJECT_BINARY_DIR}/PFLOGGERConfig-version.cmake @ONLY)
 configure_file (PFLOGGERConfig.cmake.in ${PROJECT_BINARY_DIR}/PFLOGGERConfig.cmake @ONLY)
 
-set (top_dir PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR})
 install (
   FILES ${PROJECT_BINARY_DIR}/PFLOGGERConfig.cmake ${PROJECT_BINARY_DIR}/PFLOGGERConfig-version.cmake
   DESTINATION "${top_dir}/cmake")
 
-# The following is needed for external projects using *nix make when
-# parent project builds gFTL-shared as a subproject.
-set (PFLOGGER_TOP_DIR "${CMAKE_INSTALL_PREFIX}/${top_dir}" CACHE PATH "")
-
-# The following is needed for external projects using *nix make when
-# parent project builds yafyaml as a subproject.
-set (PFLOGGER_TOP_DIR "${CMAKE_INSTALL_PREFIX}/${top_dir}" CACHE PATH "")
 configure_file (PFLOGGER.mk.in ${PROJECT_BINARY_DIR}/PFLOGGER.mk @ONLY)
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/PFLOGGER.mk ${CMAKE_CURRENT_BINARY_DIR}/PFLOGGER.mk
