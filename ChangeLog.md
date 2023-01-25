@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.3] - 2023-01-25
+
+### Fixed
+
+- Package was incorrectly assuming that all extant compilers support
+  128 bit reals.  Now a check is performed to optionally include
+  support for 128 bit reals.
+
 ## [1.9.2] - 2023-01-23
 
 ### Fixed

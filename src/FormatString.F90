@@ -214,7 +214,7 @@ contains
             end if
             intrinsic = .true.
          class default
-            include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
          end select
 
          if (.not. intrinsic) then ! try wrapped array
@@ -279,7 +279,7 @@ contains
       logical :: intrinsic
       logical, parameter :: SCALAR = .false.
 
-      include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
       
       if (.not. intrinsic) then
          buffer%buffer = 'handleScalar() - unsupported type'
@@ -308,7 +308,7 @@ contains
       logical :: intrinsic
       logical, parameter :: SCALAR = .false.
 
-      include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
          buffer%buffer = 'handleScalar() - unsupported type'
@@ -337,7 +337,7 @@ contains
       logical :: intrinsic
       logical, parameter :: SCALAR = .false.
 
-      include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
          buffer%buffer = 'handleScalar() - unsupported type'
@@ -366,7 +366,7 @@ contains
       logical :: intrinsic
       logical, parameter :: SCALAR = .false.
 
-      include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
          buffer%buffer = 'handleScalar() - unsupported type'
@@ -395,7 +395,7 @@ contains
       logical :: intrinsic
       logical, parameter :: SCALAR = .false.
 
-      include 'write_if_intrinsic.inc'
+#include 'write_if_intrinsic.inc'
 
       if (.not. intrinsic) then
          buffer%buffer = 'handleScalar() - unsupported type'

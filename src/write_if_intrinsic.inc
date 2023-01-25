@@ -12,14 +12,18 @@
       include 'write_to_buffer.inc'
    type is (real(real64))
       include 'write_to_buffer.inc'
+#if defined(_ISO_REAL128)
    type is (real(real128))
       include 'write_to_buffer.inc'
+#endif
    type is (complex(real32))
       include 'write_to_buffer.inc'
    type is (complex(real64))
       include 'write_to_buffer.inc'
+#if defined(_ISO_REAL128)
    type is (complex(real128))
       include 'write_to_buffer.inc'
+#endif
    type is (logical)
       include 'write_to_buffer.inc'
    type is (character(len=*))
