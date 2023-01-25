@@ -327,7 +327,7 @@ contains
          call extra_%insert('_GLOBAL_COMMUNICATOR',comm)
       end if
 
-      p = Parser('Core')
+      p = Parser()
       c = p%load(file_name)
 
       call this%load_config(c, extra=extra_, comm=comm, rc=status)

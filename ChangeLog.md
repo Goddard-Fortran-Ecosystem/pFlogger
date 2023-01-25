@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package was incorrectly assuming that all extant compilers support
   128 bit reals.  Now a check is performed to optionally include
   support for 128 bit reals.
+- Fix `Parser()` declaration for Intel 2021.7
 
 ## [1.9.2] - 2023-01-23
 
