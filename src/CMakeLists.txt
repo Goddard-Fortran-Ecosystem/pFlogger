@@ -103,7 +103,6 @@ if (MPI_FOUND)
   
 endif()
 
-
   
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
 

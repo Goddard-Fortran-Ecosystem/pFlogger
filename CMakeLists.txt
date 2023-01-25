@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.12)
 project (PFLOGGER
-  VERSION 1.9.2
+  VERSION 1.9.3
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -55,6 +55,7 @@ if(NOT found)
 endif()
 
 include(CheckCompilerCapabilities)
+include(check_intrinsic_kinds RESULT_VARIABLE found)
 
 if (MPI MATCHES YES)
   if (NOT SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
