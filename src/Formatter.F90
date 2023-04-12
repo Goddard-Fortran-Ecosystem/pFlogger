@@ -269,8 +269,8 @@ contains
       end if
 
       if(this%fmt_uses_simTime) then
+         call get_sim_time(dict)
          if (allocated(this%datefmt)) then
-            call get_sim_time(dict)
             simtime = FormatString(this%datefmt, dict)
          else
             simtime = FormatString(DEFAULT_DATE_FMT, dict)

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.4] - 2023-04-12
+
+### Fixed
+ 
+ - Formatter logic to get simulation time was broken if the default date format is used.
+
 ## [1.9.3] - 2023-01-25
 
 ### Fixed
