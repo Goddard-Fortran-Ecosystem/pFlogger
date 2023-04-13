@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.5] - 2023-04-13
+
+### Changed
+
+- Added Intel to GitHub Actions
+
 ## [1.9.4] - 2023-04-12
 
 ### Fixed
@@ -27,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixes for GNU Make builds
+>>>>>>> main
 
 ## [1.9.1] - 2022-05-31
 
