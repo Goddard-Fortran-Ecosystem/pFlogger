@@ -29,10 +29,14 @@ module PFL_StringUtilities
       module procedure toString_int64
       module procedure toString_real32
       module procedure toString_real64
+#ifdef _ISO_REAL128
       module procedure toString_real128
+#endif
       module procedure toString_cmplx64
       module procedure toString_cmplx128
+#ifdef _ISO_REAL128
       module procedure toString_cmplx256
+#endif
       module procedure toString_string
       module procedure toString_logical
    end interface toString
@@ -187,6 +191,7 @@ contains
 
    end function toString_real64
 
+#ifdef _ISO_REAL128
    pure function toString_real128(x) result(string)
       use iso_fortran_env, only: REAL128
       character(:), allocatable :: string
@@ -197,6 +202,7 @@ contains
       string = trim(adjustl(buf))
 
    end function toString_real128
+#endif
 
    pure function toString_cmplx64(x) result(string)
       use iso_fortran_env, only: REAL32
@@ -219,6 +225,7 @@ contains
       
    end function toString_cmplx128
 
+#ifdef _ISO_REAL128
    pure function toString_cmplx256(x) result(string)
       use iso_fortran_env, only: REAL128
       character(:), allocatable :: string
@@ -228,6 +235,7 @@ contains
            & // toString_real128(aimag(x)) // ')'
       
    end function toString_cmplx256
+#endif
 
    pure function toString_string(inString) result(string)
       character(:), allocatable :: string
