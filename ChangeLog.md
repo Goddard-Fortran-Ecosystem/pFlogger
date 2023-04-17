@@ -11,6 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `IntelLLVM.cmake` file as a copy of `Intel.cmake` to support the LLVM Intel compiler frontends
 
+## [1.9.5] - 2023-04-13
+
+### Changed
+
+- Added Intel to GitHub Actions
+
+## [1.9.4] - 2023-04-12
+
+### Fixed
+ 
+ - Formatter logic to get simulation time was broken if the default date format is used.
+
+## [1.9.3] - 2023-01-25
+
+### Fixed
+
+- Package was incorrectly assuming that all extant compilers support
+  128 bit reals.  Now a check is performed to optionally include
+  support for 128 bit reals.
+- Fix `Parser()` declaration for Intel 2021.7
+
+## [1.9.2] - 2023-01-23
+
+### Fixed
+
+- Fixes for GNU Make builds
+
 ## [1.9.1] - 2022-05-31
 
 ### Changed
