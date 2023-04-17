@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2023-04-17
+
 ### Added
 
 - Added `IntelLLVM.cmake` file as a copy of `Intel.cmake` to support the LLVM Intel compiler frontends
+
+### Changed
+
+- Updated required version of gFTL to v1.10.0
+- Updated required version of gFTL-shared to v1.6.0
+- Updated required version of yaFyaml to v1.1.0
 
 ## [1.9.5] - 2023-04-13
 
