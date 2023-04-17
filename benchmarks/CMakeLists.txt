@@ -9,4 +9,3 @@ target_link_libraries(basic.x logger ftl)
 add_executable(verify.x verify.F90)
 target_link_libraries(verify.x logger ftl)
 
-# aouhoauhna
