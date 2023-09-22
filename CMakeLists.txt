@@ -57,18 +57,6 @@ endif()
 include(CheckCompilerCapabilities)
 include(check_intrinsic_kinds RESULT_VARIABLE found)
 
-if (MPI MATCHES YES)
-  if (NOT SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
-    if (NOT DISABLE_MPI_LOCK MATCHES YES)
-      message (FATAL_ERROR
-	"Version of MPI is too old to support MPI_Alloc_mem() with C_PTR argument. 
- To use MPI use -DDISABLE_MPI_LOCK=YES."
-	)
-    endif ()
-  endif ()
-endif ()
-
-
 add_subdirectory(src)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
