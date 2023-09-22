@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Workarounds for MPICH C_LOC bug (https://github.com/pmodels/mpich/issues/6691)
+
 ## [1.10.0] - 2023-04-17
 
 ### Added
@@ -28,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.9.4] - 2023-04-12
 
 ### Fixed
- 
+
  - Formatter logic to get simulation time was broken if the default date format is used.
 
 ## [1.9.3] - 2023-01-25
@@ -118,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Pervasive return codes for all procedures with potentially failing branch.
   Added as optional arguments for backward compatibility.
- 
+
 ### Changed
 
 - Introduced CMake namespace.   Upstream projects should now specify dependency
@@ -172,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified name of Pair type in gFTL maps.  These are not used within
   pFlogger outside of their host modules, but it is more consistent with
   the latest gFTL-shared and may help anyone that tries to port with XLF.
-  
+
 
 ## [1.4.1] - 2020-05-01
 
@@ -195,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
   - minor bug in default fmt_ for MpiFormatter
     "rank" should have been "mpi_rank".
-  
+
 ## [1.3.6] - 2020-04-16
 
 ### Fixed
@@ -207,7 +211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Mostly workarounds  for gFortran
   - Also corrections for Cmake for some configurations
-  
+
 ## [1.3.4] - 2020-04-08
 
 ### Added
@@ -217,13 +221,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A problem with link-time dependency injection for mock MPI was
     fixed with generator expressions.  Previously the fix for tests broke
     the examples
-    
+
 
 ## [1.3.3] - 2020-04-06
 
 ### Changed
   - Must use true/false instead of .true./.false. for YAML
-	
+
 ### Fixed
   - Fixed CMake test for support of MPI_ALLOC_MEM
   - Improved Cmake handling of mock to allow tests to compile
@@ -245,10 +249,10 @@ Bugfix
 ### Added
 
 ### Changed
-	
+
 ### Fixed
 -  Needed to enable cmake testing.
-	
+
 ## [1.3.0] - 2020-03-11
 
 ### Added
@@ -263,9 +267,9 @@ Bugfix
   . eliminates redundant code
   . makes container types are consistent across projects
 - Now uses yafyaml for YAML processing (much more complete YAML subset)
-	
+
 ### Fixed
-	
+
 ## [1.2.0] - 2018-12-18
 
 Releasing as open source.
@@ -273,11 +277,11 @@ Releasing as open source.
   - including NOSA COPYRIGHT (soon to be changed to Apache)
   - including LICENSE
   - adding forgotten compiler-specific cmake files (oops)
-	
+
 ## [1.1.0] - 2018-08-08
 
 Mists of time ...
-	
+
 ## [1.0.0] - 2018-08-03
-	
+
 Mists of time ...
