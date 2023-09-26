@@ -58,13 +58,13 @@ contains
 
       integer :: status
       integer :: sizeof_logical
-      integer(kind=MPI_ADDRESS_KIND) :: sz
+      integer(kind=MPI_ADDRESS_KIND) :: sz, int64handle
       integer :: old_comm
 
       if (this%is_initialized()) then
         _RETURN(_SUCCESS,rc)
       endif
-      
+
       old_comm = this%comm
       call MPI_Comm_dup(old_comm, this%comm, status)
       _VERIFY(status,'',rc)
@@ -96,8 +96,14 @@ contains
            call MPI_Type_extent(MPI_LOGICAL, sizeof_logical, status)
            _VERIFY(status,'',rc)
            sz = this%npes * sizeof_logical
+#if defined(SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
            call MPI_Alloc_mem(sz, MPI_INFO_NULL, this%locks_ptr, status)
            _VERIFY(status,'',rc)
+#else
+           call MPI_Alloc_mem(sz, MPI_INFO_NULL, int64handle, status)
+           _VERIFY(status,'',rc)
+           this%locks_ptr = transfer(int64handle, this%locks_ptr)
+#endif
 
            call c_f_pointer(this%locks_ptr, scratchpad, [this%npes])
            scratchpad = .false.
@@ -190,7 +196,7 @@ contains
               end if
            end do
         end if
-        
+
         if (next_rank /= -1) then
            call MPI_Send(buffer, 0, MPI_LOGICAL, next_rank, &
                 & LOCK_TAG, this%comm, status)

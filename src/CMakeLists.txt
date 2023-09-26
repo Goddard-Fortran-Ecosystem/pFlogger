@@ -46,16 +46,13 @@ set(SRCS
    FormatTokenVector.F90
 )
 
-if (MPI_FOUND) 
+if (MPI_FOUND)
   list (APPEND SRCS
      MpiFilter.F90
      MpiFormatter.F90
      MpiCommConfig.F90
+     MpiLock.F90
      )
-   if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
-     list (APPEND SRCS MpiLock.F90)
-   endif ()
-
 endif ()
 
 set (bin ${CMAKE_CURRENT_BINARY_DIR} )
@@ -73,6 +70,9 @@ if (MPI_FOUND)
   target_link_libraries (${this} PRIVATE
     $<INSTALL_INTERFACE:MPI::MPI_Fortran>)
   target_compile_definitions(${this} PRIVATE _LOGGER_USE_MPI)
+  if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
+    target_compile_definitions(${this} PRIVATE SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
+  endif ()
 endif ()
 
 
@@ -100,10 +100,10 @@ if (MPI_FOUND)
   else ()
     target_link_libraries (pflogger PRIVATE MPI::MPI_Fortran)
   endif ()
-  
+
 endif()
 
-  
+
 set (dest "PFLOGGER-${PFLOGGER_VERSION_MAJOR}.${PFLOGGER_VERSION_MINOR}")
 
 target_include_directories(${this} PUBLIC

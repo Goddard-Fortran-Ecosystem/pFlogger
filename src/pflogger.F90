@@ -13,11 +13,9 @@ module pflogger
    use PFL_FastFormatter
    use PFL_WrapArray
 #ifdef _LOGGER_USE_MPI
-#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    use PFL_MpiLock
    use PFL_MpiFilter
    use PFL_MpiFormatter
-#  endif   
 #endif
    use PFL_RotatingFileHandler
    use gFTL2_StringUnlimitedMap
@@ -58,12 +56,10 @@ module pflogger
    public :: finalize_severity_levels
 
 #ifdef _LOGGER_USE_MPI
-#  ifdef SUPPORT_FOR_MPI_ALLOC_MEM_CPTR
    public :: MpiLock
    public :: MpiFilter
    public :: MpiFormatter
-#  endif
-#endif   
+#endif
 
    public :: set_throw_fptr
    public :: StringUnlimitedMap
@@ -77,7 +73,7 @@ contains
       call set_last_resort(StreamHandler())
 
    end subroutine initialize
-   
+
 
    subroutine finalize()
 
