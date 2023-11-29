@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2023-11-29
+
 ### Fixed
 
 - Workarounds for MPICH C_LOC missing interface (https://github.com/pmodels/mpich/issues/6691)
