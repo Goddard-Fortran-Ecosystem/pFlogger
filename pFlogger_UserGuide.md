@@ -8,9 +8,9 @@ The messages may not be organized enough to contain critical information
 developers and users need to understand the behavior of their applications.
 The typical problems we may encounter are:
 
-- Important messages obscured by fountain of routine messages.
+- Important messages obscured by a huge set of routine messages.
 - Performance
-    - User adds a print statement in an inner loop or across all processes.
+    - Users add a `print` statement in an inner loop or across all processes.
 - Anonymity – important message of unknown origin
     - Which process
     - Which software component
@@ -21,13 +21,14 @@ The typical problems we may encounter are:
 In HPC software running on multi-core platforms, we need to have
 a framework that facilitates the creation of text-base messages
 providing useful information on the behavior of the software so as 
-to help users to debug and track down errors systematically.
+to help code developers and users to debug and track down errors systematically.
 The framework needs to be able to:
 
 - Route warnings and errors to prominent location
     - And profiler data
 - Suppress low severity (”debugging”) messages
-- Suppress duplicate messages on sibling processes
+- Not include duplicate messages on sibling processes
+- Be effective with a single or multiple cores
 - Annotate messages with:
     - Time stamp
     - Process rank
@@ -36,21 +37,21 @@ The framework needs to be able to:
 
 All these features need to be done dynamically at run time
 (without recompiling the application), 
-and need to used to log messages that tell a story on the state of the application.
+and need to use to log messages that tell a story on the state of the application.
 
 `pFLogger` (__parallel Fortran logger__)
 mimics the Python [`logging` module](https://docs.python.org/3/howto/logging.html)
  by implementing its features to support Fortran HPC applications.
- As `logging`, `pFLogger` enables Fortran code developpers and users 
+ As `logging`, `pFLogger` enables Fortran code developers and users 
  to better control where, how, and what they log, with much more granularity. 
 They can then reduce debugging time, improve code quality, and increase the visibility of their applications.
 
 ## Understanding the Python `logging` Module
 
 The Python [`logging` module](https://docs.python.org/3/howto/logging.html)
- provides a flexible framework for
+provides a flexible framework for
 producing log messages from Python applications.
-It provides a way for applications to configure different log handlers and 
+It allows applications to configure different log handlers and 
 a way of routing log messages to these handlers. 
 It is used to monitor applications by tracking and recording events that occur, 
 such as errors, warnings, or other important information.
@@ -65,7 +66,11 @@ This leads to faster development cycles, fewer bugs and higher-quality code.
 
 The main components of the `logging` module are:
 
-- __Loggers__: Expose an interface that an application can use to log messages at run time. They also determine which log messages to act upon based upon severity (the default filtering facility). Loggers have a hierarchy. On top of the hierarchy is the root logger. When a new logger is created, its parent will be set to the root logger. A logger has three main components:
+- __Loggers__: Expose an interface that an application can use to log messages at run time. 
+They also determine which log messages to act upon based upon severity (the default filtering facility). 
+Loggers have a hierarchy. On top of the hierarchy is the root logger. 
+When a new logger is created, its parent will be set to the root logger. 
+A logger has three main components:
     - Propagate: Decides whether a log should be propagated to the logger’s parent.
     - A level: Like the log handler level, the logger level is used to filter out “less important” logs. Except, unlike the log handler, the level is only checked at the “child” logger; once the log is propagated to its parents, the level will not be checked. 
     - Handlers: The list of handlers that a log will be sent to when it arrives to a logger. A log will be broadcast to all handlers once it passes the logger level check.
@@ -160,7 +165,17 @@ _contextual_ (give an overview of the state of the application at a given moment
 _reactive_ (allow users to take action if something happened).
 
 ### How the Key Features are Implemented
-The following classes were implemented:
+
+As mentioned earlier, `pFlogger` imitates the implementation principles
+of the Python `logging` module.
+As such, all the main classes of `logging` also appear in `pFlogger`.
+The main challenge was to add the MPI extensions and make sure 
+the messages from MPI processes could be streamlined and properly logged.
+Because `pFlogger` is written purely in Fortran, a huge effort was made
+to take advantage of the modern object-oriented features of the language
+(Fortran 2003 or above).
+
+The following classes were implemented in `pFlogger`:
 
 
 #### `Logger` Class is the medium which logging events are conveyed.
@@ -178,6 +193,11 @@ Inheritance is defined by "__.__" (dots), like: __mymodule.this.that__
 ![logger_hierar](https://guicommits.com/content/images/2021/09/logger-inheritance.png)
 
 Image Source: [https://guicommits.com/how-to-log-in-python-like-a-pro/](https://guicommits.com/how-to-log-in-python-like-a-pro/)
+
+To accommodate MPI,  the `LoggerManager` is configured with global communicator (defaults to MPI_COMM_WORLD).
+In addition, the `Logger` can be associated with a communicator (defaults to global)
+with the `root_level` being the root process of a given communicator.
+
 
 #### `Handler` Class to determine where log messages will be written.
 
@@ -200,6 +220,14 @@ It switches from one file to the next when the current file reaches a certain si
 By default, the file grows indefinitely. You can specify particular
 values of max_bytes and backup_count to allow the file to 
 rollover at a predetermined size.
+
+In the context of MPI, we include a lock mechanism by using _MpiLock_ for one-sided MPI communication.
+We allow multiple processes to share access to a file.
+_MpiFilter_ is emplowed to restrict which processes’ messages are reported.
+The `MpiFileHandler` subclass routes messages from each process to separate files.
+
+
+
 
 #### `LogRecord` Class to represent events geing logged.
 
@@ -236,26 +264,14 @@ The message format string is composed of `LogRecord` attributes, some of which a
  %(basename)a        Text basename of file recorded in the record.
 ```
 
+The `MpiFormatter` subclass was added to be able to identity the the number of 
+available processes and a process rank for annotations.
+
 The following diagram illustrates the flow of a Fortran program that writes a message into a log output stream.
 
 ![fig_flow](https://github.com/JulesKouatchou/pFlogger/wiki/fig_pflogger_flow.png)
 
-### Extensions for MPI Use
-To allow `pFlogger` to work with applications using muplitple processes (MPI in this case),
-the following features were added to the tool:
-
-- __LoggerManager__ – configured with global comm (defaults to `MPI_COMM_WORLD`)
-- __Logger__ – can be associated with a communicator (defaults to global)
-    - root_level: independent threshold for root process
-- __Handler__
-    - Lock: used to allow multiple processes to share access to a file
-         - MpiLock uses one-sided MPI communication
-         - FileSystemLock has limited portability, but allows multi-executable sharing
-    - MpiFilter: used to restrict which processes’ messages are reported
-    - MpiFileHandler subclass
-         - Messages from each process are routed to separate files.
-- __MpiFormatter__ subclass: knows about rank and #PE’s for annotations.
-
+### Additional Capabilities
 
 Ideally, we also want to implement advanced capabilities such as:
 
@@ -530,6 +546,23 @@ Sometimes when you wonder why you don't see log messages from another module, th
 
 #### Sample Code
 
+Consider the following Fortran code (contained in a file name _complexMpi.F90_). 
+It shows how to include `pFlogger` statements to record log messages.
+There are a main program, and two supporting subroutines (_sub\_A_ and _sub\_B_),
+all of them having different types of annotations.
+
+- Main program
+    - Is expected to read the configuration file _all\_in\_one.cfg_
+    - Has one logger, `main` with associated associated message of level INFO.
+- Subroutine _sub\_A_
+    - Has two loggers 
+         - `main.A` with associated messages of levels INFO, DEBUG and WARNING.
+         - 'parallel.A` with associated messages of levels INFO and DEBUG. 
+- Subroutine _sub\_B_
+    - Has two loggers 
+         - `main.B` with associated messages of levels INFO, DEBUG and ERROR.
+         - 'parallel.B` with an associated message of level INFO. 
+
 ```fortran
 subroutine sub_A()
    use pflogger
@@ -541,16 +574,15 @@ subroutine sub_A()
    log => logging%get_logger('main.A')
    plog => logging%get_logger('parallel.A')
 
-   call log%info('at line: %i3.3 in file: %a', 11,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%debug('inside sub_A')
-   call plog%info('at line: %i3.3 in file: %a', 13,"complexMpi.F90")
+   call plog%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call plog%debug('inside sub_A')
 
    call log%warning('empty procedure')
-   call log%info('at line: %i3.3 in file: %a', 17,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 end subroutine sub_A
-
 
 subroutine sub_B()
    use pflogger
@@ -559,16 +591,15 @@ subroutine sub_B()
    class (Logger), pointer :: log
    class (Logger), pointer :: plog
 
-
    log => logging%get_logger('main.B')
    plog => logging%get_logger('parallel.B')
 
-   call log%info('at line: %i3.3 in file: %a', 33,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call log%debug('inside sub_B')
    call plog%debug('inside sub_B')
 
    call log%error('this procedure is empty as well')
-   call log%info('at line: %i3.3 in file: %a', 38,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
 end subroutine sub_B
 
@@ -592,19 +623,22 @@ program main
 
    log => logging%get_logger('main')
 
-   call log%info('at line: %i3.3 in file: %a', 63,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call sub_A()
 
-   call log%info('at line: %i3.3 in file: %a', 66,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call sub_B()
 
-   call log%info('at line: %i3.3 in file: %a', 69,"complexMpi.F90")
+   call log%info('at line: %i3.3 in file: %a', __LINE__,__FILE__)
    call mpi_finalize(ier)
 
 end program main
 ```
 
 #### Sample Configuration File
+
+The configuration below is meant to be used by the executable (of the above code)
+to determine which messages will be logged and to which destination(s).
 
 ```
 schema_version: 1
