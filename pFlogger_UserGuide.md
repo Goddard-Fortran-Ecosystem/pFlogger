@@ -21,14 +21,14 @@ The typical problems we may encounter are:
     - Print statements are executed only if preprocessing directives are set at compilation.
 
 In HPC software running on multi-core platforms, we need to have
-a framework that facilitates the creation of text-base messages
+a framework that facilitates the creation of text-based messages
 providing useful information on the behavior of the software so as 
-to help code developers and users to debug and track down errors systematically.
+to help code developers and users debug and track down errors systematically.
 The framework needs to be able to:
 
 - Route warnings and errors to prominent location
     - And profiler data
-- Suppress low severity (”debugging”) messages
+- Have the ability to suppress low severity (”debugging”) messages
 - Not include duplicate messages on sibling processes
 - Be effective with a single or multiple cores
 - Annotate messages with:
@@ -52,7 +52,7 @@ They can then reduce debugging time, improve code quality, and increase the visi
 
 The Python [`logging` module](https://docs.python.org/3/howto/logging.html)
 provides a flexible framework for
-producing log messages from Python applications.
+producing log messages from Python codes.
 It allows applications to configure different log handlers and 
 a way of routing log messages to these handlers. 
 It is used to monitor applications by tracking and recording events that occur, 
