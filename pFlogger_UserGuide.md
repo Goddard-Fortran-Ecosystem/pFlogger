@@ -8,7 +8,7 @@ The messages may not be organized enough to contain critical information
 developers and users need to understand the behavior of their applications.
 The typical problems we may encounter are:
 
-- Important messages obscured by a huge set of routine messages.
+- Important messages are obscured by a huge set of routine messages.
 - Performance
     - Users add a `print` statement in an inner loop or across all processes.
 - Anonymity – important message of unknown origin
@@ -17,6 +17,8 @@ The typical problems we may encounter are:
     - Which line in a file
 - Loss of productivity
     - Recompile to activate low-level debug diagnostics.
+- Complexity
+    - Print statements are executed only if preprocessing directives are set at compilation.
 
 In HPC software running on multi-core platforms, we need to have
 a framework that facilitates the creation of text-base messages
