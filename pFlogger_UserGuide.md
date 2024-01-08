@@ -2,29 +2,44 @@
 
 ## Background
 
-In High Performance Computing (HPC) applications, the use of text-base
-messages (for instance using `print` statements) can be cumbersome.
-The messages may not be organized enough to contain critical information 
-developers and users need to understand the behavior of their applications.
-The typical problems we may encounter are:
+In High Performance Computing (HPC) applications, conventional Fortran
+I/O in the form of WRITE and PRINT statements is too inflexible in
+many respects.  
 
-- Important messages are obscured by a huge set of routine messages.
+With distributed computing, one is immediately confronted with the
+need to add surrounding logic to control just which processes actually
+execute a given I/O stament.  E.g., often we only need one process,
+typically the root process, to provide some informative status.  But
+other times we want all the processes to provide some information and
+are confronted with determining which process wrote what and when?  Or
+maybe we want each process to write
+to a separate file.
+
+Complex applications expose an orthogonal manner in which conventional
+I/O is frequently too limited in practice.  Output messages may not
+be organized enough to contain critical information developers and
+users need to understand the behavior of their applications.  The
+typical problems we may encounter are:
+
+- Obscurity
+    - Warning and error messages are hidden by a deluge of ordinary messages.
 - Performance
-    - Users add a `print` statement in an inner loop or across all processes.
+    - Print statements can be expensive if not really needed.
 - Anonymity – important message of unknown origin
     - Which process
     - Which software component
     - Which line in a file
-- Loss of productivity
-    - Recompile to activate low-level debug diagnostics.
-- Complexity
-    - Print statements are executed only if preprocessing directives are set at compilation.
+- Productivity
+    - Recompilation to activate/deactivate low-level debug diagnostics.
+- Code legibility
+    - Complex logic surrounding print statements and/or obscure
+      preprocessor controls.
 
-In HPC software running on multi-core platforms, we need to have
-a framework that facilitates the creation of text-based messages
-providing useful information on the behavior of the software so as 
-to help code developers and users debug and track down errors systematically.
-The framework needs to be able to:
+In HPC software running on multi-core platforms, we need to have a
+framework that facilitates the creation of text-based messages
+providing useful information on the behavior of the software so as to
+help code developers and users debug and track down errors
+systematically.  The framework needs to be able to:
 
 - Route warnings and errors to prominent location
     - And profiler data
@@ -41,51 +56,54 @@ All these features need to be done dynamically at run time
 (without recompiling the application), 
 and need to use to log messages that tell a story on the state of the application.
 
-`pFLogger` (__parallel Fortran logger__)
-mimics the Python [`logging` module](https://docs.python.org/3/howto/logging.html)
- by implementing its features to support Fortran HPC applications.
- As `logging`, `pFLogger` enables Fortran code developers and users 
- to better control where, how, and what they log, with much more granularity. 
-They can then reduce debugging time, improve code quality, and increase the visibility of their applications.
+`pFLogger` (__parallel Fortran logger__) mimics the Python [`logging`
+module](https://docs.python.org/3/howto/logging.html) by implementing
+its features to support Fortran HPC applications.  As `logging`,
+`pFLogger` enables Fortran code developers and users to better control
+where, how, and what they log, with much more granularity.  They can
+then reduce debugging time, improve code quality, and increase the
+visibility of their applications.
 
 ## Understanding the Python `logging` Module
 
-The Python [`logging` module](https://docs.python.org/3/howto/logging.html)
-provides a flexible framework for
-producing log messages from Python codes.
-It allows applications to configure different log handlers and 
-a way of routing log messages to these handlers. 
-It is used to monitor applications by tracking and recording events that occur, 
-such as errors, warnings, or other important information.
-The produced log messages can be formatted to meet different requirements,
-customized with timestamps, sent to different destinations (terminal, files), 
-and filtered based on their severity.
-This monitoring helps diagnose issues, understand runtime behavior, 
-and analyze user interactions, offering insights into design decisions.
-It can help developers easily identify areas where their code needs 
-to be improved or better optimised. 
+The Python [`logging`
+module](https://docs.python.org/3/howto/logging.html) provides a
+flexible framework for producing log messages from Python codes.  It
+allows applications to configure different log handlers and a way of
+routing log messages to these handlers.  It is used to monitor
+applications by tracking and recording events that occur, such as
+errors, warnings, or other important information.  The produced log
+messages can be formatted to meet different requirements, customized
+with timestamps, sent to different destinations (terminal, files), and
+filtered based on their severity.  This monitoring helps diagnose
+issues, understand runtime behavior, and analyze user interactions,
+offering insights into design decisions.  It can help developers
+easily identify areas where their code needs to be improved or better
+optimised.
 This leads to faster development cycles, fewer bugs and higher-quality code.  
 
 The main components of the `logging` module are:
 
-- __Loggers__: Expose an interface that an application can use to log messages at run time. 
-They also determine which log messages to act upon based upon severity (the default filtering facility). 
-Loggers have a hierarchy. On top of the hierarchy is the root logger. 
-When a new logger is created, its parent will be set to the root logger. 
-A logger has three main components:
-    - Propagate: Decides whether a log should be propagated to the logger’s parent.
-    - A level: Like the log handler level, the logger level is used to filter out “less important” logs. Except, unlike the log handler, the level is only checked at the “child” logger; once the log is propagated to its parents, the level will not be checked. 
-    - Handlers: The list of handlers that a log will be sent to when it arrives to a logger. A log will be broadcast to all handlers once it passes the logger level check.
-- __Handlers__: Send the logs created by loggers to their destination. Each log handler has two important fields:
-    - A formatter which adds context information to a log.
-    - A log level that filters out logs whose levels are lower. 
+- __Loggers__: Expose the primary interface that an application should
+use to log messages at run time.  Logger objects have an associated
+'level' which determines which log messages to act upon based upon
+their severity (the default filtering facility).  Loggers have a
+hierarchy such that a given logger may route log messages up to its
+parent for handling. On top of the hierarchy is the root logger.  A
+logger has three main components:
+    - level: This threshold level works in conjunction with the log message severity level.  Messages below the logger threshold level are not handled by this logger.   By default such messages are still routed through the handlers of ancestor loggers.  This behavior can be subtle in complicated configurations.
+    - handlers: The list of handlers to which at-or-above-threshold log message will be sent. 
+    - propagate: By default all log messages are propagated to ancestor loggers.  If this value is set to false, then such propagation is prevented.
+- __Handlers__: A set of named objects that interpret/process log messages - typically writing to a file. Each log handler has two important fields:
+    - formatter: Name of a Formatter object that will be used to annoate log messages for this handler.
+    - level:  A threshold level similar to that of Logger threshould level.   A handler will only ignore log messages with severities below this threshold level.
     
     Popular handlers include:
     - `FileHandler`: For sending log messages to a file.
     - `StreamHandler`: For sending log messages to an output stream like stdout.
-    - `MemoryHandler`: For sending messages to a buffer in memory, which is flushed whenever specific criteria are met.
-    - `HTTPHandler`: For sending log messages with HTTP.
-    - `SysLogHandler`: For sending messages to a Unix syslog daemon, possibly on a remote machine.
+    - `RotatingFileHandler`: Useful for long logfiles where only the more recent data is needed.
+	- `MpiFileHandler`: Enables separate MPI processes to write to files with filenames related by process rank.
+
 - __Filters__: Provide a mechanism to determine which logs are recorded. They are used to perform more advanced filtering than level filtering.
 - __Formatters__: Determine the output formatting of log messages. They are used by the Python logging handlers to enhance the information available through `LogRecord` attributes. They are useful to know when the log is sent, where (file, line number, subroutine, etc.), and additional context such as the process.
 
@@ -177,7 +195,7 @@ Because `pFlogger` is written purely in Fortran, a huge effort was made
 to take advantage of the modern object-oriented features of the language
 (Fortran 2003 or above).
 
-The following classes were implemented in `pFlogger`:
+The following classes are implemented in `pFlogger`:
 
 
 #### `Logger` Class is the medium which logging events are conveyed.
@@ -233,7 +251,7 @@ The `MpiFileHandler` subclass routes messages from each process to separate file
 
 #### `LogRecord` Class to represent events geing logged.
 
-`LogRecord` instances are created every time something is logged. 
+`LogRecord` instances are created inside the framework for each log request.
 They contain all the information pertinent to the event being logged. 
 The  main information passed in is a text message and optional arguments 
 which are combined to create the message field of the record.
@@ -295,7 +313,7 @@ in applications.
 #### Step 1: Import the module
 Before the declaration section of your application (or the comonent of interest), you first need to import the `pFlogger` module using:
 
-```fortran
+```f90
    use pFlogger, only : init_pflogger => initialize
    use pFlogger, only : logging
    use pFlogger, only : Logger
@@ -303,21 +321,21 @@ Before the declaration section of your application (or the comonent of interest)
 
 In addition to that, you need to include the declaration:
 
-```fortran
+```f90
    class (Logger), pointer :: lgr
 ```
 
 #### Step 2: Initialization
 `pFlogger` needs to be initialized using the statement:
 
-```fortran
+```f90
    call init_pflogger()
 ```
 
 You may also want to provide the name of the YAML configuration file that has the
 settings `pFlogger` will use to the log records to be written to the desired destination(s).
 
-```fortran
+```f90
    call logging%load_file('all_in_one.cfg')
 ```
 
@@ -326,7 +344,7 @@ The previous calls are executed at the beginning of the application.
 Here, we focus on the calls in any module, subroutine or function.
 We first need to create a logger (required to produce messages) using a  name:
 
-```fortran
+```f90
    lgr => logging%get_logger('my_section_name')
 ```
 
@@ -336,7 +354,7 @@ When a logger is created, it is given a name that identifies its location in the
 
 Then, we can now introduce the calls for recording messages:
 
-```fortran
+```f90
    call lgr%info('Entering the file: %a', trim(FILENAME))
    call lgr%info('Begin info at line: %i3.3 in file: %a', __LINE__,__FILE__)
 
@@ -352,7 +370,7 @@ Then, we can now introduce the calls for recording messages:
 To record arrays, a special treatement is needed to avoid any compilation issue.
 `pFlogger` has a utility function to wrap arrays:
 
-```fortran
+```f90
    use pFlogger, only: WrapArray
    ...
    call lgr%debug("grid global max= [%3(i0,:,',')~]", WrapArray(counts))
@@ -364,7 +382,7 @@ Here, `count` is an array with 3 entries and `ims` is array with an 'unknown' nu
 #### Step 4: Terminate `pFlogger`
 Before the exiting the application, ypu need to include the call:
 
-```fortran
+```f90
    call finalize()
 ```
 
@@ -509,7 +527,7 @@ It is recommended that users only attach each handler to one logger and rely on 
 #### `loggers`:
 Here we list all the loggers that are instantiated in the code through the call:
 
-```fortran
+```f90
     call logging%get_logger(logger_name)
 ```
 In this section, we provide the names of the loggers associated with the code sections
@@ -565,7 +583,7 @@ all of them having different types of annotations.
          - `main.B` with associated messages of levels INFO, DEBUG and ERROR.
          - 'parallel.B` with an associated message of level INFO. 
 
-```fortran
+```f90
 subroutine sub_A()
    use pflogger
 
