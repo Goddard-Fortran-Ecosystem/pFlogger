@@ -43,7 +43,10 @@ if (NOT TARGET YAFYAML::yafyaml)
   find_package (YAFYAML REQUIRED VERSION 1.1.0)
 endif ()
 
-find_package (MPI QUIET)
+option (ENABLE_MPI "Enable MPI support" ON)
+if (ENABLE_MPI)
+  find_package (MPI QUIET)
+endif ()
 find_package (PFUNIT QUIET)
 
 #-----------------------------------
