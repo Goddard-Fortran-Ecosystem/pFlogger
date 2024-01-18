@@ -55,23 +55,28 @@ jobs:
       - name: Set all directories as git safe
         run: |
           git config --global --add safe.directory '*'
+
       - name: Build GFE Prereqs
         run: |
           bash ./tools/ci-install-gfe.bash
+
       - name: Build pFlogger
         run: |
           mkdir -p build
           cd build
           cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
           make -j$(nproc)
+
       - name: Build Tests
         run: |
           cd build
           make -j$(nproc) tests
+
       - name: Run Tests
         run: |
           cd build
           ctest -j1 --output-on-failure --repeat until-pass:4
+
       - name: Archive log files on failure
         uses: actions/upload-artifact@v4
         if: failure()
@@ -87,7 +92,7 @@ jobs:
       FC: ifx
       CC: icx
 
-    name: Intel
+    name: Intel Fortran
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -127,23 +132,27 @@ jobs:
           mpirun --version
           cmake --version
 
-       - name: Build GFE Prereqs
+      - name: Build GFE Prereqs
         run: |
           bash ./tools/ci-install-gfe.bash
+
       - name: Build pFlogger
         run: |
           mkdir -p build
           cd build
           cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
           make -j$(nproc)
+
       - name: Build Tests
         run: |
           cd build
           make -j$(nproc) tests
+
       - name: Run Tests
         run: |
           cd build
           ctest -j1 --output-on-failure --repeat until-pass:4
+
       - name: Archive log files on failure
         uses: actions/upload-artifact@v4
         if: failure()
