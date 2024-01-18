@@ -87,8 +87,8 @@ jobs:
       FC: ifx
       CC: icx
 
-    name: Intel Fortran
-    steps: 
+    name: Intel
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
