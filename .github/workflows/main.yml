@@ -93,6 +93,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Set all directories as git safe
         run: |
           git config --global --add safe.directory '*'
@@ -144,7 +145,7 @@ jobs:
           cd build
           ctest -j1 --output-on-failure --repeat until-pass:4
       - name: Archive log files on failure
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: logfiles
