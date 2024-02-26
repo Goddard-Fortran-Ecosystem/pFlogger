@@ -183,6 +183,11 @@ jobs:
         run: |
           git config --global --add safe.directory '*'
 
+      - name: Add python3-is-python package
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3-is-python
+
       - name: Build GFE Prereqs
         run: |
           bash ./tools/ci-install-gfe.bash
