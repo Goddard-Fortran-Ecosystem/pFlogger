@@ -382,8 +382,11 @@ contains
            filter_name = to_string(iter%first(), _RC)
 
            subcfg => iter%second()
-           filter = build_filter(subcfg, extra=extra, _RC)
+!#      filter = build_filter(subcfg, extra=extra, _RC)
+      allocate(filter, source=build_filter(subcfg, extra=extra, rc=status))
+      _VERIFY(status,'',rc)
            call this%filters%insert(filter_name, filter)
+           deallocate(filter)
            call iter%next()
         end do
       end associate

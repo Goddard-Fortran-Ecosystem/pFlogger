@@ -316,7 +316,6 @@ contains
       type (StringUnlimitedMap) :: extra_
 
       class(YAML_Node), allocatable :: c
-      type(Parser) :: p
       integer :: status
 
       if (present(extra)) then
@@ -327,8 +326,8 @@ contains
          call extra_%insert('_GLOBAL_COMMUNICATOR',comm)
       end if
 
-      p = Parser()
-      c = p%load(file_name)
+      call load(c, file_name, rc=status)
+      _VERIFY(status,'',rc)
 
       call this%load_config(c, extra=extra_, comm=comm, rc=status)
       _VERIFY(status,'',rc)
