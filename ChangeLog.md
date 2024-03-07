@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent changes in NAG and/or OpenMPI broke the kludge that allow use of a mock MPI layer for testing
+  locks within pFlogger.
+
 ## [1.13.0] - 2024-03-03
 
 ### Added
