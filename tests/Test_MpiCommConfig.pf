@@ -1,5 +1,5 @@
 module Test_MpiCommConfig
-   use MockMpi_mod
+   use mpi
    use funit
    use PFL_MpiCommConfig
    use gftl2_StringUnlimitedMap, only: StringUnlimitedMap

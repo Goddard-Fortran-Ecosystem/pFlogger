@@ -11,7 +11,7 @@ contains
 
    @test
    subroutine Test_MpiFilter_defaultRank()
-      use MockMpi_mod
+      use mpi
       integer :: comm
       type (MpiFilter) :: f
       type (LogRecord) :: record
@@ -31,7 +31,7 @@ contains
 
    @test
    subroutine Test_MpiFilter_withRank
-      use MockMpi_mod
+      use mpi
       integer :: comm
       type (MpiFilter) :: f
       type (LogRecord) :: record
