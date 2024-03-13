@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Another fix for MockMpi layer.  With the workaround for NAG in previous release, GFortran 13 detects some inconsistencies that are now resolved.
+
 ## [1.13.1] - 2024-03-07
 
 ### Fixed

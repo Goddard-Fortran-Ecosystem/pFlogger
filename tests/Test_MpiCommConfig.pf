@@ -1,16 +1,15 @@
 module Test_MpiCommConfig
-   use mpi
    use funit
    use PFL_MpiCommConfig
    use gftl2_StringUnlimitedMap, only: StringUnlimitedMap
    use PFL_FormatString
    implicit none
 
-
 contains
 
    @test
    subroutine test_default()
+      use mpi
       ! use mpi_comm_world if necessary.
       ! Note that the usage is
       ! read-only, so does not violate encapsulation of MPI
@@ -35,7 +34,8 @@ contains
 
    @test
    subroutine test_override_keywords()
-      ! use mpi_comm_world if necessary.
+       use mpi
+     ! use mpi_comm_world if necessary.
       ! Note that the usage is
       ! read-only, so does not violate encapsulation of MPI
       ! communicators.
@@ -58,7 +58,8 @@ contains
 
    @test
    subroutine test_with_comm()
-      ! Note this test is a bit weak, as the mock layer does not actually
+       use mpi
+     ! Note this test is a bit weak, as the mock layer does not actually
       ! use comm.  But it ensures the interface is in place,
       ! and the implementation is trivial extension.
       character(len=:), allocatable :: s
@@ -80,6 +81,7 @@ contains
    
    @test
    subroutine test_with_multi_comm()
+      use mpi
       ! Note this test is a bit weak, as the mock layer does not actually
       ! use comm.  But it ensures the interface is in place,
       ! and the implementation is trivial extension.
