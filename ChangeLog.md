@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Workaround additional polymorphic assignment bug in gfortran 13.2 (in build_locks)
+
 ## [1.13.2] - 2024-03-13
 
 ### Fixed

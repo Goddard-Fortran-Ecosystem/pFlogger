@@ -18,7 +18,7 @@ module PFL_Config
    use PFL_Formatter
    use PFL_Filterer
    use PFL_FileHandler
-   
+
    use gFTL2_StringUnlimitedMap
    use PFL_Filter
    use PFL_StringUtilities, only: to_lower_case
@@ -77,7 +77,7 @@ contains
       class(NodeIterator), allocatable :: iter
       class (Formatter), allocatable :: f
       character(:), allocatable :: formatter_name
-      
+
       integer :: status
 
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatters() - input cfg not a mapping", rc)
@@ -123,7 +123,7 @@ contains
       select case (class_name)
       case ('Formatter')
          call build_basic_formatter(fmtr, cfg, _RC)
-#ifdef _LOGGER_USE_MPI         
+#ifdef _LOGGER_USE_MPI
       case ('MpiFormatter')
          if (present(extra)) then
             extra_ = extra
@@ -287,7 +287,7 @@ contains
       _RETURN(_SUCCESS,rc)
    end subroutine build_mpi_formatter
 #endif
-   
+
    subroutine build_locks(this, cfg, unusable, extra, rc)
       use PFL_AbstractLock
 #ifdef _LOGGER_USE_MPI
@@ -304,7 +304,7 @@ contains
       character(:), allocatable :: lock_name
       class (AbstractLock), allocatable :: lock
       integer :: status
-      
+
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_locks() - input cfg not a mapping", rc)
 
       associate (b => cfg%begin(), e => cfg%end())
@@ -313,7 +313,9 @@ contains
 
            lock_name = to_string(iter%first(), _RC)
            subcfg => iter%second()
-           lock = build_lock(subcfg, extra=extra, _RC)
+           !lock = build_lock(subcfg, extra=extra, _RC)
+           allocate(lock, source=build_lock(subcfg, extra=extra, rc=status))
+           _VERIFY(status,'',rc)
            call this%locks%insert(lock_name, lock)
            call iter%next()
         end do
@@ -376,7 +378,7 @@ contains
 
       associate (b => cfg%begin(), e => cfg%end())
         iter = b
-        
+
         do while (iter /= e)
 
            filter_name = to_string(iter%first(), _RC)
@@ -407,7 +409,7 @@ contains
 
       character(len=:), allocatable :: class_name
       integer :: status
-      
+
       _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatter() - input cfg not a mapping", rc)
 
       if (cfg%has('class')) then
@@ -420,12 +422,12 @@ contains
       case ('filter')
          allocate(f, source=build_basic_filter(cfg, rc=status))
          _VERIFY(status, '', rc)
-         
+
       case ('levelfilter')
          allocate(f, source=build_LevelFilter(cfg, rc=status))
          _VERIFY(status, '', rc)
-         
-#ifdef _LOGGER_USE_MPI              
+
+#ifdef _LOGGER_USE_MPI
       case ('mpifilter')
          allocate(f, source=build_MpiFilter(cfg, extra=extra, rc=status))
          _VERIFY(status, '', rc)
@@ -443,7 +445,7 @@ contains
       type (Filter) :: f
       class(YAML_Node), intent(in) :: cfg
       integer, optional, intent(out) :: rc
-      
+
       character(len=:), allocatable :: name
       integer :: status
 
@@ -461,18 +463,18 @@ contains
        type (LevelFilter) :: f
        class(YAML_Node), intent(in) :: cfg
        integer, optional, intent(out) :: rc
-       
+
        integer :: min_level, max_level
        integer :: status
 
        min_level = get_level('min_level', _RC)
        max_level = get_level('max_level', _RC)
- 
+
        f = LevelFilter(min_level, max_level)
-       
+
        _RETURN(_SUCCESS,rc)
     contains
-       
+
        integer function get_level(key, rc) result(level)
           character(len=*), intent(in) :: key
           integer, optional, intent(out) :: rc
@@ -493,7 +495,7 @@ contains
 
           _RETURN(_SUCCESS,rc)
         end function get_level
-        
+
     end function build_LevelFilter
 
 #ifdef _LOGGER_USE_MPI
@@ -504,7 +506,7 @@ contains
        class (KeywordEnforcer), optional, intent(in) :: unusable
        type (StringUnlimitedMap), optional, intent(in) :: extra
        integer, optional, intent(out) :: rc
-      
+
        character(len=:), allocatable :: comm_name
        integer :: comm
        integer :: rank, root, ierror
@@ -528,7 +530,7 @@ contains
        _UNUSED_DUMMY(unusable)
     end function build_MpiFilter
 #endif
-    
+
 
    subroutine build_handlers(this, cfg, unusable, extra, rc)
       class (ConfigElements), intent(inout) :: this
@@ -558,7 +560,7 @@ contains
 
       _RETURN(_SUCCESS,rc)
    end subroutine build_handlers
-   
+
    subroutine build_handler(h, cfg, elements, unusable, extra, rc)
       class (AbstractHandler), allocatable, intent(out) :: h
       class(YAML_Node), intent(inout) :: cfg
@@ -568,7 +570,7 @@ contains
       integer, optional, intent(out) :: rc
 
       integer :: status
-      
+
       call allocate_concrete_handler(h, cfg, _RC)
       call set_handler_level(h, cfg, _RC)
       call set_handler_formatter(h, cfg, elements%formatters, _RC)
@@ -600,11 +602,11 @@ contains
          case ('filehandler')
               call build_filehandler(fh, cfg)
               allocate(h, source=fh)
-#ifdef _LOGGER_USE_MPI              
+#ifdef _LOGGER_USE_MPI
          case ('mpifilehandler')
               call build_mpifilehandler(fh, cfg)
               allocate(h, source=fh)
-#endif              
+#endif
          case default
             _ASSERT(.false., "PFL::Config::build_handler() - unsupported class: '" // class_name //"'.", rc)
          end select
@@ -614,7 +616,7 @@ contains
       subroutine set_handler_level(h, cfg, rc)
          class (AbstractHandler), intent(inout) :: h
          class(YAML_Node), intent(in) :: cfg
-         integer, optional, intent(out) :: rc 
+         integer, optional, intent(out) :: rc
 
          character(len=:), allocatable :: level_name
          integer :: level
@@ -638,7 +640,7 @@ contains
 
          _RETURN(_SUCCESS,rc)
       end subroutine set_handler_level
-      
+
 
       subroutine set_handler_formatter(h, cfg, formatters, rc)
          use PFL_Formatter
@@ -726,7 +728,7 @@ contains
          end if
          _RETURN(_SUCCESS,rc)
       end subroutine set_handler_lock
-      
+
 
    end subroutine build_handler
 
@@ -893,8 +895,8 @@ contains
       end if
 
       h = FileHandler(fileName, delay=delay)
-     
-      _RETURN(_SUCCESS,rc) 
+
+      _RETURN(_SUCCESS,rc)
    end subroutine build_mpifilehandler
 #endif
 
@@ -990,7 +992,7 @@ contains
 
          _RETURN(_SUCCESS,rc)
       end subroutine set_logger_propagate
-      
+
 
       subroutine set_logger_filters(lgr, cfg, filters, unusable, extra, rc)
          class (Logger), intent(inout) :: lgr
@@ -1034,7 +1036,7 @@ contains
          type (StringUnlimitedMap), optional, intent(in) :: extra
          integer, optional, intent(out) :: rc
 
-         character(len=:), allocatable :: handler_name         
+         character(len=:), allocatable :: handler_name
          class(YAML_Node), pointer :: subcfg
          integer :: i
          integer :: status
@@ -1042,7 +1044,7 @@ contains
          if (cfg%has('handlers')) then
             subcfg => cfg%of('handlers')
             _ASSERT(cfg%has('handlers'), "PFL::Config::set_logger_handlers() - expected sequence for 'handlers' key.", rc)
-         
+
             do i = 1, subcfg%size()
                call subcfg%get(handler_name, i, _RC)
 
@@ -1145,7 +1147,7 @@ contains
       class (ConfigElements), intent(inout) :: this
       integer, optional, intent(in) :: comm
 
-#ifdef _LOGGER_USE_MPI      
+#ifdef _LOGGER_USE_MPI
       if (present(comm)) then
          this%global_communicator = comm
       else
