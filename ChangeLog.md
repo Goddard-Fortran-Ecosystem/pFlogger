@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `-quiet` flag for NAG Fortran
 
+- Workaround additional polymorphic assignment bug in gfortran 13.2 (in build_locks)
+
+## [1.13.2] - 2024-03-13
+
+### Fixed
+
+- Another fix for MockMpi layer.  With the workaround for NAG in previous release, GFortran 13 detects some inconsistencies that are now resolved.
+
 ## [1.13.1] - 2024-03-07
 
 ### Fixed

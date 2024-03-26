@@ -1,6 +1,5 @@
 module Test_MpiFormatter
    use funit
-   use mpi
    use PFL_MpiFormatter
    use PFL_LogRecord
    use PFL_SeverityLevels
@@ -10,6 +9,7 @@ contains
 
    @test
    subroutine test_no_reference()
+      use mpi
       type (MpiFormatter) :: f
       type (LogRecord) :: rec
       integer :: comm ! not really used due to mock
@@ -24,6 +24,7 @@ contains
 
    @test
    subroutine test_one_comm()
+      use mpi
       type (MpiFormatter) :: f
       type (LogRecord) :: rec
 
@@ -43,7 +44,8 @@ contains
 
    @test
    subroutine test_multi_comm()
-      type (MpiFormatter) :: f
+       use mpi
+     type (MpiFormatter) :: f
       type (LogRecord) :: rec
 
       integer :: comm = 1 ! not really used due to mock
@@ -62,6 +64,7 @@ contains
 
    @test
    subroutine test_multi_comm_default_fmt()
+      use mpi
       type (MpiFormatter) :: f
       type (LogRecord) :: rec
 
@@ -80,7 +83,8 @@ contains
 
 @test
    subroutine test_alt_names()
-      type (MpiFormatter) :: f
+       use mpi
+     type (MpiFormatter) :: f
       type (LogRecord) :: rec
 
       character(len=:), allocatable :: fmt
