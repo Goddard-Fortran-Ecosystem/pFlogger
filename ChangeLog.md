@@ -7,13 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2024-05-17
+
+### Changed
+
+- Change use of `spread` in `MockMPI.F90` initialization to `reshape` to avoid NVHPC issue
+
 ## [1.14.0] - 2024-03-26
+
+### Fixed
+
+- Workaround additional polymorphic assignment bug in gfortran 13.2 (in build_locks)
 
 ### Changed
 
 - Added `-quiet` flag for NAG Fortran
-
-- Workaround additional polymorphic assignment bug in gfortran 13.2 (in build_locks)
 
 ## [1.13.2] - 2024-03-13
 
