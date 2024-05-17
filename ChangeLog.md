@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Change use of `spread` in `MockMPI.F90` initialization to `reshape` to avoid NVHPC issue
+
 ## [1.14.0] - 2024-03-26
 
 ### Fixed
