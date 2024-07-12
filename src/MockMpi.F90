@@ -20,7 +20,7 @@ module mpi
 
    integer, parameter :: MPI_ADDRESS_KIND = INT64
    integer, parameter :: MPI_STATUS_SIZE = 6
-   integer, parameter :: MPI_STATUS_IGNORE(MPI_STATUS_SIZE) = spread(0, dim=1, ncopies=MPI_STATUS_SIZE)
+   integer, parameter :: MPI_STATUS_IGNORE(MPI_STATUS_SIZE) = reshape([0], shape=[MPI_STATUS_SIZE], pad=[0])
    integer, parameter :: MPI_LOGICAL = 9
    integer, parameter :: MPI_SUCCESS = 0
    integer, parameter :: MPI_INFO_NULL = 0
