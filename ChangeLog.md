@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- LLVMFlang compiler support
+  - NOTE: Issues between LLVMFlang, MPI, and linktime mocking means for now the tests are not built with LLVMFlang
+
 ### Changed
 
-- Update CI to remove `macos-12`, add `macos-14` and `ubuntu-24.04`
+- Update CI to have `gfortran-10` and `gfortran-11` only on `ubuntu-22.04`
+- Update CI NVIDIA to NVHPC 24.7
 
 ## [1.15.0] - 2024-05-17
 
