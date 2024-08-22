@@ -169,8 +169,8 @@ jobs:
             build/**/*.log
 
   Nvidia:
-    runs-on: ubuntu-20.04
-    container: nvcr.io/nvidia/nvhpc:24.1-devel-cuda12.3-ubuntu22.04
+    runs-on: ubuntu-24.04
+    container: nvcr.io/nvidia/nvhpc:24.7-devel-cuda12.5-ubuntu24.04
     env:
       FC: nvfortran
 
