@@ -93,7 +93,7 @@ jobs:
             build/**/*.log
 
   Intel:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       FC: ifx
@@ -169,8 +169,8 @@ jobs:
             build/**/*.log
 
   Nvidia:
-    runs-on: ubuntu-24.04
-    container: nvcr.io/nvidia/nvhpc:24.7-devel-cuda12.5-ubuntu24.04
+    runs-on: ubuntu-22.04
+    container: nvcr.io/nvidia/nvhpc:24.7-devel-cuda12.5-ubuntu22.04
     env:
       FC: nvfortran
 
