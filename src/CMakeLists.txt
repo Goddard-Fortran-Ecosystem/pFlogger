@@ -73,35 +73,30 @@ if (MPI_FOUND)
   if (SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
     target_compile_definitions(${this} PRIVATE SUPPORT_FOR_MPI_ALLOC_MEM_CPTR)
   endif ()
+  target_link_libraries (${this} PUBLIC MPI::MPI_Fortran)
 endif ()
 
 
 if (MPI_FOUND)
   if (PFUNIT_FOUND)
+    add_library (pflogger-with-mock STATIC ${SRCS})
+    set_target_properties(pflogger-with-mock PROPERTIES Fortran_MODULE_DIRECTORY ${PFLOGGER_BINARY_DIR}/mock-mpi)
     add_library (mock-mpi MockMpi.F90)
     set_target_properties(mock-mpi PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
     #    target_include_directories (mock-mpi PUBLIC ${MPI_Fortran_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
     target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/mock-mpi)
     target_include_directories (mock-mpi PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-    target_link_libraries (mock-mpi PUBLIC PFUNIT::funit)
     if (SUPPORT_FOR_C_LOC_ASSUMED_SIZE)
       target_compile_definitions(mock-mpi PRIVATE -DSUPPORT_FOR_C_LOC_ASSUMED_SIZE)
     endif ()
 
-    # Complex linkage depending on target:
-    set(isTest $<STREQUAL:$<TARGET_PROPERTY:IS_TEST>,1>)
-    set(notTest $<NOT:${isTest}>)
+    target_link_libraries (mock-mpi PUBLIC PFUNIT::funit)
+    target_link_libraries (pflogger-with-mock
+      PUBLIC mock-mpi GFTL_SHARED::gftl-shared GFTL::gftl-v2 YAFYAML::yafyaml)
+    message("HUH: ${PFLOGGER_BINARY_DIR}/mock-mpi")
+    target_include_directories(pflogger-with-mock PUBLIC ${PFLOGGER_BINARY_DIR}/mock-mpi ${CMAKE_CURRENT_SOURCE_DIR})
 
-    target_link_libraries (pflogger PUBLIC
-#      $<BUILD_INTERFACE:mock-mpi>
-      $<${notTest}:MPI::MPI_Fortran>
-      $<${isTest}:mock-mpi>
-      $<${isTest}:PFUNIT::funit>)
-
-  else ()
-    target_link_libraries (pflogger PRIVATE MPI::MPI_Fortran)
   endif ()
-
 endif()
 
 
