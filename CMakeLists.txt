@@ -68,12 +68,7 @@ if (PFUNIT_FOUND)
   if (NOT TARGET tests)
     add_custom_target(tests COMMAND ${CMAKE_CTEST_COMMAND})
   endif ()
-  # We found issues between LLVMFlang, tests, and MPI. Until
-  # this can be more fully explored, for now do not run the tests
-  # with LLVMFlang.
-  if (NOT CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")
-    add_subdirectory(tests EXCLUDE_FROM_ALL)
-  endif ()
+  add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
 add_subdirectory(examples EXCLUDE_FROM_ALL)

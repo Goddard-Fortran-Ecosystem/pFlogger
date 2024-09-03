@@ -6,7 +6,7 @@ module PFL_MpiLock
    use PFL_Exception
    use PFL_AbstractLock
    use iso_fortran_env, only: INT64
-   use iso_c_binding, only: c_ptr, c_f_pointer
+   use iso_c_binding, only: c_ptr, c_f_pointer, c_bool
    implicit none
    private
 
@@ -90,7 +90,7 @@ contains
       if (this%rank == 0) then
 
          block
-           logical, pointer :: scratchpad(:)
+           logical(kind=C_BOOL), pointer :: scratchpad(:)
            integer :: sizeof_logical
 
            call MPI_Type_extent(MPI_LOGICAL, sizeof_logical, status)
@@ -210,7 +210,7 @@ contains
       class (MpiLock), intent(inout) :: this
       integer, optional, intent(out) :: rc
 
-      logical, pointer :: scratchpad(:)
+      logical(kind=C_BOOL), pointer :: scratchpad(:)
       integer :: status
 
       ! Release resources

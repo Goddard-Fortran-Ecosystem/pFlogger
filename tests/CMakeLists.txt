@@ -40,9 +40,11 @@ if (MPI_FOUND)
   endif ()
 endif ()
 
-set (link_libraries pflogger GFTL_SHARED::gftl-shared GFTL::gftl-v2)
+set (link_libraries GFTL_SHARED::gftl-shared GFTL::gftl)
 if (MPI_FOUND)
-  list(APPEND link_libraries mock-mpi)
+  list (APPEND link_libraries pflogger-with-mock mock-mpi)
+else ()
+  list (APPEND link_libraries pflogger)
 endif()
 
 add_pfunit_ctest (pflogger_tests.x

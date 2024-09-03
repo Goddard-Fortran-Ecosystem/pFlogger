@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Modified CMake logic to build entirely separate library (pflogger-with-mock) to support testing with mocks. Previous cheat to link pflogger against real MPI for runs but mock MPI for tests did not work with LLVM.   Seems to be due to some encryption type protection on module info.
 - Update CI to have `gfortran-10` and `gfortran-11` only on `ubuntu-22.04`
 - Update CI NVIDIA to NVHPC 24.7
 
