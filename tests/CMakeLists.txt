@@ -47,7 +47,6 @@ else ()
   list (APPEND link_libraries pflogger)
 endif()
 
-message("Link libs: ${link_libraries}")
 add_pfunit_ctest (pflogger_tests.x
     TEST_SOURCES ${pf_tests}
     OTHER_SOURCES ${srcs}

@@ -93,7 +93,6 @@ if (MPI_FOUND)
     target_link_libraries (mock-mpi PUBLIC PFUNIT::funit)
     target_link_libraries (pflogger-with-mock
       PUBLIC mock-mpi GFTL_SHARED::gftl-shared GFTL::gftl-v2 YAFYAML::yafyaml)
-    message("HUH: ${PFLOGGER_BINARY_DIR}/mock-mpi")
     target_include_directories(pflogger-with-mock PUBLIC ${PFLOGGER_BINARY_DIR}/mock-mpi ${CMAKE_CURRENT_SOURCE_DIR})
 
   endif ()
