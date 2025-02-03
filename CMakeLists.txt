@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.12)
 project (PFLOGGER
-  VERSION 1.15.0
+  VERSION 1.16.0
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -68,7 +68,7 @@ if (PFUNIT_FOUND)
   if (NOT TARGET tests)
     add_custom_target(tests COMMAND ${CMAKE_CTEST_COMMAND})
   endif ()
-   add_subdirectory(tests EXCLUDE_FROM_ALL)
+  add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
 add_subdirectory(examples EXCLUDE_FROM_ALL)

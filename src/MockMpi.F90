@@ -9,7 +9,8 @@ module mpi
    public :: set_mpi_rank
    public :: set_mpi_size
    public :: verify
-   
+
+   public :: MPI_COMM_WORLD
    public :: MPI_ADDRESS_KIND
    public :: MPI_STATUS_SIZE
    public :: MPI_STATUS_IGNORE
@@ -17,7 +18,11 @@ module mpi
    public :: MPI_SUCCESS
    public :: MPI_INFO_NULL
    public :: MPI_ANY_SOURCE
+   public :: MPI_LOCK_EXCLUSIVE
 
+   public :: MPI_WIN_CREATE
+
+   integer, parameter :: MPI_COMM_WORLD = 0
    integer, parameter :: MPI_ADDRESS_KIND = INT64
    integer, parameter :: MPI_STATUS_SIZE = 6
    integer, parameter :: MPI_STATUS_IGNORE(MPI_STATUS_SIZE) = reshape([0], shape=[MPI_STATUS_SIZE], pad=[0])
@@ -25,7 +30,7 @@ module mpi
    integer, parameter :: MPI_SUCCESS = 0
    integer, parameter :: MPI_INFO_NULL = 0
    integer, parameter :: MPI_ANY_SOURCE = -1
-
+   integer, parameter :: MPI_LOCK_EXCLUSIVE = 1
 
    public :: MPI_Alloc_mem
    public :: MPI_Type_indexed
@@ -67,6 +72,10 @@ module mpi
    end interface MPI_Type_Commit
 
 
+   interface MPI_Win_create
+      procedure :: win_create_1
+!!$      procedure :: win_create_2
+   end interface MPI_Win_create
 
    type MockMpi
       integer :: rank
@@ -160,7 +169,19 @@ subroutine set_mpi_rank(rank)
    end subroutine verify
 
 
-  
+   subroutine Win_create_1(base, size, disp_unit, info, comm, win, ierror)
+#ifdef SUPPORT_FOR_ASSUMED_TYPE   
+     type(*) :: base(*)
+#else
+     logical :: base(*)
+#endif
+     integer(kind=MPI_ADDRESS_KIND) size
+     integer disp_unit, info, comm, win, ierror
+     
+     ierror = MPI_SUCCESS
+     mocker%call_count = mocker%call_count + 1
+     
+   end subroutine Win_create_1
 
 end module mpi
 
@@ -362,22 +383,6 @@ subroutine MPI_Free_mem(base, ierror)
    ierror = MPI_SUCCESS
 
 end subroutine MPI_Free_mem
-
-subroutine MPI_Win_create(base, size, disp_unit, info, comm, win, ierror)
-   use mpi
-#ifdef SUPPORT_FOR_ASSUMED_TYPE   
-   type(*) :: base(*)
-#else
-   logical :: base(*)
-#endif
-   integer(kind=MPI_ADDRESS_KIND) size
-   integer disp_unit, info, comm, win, ierror
-
-   ierror = MPI_SUCCESS
-   mocker%call_count = mocker%call_count + 1
-
-end subroutine MPI_Win_create
-
 
 ! This one is just a stub for now
 subroutine MPI_Comm_dup(comm, newcomm, ierror)
