@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.1] - 2025-02-06
+
+### Fixed
+
+- Reverted use of `c_bool` in `MpiLock.F90`. Was causing issues with some compiler/MPI combinations.
+
 ## [1.16.0] - 2025-02-03
 
 ### Added
