@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Update CMake minimum version to 3.24
+
 ## [1.16.1] - 2025-02-06
 
 ### Fixed
