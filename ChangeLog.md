@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Workaround for `ifx` 2025.2 preprocessor bug
 
+### Changed
+
+- Remove `macos-13` from CI, add `macos-15`
+- Add `gfortran-15` to macOS CI
+
 ## [1.16.1] - 2025-02-06
 
 ### Fixed
