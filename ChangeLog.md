@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Workaround for `ifx` 2025.2 preprocessor bug
+
 ### Changed
 
 - Update CMake minimum version to 3.24
-- Update CI to use `macos-15`, remove `macos-13`
+- Remove `macos-13` from CI, add `macos-15`
+- Add `gfortran-15` to macOS CI
 
 ## [1.16.1] - 2025-02-06
 
