@@ -18,7 +18,7 @@
 # environment.
 #
 # ------------------------------------------------------------------------ #
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required (VERSION 3.24)
 project (PFLOGGER
   VERSION 1.16.1
   LANGUAGES Fortran)
