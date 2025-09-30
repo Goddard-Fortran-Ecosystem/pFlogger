@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2025-09-30
+
+### Fixed
+
+- Workaround for `ifx` 2025.2 preprocessor bug
+
+### Changed
+
+- Updated required version of gFTL to v1.16.0
+- Updated required version of gFTL-shared to v1.11.0
+- Updated required version of yaFyaml to v1.6.0
+- Update CMake minimum version to 3.24
+- Remove `macos-13` from CI, add `macos-15`
+- Add `gfortran-15` to macOS CI
+
 ## [1.16.1] - 2025-02-06
 
 ### Fixed
