@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improved the error message when a format string requests more arguments than are provided. (#150)
+
 ## [1.17.0] - 2025-09-30
 
 ### Fixed
