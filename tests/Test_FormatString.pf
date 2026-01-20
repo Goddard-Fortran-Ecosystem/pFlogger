@@ -36,7 +36,7 @@ contains
       character(len=:), allocatable :: found
 
       found = formatString('i %i3.3 %i2.2', make_arg_vector(1))
-      @assertExceptionRaised('format_vector() - not enough position arguments for format string.')
+      @assertExceptionRaised('format_vector() - not enough position arguments for format string: "i %i3.3 %i2.2"')
 
    end subroutine test_format_vector_tooFewArgs
 
