@@ -1,6 +1,7 @@
 module pflogger
    use Pfl_Exception
    use PFL_LoggerManager
+   use PFL_AbstractConfigBuilder
    use PFL_AbstractHandlerPtrVector
    use PFL_AbstractHandlerPolyVector
    use PFL_Logger
@@ -55,6 +56,8 @@ module pflogger
    public :: initialize_severity_levels
    public :: finalize_severity_levels
 
+   public :: AbstractConfigBuilder
+
 #ifdef _LOGGER_USE_MPI
    public :: MpiLock
    public :: MpiFilter
@@ -66,10 +69,23 @@ module pflogger
 
 contains
 
-   subroutine initialize()
+   subroutine initialize(builder)
+      use PFL_AbstractConfigBuilder
+      use PFL_yaFyaml_ConfigBuilder, only: yaFyaml_ConfigBuilder
+      class(AbstractConfigBuilder), optional, intent(in) :: builder
+
+      class(AbstractConfigBuilder), allocatable :: builder_
 
       call initialize_severity_levels()
-      call initialize_logger_manager()
+
+      ! Use provided builder or default to yaFyaml
+      if (present(builder)) then
+         allocate(builder_, source=builder)
+      else
+         allocate(yaFyaml_ConfigBuilder :: builder_)
+      end if
+
+      call initialize_logger_manager(builder_)
       call set_last_resort(StreamHandler())
 
    end subroutine initialize

@@ -3,7 +3,7 @@
 ! retain lengths of strings when treated as unlimited polymorphic entities.
 ! Hence, character in such maps must be quoted inside a String object.
 !
-module Test_Config
+module Test_yaFyaml_ConfigBuilder
    use funit
    use PFL_Logger
    use PFL_LoggerManager
@@ -11,8 +11,9 @@ module Test_Config
    use PFL_StringFilterMap
    use PFL_StringFormatterMap
    use PFL_StringHandlerMap
+   use PFL_LoggingConfig, only: LoggingConfig
 
-   use PFL_Config
+   use PFL_yaFyaml_ConfigBuilder
    use yafyaml
    implicit none
 
@@ -353,14 +354,18 @@ contains
 
    @test
    subroutine test_build_formatters()
-      class(YAML_Node), allocatable :: formattersCfg
+      class(YAML_Node), allocatable :: cfg
       type (FormatterMap), pointer :: formatters
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
+      type (yaFyaml_ConfigBuilder) :: builder
 
-      call load(formattersCfg, EscapedTextStream( &
-           & " A: {format: '---'}\n" // &
-           & " B: {format: '---', datefmt: hello }\n"))
-      call elements%build_formatters(formattersCfg)
+      call load(cfg, EscapedTextStream( &
+           & " schema_version: 1\n" // &
+           & " formatters:\n" // &
+           & "   A: {format: '---'}\n" // &
+           & "   B: {format: '---', datefmt: hello }\n"))
+      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%build_formatters(elements)
       formatters => elements%get_formatters()
       @assert_that(int(formatters%size()), is(equal_to(2)))
 
@@ -389,17 +394,21 @@ contains
 
    @test
    subroutine test_build_filters()
-      class(YAML_Node), target, allocatable :: filtersCfg
+      class(YAML_Node), target, allocatable :: cfg
       type (FilterMap), pointer :: filters
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
+      type (yaFyaml_ConfigBuilder) :: builder
 
-      call load(filtersCfg, EscapedTextStream( &
-           & "  A: {name: A} \n" // &
-           & "  B: {name: B} \n"))
+      call load(cfg, EscapedTextStream( &
+           & "  schema_version: 1\n" // &
+           & "  filters:\n" // &
+           & "    A: {name: A} \n" // &
+           & "    B: {name: B} \n"))
 
-      call elements%build_filters(filtersCfg)
-!#      filters => elements%get_filters()
-!#      @assertEqual(2, filters%size())
+      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%build_filters(elements)
+      filters => elements%get_filters()
+      @assertEqual(2, filters%size())
 
    end subroutine test_build_filters
 
@@ -453,7 +462,7 @@ contains
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
       type (LogRecord) :: record
 
 
@@ -509,12 +518,13 @@ contains
       use PFL_StreamHandler
       use PFL_Formatter
 
-      class(YAML_Node), allocatable :: handlersCfg
+      class(YAML_Node), allocatable :: cfg
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
+      type (yaFyaml_ConfigBuilder) :: builder
 
       filters => elements%get_filters()
       formatters => elements%get_formatters()
@@ -525,21 +535,24 @@ contains
       call formatters%insert('formatterA', Formatter('%(message)'))
       call formatters%insert('formatterB', Formatter('%(levelname)'))
 
-      call load(handlerscfg, EscapedTextStream( &
-           & " A: \n" // &
-           & "    class:  StreamHandler \n" // &
-           & "    unit:  OUTPUT_UNIT   \n" // &
-           & "    formatter:  formatterA    \n" // &
-           & "    filters:  [filterA]     \n" // &
-           & "    level:  INFO          \n" // &
-           & " B:                        \n" // &
-           & "    class:  StreamHandler \n" // &
-           & "    unit:  OUTPUT_UNIT   \n" // &
-           & "    formatter:  formatterB    \n" // &
-           & "    filters:  [filterA, filterB] \n" // &
-           & "    level:  CRITICAL \n"))
+      call load(cfg, EscapedTextStream( &
+           & " schema_version: 1\n" // &
+           & " handlers:\n" // &
+           & "   A: \n" // &
+           & "      class:  StreamHandler \n" // &
+           & "      unit:  OUTPUT_UNIT   \n" // &
+           & "      formatter:  formatterA    \n" // &
+           & "      filters:  [filterA]     \n" // &
+           & "      level:  INFO          \n" // &
+           & "   B:                        \n" // &
+           & "      class:  StreamHandler \n" // &
+           & "      unit:  OUTPUT_UNIT   \n" // &
+           & "      formatter:  formatterB    \n" // &
+           & "      filters:  [filterA, filterB] \n" // &
+           & "      level:  CRITICAL \n"))
 
-      call elements%build_handlers(handlersCfg)
+      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%build_handlers(elements)
       handlers => elements%get_handlers()
       @assertEqual(2, handlers%size())
 
@@ -550,14 +563,16 @@ contains
 
       class(YAML_Node), allocatable :: cfg
 
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
       type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
       class (Logger), pointer :: lgr
 
       allocate(cfg, source=MappingNode())
+      builder = yaFyaml_ConfigBuilder(cfg)
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
-      call build_logger(lgr, cfg, elements)
+      call builder%build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger_trivial
 
@@ -570,10 +585,11 @@ contains
 
       type (FilterMap), pointer :: filters
       type (HandlerMap), pointer :: handlers
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
 
       class(YAML_Node), allocatable :: cfg
       type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
       class (Logger), pointer :: lgr
 
       filters => elements%get_filters()
@@ -588,7 +604,8 @@ contains
       lgr => mgr%get_logger('A')
 
       allocate(cfg, source=MappingNode())
-      call build_logger(lgr, cfg, elements)
+      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
 
@@ -603,6 +620,7 @@ contains
 
       type (LoggerManager), target :: mgr
       class(YAML_Node), allocatable :: cfg
+      type (yaFyaml_ConfigBuilder) :: builder
       type (MockBuffer), target :: buffer
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
@@ -610,7 +628,7 @@ contains
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
 
       integer :: comm = 0
       
@@ -624,9 +642,10 @@ contains
 
       cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
 
+      builder = yaFyaml_ConfigBuilder(cfg)
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
-      call build_logger(lgr, cfg, elements)
+      call builder%build_logger(lgr, cfg, elements)
 
       call lgr%info('message')
       @assertFalse(allocated(buffer%buffer))
@@ -645,12 +664,13 @@ contains
       type (MockBuffer), target :: buffer2
       class (Logger), pointer :: lgr
       type (MockHandler) :: h
+      type (yaFyaml_ConfigBuilder) :: builder
       class(YAML_Node), allocatable, target :: extra
 
       type (FilterMap), pointer :: filters
       type (FormatterMap), pointer :: formatters
       type (HandlerMap), pointer :: handlers
-      type (ConfigElements), target :: elements
+      type (LoggingConfig), target :: elements
       type (LoggerManager), target :: mgr
       
 
@@ -671,9 +691,10 @@ contains
       cfg = Config([P('handlers','[handlerA]'),P('level','INFO')])
       extra = Config([p('comm', comm)])
 
+      builder = yaFyaml_ConfigBuilder(cfg)
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
-      call build_logger(lgr, cfg, elements, extra=extra)
+      call builder%build_logger(lgr, cfg, elements, extra=extra)
 
       call lgr%info('message')
       @assertEqual('INFO: serial: message',buffer2%buffer)
@@ -694,7 +715,8 @@ contains
            & "  schema_version: 1 \n" // &
            & "  loggers: 1 \n"))
 
-      call mgr%load_config(cfg)
+      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call mgr%load_config()
 
       lgr => mgr%get_logger('A')
       expectedMessage = "FTL::Config::toConfigPtr() - type of 'loggers' is not a Config."
@@ -715,7 +737,8 @@ contains
            & "      A:         \n" // &
            & "         level: DEBUG \n"))
 
-      call mgr%load_config(cfg)
+      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call mgr%load_config()
       lgr => mgr%get_logger('A')
 
       @assertEqual(DEBUG, lgr%get_level())
@@ -741,7 +764,8 @@ contains
       call set_mpi_rank(0) ! is root
       call set_mpi_size(2)
 
-      call mgr%load_config(cfg)
+      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call mgr%load_config()
       lgr => mgr%get_logger('A')
 
       @assertEqual(DEBUG, lgr%get_level())
@@ -750,7 +774,8 @@ contains
       call set_mpi_rank(1) ! not root
       call set_mpi_size(2)
 
-      call mgr%load_config(cfg)
+      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call mgr%load_config()
       lgr => mgr%get_logger('A')
 
       @assertEqual(INFO, lgr%get_level())
@@ -758,4 +783,4 @@ contains
    end subroutine test_logger_root_level
 #endif
    
-end module Test_Config
+end module Test_yaFyaml_ConfigBuilder
