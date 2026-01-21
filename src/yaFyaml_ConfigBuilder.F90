@@ -85,10 +85,10 @@ contains
 
    subroutine load_from_node(this, cfg, rc)
       class(yaFyaml_ConfigBuilder), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
+      class(YAML_Node), allocatable, intent(inout) :: cfg
       integer, optional, intent(out) :: rc
 
-      this%cfg = cfg
+      call move_alloc(cfg, this%cfg)
 
       _RETURN(_SUCCESS, rc)
    end subroutine load_from_node
