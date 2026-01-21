@@ -1,6 +1,6 @@
 module Test_Complex_Config
    use funit
-   use PFL_Config
+   use PFL_yaFyaml_ConfigBuilder
    use PFL_Logger
    use PFL_LoggerManager
    use PFL_SeverityLevels
