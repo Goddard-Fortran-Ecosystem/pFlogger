@@ -407,6 +407,7 @@ contains
                allocate(lock, source=MpiLock(comm))
 #endif
             case default
+               _ASSERT(.false., 'PFL::Config::build_lock() - unsupported lock class.', rc)
             end select
          else
             _ASSERT(.false., 'PFL::Config::build_lock() - unsupported class of lock.', rc)
@@ -1056,14 +1057,19 @@ contains
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (FilterMap), pointer :: filters
+      type (HandlerMap), pointer :: handlers
 
       _UNUSED_DUMMY(this)
       _UNUSED_DUMMY(unusable)
 
+      filters => config%get_filters()
+      handlers => config%get_handlers()
+
       call set_logger_level(lgr, cfg, _RC)
       call set_logger_propagate(lgr, cfg, _RC)
-      call set_logger_filters(lgr, cfg, config%get_filters(), _RC)
-      call set_logger_handlers(lgr, cfg, config%get_handlers(), _RC)
+      call set_logger_filters(lgr, cfg, filters, _RC)
+      call set_logger_handlers(lgr, cfg, handlers, _RC)
 
       _RETURN(_SUCCESS,rc)
 
