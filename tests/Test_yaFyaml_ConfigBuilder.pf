@@ -571,7 +571,8 @@ contains
       allocate(cfg, source=MappingNode())
       call builder%load_from_node(cfg)
       lgr => mgr%get_logger('A')
-      ! cfg is empty by default
+      ! cfg is empty by default - reallocate for build_logger call
+      allocate(cfg, source=MappingNode())
       call builder%build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger_trivial
@@ -605,6 +606,8 @@ contains
 
       allocate(cfg, source=MappingNode())
       call builder%load_from_node(cfg)
+      ! Reallocate cfg after move_alloc in load_from_node
+      allocate(cfg, source=MappingNode())
       call builder%build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
@@ -643,6 +646,8 @@ contains
       cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
 
       call builder%load_from_node(cfg)
+      ! Reallocate cfg after move_alloc in load_from_node
+      cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
       call builder%build_logger(lgr, cfg, elements)
@@ -692,6 +697,8 @@ contains
       extra = Config([p('comm', comm)])
 
       call builder%load_from_node(cfg)
+      ! Reallocate cfg after move_alloc in load_from_node
+      cfg = Config([P('handlers','[handlerA]'),P('level','INFO')])
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
       call builder%build_logger(lgr, cfg, elements, extra=extra)
