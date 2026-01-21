@@ -77,17 +77,17 @@ jobs:
         run: |
           bash ./tools/ci-install-gfe.bash
 
+      - name: Configure pFlogger
+        run: |
+          cmake -B build -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
+
       - name: Build pFlogger
         run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
-          make -j4
+          cmake --build build --parallel 4
 
       - name: Build and Run Tests
         run: |
-          cd build
-          make -j4 tests || ctest -j1 --output-on-failure --repeat until-pass:4
+          cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
         uses: actions/upload-artifact@v4
@@ -148,17 +148,17 @@ jobs:
         run: |
           bash ./tools/ci-install-gfe.bash
 
+      - name: Configure pFlogger
+        run: |
+          cmake -B build -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
+
       - name: Build pFlogger
         run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
-          make -j4
+          cmake --build build --parallel 4
 
       - name: Build and Run Tests
         run: |
-          cd build
-          make -j4 tests || ctest -j1 --output-on-failure --repeat until-pass:4
+          cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
         uses: actions/upload-artifact@v4
@@ -235,7 +235,7 @@ jobs:
 
               echo "== Git safe.directory =="
               git config --global --add safe.directory "*"
-              
+
               echo "== Build GFE Prereqs =="
               bash ./tools/ci-install-gfe.bash
 
@@ -245,7 +245,7 @@ jobs:
 
               echo "== Build Tests (CURRENTLY TURNED OFF DUE TO PFUNIT ISSUES) =="
               #make -j4 tests || ctest -j1 --output-on-failure --repeat until-pass:4
-              
+
             '
 
       - name: Archive log files on failure
@@ -294,17 +294,17 @@ jobs:
         run: |
           bash ./tools/ci-install-gfe.bash
 
+      - name: Configure pFlogger
+        run: |
+          cmake -B build -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
+
       - name: Build pFlogger
         run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_Fortran_COMPILER=${FC} -DCMAKE_INSTALL_PREFIX=${HOME}/Software/pFlogger -DCMAKE_PREFIX_PATH=${HOME}/Software/GFE
-          make -j4
+          cmake --build build --parallel 4
 
       - name: Build and Run Tests
         run: |
-          cd build
-          make -j4 tests || ctest -j1 --output-on-failure --repeat until-pass:4
+          cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
         uses: actions/upload-artifact@v4
