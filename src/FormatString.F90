@@ -154,7 +154,7 @@ contains
 
          case (POSITION)
             
-#           define _END_OF_VALUES 'format_vector() - not enough position arguments for format string.'
+#           define _END_OF_VALUES 'format_vector() - not enough position arguments for format string: "'//trim(fmt)//'"'
             _ASSERT(.not.(argIter == args%end()), _END_OF_VALUES, rc)
             arg => argIter%of()
             string = string // handleScalar(arg, token%edit_descriptor)
