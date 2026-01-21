@@ -65,7 +65,7 @@ jobs:
           cmake --version
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -90,7 +90,7 @@ jobs:
           cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: logfiles-${{ matrix.compiler }}-${{ matrix.os }}
@@ -107,7 +107,7 @@ jobs:
     name: Intel Fortran
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -161,7 +161,7 @@ jobs:
           cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: logfiles-Intel
@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       FC: nvfortran
-      NVHPC_IMAGE: nvcr.io/nvidia/nvhpc:25.7-devel-cuda12.9-ubuntu24.04
+      NVHPC_IMAGE: nvcr.io/nvidia/nvhpc:25.11-devel-cuda13.0-ubuntu24.04
 
     steps:
       # Reclaim lots of space
@@ -205,7 +205,7 @@ jobs:
           docker system prune -af || true
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -250,7 +250,7 @@ jobs:
 
       - name: Archive log files on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: logfiles-Nvidia
           path: |
@@ -277,7 +277,7 @@ jobs:
           cmake --version
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -307,7 +307,7 @@ jobs:
           cmake --build build --parallel 4 --target tests || ctest --test-dir build --parallel 1 --output-on-failure --repeat until-pass:4
 
       - name: Archive log files on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: logfiles-Flang
