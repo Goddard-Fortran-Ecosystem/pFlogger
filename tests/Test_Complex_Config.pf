@@ -1,6 +1,6 @@
 module Test_Complex_Config
    use funit
-   use PFL_Config
+   use PFL_yaFyaml_ConfigBuilder
    use PFL_Logger
    use PFL_LoggerManager
    use PFL_SeverityLevels
@@ -80,9 +80,12 @@ contains
 
    @test
    subroutine test_config()
+      use PFL_yaFyaml_ConfigBuilder
       class (Logger), pointer :: lgr
       type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
 
+      call mgr%set_builder(builder)
       call mgr%load_file(FILE)
 
       lgr => mgr%get_logger('A')

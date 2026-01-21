@@ -1,8 +1,12 @@
 #include "error_handling_macros.fh"
-module PFL_Config
+module PFL_yaFyaml_ConfigBuilder
    use yafyaml
    use gftl2_StringVector
    use gftl2_UnlimitedVector
+   use PFL_AbstractConfigBuilder
+   use PFL_AbstractConfigBuilder, only: SECTION_FORMATTERS, SECTION_FILTERS, SECTION_HANDLERS, &
+                                       SECTION_LOCKS, SECTION_LOGGERS, SECTION_ROOT
+   use PFL_LoggingConfig
    use PFL_Logger
    use PFL_Exception, only: throw
    use PFL_SeverityLevels, only: name_to_level
@@ -30,7 +34,7 @@ module PFL_Config
    private
 
    ! Primary user interface
-   public :: ConfigElements
+   public :: yaFyaml_ConfigBuilder
 
    ! Remaining procedures are public just for testing purposes.
    public :: check_schema_version
@@ -43,53 +47,111 @@ module PFL_Config
 
    public :: build_logger
 
-   type ConfigElements
+   type, extends(AbstractConfigBuilder) :: yaFyaml_ConfigBuilder
       private
-      integer :: global_communicator = -1 ! not used in serial
-      type (FilterMap) :: filters
-      type (FormatterMap) :: formatters
-      type (HandlerMap) :: handlers
-      type (LockMap) :: locks
+      class(YAML_Node), allocatable :: cfg
    contains
+      procedure :: load_file
+      procedure :: load_from_node
+      procedure :: get_schema_version
       procedure :: build_locks
       procedure :: build_filters
       procedure :: build_formatters
       procedure :: build_handlers
+      procedure :: build_loggers_from_cfg
+      procedure :: build_root_logger_from_cfg
+      procedure :: build_logger
+   end type yaFyaml_ConfigBuilder
 
-      ! accessors
-      procedure :: set_global_communicator
-      procedure :: get_filters
-      procedure :: get_formatters
-      procedure :: get_handlers
-   end type ConfigElements
+   interface yaFyaml_ConfigBuilder
+      module procedure new_yaFyaml_ConfigBuilder
+   end interface yaFyaml_ConfigBuilder
 
 
 contains
 
+   subroutine load_file(this, filename, rc)
+      class(yaFyaml_ConfigBuilder), intent(inout) :: this
+      character(len=*), intent(in) :: filename
+      integer, optional, intent(out) :: rc
+
+      integer :: status
+
+      call load(this%cfg, filename, rc=status)
+      _VERIFY(status, '', rc)
+
+      _RETURN(_SUCCESS, rc)
+   end subroutine load_file
+
+   subroutine load_from_node(this, cfg, rc)
+      class(yaFyaml_ConfigBuilder), intent(inout) :: this
+      class(YAML_Node), allocatable, intent(inout) :: cfg
+      integer, optional, intent(out) :: rc
+
+      call move_alloc(cfg, this%cfg)
+
+      _RETURN(_SUCCESS, rc)
+   end subroutine load_from_node
+
+   function new_yaFyaml_ConfigBuilder(cfg) result(builder)
+      type(yaFyaml_ConfigBuilder) :: builder
+      class(YAML_Node), optional, intent(in) :: cfg
+
+      if (present(cfg)) then
+         builder%cfg = cfg
+      end if
+   end function new_yaFyaml_ConfigBuilder
+
+   function get_schema_version(this, rc) result(version)
+      class(yaFyaml_ConfigBuilder), intent(in) :: this
+      integer, optional, intent(out) :: rc
+      integer :: version
+
+      integer :: status
+
+      if (this%cfg%has('schema_version')) then
+         call this%cfg%get(version, 'schema_version', rc=status)
+         _VERIFY(status, '', rc)
+      else
+         version = -1 ! Invalid
+         _ASSERT(.false., 'Must specify a schema_version in configuration.', rc)
+      end if
+
+      _RETURN(_SUCCESS, rc)
+   end function get_schema_version
+
    ! Expects a mapping of formatter name to formatter mapping
-   subroutine build_formatters(this, cfg, unusable, extra, rc)
-      class(ConfigElements), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
+   subroutine build_formatters(this, config, unusable, extra, rc)
+      class(yaFyaml_ConfigBuilder), intent(in) :: this
+      type(LoggingConfig), intent(inout) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       class(NodeIterator), allocatable :: iter
       class (Formatter), allocatable :: f
+      class(YAML_Node), pointer :: formatters_cfg
       character(:), allocatable :: formatter_name
+      type(FormatterMap), pointer :: formatters
 
       integer :: status
 
-      _ASSERT(cfg%is_mapping(), "PFL::Config::build_formatters() - input cfg not a mapping", rc)
+      if (.not. this%cfg%has(SECTION_FORMATTERS)) then
+         _RETURN(_SUCCESS,rc)
+      end if
 
-      associate (b => cfg%begin(), e => cfg%end())
+      formatters_cfg => this%cfg%at(SECTION_FORMATTERS, _RC)
+      _ASSERT(formatters_cfg%is_mapping(), "PFL::Config::build_formatters() - input cfg not a mapping", rc)
+
+      formatters => config%get_formatters()
+      associate (b => formatters_cfg%begin(), e => formatters_cfg%end())
         iter = b
         do while (iter /= e)
            formatter_name = to_string(iter%first(), _RC)
 
-           call build_formatter(f, iter%second(), extra=extra, global_communicator=this%global_communicator, _RC)
+           call build_formatter(f, iter%second(), extra=extra, global_communicator=config%get_global_communicator(), _RC)
 
-           call this%formatters%insert(formatter_name, f)
+           call formatters%insert(formatter_name, f)
            deallocate(f)
            call iter%next()
         end do
@@ -288,26 +350,33 @@ contains
    end subroutine build_mpi_formatter
 #endif
 
-   subroutine build_locks(this, cfg, unusable, extra, rc)
+   subroutine build_locks(this, config, unusable, extra, rc)
       use PFL_AbstractLock
 #ifdef _LOGGER_USE_MPI
       use PFL_MpiLock
 #endif
-      class (ConfigElements), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
+      class (yaFyaml_ConfigBuilder), intent(in) :: this
+      type(LoggingConfig), intent(inout) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       class(NodeIterator), allocatable :: iter
-      class(YAML_Node), pointer :: subcfg
+      class(YAML_Node), pointer :: locks_cfg, subcfg
       character(:), allocatable :: lock_name
       class (AbstractLock), allocatable :: lock
+      type(LockMap), pointer :: locks
       integer :: status
 
-      _ASSERT(cfg%is_mapping(), "PFL::Config::build_locks() - input cfg not a mapping", rc)
+      if (.not. this%cfg%has(SECTION_LOCKS)) then
+         _RETURN(_SUCCESS,rc)
+      end if
 
-      associate (b => cfg%begin(), e => cfg%end())
+      locks_cfg => this%cfg%at(SECTION_LOCKS, _RC)
+      _ASSERT(locks_cfg%is_mapping(), "PFL::Config::build_locks() - input cfg not a mapping", rc)
+
+      locks => config%get_locks()
+      associate (b => locks_cfg%begin(), e => locks_cfg%end())
         iter = b
         do while (iter /= e)
 
@@ -316,7 +385,7 @@ contains
            !lock = build_lock(subcfg, extra=extra, _RC)
            allocate(lock, source=build_lock(subcfg, extra=extra, rc=status))
            _VERIFY(status,'',rc)
-           call this%locks%insert(lock_name, lock)
+           call locks%insert(lock_name, lock)
            call iter%next()
         end do
       end associate
@@ -351,6 +420,7 @@ contains
                allocate(lock, source=MpiLock(comm))
 #endif
             case default
+               _ASSERT(.false., 'PFL::Config::build_lock() - unsupported lock class.', rc)
             end select
          else
             _ASSERT(.false., 'PFL::Config::build_lock() - unsupported class of lock.', rc)
@@ -363,20 +433,28 @@ contains
    end subroutine build_locks
 
 
-   subroutine build_filters(this, cfg, unusable, extra, rc)
-      class (ConfigElements), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
+   subroutine build_filters(this, config, unusable, extra, rc)
+      class (yaFyaml_ConfigBuilder), intent(in) :: this
+      type(LoggingConfig), intent(inout) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       class(NodeIterator), allocatable :: iter
-      class(YAML_Node), pointer :: subcfg
+      class(YAML_Node), pointer :: filters_cfg, subcfg
       character(:), allocatable :: filter_name
       class(AbstractFilter), allocatable :: filter
+      type(FilterMap), pointer :: filters
       integer :: status
 
-      associate (b => cfg%begin(), e => cfg%end())
+      if (.not. this%cfg%has(SECTION_FILTERS)) then
+         _RETURN(_SUCCESS,rc)
+      end if
+
+      filters_cfg => this%cfg%at(SECTION_FILTERS, _RC)
+
+      filters => config%get_filters()
+      associate (b => filters_cfg%begin(), e => filters_cfg%end())
         iter = b
 
         do while (iter /= e)
@@ -384,10 +462,10 @@ contains
            filter_name = to_string(iter%first(), _RC)
 
            subcfg => iter%second()
-!#      filter = build_filter(subcfg, extra=extra, _RC)
-      allocate(filter, source=build_filter(subcfg, extra=extra, rc=status))
-      _VERIFY(status,'',rc)
-           call this%filters%insert(filter_name, filter)
+           ! Allocate filter from build function
+           allocate(filter, source=build_filter(subcfg, extra=extra, rc=status))
+           _VERIFY(status,'',rc)
+           call filters%insert(filter_name, filter)
            deallocate(filter)
            call iter%next()
         end do
@@ -520,8 +598,8 @@ contains
 
        comm = get_communicator(comm_name, extra=extra)
        root = 0
-       if (cfg%has('root')) then
-          call cfg%get(root, 'root', _RC)
+       if (cfg%has(SECTION_ROOT)) then
+          call cfg%get(root, SECTION_ROOT, _RC)
        end if
 
        f = MpiFilter(comm, root)
@@ -532,28 +610,36 @@ contains
 #endif
 
 
-   subroutine build_handlers(this, cfg, unusable, extra, rc)
-      class (ConfigElements), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
+   subroutine build_handlers(this, config, unusable, extra, rc)
+      class (yaFyaml_ConfigBuilder), intent(in) :: this
+      type(LoggingConfig), intent(inout) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       class(NodeIterator), allocatable :: iter
-      class(YAML_Node), pointer :: subcfg
+      class(YAML_Node), pointer :: handlers_cfg, subcfg
       character(:), allocatable :: handler_name
       class (AbstractHandler), allocatable :: h
+      type(HandlerMap), pointer :: handlers
       integer :: status
 
-      iter = cfg%begin()
-      do while (iter /= cfg%end())
+      if (.not. this%cfg%has(SECTION_HANDLERS)) then
+         _RETURN(_SUCCESS,rc)
+      end if
+
+      handlers_cfg => this%cfg%at(SECTION_HANDLERS, _RC)
+
+      handlers => config%get_handlers()
+      iter = handlers_cfg%begin()
+      do while (iter /= handlers_cfg%end())
 
          handler_name = to_string(iter%first(), _RC)
 
          subcfg => iter%second()
-         call build_handler(h,subcfg, this, extra=extra, _RC)
+         call build_handler(h,subcfg, config, extra=extra, _RC)
 
-         call this%handlers%insert(handler_name, h)
+         call handlers%insert(handler_name, h)
          deallocate(h)
          call iter%next()
       end do
@@ -561,21 +647,101 @@ contains
       _RETURN(_SUCCESS,rc)
    end subroutine build_handlers
 
-   subroutine build_handler(h, cfg, elements, unusable, extra, rc)
+   subroutine build_loggers_from_cfg(this, loggers, config, unusable, extra, rc)
+      use PFL_AbstractLogger, only: AbstractLogger
+      class(yaFyaml_ConfigBuilder), intent(in) :: this
+      type(LoggerMap), target, intent(inout) :: loggers
+      type(LoggingConfig), target, intent(in) :: config
+      class(KeywordEnforcer), optional, intent(in) :: unusable
+      type(StringUnlimitedMap), optional, intent(in) :: extra
+      integer, optional, intent(out) :: rc
+
+      class(YAML_Node), pointer :: lgrs_cfg, lgr_cfg
+      class(NodeIterator), allocatable :: iter
+      character(len=:), allocatable :: name
+      class(AbstractLogger), pointer :: lgr
+      integer :: status
+
+      if (this%cfg%has(SECTION_LOGGERS)) then
+         lgrs_cfg => this%cfg%at(SECTION_LOGGERS, rc=status)
+         _VERIFY(status,'',rc)
+         _ASSERT(lgrs_cfg%is_mapping(), "yaFyaml_ConfigBuilder::build_loggers_from_cfg() - expected mapping for '" // SECTION_LOGGERS // "'.", rc)
+
+         ! Loop over contained loggers
+         associate (b => lgrs_cfg%begin(), e => lgrs_cfg%end())
+           iter = b
+           do while (iter /= e)
+              name = to_string(iter%first(), rc=status)
+              _VERIFY(status,'',rc)
+
+              lgr => loggers%at(name)
+              if (.not. associated(lgr)) then
+                 ! Create logger if it doesn't exist
+                 allocate(lgr, source=newLogger(name))
+                 call loggers%set(name, lgr)
+                 lgr => loggers%at(name)
+              end if
+              lgr_cfg => lgrs_cfg%at(name)
+              
+              select type (lgr)
+              class is (Logger)
+                 call this%build_logger(lgr, lgr_cfg, config, extra=extra, rc=status)
+                 _VERIFY(status,'',rc)
+              end select
+              
+              call iter%next()
+           end do
+         end associate
+      end if
+
+      _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
+   end subroutine build_loggers_from_cfg
+
+   subroutine build_root_logger_from_cfg(this, root_logger, config, unusable, extra, rc)
+      class(yaFyaml_ConfigBuilder), intent(in) :: this
+      class(Logger), target, intent(inout) :: root_logger
+      type(LoggingConfig), target, intent(in) :: config
+      class(KeywordEnforcer), optional, intent(in) :: unusable
+      type(StringUnlimitedMap), optional, intent(in) :: extra
+      integer, optional, intent(out) :: rc
+
+      class(YAML_Node), pointer :: root_cfg
+      integer :: status
+
+      if (this%cfg%has(SECTION_ROOT)) then
+         root_cfg => this%cfg%at(SECTION_ROOT, rc=status)
+         _VERIFY(status,'',rc)
+         call this%build_logger(root_logger, root_cfg, config, extra=extra, rc=status)
+         _VERIFY(status,'',rc)
+      end if
+
+      _RETURN(_SUCCESS,rc)
+      _UNUSED_DUMMY(unusable)
+   end subroutine build_root_logger_from_cfg
+
+   subroutine build_handler(h, cfg, config, unusable, extra, rc)
       class (AbstractHandler), allocatable, intent(out) :: h
       class(YAML_Node), intent(inout) :: cfg
-      type (ConfigElements), intent(inout) :: elements
+      type (LoggingConfig), intent(inout) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (FormatterMap), pointer :: formatters
+      type (FilterMap), pointer :: filters
+      type (LockMap), pointer :: locks
+
+      formatters => config%get_formatters()
+      filters => config%get_filters()
+      locks => config%get_locks()
 
       call allocate_concrete_handler(h, cfg, _RC)
       call set_handler_level(h, cfg, _RC)
-      call set_handler_formatter(h, cfg, elements%formatters, _RC)
-      call set_handler_filters(h, cfg, elements%filters, _RC)
-      call set_handler_lock(h, cfg, elements%locks, _RC)
+      call set_handler_formatter(h, cfg, formatters, _RC)
+      call set_handler_filters(h, cfg, filters, _RC)
+      call set_handler_lock(h, cfg, locks, _RC)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
@@ -683,8 +849,8 @@ contains
          type(UnlimitedVector) :: empty
          integer :: i
 
-         if (cfg%has('filters')) then
-            subcfg => cfg%of('filters')
+         if (cfg%has(SECTION_FILTERS)) then
+            subcfg => cfg%of(SECTION_FILTERS)
             _ASSERT(subcfg%is_sequence(), 'PFL::Config::handler_filters() - "filters" not a squence', rc)
 
             do i = 1, subcfg%size()
@@ -900,23 +1066,30 @@ contains
    end subroutine build_mpifilehandler
 #endif
 
-   subroutine build_logger(lgr, cfg, elements, unusable, extra, rc)
+   subroutine build_logger(this, lgr, cfg, config, unusable, extra, rc)
       use PFL_StringUtilities, only: to_lower_case
+      class (yaFyaml_ConfigBuilder), intent(in) :: this
       class (Logger), intent(inout) :: lgr
       class(YAML_Node), intent(inout) :: cfg
-      type (ConfigElements), intent(inout) :: elements
+      type (LoggingConfig), intent(in) :: config
       class (KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (FilterMap), pointer :: filters
+      type (HandlerMap), pointer :: handlers
 
+      _UNUSED_DUMMY(this)
       _UNUSED_DUMMY(unusable)
+
+      filters => config%get_filters()
+      handlers => config%get_handlers()
 
       call set_logger_level(lgr, cfg, _RC)
       call set_logger_propagate(lgr, cfg, _RC)
-      call set_logger_filters(lgr, cfg, elements%filters, _RC)
-      call set_logger_handlers(lgr, cfg, elements%handlers, _RC)
+      call set_logger_filters(lgr, cfg, filters, _RC)
+      call set_logger_handlers(lgr, cfg, handlers, _RC)
 
       _RETURN(_SUCCESS,rc)
 
@@ -950,8 +1123,8 @@ contains
          comm = get_communicator(communicator_name, extra=extra, _RC)
 
          root = 0
-         if (cfg%has('root')) then
-            call cfg%get(root, 'root', _RC)
+         if (cfg%has(SECTION_ROOT)) then
+            call cfg%get(root, SECTION_ROOT, _RC)
          end if
 
          call MPI_Comm_rank(comm, rank, ierror)
@@ -1007,9 +1180,9 @@ contains
          integer :: i
          integer :: status
 
-         if (cfg%has('filters')) then
-            subcfg => cfg%of('filters')
-            _ASSERT(subcfg%is_sequence(), "PFL::Config::set_logger_filters() - expected sequence for 'filters' key.", rc)
+         if (cfg%has(SECTION_FILTERS)) then
+            subcfg => cfg%of(SECTION_FILTERS)
+            _ASSERT(subcfg%is_sequence(), "PFL::Config::set_logger_filters() - expected sequence for SECTION_FILTERS key.", rc)
 
             do i = 1, subcfg%size()
                call subcfg%get(filter_name, i, _RC)
@@ -1041,9 +1214,9 @@ contains
          integer :: i
          integer :: status
 
-         if (cfg%has('handlers')) then
-            subcfg => cfg%of('handlers')
-            _ASSERT(cfg%has('handlers'), "PFL::Config::set_logger_handlers() - expected sequence for 'handlers' key.", rc)
+         if (cfg%has(SECTION_HANDLERS)) then
+            subcfg => cfg%of(SECTION_HANDLERS)
+            _ASSERT(cfg%has(SECTION_HANDLERS), "PFL::Config::set_logger_handlers() - expected sequence for SECTION_HANDLERS key.", rc)
 
             do i = 1, subcfg%size()
                call subcfg%get(handler_name, i, _RC)
@@ -1122,40 +1295,4 @@ contains
       _RETURN(_SUCCESS,rc)
    end subroutine check_schema_version
 
-
-   function get_filters(this) result(ptr)
-      type (FilterMap), pointer :: ptr
-      class (ConfigElements), target, intent(in) :: this
-      ptr => this%filters
-   end function get_filters
-
-
-   function get_formatters(this) result(ptr)
-      type (FormatterMap), pointer :: ptr
-      class (ConfigElements), target, intent(in) :: this
-      ptr => this%formatters
-   end function get_formatters
-
-
-   function get_handlers(this) result(ptr)
-      type (HandlerMap), pointer :: ptr
-      class (ConfigElements), target, intent(in) :: this
-      ptr => this%handlers
-   end function get_handlers
-
-   subroutine set_global_communicator(this, comm)
-      class (ConfigElements), intent(inout) :: this
-      integer, optional, intent(in) :: comm
-
-#ifdef _LOGGER_USE_MPI
-      if (present(comm)) then
-         this%global_communicator = comm
-      else
-         this%global_communicator = MPI_COMM_WORLD
-      end if
-#endif
-
-   end subroutine set_global_communicator
-
-
-end module PFL_Config
+end module PFL_yaFyaml_ConfigBuilder

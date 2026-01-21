@@ -12,7 +12,6 @@
 #include "error_handling_macros.fh"
 module PFL_LoggerManager
    use gFTL2_StringUnlimitedMap
-   use yaFyaml
    use PFL_RootLogger, only: RootLogger
    use PFL_SeverityLevels
    use PFL_Logger, only: Logger, newLogger
@@ -26,7 +25,8 @@ module PFL_LoggerManager
    use mpi
 #endif
    use PFL_Exception, only: throw
-   use PFL_Config, only: ConfigElements, build_logger, check_schema_version
+   use PFL_LoggingConfig, only: LoggingConfig
+   use PFL_AbstractConfigBuilder, only: AbstractConfigBuilder
    implicit none
    private
 
@@ -37,10 +37,12 @@ module PFL_LoggerManager
 !!$   type, extends(Object) :: LoggerManager
    type :: LoggerManager
       private
-      type (RootLogger) :: root_node
+      type (RootLogger), public :: root_node
+      type (LoggingConfig), public :: config
       type (LoggerMap) :: loggers
-      type (ConfigElements) :: elements 
+      class (AbstractConfigBuilder), allocatable :: builder
    contains
+      procedure :: set_builder
       procedure :: get_logger_name
       procedure :: get_logger_root
       generic :: get_logger => get_logger_name
@@ -49,7 +51,7 @@ module PFL_LoggerManager
       procedure, private :: fixup_children
       procedure, nopass :: get_parent_prefix
 
-      procedure :: load_file
+      procedure :: load_file => load_file_method
       procedure :: load_config
       procedure :: build_loggers
       procedure :: build_root_logger
@@ -297,148 +299,100 @@ contains
    end function get_parent_prefix
 
 
-   subroutine initialize_logger_manager()
+   subroutine initialize_logger_manager(builder)
+      use PFL_AbstractConfigBuilder
+      class(AbstractConfigBuilder), intent(in) :: builder
       
       logging = LoggerManager(RootLogger(WARNING))
+      call logging%set_builder(builder)
 
    end subroutine initialize_logger_manager
 
 
 
-   subroutine load_file(this, file_name, unusable, extra, comm, rc)
-      class (LoggerManager), target, intent(inout) :: this
-      character(len=*), intent(in) :: file_name
+   ! Type-bound method - delegates to builder to load file
+   subroutine load_file_method(this, filename, unusable, extra, comm, rc)
+      class(LoggerManager), target, intent(inout) :: this
+      character(len=*), intent(in) :: filename
       class(KeywordEnforcer), optional, intent(in) :: unusable
-      type (StringUnlimitedMap), optional, intent(in) :: extra
+      type(StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
       integer, optional, intent(out) :: rc
 
-      type (StringUnlimitedMap) :: extra_
-
-      class(YAML_Node), allocatable :: c
       integer :: status
 
-      if (present(extra)) then
-         extra_ = extra
+      if (.not. allocated(this%builder)) then
+         _ASSERT(.false., 'LoggerManager::load_file() - builder not set. Call initialize() or set_builder() first.', rc)
       end if
 
-      if (present(comm)) then
-         call extra_%insert('_GLOBAL_COMMUNICATOR',comm)
-      end if
+      call this%builder%load_file(filename, rc=status)
+      _VERIFY(status, '', rc)
 
-      call load(c, file_name, rc=status)
-      _VERIFY(status,'',rc)
-
-      call this%load_config(c, extra=extra_, comm=comm, rc=status)
-      _VERIFY(status,'',rc)
+      call this%load_config(extra=extra, comm=comm, rc=status)
+      _VERIFY(status, '', rc)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
-   end subroutine load_file
+   end subroutine load_file_method
 
-   subroutine load_config(this, cfg, unusable, extra, comm, rc)
+   subroutine load_config(this, unusable, extra, comm, rc)
       class (LoggerManager), target, intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(in) :: comm
       integer, optional, intent(out) :: rc
 
-      class(YAML_Node), pointer :: subcfg
-
       integer :: status
 
-      call check_schema_version(cfg)
-  
-      associate (elements => this%elements)
-         call elements%set_global_communicator(comm)
+      _ASSERT(allocated(this%builder), 'LoggerManager::load_config() - builder must be set before calling load_config', rc)
 
-         if (cfg%has('locks')) then
-            subcfg => cfg%at('locks', rc=status); _VERIFY(status, '', rc)
-            call elements%build_locks(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
-         endif
+      ! Use builder to populate config
+      call this%builder%build(this%config, extra=extra, comm=comm, rc=status)
+      _VERIFY(status, '', rc)
 
-         if (cfg%has('filters')) then
-            subcfg => cfg%at('filters',rc=status); _VERIFY(status, '', rc)
-            call elements%build_filters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
-         endif
-
-         if (cfg%has('formatters')) then
-            subcfg => cfg%at('formatters',rc=status); _VERIFY(status, '', rc)
-            call elements%build_formatters(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
-         endif
-
-         if (cfg%has('handlers')) then
-            subcfg => cfg%at('handlers', rc=status); _VERIFY(status, '', rc)
-            call elements%build_handlers(subcfg, extra=extra, rc=status); _VERIFY(status, '', rc)
-         endif
-      end associate
-
-      call this%build_loggers(cfg, extra=extra, rc=status)
+      ! Now build loggers and root using the populated config
+      call this%build_loggers(extra=extra, rc=status)
       _VERIFY(status,'',rc)
-      call this%build_root_logger(cfg, extra=extra, rc=status)
+      call this%build_root_logger(extra=extra, rc=status)
       _VERIFY(status,'',rc)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
    end subroutine load_config
 
-   subroutine build_loggers(this, cfg, unusable, extra, rc)
+   subroutine set_builder(this, builder)
+      class(LoggerManager), intent(inout) :: this
+      class(AbstractConfigBuilder), intent(in) :: builder
+      
+      if (allocated(this%builder)) deallocate(this%builder)
+      allocate(this%builder, source=builder)
+   end subroutine set_builder
+
+   subroutine build_loggers(this, unusable, extra, rc)
       class (LoggerManager), target, intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      class(YAML_Node), pointer :: lgrs_cfg, lgr_cfg
-      
-      class(NodeIterator), allocatable :: iter
-      character(len=:), allocatable :: name
-      type (Logger), pointer :: lgr
       integer :: status
 
-      if (cfg%has('loggers')) then
-         lgrs_cfg => cfg%at('loggers', rc=status)
-         _VERIFY(status,'',rc)
-         _ASSERT(lgrs_cfg%is_mapping(), "LoggerManager::build_loggers() - expected mapping for 'loggers'.", rc)
-
-         ! Loop over contained loggers
-         associate (b => lgrs_cfg%begin(), e => lgrs_cfg%end())
-           iter = b
-           do while (iter /= e)
-              name = to_string(iter%first(), rc=status)
-              _VERIFY(status,'',rc)
-
-              lgr => this%get_logger(name)
-              lgr_cfg => lgrs_cfg%at(name)
-              call build_logger(lgr, lgr_cfg, this%elements, extra=extra, rc=status)
-              _VERIFY(status,'',rc)
-              call iter%next()
-           end do
-         end associate
-      end if
+      call this%builder%build_loggers_from_cfg(this%loggers, this%config, extra=extra, rc=status)
+      _VERIFY(status, '', rc)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
    end subroutine build_loggers
 
-
-   subroutine build_root_logger(this, cfg, unusable, extra, rc)
+   subroutine build_root_logger(this, unusable, extra, rc)
       class (LoggerManager), intent(inout) :: this
-      class(YAML_Node), intent(in) :: cfg
       class(KeywordEnforcer), optional, intent(in) :: unusable
       type (StringUnlimitedMap), optional, intent(in) :: extra
       integer, optional, intent(out) :: rc
 
-      class(YAML_Node), pointer :: root_cfg
       integer :: status
 
-      if (cfg%has('root')) then
-         root_cfg => cfg%at('root', rc=status)
-         _VERIFY(status,'',rc)
-         call build_logger(this%root_node, root_cfg, this%elements, extra=extra, rc=status)
-         _VERIFY(status,'',rc)
-      end if
+      call this%builder%build_root_logger_from_cfg(this%root_node, this%config, extra=extra, rc=status)
+      _VERIFY(status, '', rc)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
@@ -490,7 +444,7 @@ contains
          call this%root_node%set_level(level)
       end if
 
-      hdlMapPtr => this%elements%get_handlers()
+      hdlMapPtr => this%config%get_handlers()
       
       if (present(filename)) then
          h_name = get_hname()
@@ -547,7 +501,7 @@ contains
       class (AbstractHandler), pointer :: hdlPtr
       type (HandlerIterator) :: iter
 
-      hdlMapPtr => this%elements%get_handlers()
+      hdlMapPtr => this%config%get_handlers()
       iter =  hdlMapPtr%begin()
       do while (iter /= hdlMapPtr%end())
          hdlPtr => iter%second()

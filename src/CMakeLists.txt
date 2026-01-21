@@ -8,7 +8,9 @@ set(SRCS
    AbstractFilter.F90
    AbstractLogger.F90
    AbstractLock.F90
-   Config.F90
+   LoggingConfig.F90
+   AbstractConfigBuilder.F90
+   yaFyaml_ConfigBuilder.F90
    DynamicBuffer.F90
    Exception.F90
    Filter.F90
