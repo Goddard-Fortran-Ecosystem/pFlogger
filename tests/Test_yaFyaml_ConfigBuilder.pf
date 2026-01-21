@@ -364,7 +364,7 @@ contains
            & " formatters:\n" // &
            & "   A: {format: '---'}\n" // &
            & "   B: {format: '---', datefmt: hello }\n"))
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       call builder%build_formatters(elements)
       formatters => elements%get_formatters()
       @assert_that(int(formatters%size()), is(equal_to(2)))
@@ -405,7 +405,7 @@ contains
            & "    A: {name: A} \n" // &
            & "    B: {name: B} \n"))
 
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       call builder%build_filters(elements)
       filters => elements%get_filters()
       @assertEqual(2, filters%size())
@@ -551,7 +551,7 @@ contains
            & "      filters:  [filterA, filterB] \n" // &
            & "      level:  CRITICAL \n"))
 
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       call builder%build_handlers(elements)
       handlers => elements%get_handlers()
       @assertEqual(2, handlers%size())
@@ -569,7 +569,7 @@ contains
       class (Logger), pointer :: lgr
 
       allocate(cfg, source=MappingNode())
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       lgr => mgr%get_logger('A')
       ! cfg is empty by default
       call builder%build_logger(lgr, cfg, elements)
@@ -604,7 +604,7 @@ contains
       lgr => mgr%get_logger('A')
 
       allocate(cfg, source=MappingNode())
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       call builder%build_logger(lgr, cfg, elements)
 
    end subroutine test_build_logger
@@ -642,7 +642,7 @@ contains
 
       cfg = Config([P('handlers','[handlerA]'),P('level','WARNING'),P('root_level','INFO')])
 
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
       call builder%build_logger(lgr, cfg, elements)
@@ -691,7 +691,7 @@ contains
       cfg = Config([P('handlers','[handlerA]'),P('level','INFO')])
       extra = Config([p('comm', comm)])
 
-      builder = yaFyaml_ConfigBuilder(cfg)
+      call builder%load_from_node(cfg)
       mgr = LoggerManager(RootLogger(WARNING))
       lgr => mgr%get_logger('serial')
       call builder%build_logger(lgr, cfg, elements, extra=extra)
@@ -709,13 +709,15 @@ contains
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
       character(len=:), allocatable :: expectedMessage
+      type(yaFyaml_ConfigBuilder) :: builder
 
 
       call load(cfg, EscapedTextStream( &
            & "  schema_version: 1 \n" // &
            & "  loggers: 1 \n"))
 
-      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call builder%load_from_node(cfg)
+      call mgr%set_builder(builder)
       call mgr%load_config()
 
       lgr => mgr%get_logger('A')
@@ -730,6 +732,7 @@ contains
 
       type (LoggerManager), target :: mgr
       class (Logger), pointer :: lgr
+      type(yaFyaml_ConfigBuilder) :: builder
 
       call load(cfg, EscapedTextStream( &
            & "  schema_version: 1 \n" // &
@@ -737,7 +740,8 @@ contains
            & "      A:         \n" // &
            & "         level: DEBUG \n"))
 
-      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      call builder%load_from_node(cfg)
+      call mgr%set_builder(builder)
       call mgr%load_config()
       lgr => mgr%get_logger('A')
 
@@ -763,8 +767,11 @@ contains
       ! configure the mock layer
       call set_mpi_rank(0) ! is root
       call set_mpi_size(2)
-
-      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      block
+         type(yaFyaml_ConfigBuilder) :: builder
+         call builder%load_from_node(cfg)
+         call mgr%set_builder(builder)
+      end block
       call mgr%load_config()
       lgr => mgr%get_logger('A')
 
@@ -773,8 +780,11 @@ contains
       ! configure the mock layer
       call set_mpi_rank(1) ! not root
       call set_mpi_size(2)
-
-      call mgr%set_builder(yaFyaml_ConfigBuilder(cfg))
+      block
+         type(yaFyaml_ConfigBuilder) :: builder
+         call builder%load_from_node(cfg)
+         call mgr%set_builder(builder)
+      end block
       call mgr%load_config()
       lgr => mgr%get_logger('A')
 

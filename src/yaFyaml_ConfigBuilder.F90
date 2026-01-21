@@ -52,6 +52,7 @@ module PFL_yaFyaml_ConfigBuilder
       class(YAML_Node), allocatable :: cfg
    contains
       procedure :: load_file
+      procedure :: load_from_node
       procedure :: get_schema_version
       procedure :: build_locks
       procedure :: build_filters
@@ -82,11 +83,23 @@ contains
       _RETURN(_SUCCESS, rc)
    end subroutine load_file
 
+   subroutine load_from_node(this, cfg, rc)
+      class(yaFyaml_ConfigBuilder), intent(inout) :: this
+      class(YAML_Node), intent(in) :: cfg
+      integer, optional, intent(out) :: rc
+
+      this%cfg = cfg
+
+      _RETURN(_SUCCESS, rc)
+   end subroutine load_from_node
+
    function new_yaFyaml_ConfigBuilder(cfg) result(builder)
       type(yaFyaml_ConfigBuilder) :: builder
-      class(YAML_Node), intent(in) :: cfg
+      class(YAML_Node), optional, intent(in) :: cfg
 
-      builder%cfg = cfg
+      if (present(cfg)) then
+         builder%cfg = cfg
+      end if
    end function new_yaFyaml_ConfigBuilder
 
    function get_schema_version(this, rc) result(version)
