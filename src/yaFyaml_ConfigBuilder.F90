@@ -716,12 +716,19 @@ contains
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (FormatterMap), pointer :: formatters
+      type (FilterMap), pointer :: filters
+      type (LockMap), pointer :: locks
+
+      formatters => config%get_formatters()
+      filters => config%get_filters()
+      locks => config%get_locks()
 
       call allocate_concrete_handler(h, cfg, _RC)
       call set_handler_level(h, cfg, _RC)
-      call set_handler_formatter(h, cfg, config%get_formatters(), _RC)
-      call set_handler_filters(h, cfg, config%get_filters(), _RC)
-      call set_handler_lock(h, cfg, config%get_locks(), _RC)
+      call set_handler_formatter(h, cfg, formatters, _RC)
+      call set_handler_filters(h, cfg, filters, _RC)
+      call set_handler_lock(h, cfg, locks, _RC)
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
