@@ -19,12 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - External projects can now implement custom builders without modifying pFlogger core
 - Improved error messages in `FormatString` to include the problematic format string
 - Renamed `Test_Config.pf` to `Test_yaFyaml_ConfigBuilder.pf`
+- Remove `gfortran-12` from macos runners, clean up CI
 
 ### Removed
 
 - Removed obsolete `Config.F90` (replaced by Builder pattern implementation)
 - Improved the error message when a format string requests more arguments than are provided. (#150)
-- Remove `gfortran-12` from macos runners
 
 ## [1.17.0] - 2025-09-30
 
