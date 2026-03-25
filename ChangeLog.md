@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `get_handler(name)` public method to `LoggerManager` (#155). Returns a pointer to a named handler from the configuration registry, or a null pointer if the name is not found. Enables user code to attach globally-defined handlers (configured via `load_file`/`load_config`) to dynamically-created loggers without accessing private internals.
+
 ### Changed
 
 - Refactored configuration system to use Builder pattern

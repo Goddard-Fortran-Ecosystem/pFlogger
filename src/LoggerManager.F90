@@ -57,6 +57,8 @@ module PFL_LoggerManager
       procedure :: build_root_logger
       procedure :: basic_config
 
+      procedure :: get_handler
+
       procedure :: free
    end type LoggerManager
    
@@ -493,6 +495,28 @@ contains
       end function 
 
    end subroutine basic_config
+
+   !---------------------------------------------------------------------------
+   ! FUNCTION:
+   ! get_handler
+   !
+   ! DESCRIPTION:
+   ! Return a pointer to the named handler from the manager's configuration
+   ! registry.  Returns a null pointer if no handler with that name has been
+   ! registered.
+   !---------------------------------------------------------------------------
+   function get_handler(this, name) result(handler)
+      class(AbstractHandler), pointer :: handler
+      class(LoggerManager), target, intent(in) :: this
+      character(len=*), intent(in) :: name
+
+      type(HandlerMap), pointer :: hdlMapPtr
+
+      hdlMapPtr => this%config%get_handlers()
+      handler => hdlMapPtr%at(name)
+
+   end function get_handler
+
 
    subroutine free(this)
       class(LoggerManager), intent(inout) :: this
