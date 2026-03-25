@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-03-25
+
+### Added
+
+- Added `get_handler(name)` public method to `LoggerManager` (#155). Returns a pointer to a named handler from the configuration registry, or a null pointer if the name is not found. Enables user code to attach globally-defined handlers (configured via `load_file`/`load_config`) to dynamically-created loggers without accessing private internals.
+
+### Changed
+
+- Refactored configuration system to use Builder pattern
+  - Created `AbstractConfigBuilder` with template method pattern
+  - Moved yaFyaml-specific logic to `yaFyaml_ConfigBuilder` implementation
+  - Created `LoggingConfig` as pure data container, replacing `ConfigElements`
+  - `LoggerManager` now uses abstract builder interface with no yaFyaml dependency
+  - Added `SCHEMA_VERSION` and public `SECTION_*` constants to enforce schema contract
+  - Updated `initialize()` to accept optional builder for dependency injection
+  - External projects can now implement custom builders without modifying pFlogger core
+- Improved error messages in `FormatString` to include the problematic format string
+- Renamed `Test_Config.pf` to `Test_yaFyaml_ConfigBuilder.pf`
+- Remove `gfortran-12` from macos runners, clean up CI
+
+### Removed
+
+- Removed obsolete `Config.F90` (replaced by Builder pattern implementation)
+- Improved the error message when a format string requests more arguments than are provided. (#150)
+
 ## [1.17.0] - 2025-09-30
 
 ### Fixed

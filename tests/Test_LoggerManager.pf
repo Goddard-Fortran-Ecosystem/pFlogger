@@ -5,6 +5,7 @@ module Test_LoggerManager
    use PFL_Logger
    use PFL_RootLogger
    use PFL_SeverityLevels
+   use PFL_StringHandlerMap
    implicit none
 
 contains
@@ -250,6 +251,48 @@ contains
       @assertEqual('', buffer%buffer)
 
    end subroutine test_propagate_off
-   
+
+
+   @test
+   subroutine test_get_handler_found()
+      use MockHandler_mod
+      use PFL_AbstractHandler
+      type (LoggerManager), target :: manager
+      type (HandlerMap), pointer :: hdlMapPtr
+      type (MockBuffer), target :: buffer
+      type (MockHandler) :: h
+      class (AbstractHandler), pointer :: retrieved
+
+      manager = LoggerManager(RootLogger(WARNING))
+
+      ! Insert a named handler directly into the config's handler map
+      h = MockHandler(buffer)
+      hdlMapPtr => manager%config%get_handlers()
+      call hdlMapPtr%insert('console', h)
+
+      ! Retrieve via the public API
+      retrieved => manager%get_handler('console')
+
+      @assertTrue(associated(retrieved))
+      @assertTrue(same_type_as(retrieved, h))
+
+   end subroutine test_get_handler_found
+
+
+   @test
+   subroutine test_get_handler_not_found()
+      use PFL_AbstractHandler
+      type (LoggerManager), target :: manager
+      class (AbstractHandler), pointer :: retrieved
+
+      manager = LoggerManager(RootLogger(WARNING))
+
+      ! Retrieve a handler that was never registered
+      retrieved => manager%get_handler('nonexistent')
+
+      @assertFalse(associated(retrieved))
+
+   end subroutine test_get_handler_not_found
+
 
 end module Test_LoggerManager

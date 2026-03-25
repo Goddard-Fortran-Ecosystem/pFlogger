@@ -22,7 +22,7 @@ set(pf_tests
    Test_FormatString.pf
    Test_ArgListUtilities.pf
    Test_SeverityLevels.pf
-   Test_Config.pf
+   Test_yaFyaml_ConfigBuilder.pf
    Test_Complex_Config.pf
    Test_SimTime.pf
 )
