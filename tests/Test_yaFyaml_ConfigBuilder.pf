@@ -799,5 +799,169 @@ contains
       
    end subroutine test_logger_root_level
 #endif
-   
+
+   ! Regression test for GitHub issue: multi-level logger hierarchy loaded from
+   ! YAML config must have parent pointers wired up by fixup_ancestors().
+   !
+   ! In pFlogger 1.18, build_loggers_from_cfg() inserted loggers directly into
+   ! the loggers map via loggers%set(), bypassing get_logger() which calls
+   ! fixup_ancestors().  This left parent pointers null for config-defined
+   ! loggers, causing two bugs:
+   !   1. getEffectiveLevel() returned NOTSET (0), so all messages passed the
+   !      isEnabledFor check (debug messages appeared despite WARNING level).
+   !   2. emit() found no handlers via the broken parent chain and fell through
+   !      to last_resort, producing wrong format output.
+
+   @test
+   subroutine test_multilevel_logger_parent_chain()
+      ! Verify that after load_config(), a two-level logger hierarchy has
+      ! correct parent pointers: CAP.EXTDATA -> CAP -> ROOT_LOGGER.
+      !
+      ! Regression: in pFlogger 1.18, build_loggers_from_cfg() inserted
+      ! loggers via loggers%set(), bypassing get_logger() / fixup_ancestors(),
+      ! leaving parent pointers null for all config-defined loggers.
+      use PFL_RootLogger
+
+      class(YAML_Node), allocatable :: cfg
+      type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
+      class (Logger), pointer :: lgr_cap, lgr_extdata
+      class (Logger), pointer :: parent
+
+      call load(cfg, EscapedTextStream( &
+           & "  schema_version: 1 \n" // &
+           & "  loggers:   \n" // &
+           & "      CAP:         \n" // &
+           & "         level: WARNING \n" // &
+           & "      CAP.EXTDATA:  \n" // &
+           & "         level: WARNING \n"))
+
+      call builder%load_from_node(cfg)
+      mgr = LoggerManager(RootLogger(WARNING))
+      call mgr%set_builder(builder)
+      call mgr%load_config()
+
+      lgr_extdata => mgr%get_logger('CAP.EXTDATA')
+      lgr_cap     => mgr%get_logger('CAP')
+
+      ! CAP.EXTDATA's parent must be CAP (not root or null)
+      parent => lgr_extdata%get_parent()
+      @assertTrue(associated(parent), 'CAP.EXTDATA parent must not be null')
+      @assertEqual('CAP', parent%get_name())
+
+      ! CAP's parent must be ROOT_LOGGER
+      parent => lgr_cap%get_parent()
+      @assertTrue(associated(parent), 'CAP parent must not be null')
+      @assertEqual('ROOT_LOGGER', parent%get_name())
+
+   end subroutine test_multilevel_logger_parent_chain
+
+
+   @test
+   subroutine test_multilevel_logger_effective_level()
+      ! Verify that getEffectiveLevel() correctly traverses the parent chain
+      ! for a config-defined multi-level logger hierarchy.
+      !
+      ! Regression: if parent pointers are null (the 1.18 bug), getEffectiveLevel()
+      ! returns NOTSET (0) and all messages pass isEnabledFor, causing debug
+      ! messages to appear even when the effective level should be WARNING.
+      use PFL_RootLogger
+
+      class(YAML_Node), allocatable :: cfg
+      type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
+      class (Logger), pointer :: lgr
+
+      ! CAP.EXTDATA has NOTSET level; it should inherit WARNING from CAP.
+      call load(cfg, EscapedTextStream( &
+           & "  schema_version: 1 \n" // &
+           & "  loggers:   \n" // &
+           & "      CAP:         \n" // &
+           & "         level: WARNING \n" // &
+           & "      CAP.EXTDATA:  \n" // &
+           & "         level: NOTSET \n"))
+
+      call builder%load_from_node(cfg)
+      mgr = LoggerManager(RootLogger(WARNING))
+      call mgr%set_builder(builder)
+      call mgr%load_config()
+
+      lgr => mgr%get_logger('CAP.EXTDATA')
+
+      ! Effective level must be WARNING (inherited from CAP), not NOTSET (0).
+      ! A NOTSET result (0) would indicate broken parent chain.
+      @assertEqual(WARNING, lgr%getEffectiveLevel(), &
+           & 'CAP.EXTDATA effective level should be WARNING (inherited from CAP)')
+
+      ! Debug messages must NOT pass the level check
+      @assertFalse(lgr%isEnabledFor(DEBUG), &
+           & 'DEBUG should not be enabled when effective level is WARNING')
+
+      ! Info messages must NOT pass the level check
+      @assertFalse(lgr%isEnabledFor(INFO), &
+           & 'INFO should not be enabled when effective level is WARNING')
+
+      ! Warning messages must pass the level check
+      @assertTrue(lgr%isEnabledFor(WARNING), &
+           & 'WARNING should be enabled when effective level is WARNING')
+
+   end subroutine test_multilevel_logger_effective_level
+
+
+   @test
+   subroutine test_multilevel_logger_handler_propagation()
+      ! Verify that messages from a config-defined child logger propagate
+      ! through the parent chain to the root handler.
+      !
+      ! Regression: with broken parent pointers, emit() found 0 handlers via
+      ! the chain and fell through to last_resort, producing wrong output.
+      use MockHandler_mod
+      use PFL_RootLogger
+      use PFL_Formatter
+
+      class(YAML_Node), allocatable :: cfg
+      type (LoggerManager), target :: mgr
+      type (yaFyaml_ConfigBuilder) :: builder
+      class (Logger), pointer :: lgr
+      type (MockHandler) :: h
+      type (MockBuffer), target :: buffer
+
+      ! Root logger at INFO; child loggers at NOTSET (inherit INFO from root).
+      ! A MockHandler is attached to the root logger.
+      ! An INFO message to CAP.EXTDATA must propagate up to the root handler.
+      call load(cfg, EscapedTextStream( &
+           & "  schema_version: 1 \n" // &
+           & "  loggers:   \n" // &
+           & "      CAP:         \n" // &
+           & "         level: NOTSET \n" // &
+           & "      CAP.EXTDATA:  \n" // &
+           & "         level: NOTSET \n"))
+
+      call builder%load_from_node(cfg)
+      mgr = LoggerManager(RootLogger(INFO))
+      call mgr%set_builder(builder)
+      call mgr%load_config()
+
+      ! Attach a MockHandler with a known formatter to the root logger
+      h = MockHandler(buffer)
+      call h%set_formatter(Formatter('%(message)a'))
+      call mgr%root_node%add_handler(h)
+
+      lgr => mgr%get_logger('CAP.EXTDATA')
+
+      buffer%buffer = ''
+      call lgr%info('hello from child')
+
+      ! The message must have reached the root handler
+      @assertEqual('hello from child', buffer%buffer, &
+           & 'INFO message from CAP.EXTDATA must propagate to root handler')
+
+      ! A debug message must NOT reach the handler (root is at INFO)
+      buffer%buffer = ''
+      call lgr%debug('should be filtered')
+      @assertEqual('', buffer%buffer, &
+           & 'DEBUG message must be filtered by root logger INFO level')
+
+   end subroutine test_multilevel_logger_handler_propagation
+
 end module Test_yaFyaml_ConfigBuilder

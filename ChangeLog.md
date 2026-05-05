@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-05-05
+
+### Fixed
+
+- Fixed broken parent-pointer chain for loggers defined in YAML configuration (#162).
+  The 1.18.0 refactor to the Builder pattern introduced a regression where
+  `build_loggers_from_cfg()` inserted loggers directly into the logger map via
+  `loggers%set()`, bypassing `LoggerManager::get_logger()` which is responsible
+  for calling `fixup_ancestors()`. Without `fixup_ancestors()`, parent pointers
+  were left null for all config-defined loggers, causing two symptoms:
+  - `getEffectiveLevel()` returned `NOTSET` (0) instead of traversing the parent
+    chain, so all messages passed the `isEnabledFor` check (e.g., DEBUG messages
+    appeared even when the configured level was WARNING).
+  - `emit()` found no handlers via the broken parent chain and fell through to
+    the `last_resort` handler, producing incorrect output format.
+  The fix calls `fixup_ancestors()` for every logger in the map after
+  `build_loggers_from_cfg()` completes, and also as a safety net when
+  `get_logger()` is called for a logger that was pre-inserted by the config
+  loader. Three regression tests have been added to `Test_yaFyaml_ConfigBuilder.pf`
+  to catch this class of bug going forward.
+
+### Changed
+
+- Added `concurrency` group to CI workflow to cancel in-progress runs when a new commit is pushed to the same PR
+- Removed `macos-14` (Sonoma) from the CI runner matrix; it is deprecated upstream and two OS releases behind
+- Added `macos-26` (macOS Tahoe) to the GNU CI runner matrix
+- Updated `actions/upload-artifact` from v6 to v7 in `main.yml`
+- Fixed Intel Fortran test to 2025.3 as 2026.0 has issues with pFlogger (see #161)
+
 ## [1.18.0] - 2026-03-25
 
 ### Added
