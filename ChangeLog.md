@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `macos-14` (Sonoma) from the CI runner matrix; it is deprecated upstream and two OS releases behind
 - Added `macos-26` (macOS Tahoe) to the GNU CI runner matrix
 - Updated `actions/upload-artifact` from v6 to v7 in `main.yml`
+- Fixed Intel Fortran test to 2025.3 as 2026.0 has issues with pFlogger (see #161)
 
 ## [1.18.0] - 2026-03-25
 
