@@ -141,11 +141,13 @@ contains
 
       if (associated(tmp)) then
 
-         ! cast to Logger
-         select type (tmp)
-         type is (Logger)
-            lgr => tmp
-         type is (Placeholder)
+          ! cast to Logger
+          select type (tmp)
+          type is (Logger)
+             lgr => tmp
+             call this%fixup_ancestors(lgr, rc=status)
+             _VERIFY(status,'',rc)
+          type is (Placeholder)
             block
               type (Placeholder) :: ph
 
@@ -377,9 +379,29 @@ contains
       integer, optional, intent(out) :: rc
 
       integer :: status
+      type (LoggerIterator) :: iter
+      class (AbstractLogger), pointer :: tmp
+      class (Logger), pointer :: lgr
 
       call this%builder%build_loggers_from_cfg(this%loggers, this%config, extra=extra, rc=status)
       _VERIFY(status, '', rc)
+
+      ! After all loggers are inserted, fix up parent pointers for each.
+      ! build_loggers_from_cfg inserts loggers directly into the map,
+      ! bypassing get_logger() which would normally call fixup_ancestors.
+      associate (b => this%loggers%begin(), e => this%loggers%end())
+        iter = b
+        do while (iter /= e)
+           tmp => iter%second()
+           select type (tmp)
+           type is (Logger)
+              lgr => tmp
+              call this%fixup_ancestors(lgr, rc=status)
+              _VERIFY(status, '', rc)
+           end select
+           call iter%next()
+        end do
+      end associate
 
       _RETURN(_SUCCESS,rc)
       _UNUSED_DUMMY(unusable)
