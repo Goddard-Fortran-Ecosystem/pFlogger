@@ -145,8 +145,6 @@ contains
           select type (tmp)
           type is (Logger)
              lgr => tmp
-             call this%fixup_ancestors(lgr, rc=status)
-             _VERIFY(status,'',rc)
           type is (Placeholder)
             block
               type (Placeholder) :: ph
