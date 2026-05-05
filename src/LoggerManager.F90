@@ -141,11 +141,11 @@ contains
 
       if (associated(tmp)) then
 
-          ! cast to Logger
-          select type (tmp)
-          type is (Logger)
-             lgr => tmp
-          type is (Placeholder)
+         ! cast to Logger
+         select type (tmp)
+         type is (Logger)
+            lgr => tmp
+         type is (Placeholder)
             block
               type (Placeholder) :: ph
 
