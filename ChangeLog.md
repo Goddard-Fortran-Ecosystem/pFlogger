@@ -28,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   loader. Three regression tests have been added to `Test_yaFyaml_ConfigBuilder.pf`
   to catch this class of bug going forward.
 
+### Changed
+
+- Added `concurrency` group to CI workflow to cancel in-progress runs when a new commit is pushed to the same PR
+- Removed `macos-14` (Sonoma) from the CI runner matrix; it is deprecated upstream and two OS releases behind
+- Added `macos-26` (macOS Tahoe) to the GNU CI runner matrix
+- Updated `actions/upload-artifact` from v6 to v7 in `main.yml`
+
 ## [1.18.0] - 2026-03-25
 
 ### Added
