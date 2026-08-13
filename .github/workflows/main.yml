@@ -126,12 +126,12 @@ jobs:
 
       - name: Install Intel oneAPI compilers
         timeout-minutes: 5
-        run: sudo apt-get install intel-oneapi-compiler-fortran-${{ env.INTEL_ONEAPI_VERSION }} intel-oneapi-compiler-dpcpp-cpp-${{ env.INTEL_ONEAPI_VERSION }}
+        run: sudo apt-get install intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp
 
       # optional
       - name: Install Intel MPI
         timeout-minutes: 5
-        run: sudo apt-get install intel-oneapi-mpi-${{ env.INTEL_MPI_VERSION }} intel-oneapi-mpi-devel-${{ env.INTEL_MPI_VERSION }}
+        run: sudo apt-get install intel-oneapi-mpi intel-oneapi-mpi-devel
 
       - name: Setup Intel oneAPI environment
         run: |
