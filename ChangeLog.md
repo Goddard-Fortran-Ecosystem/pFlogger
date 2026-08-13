@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Work around the ifx 2026.1 intrinsic-assignment regression when initializing
+  the logger-manager singleton (#161).
+
 ### Changed
 
 - Update CI to match build matrix of GFE

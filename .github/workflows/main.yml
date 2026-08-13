@@ -105,10 +105,6 @@ jobs:
     env:
       FC: ifx
       CC: icx
-      # Pinned to 2025.3 because oneAPI 2026.0 has issues with yaFyaml and pFlogger tests.
-      # See: https://github.com/Goddard-Fortran-Ecosystem/GFE/actions/runs/24901429504/job/72919871357?pr=55
-      INTEL_ONEAPI_VERSION: "2025.3"
-      INTEL_MPI_VERSION: "2021.17"
 
     name: Intel Fortran
     steps:
