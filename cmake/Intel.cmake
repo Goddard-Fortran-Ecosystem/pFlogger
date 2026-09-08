@@ -1,6 +1,20 @@
-set (FPP_FLAG "-cpp")
-set (SUPPRESS_LINE_LENGTH_WARNING "-diag-disable 5268")
+if(WIN32)
+  set(no_optimize "-Od")
+  set(check_all "-check:uninit")
+  set(debug_info "-Zi")
+  set(save_temps "-Qsave-temps")
+  set(SUPPRESS_LINE_LENGTH_WARNING "-Qdiag-disable:5268")
+  set(FPP_FLAG "-fpp")
+else()
+  set(no_optimize "-O0")
+  set(check_all "-check uninit")
+  set(debug_info "-g")
+  set(save_temps "-save-temps")
+  set(SUPPRESS_LINE_LENGTH_WARNING "-diag-disable 5268")
+  set(FPP_FLAG "-cpp")
+endif()
+
 set (CMAKE_Fortran_FLAGS_RELEASE "${FPP_FLAG} -O3 -free -stand f08 ${SUPPRESS_LINE_LENGTH_WARNING}")
-set (CMAKE_Fortran_FLAGS_DEBUG   "${FPP_FLAG} -O0 -g -traceback \
-      -check uninit -free -stand f08 -save-temps ${SUPPRESS_LINE_LENGTH_WARNING}")
+set (CMAKE_Fortran_FLAGS_DEBUG   "${FPP_FLAG} ${no_optimize} ${debug_info} -traceback \
+      ${check_all} -free -stand f08 ${save_temps} ${SUPPRESS_LINE_LENGTH_WARNING}")
 
