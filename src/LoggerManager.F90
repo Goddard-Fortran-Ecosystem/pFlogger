@@ -33,6 +33,7 @@ module PFL_LoggerManager
    public :: LoggerManager
    public :: initialize_logger_manager
    public :: logging ! singleton instance
+   public :: assignment(=)
 
 !!$   type, extends(Object) :: LoggerManager
    type :: LoggerManager
@@ -66,6 +67,10 @@ module PFL_LoggerManager
    interface LoggerManager
       module procedure new_LoggerManager
    end interface LoggerManager
+
+   interface assignment(=)
+      module procedure copy_LoggerManager
+   end interface assignment(=)
    
    type (LoggerManager), target, save :: logging
 
@@ -96,6 +101,17 @@ contains
       manager%loggers = LoggerMap()
 
    end function new_LoggerManager
+
+
+   subroutine copy_LoggerManager(lhs, rhs)
+       type(LoggerManager), intent(out) :: lhs
+       type(LoggerManager), intent(in) :: rhs
+
+       lhs%root_node = rhs%root_node
+       lhs%config = rhs%config
+       lhs%loggers = rhs%loggers
+       if (allocated(rhs%builder)) allocate(lhs%builder, source=rhs%builder)
+   end subroutine copy_LoggerManager
 
 
    !---------------------------------------------------------------------------  
@@ -305,7 +321,10 @@ contains
       use PFL_AbstractConfigBuilder
       class(AbstractConfigBuilder), intent(in) :: builder
       
-      logging = LoggerManager(RootLogger(WARNING))
+      ! Avoid intrinsic assignment of the singleton, which crashes in ifx 2026.1
+      ! while copying its unallocated polymorphic builder component.
+      logging%root_node = RootLogger(WARNING)
+      logging%loggers = LoggerMap()
       call logging%set_builder(builder)
 
    end subroutine initialize_logger_manager
