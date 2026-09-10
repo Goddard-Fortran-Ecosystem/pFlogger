@@ -1,4 +1,18 @@
-set(cpp "-cpp") # default for all other versions
+if(WIN32)
+  set(no_optimize "-Od")
+  set(check_all "-check:nouninit")
+  set(debug_info "-Zi")
+  set(save_temps "-Qsave-temps")
+  set(SUPPRESS_LINE_LENGTH_WARNING "-Qdiag-disable:5268")
+  set(cpp "-fpp")
+else()
+  set(no_optimize "-O0")
+  set(check_all "-check nouninit")
+  set(debug_info "-g")
+  set(save_temps "-save-temps")
+  set(SUPPRESS_LINE_LENGTH_WARNING "-diag-disable 5268")
+  set(cpp "-cpp")
+endif()
 if(CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER_EQUAL 2025.2 AND CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 2025.3)
 
   message(STATUS "Working around ifx ${CMAKE_Fortran_COMPILER_VERSION} FPP bug (using external cpp -P)")
@@ -31,8 +45,7 @@ exec \"${cpp_exe}\" -P -traditional-cpp -undef \"$@\"
   endif()
 endif()
 
-set (SUPPRESS_LINE_LENGTH_WARNING "-diag-disable 5268")
 set (CMAKE_Fortran_FLAGS_RELEASE "${cpp} -O3 -free -stand f08 ${SUPPRESS_LINE_LENGTH_WARNING}")
-set (CMAKE_Fortran_FLAGS_DEBUG   "${cpp} -O0 -g -traceback \
-      -check nouninit -free -stand f08 -save-temps ${SUPPRESS_LINE_LENGTH_WARNING}")
+set (CMAKE_Fortran_FLAGS_DEBUG   "${cpp} ${no_optimize} ${debug_info} -traceback \
+      ${check_all} -free -stand f08 ${save_temps} ${SUPPRESS_LINE_LENGTH_WARNING}")
 
