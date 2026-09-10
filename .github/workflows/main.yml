@@ -280,9 +280,9 @@ jobs:
 
   Flang:
     runs-on: ubuntu-latest
-    container: gmao/llvm-flang:latest
+    container: gmao/llvm-flang-openmpi:latest
     env:
-      FC: flang-new
+      FC: flang-22
       LANGUAGE: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       LANG: en_US.UTF-8
