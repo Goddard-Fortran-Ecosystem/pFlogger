@@ -54,6 +54,7 @@ jobs:
             -G "Ninja" \
             -DCMAKE_Fortran_COMPILER=gfortran \
             -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_Fortran_FLAGS="-D_WIN32" \
             -DSKIP_MPI=YES \
             -DSKIP_OPENMP=ON \
             -DSKIP_ROBUST=YES
@@ -63,6 +64,7 @@ jobs:
           cmake -B build -G "Ninja" \
             -DCMAKE_Fortran_COMPILER=gfortran \
             -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_Fortran_FLAGS="-D_WIN32" \
             -DCMAKE_INSTALL_PREFIX="${HOME}/Software/pFlogger" \
             -DCMAKE_PREFIX_PATH="${HOME}/Software/GFE" \
             -DENABLE_MPI=OFF
