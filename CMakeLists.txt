@@ -57,6 +57,10 @@ if(NOT found)
   message( FATAL_ERROR "Unrecognized Fortran compiler. Please use Intel (ifort), GCC (gfortran), or NAG (nagfor).")
 endif()
 
+if (WIN32)
+  add_compile_definitions(_WIN32)
+endif()
+
 include(CheckCompilerCapabilities)
 include(check_intrinsic_kinds RESULT_VARIABLE found)
 

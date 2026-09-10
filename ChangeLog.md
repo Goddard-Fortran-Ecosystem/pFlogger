@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Windows CI workflow for MinGW `gfortran` and Intel `ifx`
+
+### Fixed
+
+- Allow for CRLF newline line endings (45 bytes) on Windows in `test_do_rollover` (issue #170)
+
 ## [1.19.0] - 2026-09-10
 
 ### Fixed

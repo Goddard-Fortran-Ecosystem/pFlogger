@@ -145,10 +145,11 @@ contains
       @assertTrue(exists)
       inquire(FILE='logFile.1', exist=exists, size=fSize)
       @assertTrue(exists)
-      @assertEqual(42, fSize)
+      ! 42 bytes with LF line endings, 45 bytes with Windows CRLF
+      @assertTrue(fSize == 42 .or. fSize == 45)
       inquire(FILE='logFile.2', exist=exists, size=fSize)
       @assertTrue(exists)
-      @assertEqual(42, fSize)
+      @assertTrue(fSize == 42 .or. fSize == 45)
       
       ! First set should be in 'logFile.2'
       open(file='logFile.2',newunit=unit, status='old', form='formatted')
