@@ -17,14 +17,14 @@ module Test_RotatingFileHandler_mod
 
    contains
 
-      procedure :: setUp   
-      procedure :: tearDown 
+      procedure :: setUp
+      procedure :: tearDown
 
    end type Test_RotatingFileHandler
 
 contains
 
-   
+
    subroutine setUp(this)
       class (Test_RotatingFileHandler), intent(inout) :: this
 
@@ -34,7 +34,7 @@ contains
 
    end subroutine setUp
 
-   
+
    subroutine tearDown(this)
       class (Test_RotatingFileHandler), intent(inout) :: this
 
@@ -59,12 +59,12 @@ contains
 
    end subroutine tearDown
 
-   
+
 @Test
    subroutine test_emitBasic(this)
       ! Make sure RotatingFileHandler defaults to FileHandler when
       ! max_bytes and backup_count are not specified
-      class (Test_RotatingFileHandler), intent(inout) :: this   
+      class (Test_RotatingFileHandler), intent(inout) :: this
 
       integer :: unit
       character(len=32) :: foundMessage
@@ -73,7 +73,7 @@ contains
       h = RotatingFileHandler('logFile')
       call h%handle(this%record_0)
       call h%close()
-      
+
       open(newunit=unit, file='logFile', status='old', form='formatted')
       read(unit, '(a)') foundMessage
       close(unit)
@@ -83,18 +83,18 @@ contains
    end subroutine test_emitBasic
 
 
-! TODO   
+! TODO
 !@Test
    subroutine test_should_rollover(this)
       ! The RFH should signal that it's time to rollover when 'max_bytes'
       ! has been exceeded
-      class (Test_RotatingFileHandler), intent(inout) :: this   
+      class (Test_RotatingFileHandler), intent(inout) :: this
 
       type (RotatingFileHandler) :: h
       integer :: unit
 
       h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
-      ! Each record is 14 bytes, and default 
+      ! Each record is 14 bytes, and default
       ! Since max_bytes=30, h should rollOver after 3 records = 42 bytes
 
       @assertFalse(h%should_rollover())
@@ -111,18 +111,26 @@ contains
 
    end subroutine test_should_rollover
 
-   
+
 @Test
    subroutine test_do_rollover(this)
       ! The RFH should roll over every time 'max_bytes' is exceeded and should
       ! create a maximum of 'backup_count' files
-      class (Test_RotatingFileHandler), intent(inout) :: this   
+      class (Test_RotatingFileHandler), intent(inout) :: this
 
       type (RotatingFileHandler) :: h
       integer :: unit
       integer :: fSize
       logical :: exists
       character(len=32) :: foundMessage
+
+#ifdef _WIN32
+      ! Windows uses CRLF line endings
+      integer, parameter :: expected_fSize = 45
+#else
+      ! Linux uses LF line endings
+      integer, parameter :: expected_fSize = 42
+#endif
 
       h = RotatingFileHandler('logFile', max_bytes='30', backup_count=2)
 
@@ -145,11 +153,11 @@ contains
       @assertTrue(exists)
       inquire(FILE='logFile.1', exist=exists, size=fSize)
       @assertTrue(exists)
-      @assertEqual(42, fSize)
+      @assertTrue(fSize == expected_fSize)
       inquire(FILE='logFile.2', exist=exists, size=fSize)
       @assertTrue(exists)
-      @assertEqual(42, fSize)
-      
+      @assertTrue(fSize == expected_fSize)
+
       ! First set should be in 'logFile.2'
       open(file='logFile.2',newunit=unit, status='old', form='formatted')
       read(unit, '(a)') foundMessage
@@ -169,7 +177,7 @@ contains
       read(unit, '(a)') foundMessage
       @assertEqual('INFO: name: B', foundMessage)
       close(unit)
-      
+
       ! Third set should be in 'logFile'
       open(file='logFile',newunit=unit, status='old', form='formatted')
       read(unit, '(a)') foundMessage
@@ -177,10 +185,10 @@ contains
       read(unit, '(a)') foundMessage
       @assertEqual('INFO: name: C', foundMessage)
       close(unit)
-      
-      
+
+
    end subroutine test_do_rollover
 
-      
+
 end module Test_RotatingFileHandler_mod
 
