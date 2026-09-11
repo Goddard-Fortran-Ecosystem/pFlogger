@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------ #
 cmake_minimum_required (VERSION 3.24)
 project (PFLOGGER
-  VERSION 1.19.0
+  VERSION 1.19.1
   LANGUAGES Fortran)
 
 set (CMAKE_MODULE_PATH
@@ -55,6 +55,10 @@ find_package (PFUNIT QUIET)
 include(${CMAKE_Fortran_COMPILER_ID} RESULT_VARIABLE found)
 if(NOT found)
   message( FATAL_ERROR "Unrecognized Fortran compiler. Please use Intel (ifort), GCC (gfortran), or NAG (nagfor).")
+endif()
+
+if (WIN32)
+  add_compile_definitions(_WIN32)
 endif()
 
 include(CheckCompilerCapabilities)
